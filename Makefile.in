@@ -1,0 +1,152 @@
+#########################################
+# installed directories
+#########################################
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+datadir=@datadir@
+mandir=@mandir@
+sharedstatedir=@sharedstatedir@
+sysconfdir=@sysconfdir@/come
+includedir=@includedir@/come
+datarootdir=@datarootdir@/come
+docdir=@datadir@/doc
+libdir=@libdir@
+
+#########################################
+# environmnet variables
+#########################################
+CC=@CC@
+CXX=@CXX@
+INSTALL=@INSTALL@
+CFLAGS=@CFLAGS@
+CXXFLAGS=@CXXFLAGS@
+LIBS=@LIBS@
+OS=@OS@
+DESTDIR=@DESTDIR@
+OBJS=@OBJS@
+
+#########################################
+# main
+#########################################
+all: come #libcome.a
+
+come: config.h src/main.o $(OBJS)
+	$(CC) -c src/main.c -o src/main.o $(CFLAGS) `llvm-config --cflags`
+	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS) `llvm-config --cxxflags --ldflags --system-libs --libs all` 
+
+#libcome.a: come.c come-string.c come-string2.c come-wstring.c
+#	PWD=`pwd` ./come -c come.c 
+#	PWD=`pwd` ./come -c come-string.c
+#	PWD=`pwd` ./come -c come-string2.c
+#	PWD=`pwd` ./come -c come-wstring.c
+#	ar r libcome.a come.o come-string.o come-string2.o come-wstring.o 
+
+#########################################
+# Object files
+#########################################
+$(OBJS): src/*.h Makefile configure
+
+#########################################
+# install
+#########################################
+#ifeq  ($(shell uname),Darwin)
+#install:
+#	mkdir -p $(DESTDIR)/include
+#	cp ./come.h.osx $(DESTDIR)/include/come.h
+#
+#	mkdir -p $(DESTDIR)/lib
+#	ranlib $(DESTDIR)/lib/libcome.a
+#
+##	mkdir -p $(DESTDIR)/share/man/man1
+##	$(INSTALL) ./man/come.1.gz $(DESTDIR)/share/man/man1
+#
+#	mkdir -p "$(DESTDIR)/bin"
+#	$(INSTALL) -m 755 ./come "$(DESTDIR)/bin"
+#
+#	mkdir -p $(DESTDIR)/share/doc/come
+#	$(INSTALL) -m 644 ./README.md "$(DESTDIR)/share/doc/come"
+#else
+#install:
+#	mkdir -p $(DESTDIR)/include
+#	$(INSTALL) -m 644 ./come.h $(DESTDIR)/include
+#
+#	mkdir -p $(DESTDIR)/lib
+#	$(INSTALL) -m 644 ./libcome.a $(DESTDIR)/lib
+#
+##	mkdir -p $(DESTDIR)/share/man/man1
+##	$(INSTALL) ./man/come.1.gz $(DESTDIR)/share/man/man1
+#
+#	mkdir -p "$(DESTDIR)/bin"
+#	$(INSTALL) -m 755 ./come "$(DESTDIR)/bin"
+#
+#	mkdir -p $(DESTDIR)/share/doc/come
+#	$(INSTALL) -m 644 ./README.md "$(DESTDIR)/share/doc/come"
+#endif
+
+#########################################
+# permission
+#########################################
+permission:
+	chmod 644 *
+	chmod 755 .git man src configure
+	chmod 644 src/*.c
+	chmod 644 src/*.h
+	chmod 755 update_come.sh
+
+#########################################
+# clean
+#########################################
+clean:
+	rm -fR come src/*.o
+
+distclean: clean
+	rm -fR  config.h Makefile autom4te.cache 
+
+#########################################
+# test
+#########################################
+test: 
+	@echo "Compile to test code..."
+	PWD=`pwd` ./come code/HelloWorld.c
+	./code/HelloWorld && echo "return code is $?"
+#	if test `uname -s` = "Darwin"; then PWD=`pwd` ./come code/HelloWorld2.c -lncurses; else PWD=`pwd` ./come code/HelloWorld2.c -lncursesw; fi
+#	./code/HelloWorld2
+#	PWD=`pwd` ./come code/HelloWorld3.c
+#	./code/HelloWorld3
+#	PWD=`pwd` ./come code/HelloWorld4.c
+#	./code/HelloWorld4
+#	PWD=`pwd` ./come -c code/HelloWorld5.c
+#	PWD=`pwd` ./come -c code/HelloWorld6.c
+#	PWD=`pwd` ./come code/HelloWorld7.c code/HelloWorld5.o code/HelloWorld6.o
+#	./code/HelloWorld7
+#	PWD=`pwd` ./come code/HelloWorld8.c
+#	./code/HelloWorld8
+#	PWD=`pwd` ./come code/HelloWorld9.c
+#	./code/HelloWorld9
+#	PWD=`pwd` ./come code/HelloWorld9-2.c
+#	./code/HelloWorld9-2
+#	PWD=`pwd` ./come code/HelloWorld9-5.c
+#	./code/HelloWorld9-5
+#	PWD=`pwd` ./come code/HelloWorld10.c
+#	./code/HelloWorld10
+#	PWD=`pwd` ./come code/HelloWorld10-5.c
+#	./code/HelloWorld10-5
+#	PWD=`pwd` ./come code/HelloWorld10-6.c
+#	./code/HelloWorld10-6
+#	PWD=`pwd` ./come code/HelloWorld10-6-2.c
+#	./code/HelloWorld10-6-2
+#	PWD=`pwd` ./come code/HelloWorld10-7.c || clang -o code/HelloWorld10-7 code/HelloWorld10-7.ll -lcome -lpcre
+#	./code/HelloWorld10-7
+
+#########################################
+# uninstall
+#########################################
+#uninstall:
+#	rm -f "$(DESTDIR)"/bin/come
+#	rm -f "$(DESTDIR)"/bin/come
+#	rm -rf "$(DESTDIR)"/share/doc/come/
+#	rm -f "$(DESTDIR)"/include/come.h
+#	rm -f "$(DESTDIR)"/include/pre-come.h
+#	rm -f "$(DESTDIR)"/share/man/man1/come.1.gz
+#	rm -f "$(DESTDIR)/lib/libcome.a"
