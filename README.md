@@ -1,9 +1,9 @@
-# neo-c3 compiler language
+# come compiler language
 
 version 0.0.1
 
 ```
-#include <neo-c.h>
+#include <come.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -26,7 +26,7 @@ int main()
 5. Can be self-hosted. Try ulimit -s 132656; bash; cd self-host; bash all_build.sh. Home directory> ulimit -s 132656; bash; cd self-host; bash home_all_build.sh to install in the directory.
 
 ```
-#include <neo-c.h>
+#include <come.h>
 #include <stdio.h>
 #include <stdlib.h>
 

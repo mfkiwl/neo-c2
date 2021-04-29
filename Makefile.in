@@ -98,7 +98,7 @@ permission:
 # clean
 #########################################
 clean:
-	rm -fR come src/*.o
+	rm -fR come src/*.o code/*.i code/*.ll code/HelloWorld
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache 
@@ -108,8 +108,8 @@ distclean: clean
 #########################################
 test: 
 	@echo "Compile to test code..."
-	PWD=`pwd` ./come code/HelloWorld.c
-	./code/HelloWorld && echo "return code is $?"
+	PWD=`pwd` ./come code/HelloWorld.c && clang -o code/HelloWorld code/HelloWorld.c.ll
+	./code/HelloWorld
 #	if test `uname -s` = "Darwin"; then PWD=`pwd` ./come code/HelloWorld2.c -lncurses; else PWD=`pwd` ./come code/HelloWorld2.c -lncursesw; fi
 #	./code/HelloWorld2
 #	PWD=`pwd` ./come code/HelloWorld3.c

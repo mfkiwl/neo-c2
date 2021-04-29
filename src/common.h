@@ -41,6 +41,7 @@
 #define TYPEDEF_MAX 4096
 #define MACRO_MAX 1024
 #define ARRAY_DIMENTION_MAX 5
+#define FUN_NUM_MAX 8096*2
 
 #define clint64 long long      // for 32 bit cpu
 
@@ -822,14 +823,13 @@ typedef struct sNodeBlockStruct sNodeBlock;
 //void parse_version(int* version, sParserInfo* info);
 BOOL parse_block_easy(ALLOC sNodeBlock** node_block, BOOL extern_clang, sParserInfo* info);
 BOOL parse_block(sNodeBlock* node_block, BOOL extern_clang, BOOL single_expression, sParserInfo* info);
-BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type, BOOL free_var_object);
 BOOL skip_block(sParserInfo* info);
 
 //////////////////////////////
 /// node_alloc.c
 //////////////////////////////
-void init_nodes();
-void free_nodes();
+void init_nodes(char* sname);
+void free_nodes(char* snmae);
 
 unsigned int alloc_node();
 

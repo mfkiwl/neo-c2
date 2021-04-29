@@ -1,19 +1,19 @@
 #include "common.h"
 
-static void compiler_init()
+static void compiler_init(char* sname)
 {
     init_typedef();
     parser_init();
     init_node_types();
     class_init();
-    init_nodes();
     init_vtable();
+    init_nodes(sname);
 }
 
-static void compiler_final()
+static void compiler_final(char* sname)
 {
+    free_nodes(sname);
     final_vtable();
-    free_nodes();
     class_final();
     free_node_types();
     parser_final();
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
     
     setenv("C_INCLUDE_PATH", c_include_path, 1);
 
-    compiler_init();
+    compiler_init(sname);
 
     sVarTable* module_var_table = init_var_table();
 
@@ -150,11 +150,11 @@ int main(int argc, char** argv)
     if(!compiler(sname, optimize, module_var_table, FALSE))
     {
         fprintf(stderr, "come can't compile(2) %s\n", sname);
-        compiler_final();
+        compiler_final(sname);
         return 1;
     }
 
-    compiler_final();
+    compiler_final(sname);
 
     return 0;
 }
