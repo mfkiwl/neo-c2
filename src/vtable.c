@@ -147,6 +147,8 @@ BOOL add_variable_to_table(sVarTable* table, char* name, sNodeType* type_, BOOL 
             p->mGlobal = global;
             p->mConstant = constant;
 
+printf("vtable %p llvm_value %p name %s\n", table, llvm_value, name);
+
             if(table->mVarNum >= LOCAL_VARIABLE_MAX) {
                 return FALSE;
             }

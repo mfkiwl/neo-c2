@@ -1516,6 +1516,52 @@ unsigned int sNodeTree_create_store_variable(char* var_name, int right, BOOL all
 
 static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
 {
+    BOOL parse_struct_phase = gNodes[node].uValue.sStoreVariable.mParseStructPhase;
+    char var_name[VAR_NAME_MAX];
+    xstrncpy(var_name, gNodes[node].uValue.sStoreVariable.mVarName, VAR_NAME_MAX);
+    BOOL alloc = gNodes[node].uValue.sStoreVariable.mAlloc;
+    BOOL global = gNodes[node].uValue.sStoreVariable.mGlobal;
+
+    unsigned int right_node = gNodes[node].mRight;
+
+    if(!compile(right_node, info)) {
+        return FALSE;
+    }
+
+    sNodeType* right_type = clone_node_type(info->type);
+
+    LVALUE rvalue = *get_value_from_stack(-1);
+
+    sVar* var = get_variable_from_table(info->pinfo->lv_table, var_name);
+
+    if(var == NULL) {
+        compile_err_msg(info, "undeclared variable %s(2)", var_name);
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+        return TRUE;
+    }
+
+    if(alloc) {
+        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(var->mType);
+
+        LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
+
+        LLVMBuildStore(gBuilder, rvalue.value, alloca_value);
+
+        var->mLLVMValue = alloca_value;
+
+        info->type = var->mType;
+    }
+    else {
+        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(var->mType);
+
+        LLVMValueRef alloca_value = var->mLLVMValue;
+
+        LLVMBuildStore(gBuilder, rvalue.value, alloca_value);
+
+        info->type = var->mType;
+    }
 
     return TRUE;
 }
@@ -1650,7 +1696,7 @@ static BOOL compile_external_function(unsigned int node, sCompileInfo* info)
 
     llvm_result_type = create_llvm_type_from_node_type(result_type);
 
-    LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, FALSE);
+    LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
     LLVMValueRef llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
 
     if(!add_function_to_table(fun_name, num_params, param_types, result_type, llvm_fun)) {
@@ -1874,9 +1920,11 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         params[i] = gNodes[node].uValue.sFunction.mParams[i];
     }
 
-    LLVMTypeRef param_types[PARAMS_MAX];
+    sNodeType* param_types[PARAMS_MAX];
+    LLVMTypeRef llvm_param_types[PARAMS_MAX];
     for(i=0; i<num_params; i++) {
-        param_types[i] = create_llvm_type_from_node_type(params[i].mType);
+        llvm_param_types[i] = create_llvm_type_from_node_type(params[i].mType);
+        param_types[i] = params[i].mType;
     }
 
     LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
@@ -1885,9 +1933,12 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         llvm_fun_type = LLVMFunctionType(llvm_result_type, NULL, 0, FALSE);
     }
     else {
-        llvm_fun_type = LLVMFunctionType(llvm_result_type, param_types, num_params, FALSE);
+        llvm_fun_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, FALSE);
     }
     LLVMValueRef llvm_fun = LLVMAddFunction(gModule, fun_name, llvm_fun_type);
+
+    LLVMBasicBlockRef entry = LLVMAppendBasicBlockInContext(gContext, llvm_fun, "entry");
+    LLVMPositionBuilderAtEnd(gBuilder, entry);
 
     for(i=0; i<num_params; i++) {
         LLVMValueRef llvm_value = LLVMGetParam(llvm_fun, i);
@@ -1899,16 +1950,30 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         BOOL global = FALSE;
         BOOL constant = FALSE;
 
-        if(!add_variable_to_table(block_var_table, name, type_, readonly, llvm_value, index, global, constant)) {
+        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(type_);
+
+        LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, name);
+
+        LLVMBuildStore(gBuilder, llvm_value, alloca_value);
+
+printf("alloca_value %p\n", alloca_value);
+        sVar* var = get_variable_from_table(block_var_table, name);
+
+        var->mLLVMValue = alloca_value;
+
+/*
+        if(!add_variable_to_table(block_var_table, name, type_, readonly, alloca_value, index, global, constant)) {
             return FALSE;
         }
+*/
     }
-
-    LLVMBasicBlockRef entry = LLVMAppendBasicBlockInContext(gContext, llvm_fun, "entry");
-    LLVMPositionBuilderAtEnd(gBuilder, entry);
 
     if(!compile_block(node_block, info, result_type)) {
         return FALSE;
+    }
+
+    if(type_identify_with_class_name(result_type, "void")) {
+        LLVMBuildRet(gBuilder, NULL);
     }
 
     if(!add_function_to_table(fun_name, num_params, param_types, result_type, llvm_fun)) {
@@ -2058,6 +2123,30 @@ unsigned int sNodeTree_create_load_variable(char* var_name, sParserInfo* info)
 
 static BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
 {
+    char* var_name = gNodes[node].uValue.sLoadVariable.mVarName;
+    BOOL global = gNodes[node].uValue.sLoadVariable.mGlobal;
+
+    sVar* var = get_variable_from_table(info->pinfo->lv_table, var_name);
+
+    sNodeType* var_type = clone_node_type(var->mType);
+
+    LLVMValueRef var_address = var->mLLVMValue;
+puts(var->mName);
+
+printf("%p %p\n", var, var_address);
+
+    LVALUE llvm_value;
+
+    llvm_value.value = LLVMBuildLoad(gBuilder, var_address, var_name);
+    llvm_value.type = var_type;
+    llvm_value.address = var_address;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = clone_node_type(var_type);
 
     return TRUE;
 }

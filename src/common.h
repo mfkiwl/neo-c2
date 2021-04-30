@@ -226,7 +226,7 @@ struct sVarStruct {
 
     BOOL mReadOnly;
     BOOL mConstant;
-    void* mLLVMValue;
+    LLVMValueRef mLLVMValue;
 
     BOOL mGlobal;
 };
