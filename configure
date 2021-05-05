@@ -3752,7 +3752,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking Operating System" >&5
 $as_echo_n "checking Operating System... " >&6; }
 
-CFLAGS='-DPREFIX="\"${DESTDIR}/\"" -fPIC -L/usr/local/lib'
+CFLAGS='-DPREFIX="\"${DESTDIR}/\"" -fPIC'
 #CFLAGS="-fPIC -rdynamic $CFLAGS"
 
 if uname -v | grep iSH > /dev/null; then
