@@ -69,6 +69,12 @@ string string2(char* str)
     return string(str);
 }
 
+struct sData
+{
+    int a;
+    int b;
+};
+
 int main()
 {
     printf("HELLO WORLD\n");
@@ -101,6 +107,8 @@ int main()
     xassert("string test2", strcmp(string("DEF"), "DEF") == 0);
 
     xassert("string test3", strcmp(string2("GHI"), "GHI") == 0);
+
+    sData c;
 
     return 0;
 }
