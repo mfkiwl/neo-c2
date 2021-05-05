@@ -1,4 +1,4 @@
-generics, method generics, inline, struct, union, method block, debug info, array, var args
+debug info, struct, union, generics, method generics, method block,inline,  array, var args
 
 
 vector, list, map, tuple, string, wstring
