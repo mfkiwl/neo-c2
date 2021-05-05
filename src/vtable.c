@@ -445,13 +445,8 @@ void free_objects(sVarTable* table, sCompileInfo* info)
                 {
                     if(p->mLLVMValue)
                     {
-#ifdef MDEBUG
-    printf("free %s %s in vtable. address %p\n", p->mName, CLASS_NAME(node_type->mClass), p);
-#endif
-                    //free_object(p->mType, p->mLLVMValue, FALSE, info);
-#ifdef MDEBUG
-    printf("end free %s %s in vtable. address %p\n", p->mName, CLASS_NAME(node_type->mClass), p);
-#endif
+                        LLVMValueRef obj = LLVMBuildLoad(gBuilder, p->mLLVMValue, "obj");
+                        free_object(p->mType, obj, info);
                         p->mLLVMValue = NULL;
                     }
                 }
@@ -466,7 +461,7 @@ void free_objects(sVarTable* table, sCompileInfo* info)
     }
 }
 
-void free_objects_on_break(sVarTable* table, sCompileInfo* info)
+static void free_block_variables(sVarTable* table, LLVMValueRef ret_value, sCompileInfo* info)
 {
     sVar* p = table->mLocalVariables;
 
@@ -480,10 +475,12 @@ void free_objects_on_break(sVarTable* table, sCompileInfo* info)
                 {
                     if(p->mLLVMValue)
                     {
-#ifdef MDEBUG
-    printf("free %s %s in vtable. address %p\n", p->mName, CLASS_NAME(node_type->mClass), p);
-#endif
-                    //free_object(p->mType, p->mLLVMValue, FALSE, info);
+                        if(p->mLLVMValue != ret_value) {
+                            LLVMValueRef obj = LLVMBuildLoad(gBuilder, p->mLLVMValue, "obj");
+                            free_object(p->mType, obj, info);
+                        }
+
+                        p->mLLVMValue = NULL;
                     }
                 }
             }
@@ -497,30 +494,27 @@ void free_objects_on_break(sVarTable* table, sCompileInfo* info)
     }
 }
 
-void free_block_variables_on_break(struct sNodeBlockStruct* current_node_block, struct sCompileInfoStruct* info, BOOL top_block)
+void free_objects_on_return(struct sNodeBlockStruct* current_node_block, struct sCompileInfoStruct* info, LLVMValueRef ret_value, BOOL top_block)
 {
-    if(info && info->pinfo && current_node_block && !info->no_output) {
-        sVarTable* current_lv_table = info->pinfo->lv_table;
+    sVarTable* current_lv_table = info->pinfo->lv_table;
 
-        sVarTable* current_block_lv_table = current_node_block->mLVTable;
+    sVarTable* current_block_lv_table = current_node_block->mLVTable;
 
+    sVarTable* it = current_lv_table;
 
-        sVarTable* it = current_lv_table;
+    if(current_lv_table->mID == current_block_lv_table->mID) {
+        free_block_variables(it, ret_value, info);
+    }
+    else {
+        while(it->mID != current_block_lv_table->mID && it != NULL) 
+        {
+            free_block_variables(it, ret_value, info);
 
-        if(current_lv_table->mID == current_block_lv_table->mID) {
-            free_objects_on_break(it, info);
+            it = it->mParent;
         }
-        else {
-            while(it->mID != current_block_lv_table->mID && it != NULL) 
-            {
-                free_objects_on_break(it, info);
 
-                it = it->mParent;
-            }
-
-            if(top_block && it != NULL) {
-                free_objects_on_break(it, info);
-            }
+        if(top_block && it != NULL) {
+            free_block_variables(it, ret_value, info);
         }
     }
 }

@@ -7,12 +7,19 @@ typedef long size_t;
 size_t strlen(const char *s);
 
 void *calloc(size_t nmemb, size_t size);
+void free(void *ptr);
 
 int strcmp(const char* s1, const char* s2);
 
 void exit(int status);
 
 typedef char*% string;
+
+char *strcpy(char *dest, const char *src);
+
+char *strncpy(char *dest, const char *src, size_t n);
+
+int strcmp(const char *s1, const char *s2);
 
 /*
 string xsprintf(char* msg, ...)
@@ -47,17 +54,20 @@ void xassert(const char* msg, bool exp)
     }
 }
 
-/*
 string string(char* str)
 {
     int len = strlen(str) + 1;
-    char* msg = calloc(1, len);
+    char%* msg = new char[len];
 
     strncpy(msg, str, len);
 
-    return dummy_heap msg;
+    return msg;
 }
-*/
+
+string string2(char* str) 
+{
+    return string(str);
+}
 
 int main()
 {
@@ -83,6 +93,14 @@ int main()
     xassert("long test", 1L + 1L == 2L);
 
     xassert("auto cast test", 1L + 1 == 2);
+
+    string b = string("ABC");
+
+    xassert("string test", strcmp(b, "ABC") == 0);
+
+    xassert("string test2", strcmp(string("DEF"), "DEF") == 0);
+
+    xassert("string test3", strcmp(string2("GHI"), "GHI") == 0);
 
     return 0;
 }

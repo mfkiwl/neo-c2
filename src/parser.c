@@ -7221,11 +7221,6 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                 return FALSE;
             }
         }
-        else if(strcmp(buf, "var") == 0) {
-            if(!parse_var(node, info, FALSE)) {
-                return FALSE;
-            }
-        }
         else if(strcmp(buf, "struct") == 0 && *info->p != '{' && define_struct) {
             char struct_name[VAR_NAME_MAX];
 
