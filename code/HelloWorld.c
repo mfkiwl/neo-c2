@@ -2,11 +2,19 @@
 int puts(const char* msg);
 int printf(const char *format, ...);
 
+typedef long size_t;
+
+size_t strlen(const char *s);
+
+void *calloc(size_t nmemb, size_t size);
+
+int strcmp(const char* s1, const char* s2);
+
 void exit(int status);
 
-/*
-typedef string char*%;
+typedef char*% string;
 
+/*
 string xsprintf(char* msg, ...)
 {
     va_list args;
@@ -39,6 +47,18 @@ void xassert(const char* msg, bool exp)
     }
 }
 
+/*
+string string(char* str)
+{
+    int len = strlen(str) + 1;
+    char* msg = calloc(1, len);
+
+    strncpy(msg, str, len);
+
+    return dummy_heap msg;
+}
+*/
+
 int main()
 {
     printf("HELLO WORLD\n");
@@ -56,10 +76,13 @@ int main()
     xassert("exp10 test", 2/2 == 1);
     xassert("exp11 test", 3%2 == 1);
 
-    int a = 1;
-    a = 2;
+    int a = 1 + 1;
 
-    int b = a + 1;
+    xassert("var test", a == 2);
+
+    xassert("long test", 1L + 1L == 2L);
+
+    xassert("auto cast test", 1L + 1 == 2);
 
     return 0;
 }

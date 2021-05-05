@@ -223,6 +223,9 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
     if(type_identify_with_class_name(node_type, "int")) {
         result_type = LLVMInt32TypeInContext(gContext);
     }
+    else if(type_identify_with_class_name(node_type, "long")) {
+        result_type = LLVMInt64TypeInContext(gContext);
+    }
     else if(type_identify_with_class_name(node_type, "char")) {
         result_type = LLVMInt8TypeInContext(gContext);
     }
@@ -231,6 +234,10 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
     }
     else if(type_identify_with_class_name(node_type, "void")) {
         result_type = LLVMVoidTypeInContext(gContext);
+    }
+
+    if(node_type->mPointerNum > 0 && type_identify_with_class_name(node_type, "void")) {
+        result_type = LLVMInt8TypeInContext(gContext);
     }
 
     int i;
@@ -596,7 +603,25 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = create_node_type_with_class_name("bool");
     }
+    else if(type_identify_with_class_name(left_type, "long"))
+    {
+        if(rvalue) {
+            if(type_identify_with_class_name(*right_type, "int") || type_identify_with_class_name(*right_type, "char") || type_identify_with_class_name(*right_type, "short")) {
+                LLVMTypeRef llvm_type = create_llvm_type_with_class_name("long");
 
+                if(left_type->mUnsigned) {
+                    rvalue->value = LLVMBuildCast(gBuilder, LLVMZExt, rvalue->value, llvm_type, "icast");
+                }
+                else {
+                    rvalue->value = LLVMBuildCast(gBuilder, LLVMSExt, rvalue->value, llvm_type, "icast");
+                }
+            }
+
+            rvalue->type = create_node_type_with_class_name("long");
+        }
+
+        *right_type = create_node_type_with_class_name("long");
+    }
 
     return TRUE;
 }
@@ -1147,6 +1172,23 @@ unsigned int sNodeTree_create_long_value(long long int value, sParserInfo* info)
 
 static BOOL compile_long_value(unsigned long long int node, sCompileInfo* info)
 {
+    int value = gNodes[node].uValue.mIntValue;
+
+    LVALUE llvm_value;
+
+    LLVMTypeRef llvm_type = create_llvm_type_with_class_name("long");
+
+    llvm_value.value = LLVMConstInt(llvm_type, value, FALSE);
+    llvm_value.type = create_node_type_with_class_name("long");
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = create_node_type_with_class_name("long");
+
     return TRUE;
 }
 
@@ -1210,6 +1252,18 @@ static BOOL compile_add(unsigned int node, sCompileInfo* info)
 
     LVALUE rvalue = *get_value_from_stack(-1);
 
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
+
     LVALUE llvm_value;
     llvm_value.value = LLVMBuildAdd(gBuilder, lvalue.value, rvalue.value, "add");
     llvm_value.type = clone_node_type(left_type);
@@ -1261,6 +1315,18 @@ static BOOL compile_sub(unsigned int node, sCompileInfo* info)
     sNodeType* right_type = clone_node_type(info->type);
 
     LVALUE rvalue = *get_value_from_stack(-1);
+
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
 
     LVALUE llvm_value;
     llvm_value.value = LLVMBuildSub(gBuilder, lvalue.value, rvalue.value, "sub");
@@ -1314,6 +1380,18 @@ static BOOL compile_mult(unsigned int node, sCompileInfo* info)
 
     LVALUE rvalue = *get_value_from_stack(-1);
 
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
+
     LVALUE llvm_value;
     llvm_value.value = LLVMBuildMul(gBuilder, lvalue.value, rvalue.value, "mul");
     llvm_value.type = clone_node_type(left_type);
@@ -1365,6 +1443,18 @@ static BOOL compile_div(unsigned int node, sCompileInfo* info)
     sNodeType* right_type = clone_node_type(info->type);
 
     LVALUE rvalue = *get_value_from_stack(-1);
+
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
 
     LVALUE llvm_value;
     if(left_type->mUnsigned) {
@@ -1423,6 +1513,18 @@ static BOOL compile_mod(unsigned int node, sCompileInfo* info)
 
     LVALUE rvalue = *get_value_from_stack(-1);
 
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
+
     LVALUE llvm_value;
     if(left_type->mUnsigned) {
         llvm_value.value = LLVMBuildURem(gBuilder, lvalue.value, rvalue.value, "div");
@@ -1480,6 +1582,18 @@ static BOOL compile_equals(unsigned int node, sCompileInfo* info)
 
     LVALUE rvalue = *get_value_from_stack(-1);
 
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
+
     LVALUE llvm_value;
     llvm_value.value = LLVMBuildICmp(gBuilder, LLVMIntEQ, lvalue.value, rvalue.value, "gteq");
     llvm_value.type = clone_node_type(left_type);
@@ -1532,6 +1646,18 @@ static BOOL compile_not_equals(unsigned int node, sCompileInfo* info)
 
     LVALUE rvalue = *get_value_from_stack(-1);
 
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
+
     LVALUE llvm_value;
     llvm_value.value = LLVMBuildICmp(gBuilder, LLVMIntNE, lvalue.value, rvalue.value, "gteq");
     llvm_value.type = clone_node_type(left_type);
@@ -1583,6 +1709,18 @@ static BOOL compile_gteq(unsigned int node, sCompileInfo* info)
     sNodeType* right_type = clone_node_type(info->type);
 
     LVALUE rvalue = *get_value_from_stack(-1);
+
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
 
     LVALUE llvm_value;
     if(left_type->mUnsigned) {
@@ -1640,6 +1778,18 @@ static BOOL compile_leeq(unsigned int node, sCompileInfo* info)
     sNodeType* right_type = clone_node_type(info->type);
 
     LVALUE rvalue = *get_value_from_stack(-1);
+
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
 
     LVALUE llvm_value;
     if(left_type->mUnsigned) {
@@ -1700,6 +1850,18 @@ static BOOL compile_gt(unsigned int node, sCompileInfo* info)
 
     LVALUE rvalue = *get_value_from_stack(-1);
 
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
+
     LVALUE llvm_value;
     if(left_type->mUnsigned) {
         llvm_value.value = LLVMBuildICmp(gBuilder, LLVMIntUGT, lvalue.value, rvalue.value, "gteq");
@@ -1756,6 +1918,18 @@ static BOOL compile_le(unsigned int node, sCompileInfo* info)
     sNodeType* right_type = clone_node_type(info->type);
 
     LVALUE rvalue = *get_value_from_stack(-1);
+
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
 
     LVALUE llvm_value;
     if(left_type->mUnsigned) {
