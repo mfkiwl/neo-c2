@@ -42,6 +42,7 @@
 #define MACRO_MAX 1024
 #define ARRAY_DIMENTION_MAX 5
 #define FUN_NUM_MAX 8096*2
+#define STRUCT_NUM_MAX 8096*2
 
 #define clint64 long long      // for 32 bit cpu
 

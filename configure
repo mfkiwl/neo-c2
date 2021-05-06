@@ -623,6 +623,7 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 OBJS
 CXXFLAGS
+LLVM_CONFIG
 CXX
 DESTDIR
 OS
@@ -3915,6 +3916,11 @@ export CFLAGS
 ##################################################
 CC=clang
 
+if which clang-11 2> /dev/null
+then
+    CC=clang-11
+fi
+
 INSTALL="$(which install) -c"
 
 if test "$OS" != FREEBSD
@@ -4151,13 +4157,20 @@ fi
 
 echo -n checking for llvm-config...
 
-if which llvm-config 1> /dev/null 2>/dev/null
+if which llvm-config-11 1> /dev/null 2>/dev/null
 then
+    LLVM_CONFIG=llvm-config-11
+    echo ok
+elif which llvm-config 1> /dev/null 2>/dev/null
+then
+    LLVM_CONFIG=llvm-config
     echo ok
 else
     echo no
     exit 1
 fi
+
+
 
 
 

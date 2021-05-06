@@ -25,6 +25,7 @@ LIBS=@LIBS@
 OS=@OS@
 DESTDIR=@DESTDIR@
 OBJS=@OBJS@
+LLVM_CONFIG=@LLVM_CONFIG@
 
 #########################################
 # main
@@ -32,8 +33,8 @@ OBJS=@OBJS@
 all: come #libcome.a
 
 come: config.h src/main.o $(OBJS)
-	$(CC) -c src/main.c -o src/main.o $(CFLAGS) `llvm-config --cflags`
-	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS) `llvm-config --cxxflags --ldflags --system-libs --libs all` 
+	$(CC) -c src/main.c -o src/main.o $(CFLAGS) `$(LLVM_CONFIG) --cflags`
+	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS) `$(LLVM_CONFIG) --cxxflags --ldflags --system-libs --libs all` 
 
 #libcome.a: come.c come-string.c come-string2.c come-wstring.c
 #	PWD=`pwd` ./come -c come.c 

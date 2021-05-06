@@ -99,7 +99,7 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     return TRUE;
 }
 
-char* gVersion = "0.0.1";
+char* gVersion = "0.0.5";
 BOOL gNCDebug = FALSE;
 
 int main(int argc, char** argv)

@@ -305,6 +305,80 @@ LVALUE* get_value_from_stack(int offset)
     return gLLVMStack + offset;
 }
 
+struct sStructStruct {
+    char mName[VAR_NAME_MAX];
+    LLVMTypeRef mLLVMType;
+    sNodeType* mNodeType;
+};
+
+typedef struct sStructStruct sStruct;
+
+sStruct gStructs[STRUCT_NUM_MAX];
+
+BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type)
+{
+    int hash_value = get_hash_key(name, STRUCT_NUM_MAX);
+    sStruct* p = gStructs + hash_value;
+
+    while(1) {
+        if(p->mName[0] == 0) {
+            xstrncpy(p->mName, name, VAR_NAME_MAX);
+
+            p->mNodeType = clone_node_type(node_type);
+            p->mLLVMType = llvm_type;
+
+            return TRUE;
+        }
+        else {
+            if(strcmp(p->mName, name) == 0) {
+                xstrncpy(p->mName, name, VAR_NAME_MAX);
+
+                p->mNodeType = clone_node_type(node_type);
+                p->mLLVMType = llvm_type;
+
+                return TRUE;
+            }
+            else {
+                p++;
+
+                if(p == gStructs + FUN_NUM_MAX) {
+                    p = gStructs;
+                }
+                else if(p == gStructs + hash_value) {
+                    return FALSE;
+                }
+            }
+        }
+    }
+
+    return TRUE;
+}
+
+sStruct* get_struct_from_table(char* name)
+{
+    int hash_value = get_hash_key(name, STRUCT_NUM_MAX);
+
+    sStruct* p = gStructs + hash_value;
+
+    while(1) {
+        if(p->mName[0] == 0) {
+            return NULL;
+        }
+        else if(strcmp((char*)p->mName, name) == 0) {
+            return p;
+        }
+
+        p++;
+
+        if(p == gStructs + FUN_NUM_MAX) {
+            p = gStructs;
+        }
+        else if(p == gStructs + hash_value) {
+            return NULL;
+        }
+    }
+}
+
 LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
 {
     LLVMTypeRef result_type = NULL;
@@ -327,8 +401,9 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
     else if(type_identify_with_class_name(node_type, "void")) {
         result_type = LLVMVoidTypeInContext(gContext);
     }
-    else if(LLVMGetTypeByName2(gContext, class_name)) {
-        result_type = LLVMGetTypeByName2(gContext, class_name);
+    else if(get_struct_from_table(class_name)) {
+        sStruct* st = get_struct_from_table(class_name);
+        result_type = st->mLLVMType;
     }
 
     if(node_type->mPointerNum > 0 && type_identify_with_class_name(node_type, "void")) {
@@ -472,6 +547,11 @@ BOOL create_llvm_struct_type(sNodeType* node_type, sNodeType* generics_type, BOO
 
     LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
 
+    if(!add_struct_to_table(class_name, node_type, struct_type)) {
+        fprintf(stderr, "overflow struct number\n");
+        exit(2);
+    }
+
     return TRUE;
 }
 
@@ -555,7 +635,6 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
 static void free_right_value_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
 {
 }
-
 
 struct sFunctionStruct {
     char mName[VAR_NAME_MAX];
@@ -1572,8 +1651,6 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
-    BOOL uniq_ = var->mType->mUniq;
-
     sNodeType* var_type = clone_node_type(var->mType);
 
     LLVMTypeRef llvm_type = create_llvm_type_from_node_type(var_type);
@@ -1581,9 +1658,6 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
     LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
 
     var->mLLVMValue = alloca_value;
-
-    BOOL parent = FALSE;
-    int index = get_variable_index(info->pinfo->lv_table, var_name, &parent);
 
     info->type = create_node_type_with_class_name("void");
 
@@ -2097,20 +2171,13 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
         char* name = params[i].mName;
         sNodeType* type_ = params[i].mType;
-        BOOL readonly = FALSE;
-        int index = -1;
-        BOOL global = FALSE;
-        BOOL constant = FALSE;
 
-        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(type_);
-
-        LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, name);
-
-        LLVMBuildStore(gBuilder, llvm_value, alloca_value);
+        LLVMSetValueName2(llvm_value, name, strlen(name));
 
         sVar* var = get_variable_from_table(block_var_table, name);
 
-        var->mLLVMValue = alloca_value;
+        var->mLLVMValue = llvm_value;
+        var->mConstant = TRUE;
     }
 
     if(!compile_block(node_block, info, result_type)) {
@@ -2284,7 +2351,12 @@ static BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
 
     LVALUE llvm_value;
 
-    llvm_value.value = LLVMBuildLoad(gBuilder, var_address, var_name);
+    if(var->mConstant) {
+        llvm_value.value = var_address;
+    }
+    else {
+        llvm_value.value = LLVMBuildLoad(gBuilder, var_address, var_name);
+    }
     llvm_value.type = var_type;
     llvm_value.address = var_address;
     llvm_value.var = NULL;
