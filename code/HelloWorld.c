@@ -110,5 +110,9 @@ int main()
 
     sData c;
 
+    c.a = 1;
+
+    xassert("structore test", c.a == 1);
+
     return 0;
 }

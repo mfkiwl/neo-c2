@@ -2913,6 +2913,109 @@ unsigned int sNodeTree_create_store_field(char* var_name, unsigned int left_node
 
 static BOOL compile_store_field(unsigned int node, sCompileInfo* info)
 {
+    char var_name[VAR_NAME_MAX];
+    xstrncpy(var_name, gNodes[node].uValue.sStoreField.mVarName, VAR_NAME_MAX);
+
+    /// compile left node ///
+    unsigned int lnode = gNodes[node].mLeft;
+
+    if(!compile(lnode, info)) {
+        return FALSE;
+    }
+
+    sNodeType* left_type = clone_node_type(info->type);
+
+    if(!(left_type->mClass->mFlags & CLASS_FLAGS_STRUCT) && !(left_type->mClass->mFlags & CLASS_FLAGS_UNION)) {
+        compile_err_msg(info, "This is not struct type");
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+
+        return TRUE;
+    }
+
+    LVALUE lvalue = *get_value_from_stack(-1);
+
+    /// compile right node ///
+    unsigned int rnode = gNodes[node].mRight;
+
+    if(!compile(rnode, info)) {
+        return FALSE;
+    }
+
+    sNodeType* right_type = clone_node_type(info->type);
+
+    LVALUE rvalue = *get_value_from_stack(-1);
+
+
+    int parent_field_index = -1;
+    int field_index = get_field_index(left_type->mClass, var_name, &parent_field_index);
+
+    if(field_index == -1) {
+        compile_err_msg(info, "The field(%s) is not found", var_name);
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+
+        return TRUE;
+    }
+
+    sNodeType* field_type = clone_node_type(left_type->mClass->mFields[field_index]);
+
+    if(is_typeof_type(field_type))
+    {
+        if(!solve_typeof(&field_type, info)) 
+        {
+            compile_err_msg(info, "Can't solve typeof types");
+            show_node_type(field_type); 
+            info->err_num++;
+            return FALSE;
+        }
+    }
+
+    if(auto_cast_posibility(field_type, right_type)) {
+        if(!cast_right_type_to_left_type(field_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
+    
+    if(!substitution_posibility(field_type, right_type, info)) {
+        compile_err_msg(info, "The different type between left type and right type. store field");
+        show_node_type(field_type);
+        show_node_type(right_type);
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+
+        return TRUE;
+    }
+
+    LLVMValueRef field_address;
+
+    if(left_type->mClass->mFlags & CLASS_FLAGS_UNION) {
+    }
+    else {
+        if(left_type->mPointerNum == 0) {
+            field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
+        }
+        else {
+            field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
+        }
+    }
+
+    LLVMBuildStore(gBuilder, rvalue.value, field_address);
+
+    dec_stack_ptr(2, info);
+    push_value_to_stack_ptr(&rvalue, info);
+
+    info->type = clone_node_type(right_type);
+
     return TRUE;
 }
 
@@ -2936,6 +3039,71 @@ unsigned int sNodeTree_create_load_field(char* name, unsigned int left_node, sPa
 
 static BOOL compile_load_field(unsigned int node, sCompileInfo* info)
 {
+    char var_name[VAR_NAME_MAX]; 
+    xstrncpy(var_name, gNodes[node].uValue.sLoadField.mVarName, VAR_NAME_MAX);
+
+    /// compile left node ///
+    unsigned int lnode = gNodes[node].mLeft;
+
+    if(!compile(lnode, info)) {
+        return FALSE;
+    }
+
+    sNodeType* left_type = clone_node_type(info->type);
+    LVALUE lvalue = *get_value_from_stack(-1);
+
+    if(!(left_type->mClass->mFlags & CLASS_FLAGS_STRUCT) && !(left_type->mClass->mFlags & CLASS_FLAGS_UNION)) {
+        compile_err_msg(info, "This is not struct type");
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+
+        return TRUE;
+    }
+
+    if(left_type->mPointerNum > 1) {
+        compile_err_msg(info, "This is pointer of pointer type");
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+
+        return TRUE;
+    }
+
+    int parent_field_index = -1;
+    int field_index = get_field_index(left_type->mClass, var_name, &parent_field_index);
+
+    if(field_index == -1) {
+        compile_err_msg(info, "The field(%s) is not found", var_name);
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+
+        return TRUE;
+    }
+
+    sNodeType* field_type = clone_node_type(left_type->mClass->mFields[field_index]);
+    
+    LLVMValueRef field_address;
+    if(left_type->mPointerNum == 0) {
+        field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
+    }
+    else {
+        field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
+    }
+
+    LVALUE llvm_value;
+    llvm_value.value = LLVMBuildLoad(gBuilder, field_address, var_name);
+    llvm_value.type = clone_node_type(field_type);
+    llvm_value.address = field_address;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = TRUE;
+    llvm_value.load_field = TRUE;
+
+    dec_stack_ptr(1, info);
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = clone_node_type(field_type);
 
     return TRUE;
 }
