@@ -119,7 +119,8 @@ void init_nodes(char* sname)
     if(gNCDebug) {
         gDIBuilder = LLVMCreateDIBuilder(gModule);
 
-        char* cwd = get_current_dir_name();
+        char cwd[PATH_MAX];
+        getcwd(cwd, PATH_MAX);
 
         char directory[PATH_MAX];
 
@@ -165,13 +166,13 @@ void init_nodes(char* sname)
 
         LLVMMetadataRef dwarf_version_meta_data = LLVMValueAsMetadata(dwarf_version);
         
-        LLVMAddModuleFlag(gModule, LLVMModuleFlagBehaviorAppend, "Dwarf Version", strlen("Darf Version"), dwarf_version_meta_data);
+        LLVMAddModuleFlag(gModule, 6, "Dwarf Version", strlen("Dwarf Version"), dwarf_version_meta_data);
 
         LLVMValueRef dwarf_info_version = LLVMConstInt(llvm_type, LLVMDebugMetadataVersion(), FALSE);
 
         LLVMMetadataRef dwarf_info_version_meta_data = LLVMValueAsMetadata(dwarf_info_version);
 
-        LLVMAddModuleFlag(gModule, LLVMModuleFlagBehaviorAppend, "Debug Info Version", strlen("Debug Info Version"), dwarf_info_version_meta_data);
+        LLVMAddModuleFlag(gModule, LLVMModuleFlagBehaviorWarning, "Debug Info Version", strlen("Debug Info Version"), dwarf_info_version_meta_data);
 
 /*
  *
@@ -226,7 +227,6 @@ Module::ModFlagBehavior::AppendUnique
 
 
 
-        free(cwd);
     }
 }
 
@@ -456,7 +456,8 @@ LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
 
 void createDebugFunctionInfo(int sline, char* fun_name, sFunction* function, LLVMValueRef llvm_function, char* module_name, sCompileInfo* info)
 {
-    char* cwd = get_current_dir_name();
+    char cwd[PATH_MAX];
+    getcwd(cwd, PATH_MAX);
 
     char directory[PATH_MAX];
 
@@ -492,8 +493,6 @@ void createDebugFunctionInfo(int sline, char* fun_name, sFunction* function, LLV
     info->function_meta_data = function_meta_data;
 
     LLVMSetSubprogram(llvm_function, function_meta_data);
-
-    free(cwd);
 }
 
 void finishDebugFunctionInfo()

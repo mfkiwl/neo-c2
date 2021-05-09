@@ -11,5 +11,5 @@ int main()
     int b = 1;
     int c = b/a;
 
-    return 0;
+    return c;
 }
