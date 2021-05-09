@@ -94,6 +94,7 @@ void free_right_value_objects(sCompileInfo* info)
     }
 }
 
+LLVMTypeRef create_llvm_type_with_class_name(char* class_name);
 
 void init_nodes(char* sname)
 {
@@ -156,6 +157,74 @@ void init_nodes(char* sname)
                               "", 0,
                               include_path, strlen(include_path),
                               "", 0);
+
+
+        LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
+
+        LLVMValueRef dwarf_version = LLVMConstInt(llvm_type, 4, FALSE);
+
+        LLVMMetadataRef dwarf_version_meta_data = LLVMValueAsMetadata(dwarf_version);
+        
+        LLVMAddModuleFlag(gModule, LLVMModuleFlagBehaviorAppend, "Dwarf Version", strlen("Darf Version"), dwarf_version_meta_data);
+
+        LLVMValueRef dwarf_info_version = LLVMConstInt(llvm_type, LLVMDebugMetadataVersion(), FALSE);
+
+        LLVMMetadataRef dwarf_info_version_meta_data = LLVMValueAsMetadata(dwarf_info_version);
+
+        LLVMAddModuleFlag(gModule, LLVMModuleFlagBehaviorAppend, "Debug Info Version", strlen("Debug Info Version"), dwarf_info_version_meta_data);
+
+/*
+ *
+ *LLVMModuleFlagBehaviorError 	
+Emits an error if two values disagree, otherwise the resulting value is that of the operands.
+
+See also
+Module::ModFlagBehavior::Error
+LLVMModuleFlagBehaviorWarning 	
+Emits a warning if two values disagree.
+
+The result value will be the operand for the flag from the first module being linked.
+
+See also
+Module::ModFlagBehavior::Warning
+LLVMModuleFlagBehaviorRequire 	
+Adds a requirement that another module flag be present and have a specified value after linking is performed.
+
+The value must be a metadata pair, where the first element of the pair is the ID of the module flag to be restricted, and the second element of the pair is the value the module flag should be restricted to. This behavior can be used to restrict the allowable results (via triggering of an error) of linking IDs with the Override behavior.
+
+See also
+Module::ModFlagBehavior::Require
+LLVMModuleFlagBehaviorOverride 	
+Uses the specified value, regardless of the behavior or value of the other module.
+
+If both modules specify Override, but the values differ, an error will be emitted.
+
+See also
+Module::ModFlagBehavior::Override
+LLVMModuleFlagBehaviorAppend 	
+Appends the two values, which are required to be metadata nodes.
+
+See also
+Module::ModFlagBehavior::Append
+LLVMModuleFlagBehaviorAppendUnique 	
+Appends the two values, which are required to be metadata nodes.
+
+However, duplicate entries in the second list are dropped during the append operation.
+
+See also
+Module::ModFlagBehavior::AppendUnique
+ *
+
+        TheModule->addModuleFlag(Module::Max, "Dwarf Version", 4);
+        TheModule->addModuleFlag(Module::Warning, "Debug Info Version",
+                           DEBUG_METADATA_VERSION);
+
+#ifdef __DARWIN__
+        TheModule->addModuleFlag(llvm::Module::Warning, "Dwarf Version", 2);
+#endif
+*/
+
+
 
         free(cwd);
     }

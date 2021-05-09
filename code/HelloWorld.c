@@ -113,5 +113,10 @@ int main()
 
     xassert("structore test", c.a == 1);
 
+    int d = 0;
+    int e = 1;
+
+    int f = e / d;
+
     return 0;
 }
