@@ -9,6 +9,7 @@ int gUsedNodes = 0;
 LLVMContextRef gContext;
 LLVMModuleRef  gModule;
 LLVMBuilderRef gBuilder;
+LLVMDIBuilderRef gDIBuilder;
 
 LLVMValueRef gFunction;
 
@@ -113,10 +114,59 @@ void init_nodes(char* sname)
     }
 
     gRightValueObjects = NULL;
+
+    if(gNCDebug) {
+        gDIBuilder = LLVMCreateDIBuilder(gModule);
+
+        char* cwd = get_current_dir_name();
+
+        char directory[PATH_MAX];
+
+        snprintf(directory, PATH_MAX, "%s", cwd);
+
+        int directory_len = strlen(directory);
+
+        LLVMMetadataRef file = LLVMDIBuilderCreateFile(gDIBuilder, gFName, strlen(gFName), directory, directory_len);
+
+        char* procedure = "come";
+        int procedure_len = strlen("come");
+
+        int is_optimized = 0;
+        const char* flags = "";
+        int flags_len = 0;
+        int runtime_ver = 0;
+        char* split_name = NULL;
+        int split_name_len = 0;
+        int dwold = 0;
+        int split_debugginginling = 0;
+        int debug_info_for_profiling = 0;
+        const char* sys_root = "";
+        int sys_root_len = 0;
+        const char* sdk = "";
+        int sdk_len = 0;
+
+        LLVMMetadataRef compile_unit = LLVMDIBuilderCreateCompileUnit(gDIBuilder, LLVMDWARFSourceLanguageC, file, procedure, procedure_len, is_optimized, flags, flags_len, runtime_ver, split_name,  split_name_len, LLVMDWARFEmissionFull, dwold, split_debugginginling, debug_info_for_profiling, sys_root, sys_root_len, sdk, sdk_len);
+
+        char include_path[PATH_MAX];
+
+        snprintf(include_path, PATH_MAX, "%s/%s", cwd, gFName);
+
+        LLVMMetadataRef module = LLVMDIBuilderCreateModule(gDIBuilder, compile_unit,
+                              procedure, procedure_len,
+                              "", 0,
+                              include_path, strlen(include_path),
+                              "", 0);
+
+        free(cwd);
+    }
 }
 
 void free_nodes(char* sname)
 {
+    if(gNCDebug) {
+        LLVMDIBuilderFinalize(gDIBuilder);
+        LLVMDisposeDIBuilder(gDIBuilder);
+    }
     free(gLLVMStack);
 
     char sname2[PATH_MAX];
@@ -223,6 +273,162 @@ void free_nodes(char* sname)
         free(it);
         it = it_next;
     }
+}
+
+void setCurrentDebugLocation(int sline, sCompileInfo* info)
+{
+    int colum = 0;
+    LLVMMetadataRef scope = info->function_meta_data;
+    LLVMMetadataRef inlinedat = NULL;
+    LLVMMetadataRef loc = LLVMDIBuilderCreateDebugLocation(gContext, sline, colum, scope, inlinedat);
+
+
+    LLVMSetCurrentDebugLocation(gBuilder, LLVMMetadataAsValue(gContext, loc));
+
+
+
+
+/*
+    int colum = 0;
+    LLVMDIBuilderCreateDebugLocation(gContext, sline, colum, scope, inlinedat);
+
+
+    Builder.SetCurrentDebugLocation(DebugLoc());
+
+    DIScope* scope;
+
+    if(info->LexicalBlock.empty()) {
+        scope = info->TheCU;
+    }
+    else {
+        scope = info->LexicalBlock.back();
+    }
+
+    Builder.SetCurrentDebugLocation(DILocation::get(scope->getContext(), sline, 0, scope));
+*/
+}
+
+
+/*
+static DISubroutineType* createDebugFunctionType(sFunction* function, DIFile* unit)
+{
+    SmallVector<Metadata *, 8> EltTys;
+
+    sNodeType* result_type = function->mResultType;
+    DIType* debug_result_type = create_debug_type(result_type);
+
+    EltTys.push_back(debug_result_type);
+
+    for(int i = 0; i<function->mNumParams; i++) {
+        sNodeType* arg_type = function->mParamTypes[i];
+        DIType* debug_arg_type = create_debug_type(result_type);
+
+        EltTys.push_back(debug_arg_type);
+    }
+
+    return DBuilder->createSubroutineType(DBuilder->getOrCreateTypeArray(EltTys));
+}
+*/
+
+struct sFunctionStruct {
+    char mName[VAR_NAME_MAX];
+    int mNumParams;
+    sNodeType* mParamTypes[PARAMS_MAX];
+    sNodeType* mResultType;
+    LLVMValueRef mLLVMFunction;
+};
+
+typedef struct sFunctionStruct sFunction;
+
+LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
+{
+    LLVMMetadataRef result = NULL;
+
+    if(node_type->mPointerNum > 0) {
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0, 0);
+    }
+    else if(node_type->mArrayDimentionNum > 0) {
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0, 0);
+    }
+    else if(type_identify_with_class_name(node_type, "int")) {
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "int", strlen("int"), 32, 0, 0);
+    }
+    else if(type_identify_with_class_name(node_type, "char")) {
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "char", strlen("char"), 8, 0, 0);
+    }
+    else if(type_identify_with_class_name(node_type, "short")) {
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "short", strlen("short"), 16, 0, 0);
+    }
+    else if(type_identify_with_class_name(node_type, "long")) {
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "long", strlen("long"), 64, 0, 0);
+    }
+    else if(type_identify_with_class_name(node_type, "float")) {
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 16, 0, 0);
+    }
+    else if(type_identify_with_class_name(node_type, "_Float16") || type_identify_with_class_name(node_type, "_Float16x")) 
+    {
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 16, 0, 0);
+    }
+    else if(type_identify_with_class_name(node_type, "_Float32") || type_identify_with_class_name(node_type, "_Float32x")) 
+    {
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 16, 0, 0);
+    }
+    else if(type_identify_with_class_name(node_type, "_Float64") || type_identify_with_class_name(node_type, "_Float64x")) 
+    {
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 64, 0, 0);
+    }
+    else if(type_identify_with_class_name(node_type, "_Float128") || type_identify_with_class_name(node_type, "_Float128x")) 
+    {
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 128, 0, 0);
+    }
+
+    return result;
+}
+
+void createDebugFunctionInfo(int sline, char* fun_name, sFunction* function, LLVMValueRef llvm_function, char* module_name, sCompileInfo* info)
+{
+    char* cwd = get_current_dir_name();
+
+    char directory[PATH_MAX];
+
+    snprintf(directory, PATH_MAX, "%s", cwd);
+
+    int directory_len = strlen(directory);
+
+    LLVMMetadataRef file = LLVMDIBuilderCreateFile(gDIBuilder, gFName, strlen(gFName), directory, directory_len);
+
+
+    int num_params = function->mNumParams;
+    LLVMMetadataRef param_types[PARAMS_MAX];
+
+    int i;
+    for(i=0; i<num_params; i++) {
+        param_types[i] = create_llvm_debug_type(function->mParamTypes[i]);
+    }
+
+    LLVMMetadataRef FunctionTy = LLVMDIBuilderCreateSubroutineType(gDIBuilder, file, param_types, num_params, 0);
+
+    unsigned tag = 0x15;
+
+    LLVMMetadataRef ReplaceableFunctionMetadata = LLVMDIBuilderCreateReplaceableCompositeType(gDIBuilder, tag, fun_name, strlen(fun_name), 
+                                                    file, file, sline,
+                                                    0, 0, 0,
+                                                    LLVMDIFlagFwdDecl,
+                                                    "", 0);
+
+
+    LLVMMetadataRef function_meta_data = LLVMDIBuilderCreateFunction(gDIBuilder, file, fun_name, strlen(fun_name), fun_name, strlen(fun_name),
+                                file, sline, FunctionTy, TRUE, TRUE, sline, 0, FALSE);
+
+    info->function_meta_data = function_meta_data;
+
+    LLVMSetSubprogram(llvm_function, function_meta_data);
+
+    free(cwd);
+}
+
+void finishDebugFunctionInfo()
+{
 }
 
 // return node index
@@ -618,6 +824,10 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
                 return FALSE;
             }
 
+            if(gNCDebug) {
+                setCurrentDebugLocation(info->sline, info);
+            }
+
             arrange_stack(info, stack_num_before);
             free_right_value_objects(info);
         }
@@ -635,16 +845,6 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
 static void free_right_value_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
 {
 }
-
-struct sFunctionStruct {
-    char mName[VAR_NAME_MAX];
-    int mNumParams;
-    sNodeType* mParamTypes[PARAMS_MAX];
-    sNodeType* mResultType;
-    LLVMValueRef mLLVMFunction;
-};
-
-typedef struct sFunctionStruct sFunction;
 
 sFunction gFuncs[FUN_NUM_MAX];
 
@@ -2180,19 +2380,30 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         var->mConstant = TRUE;
     }
 
+    if(!add_function_to_table(fun_name, num_params, param_types, result_type, llvm_fun)) {
+        fprintf(stderr, "overflow function table\n");
+        info->function_node_block = function_node_block;
+        return FALSE;
+    }
+
+    sFunction* fun = get_function_from_table(fun_name);
+
+    if(gNCDebug) {
+        int sline = gNodes[node].mLine;
+        createDebugFunctionInfo(sline, fun_name, fun, llvm_fun, gFName, info);
+    }
+
     if(!compile_block(node_block, info, result_type)) {
         info->function_node_block = function_node_block;
         return FALSE;
     }
 
-    if(type_identify_with_class_name(result_type, "void")) {
-        LLVMBuildRet(gBuilder, NULL);
+    if(gNCDebug) {
+        finishDebugFunctionInfo();
     }
 
-    if(!add_function_to_table(fun_name, num_params, param_types, result_type, llvm_fun)) {
-        fprintf(stderr, "overflow function table\n");
-        info->function_node_block = function_node_block;
-        return FALSE;
+    if(type_identify_with_class_name(result_type, "void")) {
+        LLVMBuildRet(gBuilder, NULL);
     }
 
     info->type = clone_node_type(result_type);

@@ -1,4 +1,3 @@
-
 int puts(const char* msg);
 int printf(const char *format, ...);
 

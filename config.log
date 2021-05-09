@@ -42,18 +42,18 @@ PATH: /usr/games
 ## Core tests. ##
 ## ----------- ##
 
-configure:2154: checking for gcc
-configure:2170: found /usr/bin/gcc
-configure:2181: result: gcc
-configure:2410: checking for C compiler version
-configure:2419: gcc --version >&5
+configure:2153: checking for gcc
+configure:2169: found /usr/bin/gcc
+configure:2180: result: gcc
+configure:2409: checking for C compiler version
+configure:2418: gcc --version >&5
 gcc (Debian 8.3.0-6) 8.3.0
 Copyright (C) 2018 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-configure:2430: $? = 0
-configure:2419: gcc -v >&5
+configure:2429: $? = 0
+configure:2418: gcc -v >&5
 Using built-in specs.
 COLLECT_GCC=gcc
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper
@@ -63,60 +63,60 @@ Target: x86_64-linux-gnu
 Configured with: ../src/configure -v --with-pkgversion='Debian 8.3.0-6' --with-bugurl=file:///usr/share/doc/gcc-8/README.Bugs --enable-languages=c,ada,c++,go,brig,d,fortran,objc,obj-c++ --prefix=/usr --with-gcc-major-version-only --program-suffix=-8 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-bootstrap --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --with-target-system-zlib --enable-objc-gc=auto --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
 Thread model: posix
 gcc version 8.3.0 (Debian 8.3.0-6) 
-configure:2430: $? = 0
-configure:2419: gcc -V >&5
+configure:2429: $? = 0
+configure:2418: gcc -V >&5
 gcc: error: unrecognized command line option '-V'
 gcc: fatal error: no input files
 compilation terminated.
-configure:2430: $? = 1
-configure:2419: gcc -qversion >&5
+configure:2429: $? = 1
+configure:2418: gcc -qversion >&5
 gcc: error: unrecognized command line option '-qversion'; did you mean '--version'?
 gcc: fatal error: no input files
 compilation terminated.
-configure:2430: $? = 1
-configure:2450: checking whether the C compiler works
-configure:2472: gcc    conftest.c  >&5
-configure:2476: $? = 0
-configure:2524: result: yes
-configure:2527: checking for C compiler default output file name
-configure:2529: result: a.out
-configure:2535: checking for suffix of executables
-configure:2542: gcc -o conftest    conftest.c  >&5
-configure:2546: $? = 0
-configure:2568: result: 
-configure:2590: checking whether we are cross compiling
-configure:2598: gcc -o conftest    conftest.c  >&5
-configure:2602: $? = 0
-configure:2609: ./conftest
-configure:2613: $? = 0
-configure:2601: result: no
-configure:2606: checking for suffix of object files
-configure:2628: gcc -c   conftest.c >&5
-configure:2632: $? = 0
-configure:2653: result: o
-configure:2657: checking whether we are using the GNU C compiler
-configure:2676: gcc -c   conftest.c >&5
-configure:2676: $? = 0
-configure:2685: result: yes
-configure:2694: checking whether gcc accepts -g
-configure:2714: gcc -c -g  conftest.c >&5
-configure:2714: $? = 0
-configure:2755: result: yes
-configure:2772: checking for gcc option to accept ISO C89
-configure:2835: gcc  -c -g -O2  conftest.c >&5
-configure:2835: $? = 0
-configure:2848: result: none needed
-configure:2911: checking for a BSD-compatible install
-configure:2979: result: /usr/bin/install -c
-configure:2996: checking how to run the C preprocessor
-configure:3027: gcc -E  conftest.c
-configure:3027: $? = 0
-configure:3041: gcc -E  conftest.c
+configure:2429: $? = 1
+configure:2449: checking whether the C compiler works
+configure:2471: gcc    conftest.c  >&5
+configure:2475: $? = 0
+configure:2523: result: yes
+configure:2526: checking for C compiler default output file name
+configure:2528: result: a.out
+configure:2534: checking for suffix of executables
+configure:2541: gcc -o conftest    conftest.c  >&5
+configure:2545: $? = 0
+configure:2567: result: 
+configure:2589: checking whether we are cross compiling
+configure:2597: gcc -o conftest    conftest.c  >&5
+configure:2601: $? = 0
+configure:2608: ./conftest
+configure:2612: $? = 0
+configure:2600: result: no
+configure:2605: checking for suffix of object files
+configure:2627: gcc -c   conftest.c >&5
+configure:2631: $? = 0
+configure:2652: result: o
+configure:2656: checking whether we are using the GNU C compiler
+configure:2675: gcc -c   conftest.c >&5
+configure:2675: $? = 0
+configure:2684: result: yes
+configure:2693: checking whether gcc accepts -g
+configure:2713: gcc -c -g  conftest.c >&5
+configure:2713: $? = 0
+configure:2754: result: yes
+configure:2771: checking for gcc option to accept ISO C89
+configure:2834: gcc  -c -g -O2  conftest.c >&5
+configure:2834: $? = 0
+configure:2847: result: none needed
+configure:2910: checking for a BSD-compatible install
+configure:2978: result: /usr/bin/install -c
+configure:2995: checking how to run the C preprocessor
+configure:3026: gcc -E  conftest.c
+configure:3026: $? = 0
+configure:3040: gcc -E  conftest.c
 conftest.c:9:10: fatal error: ac_nonexistent.h: No such file or directory
  #include <ac_nonexistent.h>
           ^~~~~~~~~~~~~~~~~~
 compilation terminated.
-configure:3041: $? = 1
+configure:3040: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -127,15 +127,15 @@ configure: failed program was:
 | #define PACKAGE_URL ""
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
-configure:3066: result: gcc -E
-configure:3086: gcc -E  conftest.c
-configure:3086: $? = 0
-configure:3100: gcc -E  conftest.c
+configure:3065: result: gcc -E
+configure:3085: gcc -E  conftest.c
+configure:3085: $? = 0
+configure:3099: gcc -E  conftest.c
 conftest.c:9:10: fatal error: ac_nonexistent.h: No such file or directory
  #include <ac_nonexistent.h>
           ^~~~~~~~~~~~~~~~~~
 compilation terminated.
-configure:3100: $? = 1
+configure:3099: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -146,56 +146,56 @@ configure: failed program was:
 | #define PACKAGE_URL ""
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
-configure:3129: checking for grep that handles long lines and -e
-configure:3187: result: /bin/grep
-configure:3192: checking for egrep
-configure:3254: result: /bin/grep -E
-configure:3259: checking for ANSI C header files
-configure:3279: gcc -c -g -O2  conftest.c >&5
-configure:3279: $? = 0
-configure:3352: gcc -o conftest -g -O2   conftest.c  >&5
-configure:3352: $? = 0
-configure:3352: ./conftest
-configure:3352: $? = 0
-configure:3363: result: yes
-configure:3376: checking for sys/types.h
-configure:3376: gcc -c -g -O2  conftest.c >&5
-configure:3376: $? = 0
-configure:3376: result: yes
-configure:3376: checking for sys/stat.h
-configure:3376: gcc -c -g -O2  conftest.c >&5
-configure:3376: $? = 0
-configure:3376: result: yes
-configure:3376: checking for stdlib.h
-configure:3376: gcc -c -g -O2  conftest.c >&5
-configure:3376: $? = 0
-configure:3376: result: yes
-configure:3376: checking for string.h
-configure:3376: gcc -c -g -O2  conftest.c >&5
-configure:3376: $? = 0
-configure:3376: result: yes
-configure:3376: checking for memory.h
-configure:3376: gcc -c -g -O2  conftest.c >&5
-configure:3376: $? = 0
-configure:3376: result: yes
-configure:3376: checking for strings.h
-configure:3376: gcc -c -g -O2  conftest.c >&5
-configure:3376: $? = 0
-configure:3376: result: yes
-configure:3376: checking for inttypes.h
-configure:3376: gcc -c -g -O2  conftest.c >&5
-configure:3376: $? = 0
-configure:3376: result: yes
-configure:3376: checking for stdint.h
-configure:3376: gcc -c -g -O2  conftest.c >&5
-configure:3376: $? = 0
-configure:3376: result: yes
-configure:3376: checking for unistd.h
-configure:3376: gcc -c -g -O2  conftest.c >&5
-configure:3376: $? = 0
-configure:3376: result: yes
-configure:3388: checking whether byte ordering is bigendian
-configure:3403: gcc -c -g -O2  conftest.c >&5
+configure:3128: checking for grep that handles long lines and -e
+configure:3186: result: /bin/grep
+configure:3191: checking for egrep
+configure:3253: result: /bin/grep -E
+configure:3258: checking for ANSI C header files
+configure:3278: gcc -c -g -O2  conftest.c >&5
+configure:3278: $? = 0
+configure:3351: gcc -o conftest -g -O2   conftest.c  >&5
+configure:3351: $? = 0
+configure:3351: ./conftest
+configure:3351: $? = 0
+configure:3362: result: yes
+configure:3375: checking for sys/types.h
+configure:3375: gcc -c -g -O2  conftest.c >&5
+configure:3375: $? = 0
+configure:3375: result: yes
+configure:3375: checking for sys/stat.h
+configure:3375: gcc -c -g -O2  conftest.c >&5
+configure:3375: $? = 0
+configure:3375: result: yes
+configure:3375: checking for stdlib.h
+configure:3375: gcc -c -g -O2  conftest.c >&5
+configure:3375: $? = 0
+configure:3375: result: yes
+configure:3375: checking for string.h
+configure:3375: gcc -c -g -O2  conftest.c >&5
+configure:3375: $? = 0
+configure:3375: result: yes
+configure:3375: checking for memory.h
+configure:3375: gcc -c -g -O2  conftest.c >&5
+configure:3375: $? = 0
+configure:3375: result: yes
+configure:3375: checking for strings.h
+configure:3375: gcc -c -g -O2  conftest.c >&5
+configure:3375: $? = 0
+configure:3375: result: yes
+configure:3375: checking for inttypes.h
+configure:3375: gcc -c -g -O2  conftest.c >&5
+configure:3375: $? = 0
+configure:3375: result: yes
+configure:3375: checking for stdint.h
+configure:3375: gcc -c -g -O2  conftest.c >&5
+configure:3375: $? = 0
+configure:3375: result: yes
+configure:3375: checking for unistd.h
+configure:3375: gcc -c -g -O2  conftest.c >&5
+configure:3375: $? = 0
+configure:3375: result: yes
+configure:3387: checking whether byte ordering is bigendian
+configure:3402: gcc -c -g -O2  conftest.c >&5
 conftest.c:20:9: error: unknown type name 'not'
          not a universal capable compiler
          ^~~
@@ -203,7 +203,7 @@ conftest.c:20:15: error: expected '=', ',', ';', 'asm' or '__attribute__' before
          not a universal capable compiler
                ^~~~~~~~~
 conftest.c:20:15: error: unknown type name 'universal'
-configure:3403: $? = 1
+configure:3402: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -228,9 +228,9 @@ configure: failed program was:
 | 	     #endif
 | 	     typedef int dummy;
 | 
-configure:3448: gcc -c -g -O2  conftest.c >&5
-configure:3448: $? = 0
-configure:3466: gcc -c -g -O2  conftest.c >&5
+configure:3447: gcc -c -g -O2  conftest.c >&5
+configure:3447: $? = 0
+configure:3465: gcc -c -g -O2  conftest.c >&5
 conftest.c: In function 'main':
 conftest.c:26:4: error: unknown type name 'not'; did you mean 'ino_t'?
     not big endian
@@ -239,7 +239,7 @@ conftest.c:26:4: error: unknown type name 'not'; did you mean 'ino_t'?
 conftest.c:26:12: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'endian'
     not big endian
             ^~~~~~
-configure:3466: $? = 1
+configure:3465: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -272,61 +272,61 @@ configure: failed program was:
 |   ;
 |   return 0;
 | }
-configure:3594: result: no
-configure:3643: checking CPU type
-configure:3722: checking Operating System
-configure:3814: checking for main in -lutil
-configure:3833: gcc -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC   conftest.c -lutil   >&5
-configure:3833: $? = 0
-configure:3842: result: yes
-configure:3897: checking for main in -ldl
-configure:3916: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c -ldl   -lutil >&5
-configure:3916: $? = 0
-configure:3925: result: yes
-configure:3934: checking math.h usability
-configure:3934: clang-11 -c -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3  conftest.c >&5
-configure:3934: $? = 0
-configure:3934: result: yes
-configure:3934: checking math.h presence
-configure:3934: gcc -E  conftest.c
-configure:3934: $? = 0
-configure:3934: result: yes
-configure:3934: checking for math.h
-configure:3934: result: yes
-configure:3941: checking for main in -lm
-configure:3960: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c -lm   -lutil -ldl >&5
-configure:3960: $? = 0
-configure:3969: result: yes
-configure:3976: checking iconv.h usability
-configure:3976: clang-11 -c -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3  conftest.c >&5
-configure:3976: $? = 0
-configure:3976: result: yes
-configure:3976: checking iconv.h presence
-configure:3976: gcc -E  conftest.c
-configure:3976: $? = 0
-configure:3976: result: yes
-configure:3976: checking for iconv.h
-configure:3976: result: yes
-configure:3989: checking pcre.h usability
-configure:3989: clang-11 -c -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3  conftest.c >&5
-configure:3989: $? = 0
-configure:3989: result: yes
-configure:3989: checking pcre.h presence
-configure:3989: gcc -E  conftest.c
-configure:3989: $? = 0
-configure:3989: result: yes
-configure:3989: checking for pcre.h
-configure:3989: result: yes
-configure:3996: checking for main in -lpcre
-configure:4015: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c -lpcre   -lutil -ldl -lm >&5
-configure:4015: $? = 0
-configure:4024: result: yes
-configure:4034: checking for main in -lrt
-configure:4053: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c -lrt   -lutil -ldl -lm -lpcre >&5
-configure:4053: $? = 0
-configure:4062: result: yes
-configure:4105: checking for lchmod
-configure:4105: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c  -lutil -ldl -lm -lpcre -lrt >&5
+configure:3593: result: no
+configure:3642: checking CPU type
+configure:3721: checking Operating System
+configure:3813: checking for main in -lutil
+configure:3832: gcc -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC   conftest.c -lutil   >&5
+configure:3832: $? = 0
+configure:3841: result: yes
+configure:3896: checking for main in -ldl
+configure:3915: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c -ldl   -lutil >&5
+configure:3915: $? = 0
+configure:3924: result: yes
+configure:3933: checking math.h usability
+configure:3933: clang-11 -c -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3  conftest.c >&5
+configure:3933: $? = 0
+configure:3933: result: yes
+configure:3933: checking math.h presence
+configure:3933: gcc -E  conftest.c
+configure:3933: $? = 0
+configure:3933: result: yes
+configure:3933: checking for math.h
+configure:3933: result: yes
+configure:3940: checking for main in -lm
+configure:3959: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c -lm   -lutil -ldl >&5
+configure:3959: $? = 0
+configure:3968: result: yes
+configure:3975: checking iconv.h usability
+configure:3975: clang-11 -c -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3  conftest.c >&5
+configure:3975: $? = 0
+configure:3975: result: yes
+configure:3975: checking iconv.h presence
+configure:3975: gcc -E  conftest.c
+configure:3975: $? = 0
+configure:3975: result: yes
+configure:3975: checking for iconv.h
+configure:3975: result: yes
+configure:3988: checking pcre.h usability
+configure:3988: clang-11 -c -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3  conftest.c >&5
+configure:3988: $? = 0
+configure:3988: result: yes
+configure:3988: checking pcre.h presence
+configure:3988: gcc -E  conftest.c
+configure:3988: $? = 0
+configure:3988: result: yes
+configure:3988: checking for pcre.h
+configure:3988: result: yes
+configure:3995: checking for main in -lpcre
+configure:4014: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c -lpcre   -lutil -ldl -lm >&5
+configure:4014: $? = 0
+configure:4023: result: yes
+configure:4033: checking for main in -lrt
+configure:4052: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c -lrt   -lutil -ldl -lm -lpcre >&5
+configure:4052: $? = 0
+configure:4061: result: yes
+configure:4104: checking for lchmod
+configure:4104: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c  -lutil -ldl -lm -lpcre -lrt >&5
 conftest.c:53:1: error: unknown type name 'choke'
 choke me
 ^
@@ -335,7 +335,7 @@ choke me
         ^
         ;
 2 errors generated.
-configure:4105: $? = 1
+configure:4104: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -399,12 +399,12 @@ configure: failed program was:
 |   ;
 |   return 0;
 | }
-configure:4105: result: no
-configure:4149: checking for execvpe
-configure:4149: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c  -lutil -ldl -lm -lpcre -lrt >&5
-configure:4149: $? = 0
-configure:4149: result: yes
-configure:4270: creating ./config.status
+configure:4104: result: no
+configure:4148: checking for execvpe
+configure:4148: clang-11 -o conftest -I/usr/lib/llvm-11/include  -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c  -lutil -ldl -lm -lpcre -lrt >&5
+configure:4148: $? = 0
+configure:4148: result: yes
+configure:4269: creating ./config.status
 
 ## ---------------------- ##
 ## Running config.status. ##
@@ -421,8 +421,9 @@ generated by GNU Autoconf 2.69.  Invocation command line was
 
 on clover-lang.org
 
-config.status:812: creating Makefile
-config.status:812: creating config.h
+config.status:813: creating Makefile
+config.status:813: creating config.h
+config.status:988: config.h is unchanged
 
 ## ---------------- ##
 ## Cache variables. ##
@@ -487,11 +488,11 @@ ac_cv_prog_cc_g=yes
 ## ----------------- ##
 
 CC='clang-11'
-CFLAGS='-Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3'
+CFLAGS='-I/usr/lib/llvm-11/include  -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3'
 CPP='gcc -E'
 CPPFLAGS=''
 CXX='g++'
-CXXFLAGS='-O3 -I . -I src -DPREFIX="\"${DESTDIR}/\" -L/usr/local/lib"'
+CXXFLAGS='-I/usr/lib/llvm-11/include -std=c++14   -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/lib/llvm-11/lib  -lLLVM-11   -O3 -I . -I src -DPREFIX="\"${DESTDIR}/\" -L/usr/local/lib"'
 DEFS='-DHAVE_CONFIG_H'
 DESTDIR='/usr/local'
 ECHO_C=''
@@ -506,7 +507,6 @@ INSTALL_SCRIPT='${INSTALL}'
 LDFLAGS=''
 LIBOBJS=''
 LIBS=' -lutil -ldl -lm -lpcre -lrt'
-LLVM_CONFIG='llvm-config-11'
 LTLIBOBJS=''
 OBJEXT='o'
 OBJS='src/parser.o src/alignment.o src/buffer.o src/xfunc.o src/node.o src/vtable.o src/node_type.o src/klass.o src/constant.o src/node_block.o src/typedef.o src/compiler.o'

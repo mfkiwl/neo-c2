@@ -16,6 +16,7 @@
 #include <stdarg.h>
 
 #include <llvm-c/Core.h>
+#include <llvm-c/DebugInfo.h>
 
 //////////////////////////////
 /// limits 
@@ -449,6 +450,8 @@ struct sCompileInfoStruct
 
     void* andand_result_var;
     void* oror_result_var;
+
+    LLVMMetadataRef function_meta_data;
 };
 
 typedef struct sCompileInfoStruct sCompileInfo;
@@ -882,6 +885,7 @@ unsigned int sNodeTree_create_equal_or(unsigned int left_node, unsigned int righ
 unsigned int sNodeTree_create_comma(unsigned int left_node, unsigned int right_node, sParserInfo* info);
 
 extern BOOL gNCDebug;
+extern char gFName[PATH_MAX];
 
 unsigned int sNodeTree_create_func_name(sParserInfo* info);
 

@@ -99,8 +99,9 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     return TRUE;
 }
 
-char* gVersion = "0.0.5";
+char* gVersion = "0.0.6";
 BOOL gNCDebug = FALSE;
+char gFName[PATH_MAX];
 
 int main(int argc, char** argv)
 {
@@ -141,6 +142,8 @@ int main(int argc, char** argv)
     }
     
     setenv("C_INCLUDE_PATH", c_include_path, 1);
+
+    xstrncpy(gFName, sname, PATH_MAX);
 
     compiler_init(sname);
 

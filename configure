@@ -623,7 +623,6 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 OBJS
 CXXFLAGS
-LLVM_CONFIG
 CXX
 DESTDIR
 OS
@@ -4159,18 +4158,18 @@ echo -n checking for llvm-config...
 
 if which llvm-config-11 1> /dev/null 2>/dev/null
 then
-    LLVM_CONFIG=llvm-config-11
-    echo ok
+    CFLAGS=`llvm-config-11 --cflags | tr '\n' ' '`" $CFLAGS"
+    CXXFLAGS=`llvm-config-11 --cxxflags --ldflags --system-libs --libs all | tr '\n' ' '`" $CXXFLAGS"
+    echo llvm-11 ok
 elif which llvm-config 1> /dev/null 2>/dev/null
 then
-    LLVM_CONFIG=llvm-config
+    CFLAGS=`llvm-config --cflags | tr '\n' ' '`" $CFLAGS"
+    CXXFLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs all | tr '\n' ' '`" $CXXFLAGS"
     echo ok
 else
     echo no
     exit 1
 fi
-
-
 
 
 

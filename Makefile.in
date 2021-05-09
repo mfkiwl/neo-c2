@@ -25,7 +25,6 @@ LIBS=@LIBS@
 OS=@OS@
 DESTDIR=@DESTDIR@
 OBJS=@OBJS@
-LLVM_CONFIG=@LLVM_CONFIG@
 
 #########################################
 # main
@@ -33,8 +32,8 @@ LLVM_CONFIG=@LLVM_CONFIG@
 all: come #libcome.a
 
 come: config.h src/main.o $(OBJS)
-	$(CC) -c src/main.c -o src/main.o $(CFLAGS) `$(LLVM_CONFIG) --cflags`
-	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS) `$(LLVM_CONFIG) --cxxflags --ldflags --system-libs --libs all` 
+	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
+	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
 
 #libcome.a: come.c come-string.c come-string2.c come-wstring.c
 #	PWD=`pwd` ./come -c come.c 
@@ -109,43 +108,19 @@ distclean: clean
 #########################################
 test: 
 	@echo "Compile to test code..."
-	PWD=`pwd` ./come code/HelloWorld.c && clang -o code/HelloWorld code/HelloWorld.c.ll
+	PWD=`pwd` ./come code/HelloWorld.c && $(CC) -o code/HelloWorld code/HelloWorld.c.ll
 	./code/HelloWorld
-#	if test `uname -s` = "Darwin"; then PWD=`pwd` ./come code/HelloWorld2.c -lncurses; else PWD=`pwd` ./come code/HelloWorld2.c -lncursesw; fi
-#	./code/HelloWorld2
-#	PWD=`pwd` ./come code/HelloWorld3.c
-#	./code/HelloWorld3
-#	PWD=`pwd` ./come code/HelloWorld4.c
-#	./code/HelloWorld4
-#	PWD=`pwd` ./come -c code/HelloWorld5.c
-#	PWD=`pwd` ./come -c code/HelloWorld6.c
-#	PWD=`pwd` ./come code/HelloWorld7.c code/HelloWorld5.o code/HelloWorld6.o
-#	./code/HelloWorld7
-#	PWD=`pwd` ./come code/HelloWorld8.c
-#	./code/HelloWorld8
-#	PWD=`pwd` ./come code/HelloWorld9.c
-#	./code/HelloWorld9
-#	PWD=`pwd` ./come code/HelloWorld9-2.c
-#	./code/HelloWorld9-2
-#	PWD=`pwd` ./come code/HelloWorld9-5.c
-#	./code/HelloWorld9-5
-#	PWD=`pwd` ./come code/HelloWorld10.c
-#	./code/HelloWorld10
-#	PWD=`pwd` ./come code/HelloWorld10-5.c
-#	./code/HelloWorld10-5
-#	PWD=`pwd` ./come code/HelloWorld10-6.c
-#	./code/HelloWorld10-6
-#	PWD=`pwd` ./come code/HelloWorld10-6-2.c
-#	./code/HelloWorld10-6-2
-#	PWD=`pwd` ./come code/HelloWorld10-7.c || clang -o code/HelloWorld10-7 code/HelloWorld10-7.ll -lcome -lpcre
-#	./code/HelloWorld10-7
+
+debug-test: 
+	@echo "Compile to test code..."
+	PWD=`pwd` ./come -g code/HelloWorld.c && $(CC) -o code/HelloWorld code/HelloWorld.c.ll
+	./code/HelloWorld
 
 #########################################
 # uninstall
 #########################################
-#uninstall:
-#	rm -f "$(DESTDIR)"/bin/come
-#	rm -f "$(DESTDIR)"/bin/come
+uninstall:
+	rm -f "$(DESTDIR)"/bin/come
 #	rm -rf "$(DESTDIR)"/share/doc/come/
 #	rm -f "$(DESTDIR)"/include/come.h
 #	rm -f "$(DESTDIR)"/include/pre-come.h
