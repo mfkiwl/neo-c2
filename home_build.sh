@@ -2,3 +2,4 @@
 make
 make install
 make test
+make debug-test

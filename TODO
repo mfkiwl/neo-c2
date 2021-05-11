@@ -1,13 +1,13 @@
-debug info, for in, struct, union, generics, method generics, method block,inline,  array, var args
+debug info, struct, union, generics, for in, inline, array, var args
 
 select
 map
 each
 --> for in de OK
 
+no code generated generics --> cast
+
+
 lambda iranai
-
-no code generated generics --> any
-
 
 vector, list, map, tuple, string, wstring
