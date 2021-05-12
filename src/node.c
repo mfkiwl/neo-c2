@@ -326,9 +326,11 @@ static DISubroutineType* createDebugFunctionType(sFunction* function, DIFile* un
 struct sFunctionStruct {
     char mName[VAR_NAME_MAX];
     int mNumParams;
+    char mParamNames[PARAMS_MAX][VAR_NAME_MAX];
     sNodeType* mParamTypes[PARAMS_MAX];
     sNodeType* mResultType;
     LLVMValueRef mLLVMFunction;
+    char* mBlockText;
 };
 
 typedef struct sFunctionStruct sFunction;
@@ -840,7 +842,7 @@ static void free_right_value_object(sNodeType* node_type, LLVMValueRef obj, sCom
 
 sFunction gFuncs[FUN_NUM_MAX];
 
-BOOL add_function_to_table(char* name, int num_params, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun)
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text)
 {
     int hash_value = get_hash_key(name, FUN_NUM_MAX);
     sFunction* p = gFuncs + hash_value;
@@ -853,12 +855,15 @@ BOOL add_function_to_table(char* name, int num_params, sNodeType** param_types, 
 
             int i;
             for(i=0; i<num_params; i++) {
+                xstrncpy(p->mParamNames[i], param_names[i], VAR_NAME_MAX);
                 p->mParamTypes[i] = param_types[i];
             }
 
             p->mResultType = result_type;
 
             p->mLLVMFunction = llvm_fun;
+
+            p->mBlockText = block_text;
 
             return TRUE;
         }
@@ -870,12 +875,15 @@ BOOL add_function_to_table(char* name, int num_params, sNodeType** param_types, 
 
                 int i;
                 for(i=0; i<num_params; i++) {
+                    xstrncpy(p->mParamNames[i], param_names[i], VAR_NAME_MAX);
                     p->mParamTypes[i] = param_types[i];
                 }
 
                 p->mResultType = result_type;
 
                 p->mLLVMFunction = llvm_fun;
+
+                p->mBlockText = block_text;
 
                 return TRUE;
             }
@@ -2081,7 +2089,14 @@ static BOOL compile_external_function(unsigned int node, sCompileInfo* info)
     LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
     LLVMValueRef llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
 
-    if(!add_function_to_table(fun_name, num_params, param_types, result_type, llvm_fun)) {
+    char* block_text = NULL;
+
+    char* param_names2[PARAMS_MAX];
+    for(i=0; i<PARAMS_MAX; i++) {
+        param_names2[i] = param_names[i];
+    }
+
+    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text)) {
         fprintf(stderr, "overflow function table\n");
         return FALSE;
     }
@@ -2136,6 +2151,12 @@ unsigned int sNodeTree_create_function_call(char* fun_name, unsigned int* params
     return node;
 }
 
+void llvm_change_block(LLVMBasicBlockRef current_block, sCompileInfo* info)
+{
+    LLVMPositionBuilderAtEnd(gBuilder, current_block);
+    info->current_block = current_block;
+}
+
 BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 {
     /// rename variables ///
@@ -2176,6 +2197,9 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     sNodeType* param_types[PARAMS_MAX];
     memset(param_types, 0, sizeof(sNodeType*)*PARAMS_MAX);
 
+    char param_names[PARAMS_MAX][VAR_NAME_MAX];
+    memset(param_names, 0 , sizeof(char)*PARAMS_MAX*VAR_NAME_MAX);
+
     /// compile parametors ///
     LLVMValueRef llvm_params[PARAMS_MAX];
     memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
@@ -2195,52 +2219,174 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         }
 
         param_types[i] = clone_node_type(info->type);
+        xstrncpy(param_names[i], fun->mParamNames[i], VAR_NAME_MAX);
 
         LVALUE param = *get_value_from_stack(-1);
 
-        if(auto_cast_posibility(fun->mParamTypes[i], param_types[i])) {
-            if(!cast_right_type_to_left_type(fun->mParamTypes[i], &param_types[i], &param, info))
-            {
-                compile_err_msg(info, "Cast failed");
-                info->err_num++;
+        if(fun->mParamTypes[i]) {
+            if(auto_cast_posibility(fun->mParamTypes[i], param_types[i])) {
+                if(!cast_right_type_to_left_type(fun->mParamTypes[i], &param_types[i], &param, info))
+                {
+                    compile_err_msg(info, "Cast failed");
+                    info->err_num++;
 
-                info->type = create_node_type_with_class_name("int"); // dummy
+                    info->type = create_node_type_with_class_name("int"); // dummy
 
-                return TRUE;
+                    return TRUE;
+                }
             }
         }
 
         llvm_params[i] = param.value;
     }
 
-    sNodeType* result_type = fun->mResultType;
+    sNodeType* result_type = clone_node_type(fun->mResultType);
 
-    LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
+    /// call inline function ///
+    if(fun->mBlockText) {
+        int sline = gNodes[node].mLine;
 
-    if(type_identify_with_class_name(result_type, "void") && result_type->mPointerNum == 0) {
-        LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
+        sParserInfo info2;
+        memset(&info2, 0, sizeof(sParserInfo));
 
-        dec_stack_ptr(num_params, info);
+        sBuf_init(&info2.mConst);
 
-        info->type = create_node_type_with_class_name("void");
-    }
-    else {
+        info2.p = fun->mBlockText;
+        xstrncpy(info2.sname, gFName, PATH_MAX);
+        info2.source = fun->mBlockText;
+        info2.module_name = info->pinfo->module_name;
+        info2.sline = sline;
+        info2.parse_phase = info->pinfo->parse_phase;
+        info2.lv_table = info->pinfo->lv_table;
+        info2.in_clang = info->pinfo->in_clang;
 
-        LVALUE llvm_value;
-        llvm_value.value = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "fun_result");
-        llvm_value.type = clone_node_type(result_type);
-        llvm_value.address = NULL;
-        llvm_value.var = NULL;
-        llvm_value.binded_value = FALSE;
-        llvm_value.load_field = FALSE;
+        sNodeBlock* node_block = ALLOC sNodeBlock_alloc();
+        expect_next_character_with_one_forward("{", &info2);
+        sVarTable* old_table = info2.lv_table;
 
-        dec_stack_ptr(num_params, info);
-        push_value_to_stack_ptr(&llvm_value, info);
+        info2.lv_table = init_block_vtable(old_table, FALSE);
+        sVarTable* block_var_table = info2.lv_table;
+
+        for(i=0; i<num_params; i++) {
+            BOOL readonly = FALSE;
+            if(!add_variable_to_table(info2.lv_table, param_names[i], param_types[i], readonly, NULL, -1, FALSE, param_types[i]->mConstant))
+            {
+                compile_err_msg(info, "overflow variable table");
+                return FALSE;
+            }
+        }
+
+        if(!parse_block(node_block, FALSE, FALSE, &info2)) {
+            return FALSE;
+        }
+
+        if(info2.err_num > 0) {
+            fprintf(stderr, "Parser error number is %d. ", info2.err_num);
+            return FALSE;
+        }
+
+        expect_next_character_with_one_forward("}", &info2);
+        info2.lv_table = old_table;
+
+        LLVMBasicBlockRef inline_func_begin = LLVMAppendBasicBlockInContext(gContext, gFunction, fun_name);
+
+        LLVMBuildBr(gBuilder, inline_func_begin);
+
+        LLVMPositionBuilderAtEnd(gBuilder, inline_func_begin);
+
+        llvm_change_block(inline_func_begin, info);
+
+        LLVMValueRef inline_result_variable = info->inline_result_variable;
+        info->inline_result_variable = NULL;
+        if(!type_identify_with_class_name(result_type, "void"))
+        {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(result_type);
+            info->inline_result_variable = LLVMBuildAlloca(gBuilder, llvm_type, "inline_result_variable");
+        }
+
+        for(i=0; i<num_params; i++) {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(param_types[i]);
+            LLVMValueRef param = LLVMBuildAlloca(gBuilder, llvm_type, param_names[i]);
+
+            sVar* var = get_variable_from_table(block_var_table, param_names[i]);
+
+            LLVMBuildStore(gBuilder, llvm_params[i], param);
+
+            if(param_types[i]->mHeap) {
+                remove_object_from_right_values(llvm_params[i]);
+            }
+
+            var->mLLVMValue = param;
+        }
+
+        BOOL in_inline_function = info->in_inline_function;
+        info->in_inline_function = TRUE;
+
+        if(!compile_block(node_block, info, result_type)) {
+            return FALSE;
+        }
+
+        info->in_inline_function = in_inline_function;
+
+        LLVMBasicBlockRef inline_func_end = LLVMAppendBasicBlockInContext(gContext, gFunction, "inline_func_end");
+
+        LLVMBuildBr(gBuilder, inline_func_end);
+        llvm_change_block(inline_func_end, info);
+
+        if(type_identify_with_class_name(result_type, "void") && result_type->mPointerNum == 0) {
+            dec_stack_ptr(num_params, info);
+
+            info->type = create_node_type_with_class_name("void");
+        }
+        else {
+            LVALUE llvm_value;
+            llvm_value.value = LLVMBuildLoad(gBuilder, info->inline_result_variable, "inline_result_variable");
+            llvm_value.type = result_type;
+            llvm_value.address = info->inline_result_variable;
+            llvm_value.var = NULL;
+            llvm_value.binded_value = FALSE;
+            llvm_value.load_field = FALSE;
+
+            dec_stack_ptr(num_params, info);
+            push_value_to_stack_ptr(&llvm_value, info);
+
+            if(result_type->mHeap) {
+                append_object_to_right_values(llvm_value.value, result_type, info);
+            }
+        }
 
         info->type = clone_node_type(result_type);
 
-        if(result_type->mHeap) {
-            append_object_to_right_values(llvm_value.value, result_type, info);
+        info->inline_result_variable = inline_result_variable;
+    }
+    /// call normal function ///
+    else {
+        LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
+
+        if(type_identify_with_class_name(result_type, "void") && result_type->mPointerNum == 0) {
+            LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
+
+            dec_stack_ptr(num_params, info);
+
+            info->type = create_node_type_with_class_name("void");
+        }
+        else {
+            LVALUE llvm_value;
+            llvm_value.value = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "fun_result");
+            llvm_value.type = clone_node_type(result_type);
+            llvm_value.address = NULL;
+            llvm_value.var = NULL;
+            llvm_value.binded_value = FALSE;
+            llvm_value.load_field = FALSE;
+
+            dec_stack_ptr(num_params, info);
+            push_value_to_stack_ptr(&llvm_value, info);
+
+            info->type = clone_node_type(result_type);
+
+            if(result_type->mHeap) {
+                append_object_to_right_values(llvm_value.value, result_type, info);
+            }
         }
     }
 
@@ -2337,9 +2483,11 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
     sNodeType* param_types[PARAMS_MAX];
     LLVMTypeRef llvm_param_types[PARAMS_MAX];
+    char param_names[PARAMS_MAX][VAR_NAME_MAX];
     for(i=0; i<num_params; i++) {
         llvm_param_types[i] = create_llvm_type_from_node_type(params[i].mType);
         param_types[i] = params[i].mType;
+        xstrncpy(param_names[i], params[i].mName, VAR_NAME_MAX);
     }
 
     LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
@@ -2372,7 +2520,14 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         var->mConstant = TRUE;
     }
 
-    if(!add_function_to_table(fun_name, num_params, param_types, result_type, llvm_fun)) {
+    char* block_text = NULL;
+
+    char* param_names2[PARAMS_MAX];
+    for(i=0; i<PARAMS_MAX; i++) {
+        param_names2[i] = param_names[i];
+    }
+
+    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text)) {
         fprintf(stderr, "overflow function table\n");
         info->function_node_block = function_node_block;
         return FALSE;
@@ -2517,6 +2672,66 @@ unsigned int sNodeTree_create_inline_function(char* fun_name, sParserParam* para
 
 BOOL compile_inline_function(unsigned int node, sCompileInfo* info)
 {
+    /// rename variables ///
+    char fun_name[VAR_NAME_MAX];
+    xstrncpy(fun_name, gNodes[node].uValue.sFunction.mName, VAR_NAME_MAX);
+    int num_params = gNodes[node].uValue.sFunction.mNumParams;
+    sParserParam params[PARAMS_MAX];
+    memset(params, 0, sizeof(sParserParam)*PARAMS_MAX);
+    BOOL var_arg = gNodes[node].uValue.sFunction.mVarArg;
+
+    int i;
+    for(i=0; i<num_params; i++) {
+        params[i] = gNodes[node].uValue.sFunction.mParams[i];
+    }
+
+    sNodeType* result_type = gNodes[node].uValue.sFunction.mResultType;
+
+    char* block_text = gNodes[node].uValue.sFunction.mBlockText;
+    char struct_name[VAR_NAME_MAX];
+    xstrncpy(struct_name, gNodes[node].uValue.sFunction.mStructName, VAR_NAME_MAX);
+    char sname[PATH_MAX];
+    xstrncpy(sname, gNodes[node].mSName, PATH_MAX);
+    int sline = gNodes[node].uValue.sFunction.mSLine;
+
+    int num_generics = gNodes[node].uValue.sFunction.mNumGenerics;
+
+    char generics_type_names[PARAMS_MAX][VAR_NAME_MAX];
+    for(i=0; i<num_generics; i++) {
+        xstrncpy(generics_type_names[i], gNodes[node].uValue.sFunction.mGenericsTypeNames[i], VAR_NAME_MAX);
+    }
+
+    int num_method_generics = gNodes[node].uValue.sFunction.mNumMethodGenerics;
+
+    char method_generics_type_names[PARAMS_MAX][VAR_NAME_MAX];
+    for(i=0; i<num_method_generics; i++) {
+        xstrncpy(method_generics_type_names[i], gNodes[node].uValue.sFunction.mMethodGenericsTypeNames[i], VAR_NAME_MAX);
+    }
+
+    /// go ///
+    sNodeType* param_types[PARAMS_MAX];
+    char param_names[PARAMS_MAX][VAR_NAME_MAX];
+
+    for(i=0; i<num_params; i++) {
+        sNodeType* param_type = params[i].mType;
+
+        xstrncpy(param_names[i], params[i].mName, VAR_NAME_MAX);
+
+        param_types[i] = param_type;
+    }
+
+    /// go ///
+    LLVMValueRef llvm_fun = NULL;
+
+    char* param_names2[PARAMS_MAX];
+    for(i=0; i<PARAMS_MAX; i++) {
+        param_names2[i] = param_names[i];
+    }
+
+    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text)) {
+        fprintf(stderr, "overflow function table\n");
+        return FALSE;
+    }
 
     return TRUE;
 }
@@ -2594,12 +2809,6 @@ unsigned int sNodeTree_if_expression(unsigned int expression_node, MANAGED struc
     gNodes[node].mMiddle = 0;
 
     return node;
-}
-
-void llvm_change_block(LLVMBasicBlockRef current_block, sCompileInfo* info)
-{
-    LLVMPositionBuilderAtEnd(gBuilder, current_block);
-    info->current_block = current_block;
 }
 
 
@@ -3936,12 +4145,12 @@ static BOOL compile_return(unsigned int node, sCompileInfo* info)
 
         if(info->in_inline_function) {
             free_objects_on_return(info->function_node_block, info, llvm_value.address, FALSE);
+            LLVMBuildStore(gBuilder, llvm_value.value, info->inline_result_variable);
         }
         else {
             free_objects_on_return(info->function_node_block, info, llvm_value.address, TRUE);
+            LLVMBuildRet(gBuilder, llvm_value.value);
         }
-
-        LLVMBuildRet(gBuilder, llvm_value.value);
 
         if(llvm_value.type->mHeap) {
             remove_object_from_right_values(llvm_value.value);

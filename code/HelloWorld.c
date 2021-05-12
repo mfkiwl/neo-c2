@@ -74,6 +74,37 @@ struct sData
     int b;
 };
 
+inline void inline_fun() 
+{
+    puts("HELLO WORLD");
+}
+
+inline void inline_fun2(char* msg)
+{
+    puts(msg);
+}
+
+
+inline void inline_fun3(int x, int y)
+{
+    printf("%d\n", x + y);
+}
+
+inline int inline_fun4(int x, int y)
+{
+    return x + y;
+}
+
+inline int inline_fun5(int x, int y)
+{
+    return inline_fun4(x, y);
+}
+
+inline string string3(char* msg)
+{
+    return string(msg);
+}
+
 int main()
 {
     printf("HELLO WORLD\n");
@@ -113,10 +144,24 @@ int main()
 
     xassert("structore test", c.a == 1);
 
+    inline_fun();
+
+    inline_fun2("HELLO HELLO");
+
+    inline_fun3(1,2);
+
+    xassert("inline function test", inline_fun4(1, 2) == 3);
+
+    xassert("inline function test2", inline_fun5(1, 2) == 3);
+
+    xassert("inline function test3", strcmp(string3("GHI"), "GHI") == 0);
+
+/*
     int d = 0;
     int e = 1;
 
     int f = e / d;
+*/
 
     return 0;
 }

@@ -420,7 +420,7 @@ struct sCompileInfoStruct
 
     void* result_variable;
 
-    void* inline_func_end;
+    LLVMBasicBlockRef inline_func_end;
 
     BOOL last_expression_is_return;
     void* loop_end_block[LOOP_NEST_MAX];
@@ -452,6 +452,7 @@ struct sCompileInfoStruct
     void* oror_result_var;
 
     LLVMMetadataRef function_meta_data;
+    LLVMValueRef inline_result_variable;
 };
 
 typedef struct sCompileInfoStruct sCompileInfo;
