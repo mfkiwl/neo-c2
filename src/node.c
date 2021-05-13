@@ -509,13 +509,14 @@ struct sStructStruct {
     char mName[VAR_NAME_MAX];
     LLVMTypeRef mLLVMType;
     sNodeType* mNodeType;
+    BOOL mUndefinedBody;
 };
 
 typedef struct sStructStruct sStruct;
 
 sStruct gStructs[STRUCT_NUM_MAX];
 
-BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type)
+BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body)
 {
     int hash_value = get_hash_key(name, STRUCT_NUM_MAX);
     sStruct* p = gStructs + hash_value;
@@ -526,6 +527,7 @@ BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type
 
             p->mNodeType = clone_node_type(node_type);
             p->mLLVMType = llvm_type;
+            p->mUndefinedBody = undefined_body;
 
             return TRUE;
         }
@@ -535,6 +537,7 @@ BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type
 
                 p->mNodeType = clone_node_type(node_type);
                 p->mLLVMType = llvm_type;
+                p->mUndefinedBody = undefined_body;
 
                 return TRUE;
             }
@@ -728,28 +731,85 @@ BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sP
     return TRUE;
 }
 
-BOOL create_llvm_struct_type(sNodeType* node_type, sNodeType* generics_type, BOOL new_create,  sCompileInfo* info)
+BOOL create_llvm_struct_type(sNodeType* node_type, sNodeType* generics_type, BOOL undefined_body,  sCompileInfo* info)
 {
     sCLClass* klass = node_type->mClass;
     char* class_name = CLASS_NAME(klass);
 
-    LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+    sStruct* struct_ = get_struct_from_table(class_name);
 
-    int i;
-    for(i=0; i<klass->mNumFields; i++) {
-        sNodeType* field = clone_node_type(klass->mFields[i]);
+    if(struct_ == NULL && !undefined_body) {
+        LLVMTypeRef field_types[STRUCT_FIELD_MAX];
 
-        field_types[i] = create_llvm_type_from_node_type(field);
+        int i;
+        for(i=0; i<klass->mNumFields; i++) {
+            sNodeType* field = clone_node_type(klass->mFields[i]);
+
+            BOOL success_volve = FALSE;
+            if(!solve_generics(&field, generics_type, &success_volve)) {
+                compile_err_msg(info, "can't solve generics types");
+                return FALSE;
+            }
+
+            field_types[i] = create_llvm_type_from_node_type(field);
+        }
+
+        int num_fields = klass->mNumFields;
+        LLVMTypeRef struct_type = LLVMStructTypeInContext(gContext, field_types, num_fields, FALSE);
+
+        LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+
+        if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+            fprintf(stderr, "overflow struct number\n");
+            exit(2);
+        }
     }
+    else if(undefined_body) {
+        LLVMTypeRef field_types[STRUCT_FIELD_MAX];
 
-    int num_fields = klass->mNumFields;
-    LLVMTypeRef struct_type = LLVMStructTypeInContext(gContext, field_types, num_fields, FALSE);
+        int num_fields = 0;
+        LLVMTypeRef struct_type = LLVMStructTypeInContext(gContext, NULL, num_fields, FALSE);
 
-    LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+        if(!add_struct_to_table(class_name, node_type, struct_type, TRUE)) {
+            fprintf(stderr, "overflow struct number\n");
+            exit(2);
+        }
+    }
+    else if(struct_->mUndefinedBody) {
+        if(undefined_body) {
+            return TRUE;
+        }
+        else {
+            LLVMTypeRef field_types[STRUCT_FIELD_MAX];
 
-    if(!add_struct_to_table(class_name, node_type, struct_type)) {
-        fprintf(stderr, "overflow struct number\n");
-        exit(2);
+            int i;
+            for(i=0; i<klass->mNumFields; i++) {
+                sNodeType* field = clone_node_type(klass->mFields[i]);
+
+                BOOL success_volve = FALSE;
+                if(!solve_generics(&field, generics_type, &success_volve)) {
+                    compile_err_msg(info, "can't solve generics types");
+                    return FALSE;
+                }
+
+                field_types[i] = create_llvm_type_from_node_type(field);
+            }
+
+            int num_fields = klass->mNumFields;
+            LLVMTypeRef struct_type = struct_->mLLVMType;
+
+            LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+
+            struct_->mUndefinedBody = FALSE;
+        }
+    }
+    else if((klass->mFlags & CLASS_FLAGS_GENERICS) && generics_type == NULL) {
+        LLVMTypeRef struct_type = NULL;
+
+        if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+            fprintf(stderr, "overflow struct number\n");
+            exit(2);
+        }
     }
 
     return TRUE;
@@ -763,13 +823,6 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, sCom
 
 void create_undefined_llvm_struct_type(sNodeType* node_type)
 {
-}
-
-void create_anonymous_union_var_name(char* name, int size_name)
-{
-    char* prefix_name = "anon.union.var";
-    static int num = 0;
-    snprintf(name, size_name, "%s%d", prefix_name, num);
 }
 
 void compile_err_msg(sCompileInfo* info, const char* msg, ...)
@@ -1876,7 +1929,6 @@ unsigned int sNodeTree_create_store_variable(char* var_name, int right, BOOL all
     xstrncpy(gNodes[node].uValue.sStoreVariable.mVarName, var_name, VAR_NAME_MAX);
     gNodes[node].uValue.sStoreVariable.mAlloc = alloc;
     gNodes[node].uValue.sStoreVariable.mGlobal = info->mBlockLevel == 0;
-    gNodes[node].uValue.sStoreVariable.mParseStructPhase = info->parse_struct_phase;
 
     gNodes[node].mLeft = 0;
     gNodes[node].mRight = right;
@@ -1888,7 +1940,6 @@ unsigned int sNodeTree_create_store_variable(char* var_name, int right, BOOL all
 
 static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
 {
-    BOOL parse_struct_phase = gNodes[node].uValue.sStoreVariable.mParseStructPhase;
     char var_name[VAR_NAME_MAX];
     xstrncpy(var_name, gNodes[node].uValue.sStoreVariable.mVarName, VAR_NAME_MAX);
     BOOL alloc = gNodes[node].uValue.sStoreVariable.mAlloc;
@@ -2025,7 +2076,6 @@ unsigned int sNodeTree_create_external_function(char* fun_name, char* asm_fname,
     gNodes[node].uValue.sFunction.mVarArg = var_arg;
     gNodes[node].uValue.sFunction.mOperatorFun = operator_fun;
     gNodes[node].uValue.sFunction.mInCLang = info->in_clang;
-    gNodes[node].uValue.sFunction.mParseStructPhase = info->parse_struct_phase;
     gNodes[node].uValue.sFunction.mVersion = version;
 
     if(struct_name && strcmp(struct_name, "") != 0) {
@@ -2437,7 +2487,6 @@ unsigned int sNodeTree_create_function(char* fun_name, char* asm_fname, sParserP
     gNodes[node].uValue.sFunction.mOperatorFun = operator_fun;
     gNodes[node].uValue.sFunction.mSimpleLambdaParam = simple_lambda_param;
     gNodes[node].uValue.sFunction.mGenericsFunction = generics_function; gNodes[node].uValue.sFunction.mConstructorFun = constructor_fun;
-    gNodes[node].uValue.sFunction.mParseStructPhase = info->parse_struct_phase;
 
     return node;
 }
@@ -3002,7 +3051,7 @@ static BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-unsigned int sNodeTree_struct(sNodeType* struct_type, sParserInfo* info, char* sname, int sline, BOOL anonymous)
+unsigned int sNodeTree_struct(sNodeType* struct_type, sParserInfo* info, char* sname, int sline, BOOL undefined_body)
 {
     unsigned node = alloc_node();
 
@@ -3012,7 +3061,8 @@ unsigned int sNodeTree_struct(sNodeType* struct_type, sParserInfo* info, char* s
     gNodes[node].mLine = sline;
 
     gNodes[node].uValue.sStruct.mType = struct_type;
-    gNodes[node].uValue.sStruct.mAnonymous = anonymous;
+    gNodes[node].uValue.sStruct.mUndefinedBody = undefined_body;
+    gNodes[node].uValue.sStruct.mAnonymous = FALSE;
 
     gNodes[node].mLeft = 0;
     gNodes[node].mRight = 0;
@@ -3024,8 +3074,9 @@ unsigned int sNodeTree_struct(sNodeType* struct_type, sParserInfo* info, char* s
 static BOOL compile_struct(unsigned int node, sCompileInfo* info)
 {
     sNodeType* node_type = gNodes[node].uValue.sStruct.mType;
+    BOOL undefined_body = gNodes[node].uValue.sStruct.mUndefinedBody;
 
-    create_llvm_struct_type(node_type, NULL, TRUE, info);
+    create_llvm_struct_type(node_type, NULL, undefined_body, info);
 
     return TRUE;
 }
@@ -3040,6 +3091,7 @@ unsigned int sNodeTree_union(sNodeType* struct_type, sParserInfo* info, char* sn
     gNodes[node].mLine = sline;
 
     gNodes[node].uValue.sStruct.mType = struct_type;
+    gNodes[node].uValue.sStruct.mUndefinedBody = FALSE;
     gNodes[node].uValue.sStruct.mAnonymous = anonymous;
 
     gNodes[node].mLeft = 0;
@@ -3994,9 +4046,7 @@ unsigned int sNodeTree_create_typedef(char* name, sNodeType* node_type, sParserI
     gNodes[node].mRight = 0;
     gNodes[node].mMiddle = 0;
 
-    if(info->parse_struct_phase) {
-        add_typedef(name, clone_node_type(node_type));
-    }
+    add_typedef(name, clone_node_type(node_type));
 
     return node;
 }

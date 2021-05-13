@@ -1,3 +1,6 @@
+
+struct a { int a; int b; } b;
+
 int main()
 {
     int a = 0;

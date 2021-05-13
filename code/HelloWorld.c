@@ -68,12 +68,6 @@ string string2(char* str)
     return string(str);
 }
 
-struct sData
-{
-    int a;
-    int b;
-};
-
 inline void inline_fun() 
 {
     puts("HELLO WORLD");
@@ -104,6 +98,35 @@ inline string string3(char* msg)
 {
     return string(msg);
 }
+
+struct sData
+{
+    int a;
+    int b;
+};
+
+struct sUndefinedStruct;
+
+struct sUndefinedStruct2 {
+    struct sUndefinedStruct* data;
+};
+
+struct sUndefinedStruct {
+    int data;
+    int data2;
+};
+
+struct sAnonymousStruct {
+    struct { int a; int b; } data;
+};
+
+/*
+struct sGenericsData<T>
+{
+    T data;
+    T data2;
+};
+*/
 
 int main()
 {
@@ -138,12 +161,6 @@ int main()
 
     xassert("string test3", strcmp(string2("GHI"), "GHI") == 0);
 
-    sData c;
-
-    c.a = 1;
-
-    xassert("structore test", c.a == 1);
-
     inline_fun();
 
     inline_fun2("HELLO HELLO");
@@ -155,6 +172,31 @@ int main()
     xassert("inline function test2", inline_fun5(1, 2) == 3);
 
     xassert("inline function test3", strcmp(string3("GHI"), "GHI") == 0);
+
+    sData c;
+
+    c.a = 1;
+
+    xassert("structore test", c.a == 1);
+
+
+    sUndefinedStruct d;
+
+    d.data = 111;
+
+    xassert("undefined struct test1", d.data == 111);
+
+    sUndefinedStruct2 e;
+
+    struct { int a; int b; } f;
+
+    struct AnonymousStruct { int a } g;
+
+    sAnonymousStruct h;
+
+/*
+    sGenericsData<int> data;
+*/
 
 /*
     int d = 0;

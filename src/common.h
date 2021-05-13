@@ -326,9 +326,6 @@ struct sParserInfoStruct
 
     BOOL in_clang;
 
-    BOOL parse_struct_phase;
-
-
     char fun_name[VAR_NAME_MAX];
 
     char parse_struct_name[VAR_NAME_MAX];
@@ -482,7 +479,6 @@ struct sNodeTreeStruct
             char mVarName[VAR_NAME_MAX];
             BOOL mAlloc;
             BOOL mGlobal;
-            BOOL mParseStructPhase;
         } sStoreVariable;
 
         struct {
@@ -543,7 +539,6 @@ struct sNodeTreeStruct
             BOOL mConstructorFun;
             int mSLine;
             BOOL mInCLang;
-            BOOL mParseStructPhase;
             int mVersion;
             BOOL mFinalize;
             int mGenericsFunNum;
@@ -584,6 +579,7 @@ struct sNodeTreeStruct
 
         struct {
             sNodeType* mType;
+            BOOL mUndefinedBody;
             BOOL mAnonymous;
         } sStruct;
 
@@ -730,7 +726,7 @@ unsigned int sNodeTree_create_function(char* fun_name, char* asm_fname, sParserP
 unsigned int sNodeTree_create_function_call(char* fun_name, unsigned int* params, int num_params, BOOL method, BOOL inherit, int version, sParserInfo* info);
 unsigned int sNodeTree_create_load_variable(char* var_name, sParserInfo* info);
 unsigned int sNodeTree_if_expression(unsigned int expression_node, MANAGED struct sNodeBlockStruct* if_node_block, unsigned int* elif_expression_nodes, MANAGED struct sNodeBlockStruct** elif_node_blocks, int elif_num, MANAGED struct sNodeBlockStruct* else_node_block, sParserInfo* info, char* sname, int sline);
-unsigned int sNodeTree_struct(sNodeType* struct_type, sParserInfo* info, char* sname, int sline, BOOL anonymous);
+unsigned int sNodeTree_struct(sNodeType* struct_type, sParserInfo* info, char* sname, int sline, BOOL undefined_body);
 unsigned int sNodeTree_union(sNodeType* struct_type, sParserInfo* info, char* sname, int sline, BOOL anonymous);
 unsigned int sNodeTree_create_object(sNodeType* node_type, unsigned int object_num, char* sname, int sline, sParserInfo* info);
 unsigned int sNodeTree_create_delete(unsigned int object_node, sParserInfo* info);

@@ -533,6 +533,9 @@ BOOL type_identify_with_class_name(sNodeType* left, char* right_class_name)
 BOOL solve_generics(sNodeType** node_type, sNodeType* generics_type, BOOL* success_volve)
 {
     *success_volve = FALSE;
+    if(generics_type == NULL) {
+        return TRUE;
+    }
 
     sCLClass* klass = (*node_type)->mClass;
 

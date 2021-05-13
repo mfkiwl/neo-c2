@@ -137,13 +137,14 @@ BOOL compile_source(char* fname, char* source, BOOL optimize, sVarTable* module_
 {
     sParserInfo info;
     memset(&info, 0, sizeof(sParserInfo));
+
     sBuf_init(&info.mConst);
+
     info.p = source;
     info.source = source;
     xstrncpy(info.sname, fname, PATH_MAX);
     info.lv_table = module_var_table;
     info.sline = 1;
-    info.parse_struct_phase = TRUE;
 
     char module_name[PATH_MAX];
     xstrncpy(module_name, fname, PATH_MAX);
@@ -169,103 +170,8 @@ BOOL compile_source(char* fname, char* source, BOOL optimize, sVarTable* module_
     sCompileInfo cinfo;
     memset(&cinfo, 0, sizeof(sCompileInfo));
 
-    //new_right_value_objects_container(&cinfo);
-
-
     xstrncpy(cinfo.fun_name, fname, VAR_NAME_MAX);
 
-    cinfo.pinfo = &info;
-
-    while(*info.p) {
-        skip_spaces_and_lf(&info);
- 
-        int sline = info.sline;
-        char* sname = info.sname;
-
-        //info.sline_top = sline;
-
-        if(*info.p == '#') {
-            if(!parse_sharp(&info)) {
-                free(info.mConst.mBuf);
-                return FALSE;
-            }
-        }
-        else if(parse_cmp(info.p, "__extension__") == 0)
-        {
-            info.p += 13;
-            skip_spaces_and_lf(&info);
-        }
-        else {
-            unsigned int node = 0;
-            if(!expression(&node, &info)) {
-                free(info.mConst.mBuf);
-                return FALSE;
-            }
-
-            if(node == 0) {
-                parser_err_msg(&info, "require an expression");
-                info.err_num++;
-                break;
-            }
-
-            if(info.change_sline) {
-                info.change_sline = FALSE;
-
-                gNodes[node].mLine = info.sline;
-                xstrncpy(gNodes[node].mSName, info.sname, PATH_MAX);
-
-                info.sline_top = info.sline;
-            }
-            else {
-                gNodes[node].mLine = sline;
-                xstrncpy(gNodes[node].mSName, sname, PATH_MAX);
-            }
-
-/*
-            if(info.err_num == 0)
-            {
-                cinfo.sline = gNodes[node].mLine;
-                xstrncpy(cinfo.sname, gNodes[node].mSName, PATH_MAX);
-
-                if(!compile(node, &cinfo)) {
-                    free(info.mConst.mBuf);
-                    return FALSE;
-                }
-
-                arrange_stack(&cinfo, 0);
-            }
-*/
-        }
-
-        if(*info.p == ';') {
-            info.p++;
-            skip_spaces_and_lf(&info);
-        }
-        skip_spaces_and_lf(&info);
-    }
-
-    if(info.err_num > 0 || cinfo.err_num > 0) {
-        fprintf(stderr, "Parser error number is %d. Compile error number is %d\n", info.err_num, cinfo.err_num);
-        free(info.mConst.mBuf);
-        return FALSE;
-    }
-
-    memset(&info, 0, sizeof(sParserInfo));
-
-    info.p = source;
-    info.source = source;
-    xstrncpy(info.sname, fname, PATH_MAX);
-    info.sline = 1;
-    info.parse_struct_phase = FALSE;
-    info.lv_table = module_var_table;
-
-    info.module_name = module_name3;
-
-    memset(&cinfo, 0, sizeof(sCompileInfo));
-
-    //new_right_value_objects_container(&cinfo);
-
-    xstrncpy(cinfo.fun_name, fname, VAR_NAME_MAX);
     cinfo.pinfo = &info;
 
     while(*info.p) {
