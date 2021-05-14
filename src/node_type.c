@@ -93,6 +93,7 @@ sNodeType* clone_node_type(sNodeType* node_type)
     node_type2->mDynamicArrayNum = node_type->mDynamicArrayNum;
     node_type2->mArrayInitializeNum = node_type->mArrayInitializeNum;
     node_type2->mTypeOfExpression = node_type->mTypeOfExpression;
+    node_type2->mConstant = node_type->mConstant;
 
     if(node_type->mResultType) {
         node_type2->mResultType = clone_node_type(node_type->mResultType);
@@ -117,6 +118,9 @@ sNodeType* clone_node_type(sNodeType* node_type)
 
 void show_type_core(sNodeType* type) 
 {
+    if(type->mConstant) {
+        printf("const ");
+    }
     printf("class %s", CLASS_NAME(type->mClass));
     int i;
     for(i=0; i<type->mPointerNum; i++) {

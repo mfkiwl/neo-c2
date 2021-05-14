@@ -120,6 +120,14 @@ struct sAnonymousStruct {
     struct { int a; int b; } data;
 };
 
+enum eEnum { kEnumA, kEnumB, kEnumC };
+
+enum { kEnumD, kEnumE, kEnumF };
+
+enum eEnum2 { kEnumG, kEnumH, kEnumI } AAA;
+
+enum { kEnumJ, kEnumK, kEnumL } BBB;
+
 /*
 struct sGenericsData<T>
 {
@@ -193,6 +201,21 @@ int main()
     struct AnonymousStruct { int a } g;
 
     sAnonymousStruct h;
+
+    xassert("enum test", kEnumA == 0);
+    xassert("enum test2", kEnumD == 0);
+    xassert("enum test3", kEnumG == 0);
+    xassert("enum test4", kEnumJ == 0);
+
+    enum ENUMENUM { kEnumX, kEnumY, kEnumZ } i;
+    enum { kEnumX2, kEnumY2, kEnumZ2 } j;
+
+    xassert("enum test5", kEnumX == 0);
+    xassert("enum test6", kEnumX2 == 0);
+
+    const int k = 1;
+
+    xassert("constant test", k == 1);
 
 /*
     sGenericsData<int> data;

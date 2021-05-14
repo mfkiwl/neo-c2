@@ -35,7 +35,7 @@
 #define STRUCT_FIELD_MAX 256
 #define REAL_FUN_NAME_MAX (VAR_NAME_MAX*PARAMS_MAX+32)
 #define REAL_STRUCT_NAME_MAX (VAR_NAME_MAX*PARAMS_MAX+32)
-#define IMPL_DEF_MAX 512
+#define NODES_MAX 512
 #define EXTERNAL_OBJECT_MAX 4096
 #define INIT_ARRAY_MAX 128
 #define LOOP_NEST_MAX 1024
@@ -455,7 +455,7 @@ struct sCompileInfoStruct
 typedef struct sCompileInfoStruct sCompileInfo;
 extern LLVMBuilderRef gBuilder;
 
-enum eNodeType { kNodeTypeIntValue, kNodeTypeUIntValue, kNodeTypeLongValue, kNodeTypeULongValue, kNodeTypeAdd, kNodeTypeSub, kNodeTypeStoreVariable, kNodeTypeLoadVariable, kNodeTypeDefineVariable, kNodeTypeCString, kNodeTypeFunction, kNodeTypeExternalFunction, kNodeTypeFunctionCall, kNodeTypeIf, kNodeTypeEquals, kNodeTypeNotEquals, kNodeTypeStruct, kNodeTypeObject, kNodeTypeStackObject, kNodeTypeStoreField, kNodeTypeLoadField, kNodeTypeWhile, kNodeTypeDoWhile, kNodeTypeGteq, kNodeTypeLeeq, kNodeTypeGt, kNodeTypeLe, kNodeTypeLogicalDenial, kNodeTypeTrue, kNodeTypeFalse, kNodeTypeAndAnd, kNodeTypeOrOr, kNodeTypeFor, kNodeTypeLambdaCall, kNodeTypeSimpleLambdaParam, kNodeTypeDerefference, kNodeTypeRefference, kNodeTypeNull, kNodeTypeClone, kNodeTypeLoadElement, kNodeTypeStoreElement, kNodeTypeChar, kNodeTypeMult, kNodeTypeDiv, kNodeTypeMod, kNodeTypeCast, kNodeTypeImpl, kNodeTypeGenericsFunction, kNodeTypeInlineFunction, kNodeTypeTypeDef, kNodeTypeUnion, kNodeTypeLeftShift, kNodeTypeRightShift, kNodeTypeAnd, kNodeTypeXor, kNodeTypeOr, kNodeTypeReturn, kNodeTypeSizeOf, kNodeTypeSizeOfExpression, kNodeTypeDefineVariables, kNodeTypeLoadFunction, kNodeTypeArrayWithInitialization, kNodeTypeStructWithInitialization, kNodeTypeNormalBlock, kNodeTypeSwitch, kNodeTypeBreak, kNodeTypeContinue, kNodeTypeCase, kNodeTypeLabel, kNodeTypeGoto, kNodeTypeIsHeap, kNodeTypeIsHeapExpression, kNodeTypeVaArg, kNodeTypeDelete, kNodeTypeClassNameExpression, kNodeTypeClassName, kNodeTypeConditional, kNodeTypeAlignOf, kNodeTypeAlignOfExpression, kNodeTypeBorrow, kNodeTypeDummyHeap, kNodeTypeManaged, kNodeTypeComplement, kNodeTypeStoreAddress, kNodeTypeLoadAddressValue, kNodeTypePlusPlus, kNodeTypeMinusMinus, kNodeTypeEqualPlus, kNodeTypeEqualMinus, kNodeTypeEqualMult, kNodeTypeEqualDiv, kNodeTypeEqualMod, kNodeTypeEqualLShift, kNodeTypeEqualRShift, kNodeTypeEqualAnd, kNodeTypeEqualXor, kNodeTypeEqualOr, kNodeTypeComma, kNodeTypeFunName };
+enum eNodeType { kNodeTypeIntValue, kNodeTypeUIntValue, kNodeTypeLongValue, kNodeTypeULongValue, kNodeTypeAdd, kNodeTypeSub, kNodeTypeStoreVariable, kNodeTypeLoadVariable, kNodeTypeDefineVariable, kNodeTypeCString, kNodeTypeFunction, kNodeTypeExternalFunction, kNodeTypeFunctionCall, kNodeTypeIf, kNodeTypeEquals, kNodeTypeNotEquals, kNodeTypeStruct, kNodeTypeObject, kNodeTypeStackObject, kNodeTypeStoreField, kNodeTypeLoadField, kNodeTypeWhile, kNodeTypeDoWhile, kNodeTypeGteq, kNodeTypeLeeq, kNodeTypeGt, kNodeTypeLe, kNodeTypeLogicalDenial, kNodeTypeTrue, kNodeTypeFalse, kNodeTypeAndAnd, kNodeTypeOrOr, kNodeTypeFor, kNodeTypeLambdaCall, kNodeTypeSimpleLambdaParam, kNodeTypeDerefference, kNodeTypeRefference, kNodeTypeNull, kNodeTypeClone, kNodeTypeLoadElement, kNodeTypeStoreElement, kNodeTypeChar, kNodeTypeMult, kNodeTypeDiv, kNodeTypeMod, kNodeTypeCast, kNodeTypeImpl, kNodeTypeGenericsFunction, kNodeTypeInlineFunction, kNodeTypeTypeDef, kNodeTypeUnion, kNodeTypeLeftShift, kNodeTypeRightShift, kNodeTypeAnd, kNodeTypeXor, kNodeTypeOr, kNodeTypeReturn, kNodeTypeSizeOf, kNodeTypeSizeOfExpression, kNodeTypeNodes, kNodeTypeLoadFunction, kNodeTypeArrayWithInitialization, kNodeTypeStructWithInitialization, kNodeTypeNormalBlock, kNodeTypeSwitch, kNodeTypeBreak, kNodeTypeContinue, kNodeTypeCase, kNodeTypeLabel, kNodeTypeGoto, kNodeTypeIsHeap, kNodeTypeIsHeapExpression, kNodeTypeVaArg, kNodeTypeDelete, kNodeTypeClassNameExpression, kNodeTypeClassName, kNodeTypeConditional, kNodeTypeAlignOf, kNodeTypeAlignOfExpression, kNodeTypeBorrow, kNodeTypeDummyHeap, kNodeTypeManaged, kNodeTypeComplement, kNodeTypeStoreAddress, kNodeTypeLoadAddressValue, kNodeTypePlusPlus, kNodeTypeMinusMinus, kNodeTypeEqualPlus, kNodeTypeEqualMinus, kNodeTypeEqualMult, kNodeTypeEqualDiv, kNodeTypeEqualMod, kNodeTypeEqualLShift, kNodeTypeEqualRShift, kNodeTypeEqualAnd, kNodeTypeEqualXor, kNodeTypeEqualOr, kNodeTypeComma, kNodeTypeFunName };
 
 struct sNodeTreeStruct 
 {
@@ -492,11 +492,9 @@ struct sNodeTreeStruct
         } sLoadFunction;
 
         struct {
-            unsigned int mNodes[IMPL_DEF_MAX];
+            unsigned int mNodes[NODES_MAX];
             int mNumNodes;
-            BOOL mGlobal;
-            BOOL mExtern;
-        } sDefineVariables;
+        } sNodes;
 
         struct {
             char mVarName[VAR_NAME_MAX];
@@ -609,7 +607,7 @@ struct sNodeTreeStruct
         } sSimpleLambdaParam;
 
         struct {
-            unsigned int mNodes[IMPL_DEF_MAX];
+            unsigned int mNodes[NODES_MAX];
             int mNumNodes;
         } sImpl;
 
@@ -693,6 +691,7 @@ void push_value_to_stack_ptr(LVALUE* value, sCompileInfo* info);
 void dec_stack_ptr(int value, sCompileInfo* info);
 void arrange_stack(sCompileInfo* info, int top);
 LVALUE* get_value_from_stack(int offset);
+BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sParserInfo* info);
 
 typedef struct sNodeTreeStruct sNodeTree;
 
@@ -779,7 +778,7 @@ unsigned int sNodeTree_create_sizeof(sNodeType* node_type, sParserInfo* info);
 unsigned int sNodeTree_create_sizeof_expression(unsigned int lnode, sParserInfo* info);
 unsigned int sNodeTree_create_alignof(sNodeType* node_type, sParserInfo* info);
 unsigned int sNodeTree_create_alignof_expression(unsigned int lnode, sParserInfo* info);
-unsigned int sNodeTree_create_define_variables(unsigned int* nodes, int num_nodes, BOOL extern_, sParserInfo* info);
+unsigned int sNodeTree_create_nodes(unsigned int* nodes, int num_nodes, sParserInfo* info);
 BOOL is_function_name(char* name);
 unsigned int sNodeTree_create_load_function(char* fun_name, sParserInfo* info);
 unsigned int sNodeTree_create_array_with_initialization(char* name, int num_initialize_array_value, unsigned int* initialize_array_value, unsigned int left_node, sParserInfo* info);
@@ -860,7 +859,6 @@ BOOL call_macro(unsigned int* node, char* name, char* params, sParserInfo* info)
 /// parser.c ///
 BOOL get_number(BOOL minus, unsigned int* node, sParserInfo* info);
 BOOL parse_macro(unsigned int* node, sParserInfo* info);
-BOOL parse_enum(unsigned int* node, char* name, sParserInfo* info);
 BOOL parse_ruby_macro(unsigned int* node, sParserInfo* info, BOOL really_appended);
 BOOL parse_delete(unsigned int* node, sParserInfo* info);
 BOOL parse_borrow(unsigned int* node, sParserInfo* info);

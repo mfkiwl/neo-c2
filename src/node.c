@@ -697,13 +697,9 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
 BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sParserInfo* info)
 {
-/*
     sCompileInfo cinfo;
 
     memset(&cinfo, 0, sizeof(sCompileInfo));
-
-    new_right_value_objects_container(&cinfo);
-
     cinfo.pinfo = info;
 
     if(!compile(array_size_node, &cinfo)) {
@@ -713,20 +709,10 @@ BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sP
     sNodeType* node_type = cinfo.type;
 
     LVALUE llvm_value = *get_value_from_stack(-1);
-
     dec_stack_ptr(1, &cinfo);
+    LLVMValueRef value = llvm_value.value;
 
-    Value* value = llvm_value.value;
-
-    ConstantInt* constant_value;
-
-    if(constant_value = dyn_cast<ConstantInt>(value)) {
-        *array_size = constant_value->getSExtValue();
-    }
-    else {
-        return FALSE;
-    }
-*/
+    *array_size = LLVMConstIntGetZExtValue(llvm_value.value);
 
     return TRUE;
 }
@@ -1908,9 +1894,25 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
 
     LLVMTypeRef llvm_type = create_llvm_type_from_node_type(var_type);
 
-    LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
+    if(extern_) {
+        LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
 
-    var->mLLVMValue = alloca_value;
+        LLVMSetExternallyInitialized(alloca_value, TRUE);
+
+        var->mLLVMValue = alloca_value;
+    }
+    else if(global) {
+        LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
+
+        LLVMValueRef value = LLVMConstInt(llvm_type, 0, FALSE);
+        LLVMSetInitializer(alloca_value, value);
+
+        var->mLLVMValue = alloca_value;
+    }
+    else {
+        LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
+        var->mLLVMValue = alloca_value;
+    }
 
     info->type = create_node_type_with_class_name("void");
 
@@ -1979,20 +1981,53 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         }
     }
 
+    BOOL constant = var->mConstant;
+
     if(alloc) {
-        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+        if(global) {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-        LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
+            LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
 
-        LLVMBuildStore(gBuilder, rvalue.value, alloca_value);
+            LLVMSetInitializer(alloca_value, rvalue.value);
 
-        var->mLLVMValue = alloca_value;
+            var->mLLVMValue = alloca_value;
+
+            info->type = left_type;
+
+            if(left_type->mHeap) {
+                remove_object_from_right_values(rvalue.value);
+            }
+        }
+        else if(constant) {
+            var->mLLVMValue = rvalue.value;
+
+            info->type = left_type;
+
+            if(left_type->mHeap) {
+                remove_object_from_right_values(rvalue.value);
+            }
+        }
+        else {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+            LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
+
+            LLVMBuildStore(gBuilder, rvalue.value, alloca_value);
+
+            var->mLLVMValue = alloca_value;
+
+            info->type = left_type;
+
+            if(left_type->mHeap) {
+                remove_object_from_right_values(rvalue.value);
+            }
+        }
+    }
+    else if(constant) {
+        var->mLLVMValue = rvalue.value;
 
         info->type = left_type;
-
-        if(left_type->mHeap) {
-            remove_object_from_right_values(rvalue.value);
-        }
     }
     else {
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
@@ -2808,9 +2843,11 @@ unsigned int sNodeTree_create_load_variable(char* var_name, sParserInfo* info)
 static BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
 {
     char* var_name = gNodes[node].uValue.sLoadVariable.mVarName;
-    BOOL global = gNodes[node].uValue.sLoadVariable.mGlobal;
 
     sVar* var = get_variable_from_table(info->pinfo->lv_table, var_name);
+
+    BOOL global = var->mGlobal;
+    BOOL constant = var->mConstant;
 
     sNodeType* var_type = clone_node_type(var->mType);
 
@@ -2818,12 +2855,16 @@ static BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
 
     LVALUE llvm_value;
 
-    if(var->mConstant) {
+    if(global) {
+        llvm_value.value = LLVMBuildLoad(gBuilder, var_address, var_name);
+    }
+    else if(constant) {
         llvm_value.value = var_address;
     }
     else {
         llvm_value.value = LLVMBuildLoad(gBuilder, var_address, var_name);
     }
+
     llvm_value.type = var_type;
     llvm_value.address = var_address;
     llvm_value.var = NULL;
@@ -4315,19 +4356,17 @@ BOOL compile_alignof_expression(unsigned int node, sCompileInfo* info)
 }
 
 
-unsigned int sNodeTree_create_define_variables(unsigned int* nodes, int num_nodes, BOOL extern_, sParserInfo* info)
+unsigned int sNodeTree_create_nodes(unsigned int* nodes, int num_nodes, sParserInfo* info)
 {
     unsigned node = alloc_node();
 
-    gNodes[node].mNodeType = kNodeTypeDefineVariables;
+    gNodes[node].mNodeType = kNodeTypeNodes;
 
     xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
     gNodes[node].mLine = info->sline;
 
-    memcpy(gNodes[node].uValue.sDefineVariables.mNodes, nodes, sizeof(unsigned int)*IMPL_DEF_MAX);
-    gNodes[node].uValue.sDefineVariables.mNumNodes = num_nodes;
-    gNodes[node].uValue.sDefineVariables.mGlobal = info->mBlockLevel == 0;
-    gNodes[node].uValue.sDefineVariables.mExtern = extern_;
+    memcpy(gNodes[node].uValue.sNodes.mNodes, nodes, sizeof(unsigned int)*NODES_MAX);
+    gNodes[node].uValue.sNodes.mNumNodes = num_nodes;
 
     gNodes[node].mLeft = 0;
     gNodes[node].mRight = 0;
@@ -4336,8 +4375,33 @@ unsigned int sNodeTree_create_define_variables(unsigned int* nodes, int num_node
     return node;
 }
 
-static BOOL compile_define_variables(unsigned int node, sCompileInfo* info)
+static BOOL compile_nodes(unsigned int node, sCompileInfo* info)
 {
+    unsigned int* nodes = gNodes[node].uValue.sNodes.mNodes;
+    int num_nodes = gNodes[node].uValue.sNodes.mNumNodes;
+
+    int stack_num_before = info->stack_num;
+
+    int i;
+    for(i=0; i<num_nodes; i++) {
+        unsigned int node = nodes[i];
+
+        xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
+        info->sline = gNodes[node].mLine;
+
+        if(gNCDebug) {
+            setCurrentDebugLocation(info->sline, info);
+        }
+
+        if(!compile(node, info)) {
+            return FALSE;
+        }
+
+        arrange_stack(info, stack_num_before);
+    }
+
+    info->type = create_node_type_with_class_name("void");
+
     return TRUE;
 }
 
@@ -5445,8 +5509,8 @@ BOOL compile(unsigned int node, sCompileInfo* info)
             }
             break;
 
-        case kNodeTypeDefineVariables:
-            if(!compile_define_variables(node, info)) {
+        case kNodeTypeNodes:
+            if(!compile_nodes(node, info)) {
                 return FALSE;
             }
             break;
