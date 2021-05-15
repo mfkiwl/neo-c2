@@ -1,21 +1,39 @@
-union, generics, foreach, array, var args
+array
+
+    dynamic length array
+
+    array initiailizer
+
+    array head pointer
+
+operators
+
+    pointer sub and add
+
+function pointer
+
+var args
+
+    xsprintf
 
 struct 
 
-generics struct
+    generics struct
 
-union
+foreach
 
-select
-map
-each
---> foreach 
+    select
+    map
+    each
+    --> foreach 
 
-code generated generics
+generics
 
-vector, list, map, tuple, string, wstring
+    code generated generics or none code generated generics
 
-no lambda and method block
+    vector, list, map, tuple, string, wstring
+
+    no lambda and method block
 
 ---- implemented ----
 debug info
@@ -23,3 +41,4 @@ inline
 undefined struct;
 anonymous struct
 enum
+union

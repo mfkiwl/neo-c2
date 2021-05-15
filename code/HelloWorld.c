@@ -242,6 +242,32 @@ int main()
 
     xassert("union test4", gUnionData.data1 == 123);
 
+    int m[123];
+
+    m[0] = 123;
+
+    xassert("array test", m[0] == 123);
+
+    int n[123][123];
+
+    n[1][2] = 123;
+
+    xassert("array test2", n[1][2] == 123);
+
+    int o[123][123][123];
+
+    o[1][2][3] = 123;
+
+    xassert("array test3", o[1][2][3] == 123);
+
+    int p[5][5][5][5];
+
+/*
+    p[1][2][3][4] = 111;
+
+    xassert("array test4", p[1][2][3][4] == 111);
+*/
+
 
 /*
     sGenericsData<int> data;

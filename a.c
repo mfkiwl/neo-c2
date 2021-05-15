@@ -1,22 +1,11 @@
 
-struct sData {
-    int a;
-    long b;
-    long c;
-};
-
-union uData {
-    int data1;
-    long data2;
-
-    sData data3;
-};
-
-
-
 int main()
 {
-    uData udata;
+    int o[123][123][123];
+
+    o[1][2][3] = 123;
+
+    bool a = (o[1][2][3] == 123);
 
     return 0;
 }

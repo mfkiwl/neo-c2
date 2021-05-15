@@ -99,7 +99,7 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     return TRUE;
 }
 
-char* gVersion = "0.1.1";
+char* gVersion = "0.1.2";
 BOOL gNCDebug = FALSE;
 char gFName[PATH_MAX];
 
