@@ -128,6 +128,13 @@ enum eEnum2 { kEnumG, kEnumH, kEnumI } AAA;
 
 enum { kEnumJ, kEnumK, kEnumL } BBB;
 
+union uData {
+    int data1;
+    long data2;
+
+    struct { int a; long b; long c; } data3;
+} gUnionData;
+
 /*
 struct sGenericsData<T>
 {
@@ -216,6 +223,25 @@ int main()
     const int k = 1;
 
     xassert("constant test", k == 1);
+
+    xassert("sizeof test", sizeof(long long int) == 8);
+
+    uData l;
+
+    l.data1 = 111;
+
+    xassert("union test", l.data1 == 111);
+
+    l.data2 = 222;
+
+    xassert("union test2", l.data2 == 222);
+
+    xassert("union test3", l.data1 != 111);
+
+    gUnionData.data1 = 123;
+
+    xassert("union test4", gUnionData.data1 == 123);
+
 
 /*
     sGenericsData<int> data;

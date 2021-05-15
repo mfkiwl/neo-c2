@@ -1,9 +1,22 @@
 
+struct sData {
+    int a;
+    long b;
+    long c;
+};
+
+union uData {
+    int data1;
+    long data2;
+
+    sData data3;
+};
+
+
+
 int main()
 {
-    enum { a, b, c } AAA;
+    uData udata;
 
-    printf("%d\n", a);
-
-    return c;
+    return 0;
 }

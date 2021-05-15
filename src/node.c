@@ -801,14 +801,277 @@ BOOL create_llvm_struct_type(sNodeType* node_type, sNodeType* generics_type, BOO
     return TRUE;
 }
 
-BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, sCompileInfo* info)
+BOOL get_size_from_node_type(uint64_t* result, sNodeType* node_type, sNodeType* generics_type, sCompileInfo* info);
+
+uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, sCompileInfo* info)
 {
+    uint64_t result = 0;
+    int i;
+    for(i=0; i<klass->mNumFields; i++) {
+        sNodeType* field_type = clone_node_type(klass->mFields[i]);
+
+        if(generics_type) {
+            BOOL success_solve;
+            if(!solve_generics(&field_type, generics_type, &success_solve))
+            {
+                fprintf(stderr, "%s %d: The error at solve_generics\n", info->sname, info->sline);
+                return result;
+            }
+        }
+
+        uint64_t size;
+        if(!get_size_from_node_type(&size, field_type, generics_type, info)) {
+            fprintf(stderr, "%s %d: The error at solve_generics\n", info->sname, info->sline);
+            return result;
+        }
+
+        if(size == 4 || size == 8) {
+            result = (result + 3) & ~3;
+            result += size;
+        }
+        else {
+            result = (result + 1) & ~1;
+            result += size;
+        }
+    }
+
+    return result;
+}
+
+uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, sCompileInfo* info)
+{
+    uint64_t result = 0;
+    int i;
+    for(i=0; i<klass->mNumFields; i++) {
+        sNodeType* field_type = clone_node_type(klass->mFields[i]);
+
+        if(generics_type) {
+            BOOL success_solve;
+            if(!solve_generics(&field_type, generics_type, &success_solve))
+            {
+                fprintf(stderr, "%s %d: The error at solve_generics\n", info->sname, info->sline);
+                return result;
+            }
+        }
+
+        uint64_t size;
+        if(!get_size_from_node_type(&size, field_type, generics_type, info)) {
+            return result;
+        }
+
+        if(result < size) {
+            result = size;
+        }
+    }
+
+    return result;
+}
+
+BOOL get_size_from_node_type(uint64_t* result, sNodeType* node_type, sNodeType* generics_type, sCompileInfo* info)
+{
+    sNodeType* node_type2 = clone_node_type(node_type);
+
+    if(node_type2->mArrayInitializeNum > 0){
+        node_type2->mPointerNum--;
+        node_type2->mArrayNum[0] = node_type2->mArrayInitializeNum;
+        node_type2->mArrayDimentionNum = 1;
+    }
+
+    if(node_type2->mSizeNum > 0) {
+        *result = node_type2->mSizeNum;
+
+        if(node_type2->mArrayDimentionNum == 1) {
+            *result *= node_type2->mArrayNum[0];
+        }
+    }
+    else if(node_type2->mPointerNum > 0) {
+#ifdef __32BIT_CPU__
+        *result = 4;
+#else
+        *result = 8;
+#endif
+
+        if(node_type2->mArrayDimentionNum == 1) {
+            *result *= node_type2->mArrayNum[0];
+        }
+    }
+    else {
+        if(node_type2->mClass->mUndefinedStructType) {
+        }
+
+        if(node_type->mPointerNum == 0 && (node_type->mClass->mFlags & CLASS_FLAGS_STRUCT)) {
+            *result = get_struct_size(node_type->mClass, generics_type, info);
+
+            if(node_type->mArrayDimentionNum == 1) {
+                *result *= node_type->mArrayNum[0];
+            }
+        }
+        else if(node_type->mPointerNum == 0 && (node_type->mClass->mFlags & CLASS_FLAGS_UNION)) {
+            *result = get_union_size(node_type->mClass, generics_type, info);
+
+            if(node_type->mArrayDimentionNum == 1) {
+                *result *= node_type->mArrayNum[0];
+            }
+        }
+        else if(type_identify_with_class_name(node_type, "int")){
+            *result = 4;
+
+            if(node_type->mArrayDimentionNum == 1) {
+                *result *= node_type->mArrayNum[0];
+            }
+        }
+        else if(type_identify_with_class_name(node_type, "long")){
+            *result = 8;
+
+            if(node_type->mArrayDimentionNum == 1) {
+                *result *= node_type->mArrayNum[0];
+            }
+        }
+        else if(type_identify_with_class_name(node_type, "short")){
+            *result = 2;
+
+            if(node_type->mArrayDimentionNum == 1) {
+                *result *= node_type->mArrayNum[0];
+            }
+        }
+        else if(type_identify_with_class_name(node_type, "char")){
+            *result = 1;
+
+            if(node_type->mArrayDimentionNum == 1) {
+                *result *= node_type->mArrayNum[0];
+            }
+        }
+        else if(type_identify_with_class_name(node_type, "bool")){
+            *result = 1;
+
+            if(node_type->mArrayDimentionNum == 1) {
+                *result *= node_type->mArrayNum[0];
+            }
+        }
+        else if(type_identify_with_class_name(node_type, "float")){
+            *result = 4;
+
+            if(node_type->mArrayDimentionNum == 1) {
+                *result *= node_type->mArrayNum[0];
+            }
+        }
+        else if(type_identify_with_class_name(node_type, "float")){
+            *result = 8;
+
+            if(node_type->mArrayDimentionNum == 1) {
+                *result *= node_type->mArrayNum[0];
+            }
+        }
+    }
 
     return TRUE;
 }
 
-void create_undefined_llvm_struct_type(sNodeType* node_type)
+BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL undefined_body, sCompileInfo* info)
 {
+    sCLClass* klass = node_type->mClass;
+    char* class_name = CLASS_NAME(klass);
+
+    sStruct* struct_ = get_struct_from_table(class_name);
+
+    if(struct_ == NULL && !undefined_body) {
+        LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+
+        uint64_t max_size = 0;
+
+        int i;
+        for(i=0; i<klass->mNumFields; i++) {
+            sNodeType* field = clone_node_type(klass->mFields[i]);
+
+            BOOL success_volve = FALSE;
+            if(!solve_generics(&field, generics_type, &success_volve)) {
+                compile_err_msg(info, "can't solve generics types");
+                return FALSE;
+            }
+
+            uint64_t size;
+            if(!get_size_from_node_type(&size, field, generics_type, info)) {
+                fprintf(stderr, "%s %d: The error at solve_generics\n", info->sname, info->sline);
+                return FALSE;
+            }
+
+            if(size > max_size) {
+                field_types[0] = create_llvm_type_from_node_type(field);
+                max_size = size;
+            }
+        }
+
+        int num_fields = 1;
+        LLVMTypeRef struct_type = LLVMStructTypeInContext(gContext, field_types, num_fields, FALSE);
+
+        LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+
+        if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+            fprintf(stderr, "overflow struct number\n");
+            exit(2);
+        }
+    }
+    else if(undefined_body) {
+        LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+
+        int num_fields = 0;
+        LLVMTypeRef struct_type = LLVMStructTypeInContext(gContext, NULL, num_fields, FALSE);
+
+        if(!add_struct_to_table(class_name, node_type, struct_type, TRUE)) {
+            fprintf(stderr, "overflow struct number\n");
+            exit(2);
+        }
+    }
+    else if(struct_->mUndefinedBody) {
+        if(undefined_body) {
+            return TRUE;
+        }
+        else {
+            LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+
+            uint64_t max_size = 0;
+
+            int i;
+            for(i=0; i<klass->mNumFields; i++) {
+                sNodeType* field = clone_node_type(klass->mFields[i]);
+
+                BOOL success_volve = FALSE;
+                if(!solve_generics(&field, generics_type, &success_volve)) {
+                    compile_err_msg(info, "can't solve generics types");
+                    return FALSE;
+                }
+
+
+                uint64_t size;
+                if(!get_size_from_node_type(&size, field, generics_type, info)) {
+                    fprintf(stderr, "%s %d: The error at solve_generics\n", info->sname, info->sline);
+                    return FALSE;
+                }
+
+                if(size > max_size) {
+                    field_types[0] = create_llvm_type_from_node_type(field);
+                    max_size = size;
+                }
+            }
+
+            int num_fields = 1;
+            LLVMTypeRef struct_type = struct_->mLLVMType;
+
+            LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+
+            struct_->mUndefinedBody = FALSE;
+        }
+    }
+    else if((klass->mFlags & CLASS_FLAGS_GENERICS) && generics_type == NULL) {
+        LLVMTypeRef struct_type = NULL;
+
+        if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+            fprintf(stderr, "overflow struct number\n");
+            exit(2);
+        }
+    }
+
+    return TRUE;
 }
 
 void compile_err_msg(sCompileInfo* info, const char* msg, ...)
@@ -1902,10 +2165,19 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
         var->mLLVMValue = alloca_value;
     }
     else if(global) {
+puts(var_name);
         LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
 
-        LLVMValueRef value = LLVMConstInt(llvm_type, 0, FALSE);
-        LLVMSetInitializer(alloca_value, value);
+        if(((var_type->mClass->mFlags & CLASS_FLAGS_STRUCT) || (var_type->mClass->mFlags & CLASS_FLAGS_UNION)) && var_type->mPointerNum == 0) {
+            /// zero initializer ///
+            LLVMValueRef value = LLVMConstInt(llvm_type, 0, FALSE);
+            LLVMValueRef value2 = LLVMConstStruct(&value, 0, FALSE);
+            LLVMSetInitializer(alloca_value, value2);
+        }
+        else {
+            LLVMValueRef value = LLVMConstInt(llvm_type, 0, FALSE);
+            LLVMSetInitializer(alloca_value, value);
+        }
 
         var->mLLVMValue = alloca_value;
     }
@@ -1989,7 +2261,12 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
 
             LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
 
-            LLVMSetInitializer(alloca_value, rvalue.value);
+            if(((left_type->mClass->mFlags & CLASS_FLAGS_STRUCT) || (left_type->mClass->mFlags & CLASS_FLAGS_UNION)) && left_type->mPointerNum == 0) {
+                /// zero initializer ///
+            }
+            else {
+                LLVMSetInitializer(alloca_value, rvalue.value);
+            }
 
             var->mLLVMValue = alloca_value;
 
@@ -3122,7 +3399,7 @@ static BOOL compile_struct(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-unsigned int sNodeTree_union(sNodeType* struct_type, sParserInfo* info, char* sname, int sline, BOOL anonymous)
+unsigned int sNodeTree_union(sNodeType* struct_type, sParserInfo* info, char* sname, int sline, BOOL undefined_body)
 {
     unsigned node = alloc_node();
 
@@ -3132,8 +3409,8 @@ unsigned int sNodeTree_union(sNodeType* struct_type, sParserInfo* info, char* sn
     gNodes[node].mLine = sline;
 
     gNodes[node].uValue.sStruct.mType = struct_type;
-    gNodes[node].uValue.sStruct.mUndefinedBody = FALSE;
-    gNodes[node].uValue.sStruct.mAnonymous = anonymous;
+    gNodes[node].uValue.sStruct.mUndefinedBody = undefined_body;
+    gNodes[node].uValue.sStruct.mAnonymous = FALSE;
 
     gNodes[node].mLeft = 0;
     gNodes[node].mRight = 0;
@@ -3144,6 +3421,11 @@ unsigned int sNodeTree_union(sNodeType* struct_type, sParserInfo* info, char* sn
 
 static BOOL compile_union(unsigned int node, sCompileInfo* info)
 {
+    sNodeType* node_type = gNodes[node].uValue.sStruct.mType;
+    BOOL undefined_body = gNodes[node].uValue.sStruct.mUndefinedBody;
+
+    create_llvm_union_type(node_type, NULL, undefined_body, info);
+
     return TRUE;
 }
 
@@ -3504,6 +3786,19 @@ static BOOL compile_store_field(unsigned int node, sCompileInfo* info)
     LLVMValueRef field_address;
 
     if(left_type->mClass->mFlags & CLASS_FLAGS_UNION) {
+        field_index = 0;
+        if(left_type->mPointerNum == 0) {
+            field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
+        }
+        else {
+            field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
+        }
+
+        field_type->mPointerNum++;
+
+        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(field_type);
+
+        field_address = LLVMBuildCast(gBuilder, LLVMBitCast, field_address, llvm_type, "icast");
     }
     else {
         if(left_type->mPointerNum == 0) {
@@ -3575,40 +3870,88 @@ static BOOL compile_load_field(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
-    int parent_field_index = -1;
-    int field_index = get_field_index(left_type->mClass, var_name, &parent_field_index);
+    if(left_type->mClass->mFlags & CLASS_FLAGS_UNION) {
+        int parent_field_index = -1;
+        int field_index = get_field_index(left_type->mClass, var_name, &parent_field_index);
 
-    if(field_index == -1) {
-        compile_err_msg(info, "The field(%s) is not found", var_name);
-        info->err_num++;
+        if(field_index == -1) {
+            compile_err_msg(info, "The field(%s) is not found", var_name);
+            info->err_num++;
 
-        info->type = create_node_type_with_class_name("int"); // dummy
+            info->type = create_node_type_with_class_name("int"); // dummy
 
-        return TRUE;
-    }
+            return TRUE;
+        }
 
-    sNodeType* field_type = clone_node_type(left_type->mClass->mFields[field_index]);
-    
-    LLVMValueRef field_address;
-    if(left_type->mPointerNum == 0) {
-        field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
+        sNodeType* field_type = clone_node_type(left_type->mClass->mFields[field_index]);
+
+        field_index = 0;
+        
+        LLVMValueRef field_address;
+        if(left_type->mPointerNum == 0) {
+            field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
+        }
+        else {
+            field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
+        }
+        
+        sNodeType* field_type2 = clone_node_type(field_type);
+
+        field_type2->mPointerNum++;
+
+        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(field_type2);
+
+        field_address = LLVMBuildCast(gBuilder, LLVMBitCast, field_address, llvm_type, "icast");
+
+        LVALUE llvm_value;
+        llvm_value.value = LLVMBuildLoad(gBuilder, field_address, var_name);
+        llvm_value.type = clone_node_type(field_type);
+        llvm_value.address = field_address;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = TRUE;
+        llvm_value.load_field = TRUE;
+
+        dec_stack_ptr(1, info);
+        push_value_to_stack_ptr(&llvm_value, info);
+
+        info->type = clone_node_type(field_type);
     }
     else {
-        field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
+        int parent_field_index = -1;
+        int field_index = get_field_index(left_type->mClass, var_name, &parent_field_index);
+
+        if(field_index == -1) {
+            compile_err_msg(info, "The field(%s) is not found", var_name);
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+
+        sNodeType* field_type = clone_node_type(left_type->mClass->mFields[field_index]);
+        
+        LLVMValueRef field_address;
+        if(left_type->mPointerNum == 0) {
+            field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
+        }
+        else {
+            field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
+        }
+
+        LVALUE llvm_value;
+        llvm_value.value = LLVMBuildLoad(gBuilder, field_address, var_name);
+        llvm_value.type = clone_node_type(field_type);
+        llvm_value.address = field_address;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = TRUE;
+        llvm_value.load_field = TRUE;
+
+        dec_stack_ptr(1, info);
+        push_value_to_stack_ptr(&llvm_value, info);
+
+        info->type = clone_node_type(field_type);
     }
-
-    LVALUE llvm_value;
-    llvm_value.value = LLVMBuildLoad(gBuilder, field_address, var_name);
-    llvm_value.type = clone_node_type(field_type);
-    llvm_value.address = field_address;
-    llvm_value.var = NULL;
-    llvm_value.binded_value = TRUE;
-    llvm_value.load_field = TRUE;
-
-    dec_stack_ptr(1, info);
-    push_value_to_stack_ptr(&llvm_value, info);
-
-    info->type = clone_node_type(field_type);
 
     return TRUE;
 }
@@ -4286,6 +4629,24 @@ unsigned int sNodeTree_create_sizeof(sNodeType* node_type, sParserInfo* info)
 
 static BOOL compile_sizeof(unsigned int node, sCompileInfo* info)
 {
+    sNodeType* node_type = gNodes[node].uValue.sSizeOf.mType;
+    sNodeType* node_type2 = clone_node_type(node_type);
+
+    LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type2);
+
+    /// result ///
+    LVALUE llvm_value;
+    llvm_value.value = LLVMSizeOf(llvm_type);
+    llvm_value.type = create_node_type_with_class_name("long");
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = create_node_type_with_class_name("long");
+
     return TRUE;
 }
 
