@@ -1,16 +1,10 @@
-array
-
-    dynamic length array
-
-    array initiailizer
-
-    array head pointer
-
 operators
 
     pointer sub and add
 
 function pointer
+
+static local variable
 
 var args
 
@@ -42,3 +36,18 @@ undefined struct;
 anonymous struct
 enum
 union
+array head pointer
+
+    array initiailizer
+
+        global variable array initializer
+    dynamic length array
+
+    iran dynamic length array initializer
+
+    omit array index
+array
+
+    char array initializer
+
+

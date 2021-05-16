@@ -614,12 +614,12 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
     }
 
     int i;
-    for(i=0; i<node_type->mArrayDimentionNum; i++) {
-        result_type = LLVMArrayType(result_type, node_type->mArrayNum[i]);
-    }
-
     for(i=0; i<node_type->mPointerNum; i++) {
         result_type = LLVMPointerType(result_type, 0);
+    }
+
+    for(i=node_type->mArrayDimentionNum-1; i>=0; i--) {
+        result_type = LLVMArrayType(result_type, node_type->mArrayNum[i]);
     }
 
     return result_type;
@@ -637,7 +637,26 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
     sCLClass* left_class = left_type->mClass;
     sCLClass* right_class = (*right_type)->mClass;
 
-    if(type_identify_with_class_name(left_type, "bool"))
+    if((left_type->mPointerNum-1 == (*right_type)->mPointerNum) && (*right_type)->mArrayDimentionNum == 1) 
+    {
+        if(rvalue) {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+/*
+#if __DARWIN__
+                Value* index = ConstantInt::get(TheContext, llvm::APInt(32, 0));
+                rvalue->value = Builder.CreateGEP(rvalue->address, index);
+                rvalue->value = Builder.CreateCast(Instruction::BitCast, rvalue->value, llvm_type);
+                rvalue->type = clone_node_type(left_type);
+#else
+*/
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->address, llvm_type, "autocast");
+//#endif
+        }
+
+        *right_type = clone_node_type(left_type);
+    }
+    else if(type_identify_with_class_name(left_type, "bool"))
     {
         if(rvalue) {
             if(type_identify_with_class_name(*right_type, "int")) {
@@ -701,6 +720,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
 BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sParserInfo* info)
 {
+    info->no_output_err_msg = TRUE;
     sCompileInfo cinfo;
 
     memset(&cinfo, 0, sizeof(sCompileInfo));
@@ -709,6 +729,7 @@ BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sP
     if(!compile(array_size_node, &cinfo)) {
         return FALSE;
     }
+    info->no_output_err_msg = FALSE;
 
     sNodeType* node_type = cinfo.type;
 
@@ -716,7 +737,12 @@ BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sP
     dec_stack_ptr(1, &cinfo);
     LLVMValueRef value = llvm_value.value;
 
-    *array_size = LLVMConstIntGetZExtValue(llvm_value.value);
+    if(LLVMIsConstant(value)) {
+        *array_size = LLVMConstIntGetZExtValue(llvm_value.value);
+    }
+    else {
+        return FALSE;
+    }
 
     return TRUE;
 }
@@ -1089,7 +1115,7 @@ void compile_err_msg(sCompileInfo* info, const char* msg, ...)
 
     static int output_num = 0;
 
-    if(output_num < COMPILE_ERR_MSG_MAX) {
+    if(output_num < COMPILE_ERR_MSG_MAX && !info->pinfo->no_output_err_msg) {
         fprintf(stderr, "%s:%d: %s\n", info->sname, info->sline, msg2);
     }
     output_num++;
@@ -2169,7 +2195,17 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
     else if(global) {
         LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
 
-        if(((var_type->mClass->mFlags & CLASS_FLAGS_STRUCT) || (var_type->mClass->mFlags & CLASS_FLAGS_UNION)) && var_type->mPointerNum == 0) {
+        if(var_type->mArrayDimentionNum > 0) {
+            /// zero initializer ///
+            sNodeType* element_node_type = clone_node_type(var_type);
+            element_node_type->mArrayDimentionNum = 0;
+            LLVMTypeRef llvm_element_type = create_llvm_type_from_node_type(element_node_type);
+
+            LLVMValueRef value = LLVMConstInt(llvm_type, 0, FALSE);
+            LLVMValueRef value2 = LLVMConstArray(llvm_element_type, &value, 1);
+            LLVMSetInitializer(alloca_value, value2);
+        }
+        else if(((var_type->mClass->mFlags & CLASS_FLAGS_STRUCT) || (var_type->mClass->mFlags & CLASS_FLAGS_UNION)) && var_type->mPointerNum == 0) {
             /// zero initializer ///
             LLVMValueRef value = LLVMConstInt(llvm_type, 0, FALSE);
             LLVMValueRef value2 = LLVMConstStruct(&value, 0, FALSE);
@@ -2183,8 +2219,23 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
         var->mLLVMValue = alloca_value;
     }
     else {
-        LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
-        var->mLLVMValue = alloca_value;
+        if(var_type->mDynamicArrayNum != 0) {
+            if(!compile(var_type->mDynamicArrayNum, info)) {
+                return FALSE;
+            }
+
+            LVALUE llvm_value = *get_value_from_stack(-1);
+            dec_stack_ptr(1, info);
+
+            LLVMValueRef len_value = llvm_value.value;
+
+            LLVMValueRef alloca_value = LLVMBuildArrayAlloca(gBuilder, llvm_type, len_value, var_name);
+            var->mLLVMValue = alloca_value;
+        }
+        else {
+            LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
+            var->mLLVMValue = alloca_value;
+        }
     }
 
     info->type = create_node_type_with_class_name("void");
@@ -3130,6 +3181,11 @@ static BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
     sNodeType* var_type = clone_node_type(var->mType);
 
     LLVMValueRef var_address = var->mLLVMValue;
+
+    if(var_address == NULL) {
+        compile_err_msg(info, "no variable address");
+        return FALSE;
+    }
 
     LVALUE llvm_value;
 
@@ -4243,6 +4299,40 @@ unsigned int sNodeTree_create_dereffernce(unsigned int left_node, sParserInfo* i
 
 static BOOL compile_dereffernce(unsigned int node, sCompileInfo* info)
 {
+    unsigned int left_node = gNodes[node].mLeft;
+
+    if(!compile(left_node, info)) {
+        return FALSE;
+    }
+
+    sNodeType* left_type = info->type;
+
+    sNodeType* derefference_type = clone_node_type(left_type);
+
+    if(derefference_type->mPointerNum == 0) {
+        compile_err_msg(info, "This is not pointer type1(%s)", CLASS_NAME(derefference_type->mClass));
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+        return TRUE;
+    }
+
+    derefference_type->mPointerNum--;
+
+    LVALUE lvalue = *get_value_from_stack(-1);
+    dec_stack_ptr(1, info);
+
+    LVALUE llvm_value;
+    llvm_value.value = LLVMBuildLoad(gBuilder, lvalue.value, "derefference_value");
+    llvm_value.type = derefference_type;
+    llvm_value.address = lvalue.value;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = derefference_type;
 
     return TRUE;
 }
@@ -4265,6 +4355,40 @@ unsigned int sNodeTree_create_reffernce(unsigned int left_node, sParserInfo* inf
 
 static BOOL compile_reffernce(unsigned int node, sCompileInfo* info)
 {
+    unsigned int left_node = gNodes[node].mLeft;
+
+    if(!compile(left_node, info)) {
+        return FALSE;
+    }
+
+    LVALUE lvalue = *get_value_from_stack(-1);
+    dec_stack_ptr(1, info);
+
+    if(lvalue.address == NULL) {
+        compile_err_msg(info, "Can't get address of this value on & operator");
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+        return TRUE;
+    }
+
+    sNodeType* left_type = info->type;
+
+    sNodeType* refference_type = clone_node_type(left_type);
+
+    refference_type->mPointerNum++;
+
+    LVALUE llvm_value;
+    llvm_value.value = lvalue.address;
+    llvm_value.type = refference_type;
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = refference_type;
 
     return TRUE;
 }
@@ -4333,7 +4457,7 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
 
     sVar* var = lvalue.var;
 
-    if(left_type->mArrayDimentionNum == 0 && left_type->mPointerNum == 0)
+    if(left_type->mArrayDimentionNum == 0 && left_type->mPointerNum == 0 && left_type->mDynamicArrayNum == 0)
     {
         compile_err_msg(info, "neo-c can't get an element from this type.");
         info->err_num++;
@@ -4381,7 +4505,10 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
     /// generate code ///
     sNodeType* var_type = clone_node_type(left_type);
 
-    if(var_type->mArrayDimentionNum > 0) {
+    if(var_type->mDynamicArrayNum != 0) {
+        var_type->mArrayDimentionNum = 0;
+    }
+    else if(var_type->mArrayDimentionNum > 0) {
         var_type->mArrayDimentionNum-=num_dimention;
     }
     else {
@@ -4455,7 +4582,7 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
             push_value_to_stack_ptr(&llvm_value, info);
         }
     }
-    else if(left_type->mArrayDimentionNum == 1) {
+    else if(left_type->mArrayDimentionNum == 1 || left_type->mDynamicArrayNum != 0) {
         sNodeType* var_type2 = clone_node_type(var_type);
         var_type2->mPointerNum++;
 
@@ -4742,7 +4869,7 @@ BOOL compile_store_element(unsigned int node, sCompileInfo* info)
 
     LVALUE lvalue = *get_value_from_stack(-1);
 
-    if(left_type->mArrayDimentionNum == 0 && left_type->mPointerNum == 0) 
+    if(left_type->mArrayDimentionNum == 0 && left_type->mPointerNum == 0 && left_type->mDynamicArrayNum == 0)
     {
         compile_err_msg(info, "neo-c can't get an element from this type.");
         info->err_num++;
@@ -4803,7 +4930,12 @@ BOOL compile_store_element(unsigned int node, sCompileInfo* info)
 
     sNodeType* var_type = clone_node_type(left_type);
 
-    if(var_type->mArrayDimentionNum > 0) {
+    if(var_type->mDynamicArrayNum !=0 ) {
+        var_type->mArrayDimentionNum = 0;
+        var_type->mDynamicArrayNum = 0;
+        left_type->mArrayDimentionNum = 1;
+    }
+    else if(var_type->mArrayDimentionNum > 0) {
         var_type->mArrayDimentionNum--;
         //var_type->mPointerNum++;
     }
@@ -4918,52 +5050,6 @@ BOOL compile_store_element(unsigned int node, sCompileInfo* info)
         compile_err_msg(info, "come lang supports under 3 array dimention");
         return FALSE;
     }
-/*
-    else if(left_type->mArrayDimentionNum > 1) {
-        LLVMValueRef load_element_addresss = lvalue.address;
-        for(i=0; i<num_dimention; i++) {
-            LLVMValueRef indices[num_dimention-i];
-
-            int j;
-            for(j=i; j<num_dimention; j++) {
-                indices[j-i] = mvalue[j].value;
-            }
-
-printf("load_element_addresss %p num_dimention-i %d\n", load_element_addresss, num_dimention-i);
-            load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, num_dimention-i, "gep2");
-        }
-
-        sNodeType* var_type3 = clone_node_type(var_type);
-        var_type3->mPointerNum = 1;
-        var_type3->mArrayDimentionNum = 0;
-
-        LLVMTypeRef llvm_var_type2 = create_llvm_type_from_node_type(var_type3);
-
-        load_element_addresss = LLVMBuildCast(gBuilder, LLVMBitCast, load_element_addresss, llvm_var_type2, "icast");
-
-        LLVMBuildStore(gBuilder, rvalue.value, load_element_addresss);
-
-        dec_stack_ptr(2+num_dimention, info);
-        push_value_to_stack_ptr(&rvalue, info);
-
-        info->type = clone_node_type(right_type);
-    }
-    else {
-        LLVMValueRef lvalue2 = lvalue.value;
-
-        LLVMValueRef element_address = lvalue2;
-        for(i=0; i<num_dimention; i++) {
-            element_address = LLVMBuildGEP(gBuilder, element_address, &mvalue[i].value, 1, "gep");
-        }
-
-        LLVMBuildStore(gBuilder, rvalue.value, element_address);
-
-        dec_stack_ptr(2+num_dimention, info);
-        push_value_to_stack_ptr(&rvalue, info);
-
-        info->type = clone_node_type(right_type);
-    }
-*/
 
     return TRUE;
 }
@@ -4988,6 +5074,22 @@ unsigned int sNodeTree_create_character_value(char c, sParserInfo* info)
 
 BOOL compile_char_value(unsigned int node, sCompileInfo* info)
 {
+    char c = gNodes[node].uValue.mCharValue;
+
+    LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char");
+
+    LVALUE llvm_value;
+    llvm_value.value = LLVMConstInt(llvm_type, c, FALSE);
+    llvm_value.type = create_node_type_with_class_name("char");
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = create_node_type_with_class_name("char");
+
     return TRUE;
 }
 
@@ -5434,6 +5536,178 @@ unsigned int sNodeTree_create_array_with_initialization(char* name, int num_init
 
 BOOL compile_array_with_initialization(unsigned int node, sCompileInfo* info)
 {
+    char* var_name = gNodes[node].uValue.sArrayWithInitialization.mVarName;
+    int num_initialize_array_value = gNodes[node].uValue.sArrayWithInitialization.mNumInitializeArrayValue;
+    unsigned int* initialize_array_value = gNodes[node].uValue.sArrayWithInitialization.mInitializeArrayValue;
+
+    /// compile node ///
+    unsigned int lnode = gNodes[node].mLeft;
+
+    if(!compile(lnode, info)) {
+        return FALSE;
+    }
+
+    sVar* var = get_variable_from_table(info->pinfo->lv_table, var_name);
+
+    if(var == NULL) {
+        compile_err_msg(info, "undeclared variable %s(4)", var_name);
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+        return TRUE;
+    }
+
+    sNodeType* var_type = var->mType;
+
+    LLVMValueRef alloca_value = var->mLLVMValue;
+
+    if(var_type->mArrayDimentionNum == 1 && type_identify_with_class_name(var_type, "char") && var_type->mPointerNum == 0
+         && num_initialize_array_value == 1 && gNodes[initialize_array_value[0]].mNodeType == kNodeTypeCString) 
+    {
+        unsigned int node = initialize_array_value[0];
+
+        char* str = gNodes[node].uValue.sString.mString;
+
+        if(strlen(str)+1 >= INIT_ARRAY_MAX) {
+            compile_err_msg(info, "invalid array initializer");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int");
+            return TRUE;
+        }
+
+        int i;
+        for(i=0; i<strlen(str); i++) {
+            initialize_array_value[i] = sNodeTree_create_character_value(str[i], info->pinfo);
+        }
+        initialize_array_value[i] = sNodeTree_create_character_value('\0', info->pinfo);
+
+        num_initialize_array_value = strlen(str)+1;
+    }
+
+    if(var_type->mArrayDimentionNum == 1) {
+        sNodeType* element_node_type = clone_node_type(var_type);
+        element_node_type->mArrayDimentionNum = 0;
+        LLVMTypeRef llvm_element_type = create_llvm_type_from_node_type(element_node_type);
+
+        /// zero initializer ///
+        LLVMValueRef values[INIT_ARRAY_MAX];
+
+        int i;
+        for(i=0; i<num_initialize_array_value; i++) {
+            unsigned int node = initialize_array_value[i];
+
+            if(!compile(node, info)) {
+                return FALSE;
+            }
+
+
+            LVALUE llvm_value = *get_value_from_stack(-1);
+
+            dec_stack_ptr(1, info);
+
+            values[i] = llvm_value.value;
+        }
+
+        LLVMValueRef value = LLVMConstArray(llvm_element_type, values, num_initialize_array_value);
+        LLVMSetInitializer(alloca_value, value);
+    }
+    else if(var_type->mArrayDimentionNum == 2) {
+        /// zero initializer ///
+        LLVMValueRef values[var_type->mArrayNum[0]][INIT_ARRAY_MAX];
+
+        int i;
+        for(i=0; i<num_initialize_array_value; i++) {
+            unsigned int node = initialize_array_value[i];
+
+            if(!compile(node, info)) {
+                return FALSE;
+            }
+
+
+            LVALUE llvm_value = *get_value_from_stack(-1);
+
+            dec_stack_ptr(1, info);
+
+            int n = i / var_type->mArrayNum[1];
+            int m = i % var_type->mArrayNum[1];
+
+            values[n][m] = llvm_value.value;
+        }
+
+        LLVMValueRef array_value[INIT_ARRAY_MAX];
+        for(i=0; i<var_type->mArrayNum[0]; i++) {
+            sNodeType* element_node_type = clone_node_type(var_type);
+            element_node_type->mArrayDimentionNum = 0;
+            LLVMTypeRef llvm_element_type = create_llvm_type_from_node_type(element_node_type);
+
+            array_value[i] = LLVMConstArray(llvm_element_type, values[i], var_type->mArrayNum[1]);
+        }
+
+        sNodeType* element_node_type = clone_node_type(var_type);
+        element_node_type->mArrayDimentionNum = 1;
+        element_node_type->mArrayNum[0] = element_node_type->mArrayNum[1];
+        LLVMTypeRef llvm_element_type = create_llvm_type_from_node_type(element_node_type);
+
+        LLVMValueRef value = LLVMConstArray(llvm_element_type, array_value, var_type->mArrayNum[0]);
+
+        LLVMSetInitializer(alloca_value, value);
+    }
+    else if(var_type->mArrayDimentionNum == 3) {
+        /// zero initializer ///
+        LLVMValueRef values[var_type->mArrayNum[0]][var_type->mArrayNum[1]][INIT_ARRAY_MAX];
+
+        int i;
+        for(i=0; i<num_initialize_array_value; i++) {
+            unsigned int node = initialize_array_value[i];
+
+            if(!compile(node, info)) {
+                return FALSE;
+            }
+
+
+            LVALUE llvm_value = *get_value_from_stack(-1);
+
+            dec_stack_ptr(1, info);
+
+            int n = var_type->mArrayNum[1]*var_type->mArrayNum[2];
+
+            int a = i/n;
+            int b = (i/var_type->mArrayNum[2])%var_type->mArrayNum[1];
+            int c = i%var_type->mArrayNum[2];
+
+            values[a][b][c] = llvm_value.value;
+        }
+
+        LLVMValueRef array_array_value[var_type->mArrayNum[0]];
+        int j;
+        for(j=0; j<var_type->mArrayNum[0]; j++) {
+            LLVMValueRef array_value[INIT_ARRAY_MAX];
+
+            for(i=0; i<var_type->mArrayNum[1]; i++) {
+                sNodeType* element_node_type = clone_node_type(var_type);
+                element_node_type->mArrayDimentionNum = 0;
+                LLVMTypeRef llvm_element_type = create_llvm_type_from_node_type(element_node_type);
+
+                array_value[i] = LLVMConstArray(llvm_element_type, values[j][i], var_type->mArrayNum[2]);
+            }
+
+            sNodeType* element_node_type = clone_node_type(var_type);
+            element_node_type->mArrayDimentionNum = 1;
+            element_node_type->mArrayNum[0] = element_node_type->mArrayNum[2];
+            LLVMTypeRef llvm_element_type = create_llvm_type_from_node_type(element_node_type);
+
+            array_array_value[j] = LLVMConstArray(llvm_element_type, array_value, var_type->mArrayNum[1]);
+        }
+
+        sNodeType* element_node_type = clone_node_type(var_type);
+        element_node_type->mArrayDimentionNum = 2;
+        element_node_type->mArrayNum[0] = element_node_type->mArrayNum[1];
+        element_node_type->mArrayNum[1] = element_node_type->mArrayNum[2];
+        LLVMTypeRef llvm_element_type = create_llvm_type_from_node_type(element_node_type);
+        LLVMValueRef value = LLVMConstArray(llvm_element_type, array_array_value, var_type->mArrayNum[0]);
+        LLVMSetInitializer(alloca_value, value);
+    }
 
     return TRUE;
 }
@@ -5807,6 +6081,54 @@ unsigned int sNodeTree_create_store_value_to_address(unsigned int address_node, 
 
 static BOOL compile_store_address(unsigned int node, sCompileInfo* info)
 {
+    unsigned int left_node = gNodes[node].mLeft;
+
+    if(!compile(left_node, info)) {
+        return FALSE;
+    }
+
+    sNodeType* left_type = clone_node_type(info->type);
+
+    if(left_type->mPointerNum == 0) {
+        compile_err_msg(info, "This is not pointer type2(%s)", CLASS_NAME(left_type->mClass));
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+        return TRUE;
+    }
+
+    LVALUE lvalue = *get_value_from_stack(-1);
+    dec_stack_ptr(1, info);
+
+    unsigned int right_node = gNodes[node].mRight;
+
+    if(!compile(right_node, info)) {
+        return FALSE;
+    }
+
+    sNodeType* right_type = clone_node_type(info->type);
+
+    LVALUE rvalue = *get_value_from_stack(-1);
+    dec_stack_ptr(1, info);
+
+    left_type->mPointerNum--;
+
+    if(auto_cast_posibility(left_type, right_type)) {
+        if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
+
+    LLVMValueRef address = lvalue.value;
+    LLVMValueRef value = rvalue.value;
+
+    LLVMBuildStore(gBuilder, value, address);
 
     return TRUE;
 }

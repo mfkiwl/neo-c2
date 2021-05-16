@@ -339,6 +339,8 @@ struct sParserInfoStruct
     BOOL in_case;
 
     BOOL no_comma_operator;
+
+    BOOL no_output_err_msg;
 };
 
 typedef struct sParserInfoStruct sParserInfo;

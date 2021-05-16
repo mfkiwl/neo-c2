@@ -40,7 +40,7 @@ void parser_err_msg(sParserInfo* info, char* msg)
 {
     static int output_num = 0;
 
-    if(output_num < PARSER_ERR_MSG_MAX) {
+    if(output_num < PARSER_ERR_MSG_MAX && !info->no_output_err_msg) {
         puts(msg);
         fprintf(stderr, "%s:%d: %s\n", info->sname, info->sline, msg);
     }
@@ -283,25 +283,6 @@ static void parse_version(int* version, sParserInfo* info)
 
         skip_spaces_and_lf(info);
     }
-}
-
-static BOOL write_to_automatically_header(sBuf* buf)
-{
-    char path[PATH_MAX];
-    snprintf(path, PATH_MAX, "%s.h", gMainModulePath);
-
-    FILE* f = fopen(path, "a");
-
-    if(f == NULL) {
-        fprintf(stderr, "can't open automatically header target file. %s\n", path);
-        return FALSE;
-    }
-
-    fprintf(f, "%s", buf->mBuf);
-
-    fclose(f);
-
-    return TRUE;
 }
 
 BOOL get_number(BOOL minus, unsigned int* node, sParserInfo* info)
@@ -629,9 +610,51 @@ static BOOL parse_variable_name(char* buf, int buf_size, sParserInfo* info, sNod
         info->p++;
         skip_spaces_and_lf(info);
 
-        if(array_size_is_dynamic && info->mBlockLevel > 0) {
-            if(isdigit(*info->p)) {
-                if(*info->p != ']') {
+        if(*info->p == ']') {
+            info->p++;
+            skip_spaces_and_lf(info);
+
+            node_type->mPointerNum++;
+            node_type->mArrayDimentionNum = 0;
+        }
+        else {
+            unsigned int array_size_node = 0;
+
+            if(!expression(&array_size_node, info)) {
+                return FALSE;
+            }
+
+            int array_size = 0;
+            if(!get_const_value_from_node(&array_size, array_size_node, info))
+            {
+                if(array_size_is_dynamic && info->mBlockLevel > 0) {
+                    node_type->mDynamicArrayNum = array_size_node;
+                    expect_next_character_with_one_forward("]", info);
+
+                    return TRUE;
+                }
+                else {
+                    parser_err_msg(info, "Require Consta Value for array size");
+                    info->err_num++;
+                    return TRUE;
+                }
+            }
+
+            if(param_in_function) {
+                expect_next_character_with_one_forward("]", info);
+
+                node_type->mPointerNum++;
+            }
+            else {
+                expect_next_character_with_one_forward("]", info);
+
+                node_type->mArrayDimentionNum = 1;
+                node_type->mArrayNum[0] = array_size;
+
+                while(*info->p == '[') {
+                    info->p++;
+                    skip_spaces_and_lf(info);
+
                     unsigned int array_size_node = 0;
 
                     if(!expression(&array_size_node, info)) {
@@ -646,164 +669,21 @@ static BOOL parse_variable_name(char* buf, int buf_size, sParserInfo* info, sNod
                         return TRUE;
                     }
 
-                    if(param_in_function) {
-                        expect_next_character_with_one_forward("]", info);
+                    node_type->mArrayNum[node_type->mArrayDimentionNum] = array_size;
+                    node_type->mArrayDimentionNum++;
 
-                        node_type->mPointerNum++;
-                    }
-                    else {
-                        expect_next_character_with_one_forward("]", info);
-
-                        node_type->mArrayDimentionNum = 1;
-                        node_type->mArrayNum[0] = array_size;
-
-                        while(*info->p == '[') {
-                            info->p++;
-                            skip_spaces_and_lf(info);
-
-                            unsigned int array_size_node = 0;
-
-                            if(!expression(&array_size_node, info)) {
-                                return FALSE;
-                            }
-
-                            int array_size = 0;
-                            if(!get_const_value_from_node(&array_size, array_size_node, info))
-                            {
-                                parser_err_msg(info, "Require Consta Value for array size");
-                                info->err_num++;
-                                return TRUE;
-                            }
-
-                            node_type->mArrayNum[node_type->mArrayDimentionNum] = array_size;
-                            node_type->mArrayDimentionNum++;
-
-                            if(node_type->mArrayDimentionNum >= ARRAY_DIMENTION_MAX) 
-                            {
-                                parser_err_msg(info, "overflow array dimetion number");
-                                return FALSE;
-                            }
-
-                            expect_next_character_with_one_forward("]", info);
-                        }
-                    }
-
-                    if(*info->p == '=') {
-                        node_type->mDynamicArrayNum= -1;
-                        node_type->mPointerNum++;
-                        node_type->mArrayDimentionNum = 0;
-                    }
-                }
-                else {
-                    node_type->mDynamicArrayNum= -1;
-
-                    node_type->mPointerNum++;
-
-                    expect_next_character_with_one_forward("]", info);
-                }
-            }
-            else {
-                if(*info->p != ']') {
-                    if(!expression(&node_type->mDynamicArrayNum, info)) 
+                    if(node_type->mArrayDimentionNum >= ARRAY_DIMENTION_MAX) 
                     {
+                        parser_err_msg(info, "overflow array dimetion number");
                         return FALSE;
                     }
-                }
-                else {
-                    node_type->mDynamicArrayNum= -1;
-                }
-
-                node_type->mPointerNum++;
-
-                expect_next_character_with_one_forward("]", info);
-            }
-        }
-        else {
-            if(*info->p != ']') {
-                unsigned int array_size_node = 0;
-
-                if(!expression(&array_size_node, info)) {
-                    return FALSE;
-                }
-
-                int array_size = 0;
-                if(!get_const_value_from_node(&array_size, array_size_node, info))
-                {
-                    parser_err_msg(info, "Require Consta Value for array size");
-                    info->err_num++;
-                    return TRUE;
-                }
-
-                if(param_in_function) {
-                    node_type->mPointerNum++;
 
                     expect_next_character_with_one_forward("]", info);
-
-                    while(*info->p == '[') {
-                        info->p++;
-                        skip_spaces_and_lf(info);
-
-                        unsigned int array_size_node = 0;
-
-                        if(!expression(&array_size_node, info)) {
-                            return FALSE;
-                        }
-
-                        node_type->mPointerNum++;
-
-                        expect_next_character_with_one_forward("]", info);
-                    }
-                }
-                else {
-                    expect_next_character_with_one_forward("]", info);
-
-                    node_type->mArrayDimentionNum = 1;
-                    node_type->mArrayNum[0] = array_size;
-
-                    while(*info->p == '[') {
-                        info->p++;
-                        skip_spaces_and_lf(info);
-
-                        unsigned int array_size_node = 0;
-
-                        if(!expression(&array_size_node, info)) {
-                            return FALSE;
-                        }
-
-                        int array_size = 0;
-                        if(!get_const_value_from_node(&array_size, array_size_node, info))
-                        {
-                            parser_err_msg(info, "Require Consta Value for array size");
-                            info->err_num++;
-                            return TRUE;
-                        }
-
-                        node_type->mArrayNum[node_type->mArrayDimentionNum] = array_size;
-                        node_type->mArrayDimentionNum++;
-
-                        if(node_type->mArrayDimentionNum >= ARRAY_DIMENTION_MAX) 
-                        {
-                            parser_err_msg(info, "overflow array dimetion number");
-                            return FALSE;
-                        }
-
-                        expect_next_character_with_one_forward("]", info);
-                    }
-                }
-            }
-            else {
-                expect_next_character_with_one_forward("]", info);
-
-                if(*info->p == '=') {
-                    node_type->mArrayDimentionNum = -1;
-                }
-                else {
-                    node_type->mPointerNum++;
-                    node_type->mArrayDimentionNum = 0;
                 }
             }
         }
     }
+
     if(*info->p == ':') {
         info->p++;
         skip_spaces_and_lf(info);
@@ -2681,353 +2561,19 @@ static BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* nam
         info->p++;
         skip_spaces_and_lf(info);
 
-        if(result_type->mDynamicArrayNum == -1) {
-            if(type_identify_with_class_name(result_type, "char*"))
-            {
-                unsigned int right_node = 0;
-
-                if(!expression(&right_node, info)) {
-                    return FALSE;
-                }
-
-                if(right_node == 0) {
-                    parser_err_msg(info, "Require right value for =");
-                    info->err_num++;
-
-                    *node = 0;
-                }
-                else {
-                    if(gNodes[right_node].mNodeType != kNodeTypeCString)
-                    {
-                        parser_err_msg(info, "Invalid right value");
-                        info->err_num++;
-
-                        *node = 0;
-
-                        return TRUE;
-                    }
-
-                    int string_len = strlen(gNodes[right_node].uValue.sString.mString) + 1;
-
-                    result_type->mDynamicArrayNum = sNodeTree_create_int_value(string_len, info);
-
-                    unsigned int initialize_array_values[INIT_ARRAY_MAX];
-                    int num_initialize_array_value = 0;
-                    memset(initialize_array_values, 0, sizeof(unsigned int)*INIT_ARRAY_MAX);
-
-                    initialize_array_values[0] = right_node;
-                    num_initialize_array_value++;
-                    *node = sNodeTree_create_define_variable(name, extern_, info);
-
-                    *node = sNodeTree_create_array_with_initialization(name, num_initialize_array_value, initialize_array_values, *node, info);
+        if(result_type->mArrayDimentionNum > 0) {
+            if(type_identify_with_class_name(result_type, "char") && result_type->mPointerNum == 0) {
+                if(*info->p == '{') {
+                    info->p++;
+                    skip_spaces_and_lf(info);
                 }
             }
             else {
                 expect_next_character_with_one_forward("{", info);
-
-                BOOL no_comma_operator = info->no_comma_operator;
-                info->no_comma_operator = TRUE;
-
-                unsigned int initialize_array_values[INIT_ARRAY_MAX];
-                int num_initialize_array_value = 0;
-                memset(initialize_array_values, 0, sizeof(unsigned int)*INIT_ARRAY_MAX);
-
-                while(TRUE) {
-                    unsigned int right_node = 0;
-
-                    if(!expression(&right_node, info)) {
-                        return FALSE;
-                    }
-
-                    if(right_node == 0) {
-                        parser_err_msg(info, "Require right value for {}");
-                        info->err_num++;
-
-                        *node = 0;
-                    }
-                    else {
-                        initialize_array_values[num_initialize_array_value++] = right_node;
-                    }
-
-                    if(*info->p == ',') {
-                        info->p++;
-                        skip_spaces_and_lf(info);
-                    }
-                    else if(*info->p == '\0') {
-                        parser_err_msg(info, "In the array initialization, the parser has arraived at the source end");
-                        return FALSE;
-                    }
-                    else if(*info->p == '}') {
-                        info->p++;
-                        skip_spaces_and_lf(info);
-                        break;
-                    }
-                }
-
-                int array_len = num_initialize_array_value;
-
-                result_type->mDynamicArrayNum = sNodeTree_create_int_value(array_len, info);
-                result_type->mArrayInitializeNum = num_initialize_array_value;
-
-                *node = sNodeTree_create_define_variable(name, extern_, info);
-
-                *node = sNodeTree_create_array_with_initialization(name, num_initialize_array_value, initialize_array_values, *node, info);
-
-                info->no_comma_operator = no_comma_operator;
             }
-        }
-        else if(info->mBlockLevel == 0 && result_type->mArrayDimentionNum > 0)
-        {
+
             BOOL no_comma_operator = info->no_comma_operator;
             info->no_comma_operator = TRUE;
-
-            if(type_identify_with_class_name(result_type, "char*"))
-            {
-                unsigned int right_node = 0;
-
-                if(!expression(&right_node, info)) {
-                    return FALSE;
-                }
-
-                if(right_node == 0) {
-                    parser_err_msg(info, "Require right value for =");
-                    info->err_num++;
-
-                    *node = 0;
-                }
-                else {
-                    unsigned int initialize_array_values[INIT_ARRAY_MAX];
-                    int num_initialize_array_value = 0;
-                    memset(initialize_array_values, 0, sizeof(unsigned int)*INIT_ARRAY_MAX);
-
-                    initialize_array_values[0] = right_node;
-                    num_initialize_array_value++;
-
-                    *node = sNodeTree_create_define_variable(name, extern_, info);
-
-                    *node = sNodeTree_create_array_with_initialization(name, num_initialize_array_value, initialize_array_values, *node, info);
-                }
-            }
-            else {
-                expect_next_character_with_one_forward("{", info);
-
-                unsigned int initialize_array_values[INIT_ARRAY_MAX];
-                int num_initialize_array_value = 0;
-                memset(initialize_array_values, 0, sizeof(unsigned int)*INIT_ARRAY_MAX);
-
-                while(TRUE) {
-                    unsigned int right_node = 0;
-
-                    if(!expression(&right_node, info)) {
-                        return FALSE;
-                    }
-
-                    if(right_node == 0) {
-                        parser_err_msg(info, "Require right value for {}");
-                        info->err_num++;
-
-                        *node = 0;
-                    }
-                    else {
-                        initialize_array_values[num_initialize_array_value++] = right_node;
-                    }
-
-                    if(*info->p == ',') {
-                        info->p++;
-                        skip_spaces_and_lf(info);
-                    }
-                    else if(*info->p == '\0') {
-                        parser_err_msg(info, "In the array initialization, the parser has arraived at the source end");
-                        return FALSE;
-                    }
-                    else if(*info->p == '}') {
-                        info->p++;
-                        skip_spaces_and_lf(info);
-                        break;
-                    }
-                };
-
-
-                *node = sNodeTree_create_define_variable(name, extern_, info);
-
-                *node = sNodeTree_create_array_with_initialization(name, num_initialize_array_value, initialize_array_values, *node, info);
-            }
-
-            info->no_comma_operator = no_comma_operator;
-        }
-        else if(info->mBlockLevel == 0 && result_type->mArrayDimentionNum == -1)
-        {
-            if(type_identify_with_class_name(result_type, "char*"))
-            {
-                unsigned int right_node = 0;
-
-                if(!expression(&right_node, info)) {
-                    return FALSE;
-                }
-
-                if(right_node == 0 || gNodes[right_node].mNodeType != kNodeTypeCString) {
-                    parser_err_msg(info, "Require string for =");
-                    info->err_num++;
-
-                    *node = 0;
-                }
-                else {
-                    char* str = gNodes[right_node].uValue.sString.mString;
-
-                    int len = strlen(str);
-
-                    result_type->mArrayDimentionNum = 1;
-                    result_type->mArrayNum[0] = len + 1;
-
-                    unsigned int initialize_array_values[INIT_ARRAY_MAX];
-                    int num_initialize_array_value = 0;
-                    memset(initialize_array_values, 0, sizeof(unsigned int)*INIT_ARRAY_MAX);
-
-                    initialize_array_values[0] = right_node;
-                    num_initialize_array_value++;
-
-                    *node = sNodeTree_create_define_variable(name, extern_, info);
-
-                    *node = sNodeTree_create_array_with_initialization(name, num_initialize_array_value, initialize_array_values, *node, info);
-                }
-            }
-            else {
-                BOOL no_comma_operator = info->no_comma_operator;
-                info->no_comma_operator = TRUE;
-
-                expect_next_character_with_one_forward("{", info);
-
-                unsigned int initialize_array_values[INIT_ARRAY_MAX];
-                int num_initialize_array_value = 0;
-                memset(initialize_array_values, 0, sizeof(unsigned int)*INIT_ARRAY_MAX);
-
-                while(TRUE) {
-                    unsigned int right_node = 0;
-
-                    if(!expression(&right_node, info)) {
-                        return FALSE;
-                    }
-
-                    if(right_node == 0) {
-                        parser_err_msg(info, "Require right value for {}");
-                        info->err_num++;
-
-                        *node = 0;
-                    }
-                    else {
-                        initialize_array_values[num_initialize_array_value++] = right_node;
-                    }
-
-                    if(*info->p == ',') {
-                        info->p++;
-                        skip_spaces_and_lf(info);
-                    }
-                    else if(*info->p == '\0') {
-                        parser_err_msg(info, "In the array initialization, the parser has arraived at the source end");
-                        return FALSE;
-                    }
-                    else if(*info->p == '}') {
-                        info->p++;
-                        skip_spaces_and_lf(info);
-                        break;
-                    }
-                }
-
-                result_type->mArrayDimentionNum = 1;
-                result_type->mArrayNum[0] = num_initialize_array_value;
-                result_type->mArrayInitializeNum = num_initialize_array_value;
-
-                *node = sNodeTree_create_define_variable(name, extern_, info);
-
-                *node = sNodeTree_create_array_with_initialization(name, num_initialize_array_value, initialize_array_values, *node, info);
-
-                info->no_comma_operator = no_comma_operator;
-            }
-        }
-        else if(result_type->mDynamicArrayNum != 0) {
-            if(type_identify_with_class_name(result_type, "char*"))
-            {
-                unsigned int right_node = 0;
-
-                if(!expression(&right_node, info)) {
-                    return FALSE;
-                }
-
-                if(right_node == 0) {
-                    parser_err_msg(info, "Require right value for =");
-                    info->err_num++;
-
-                    *node = 0;
-                }
-                else {
-                    unsigned int initialize_array_values[INIT_ARRAY_MAX];
-                    int num_initialize_array_value = 0;
-                    memset(initialize_array_values, 0, sizeof(unsigned int)*INIT_ARRAY_MAX);
-
-                    initialize_array_values[0] = right_node;
-                    num_initialize_array_value++;
-
-                    *node = sNodeTree_create_define_variable(name, extern_, info);
-
-                    *node = sNodeTree_create_array_with_initialization(name, num_initialize_array_value, initialize_array_values, *node, info);
-                }
-            }
-            else {
-                BOOL no_comma_operator = info->no_comma_operator;
-                info->no_comma_operator = TRUE;
-
-                expect_next_character_with_one_forward("{", info);
-
-                unsigned int initialize_array_values[INIT_ARRAY_MAX];
-                int num_initialize_array_value = 0;
-                memset(initialize_array_values, 0, sizeof(unsigned int)*INIT_ARRAY_MAX);
-
-                while(TRUE) {
-                    unsigned int right_node = 0;
-
-                    if(!expression(&right_node, info)) {
-                        return FALSE;
-                    }
-
-                    if(right_node == 0) {
-                        parser_err_msg(info, "Require right value for {}");
-                        info->err_num++;
-
-                        *node = 0;
-                    }
-                    else {
-                        initialize_array_values[num_initialize_array_value++] = right_node;
-                    }
-
-                    if(*info->p == ',') {
-                        info->p++;
-                        skip_spaces_and_lf(info);
-                    }
-                    else if(*info->p == '\0') {
-                        parser_err_msg(info, "In the array initialization, the parser has arraived at the source end");
-                        return FALSE;
-                    }
-                    else if(*info->p == '}') {
-                        info->p++;
-                        skip_spaces_and_lf(info);
-                        break;
-                    }
-                }
-
-                result_type->mArrayInitializeNum = num_initialize_array_value;
-
-                *node = sNodeTree_create_define_variable(name, extern_, info);
-
-                *node = sNodeTree_create_array_with_initialization(name, num_initialize_array_value, initialize_array_values, *node, info);
-
-                info->no_comma_operator = no_comma_operator;
-            }
-        }
-        else if((result_type->mClass->mFlags & CLASS_FLAGS_STRUCT) && *info->p == '{') {
-            BOOL no_comma_operator = info->no_comma_operator;
-            info->no_comma_operator = TRUE;
-
-            expect_next_character_with_one_forward("{", info);
 
             unsigned int initialize_array_values[INIT_ARRAY_MAX];
             int num_initialize_array_value = 0;
@@ -3048,6 +2594,11 @@ static BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* nam
                 }
                 else {
                     initialize_array_values[num_initialize_array_value++] = right_node;
+
+                    if(num_initialize_array_value >= INIT_ARRAY_MAX) {
+                        fprintf(stderr, "overflow array initializer number\n");
+                        exit(2);
+                    }
                 }
 
                 if(*info->p == ',') {
@@ -3063,13 +2614,115 @@ static BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* nam
                     skip_spaces_and_lf(info);
                     break;
                 }
-            };
-
-            *node = sNodeTree_create_define_variable(name, extern_, info);
-
-            *node = sNodeTree_create_struct_with_initialization(name, num_initialize_array_value, initialize_array_values, *node, info);
+                else if(type_identify_with_class_name(result_type, "char") && result_type->mPointerNum == 0) {
+                    if(*info->p == '}') {
+                        info->p++;
+                        skip_spaces_and_lf(info);
+                    }
+                    break;
+                }
+            }
 
             info->no_comma_operator = no_comma_operator;
+
+            if(info->mBlockLevel == 0) {
+                *node = sNodeTree_create_define_variable(name, extern_, info);
+
+                *node = sNodeTree_create_array_with_initialization(name, num_initialize_array_value, initialize_array_values, *node, info);
+            }
+            else {
+                unsigned int nodes[INIT_ARRAY_MAX+128];
+                int num_nodes = 0;
+
+                nodes[num_nodes++] = sNodeTree_create_define_variable(name, extern_, info);
+
+                unsigned int array_node = sNodeTree_create_load_variable(name, info);
+
+                int num_dimention = result_type->mArrayDimentionNum;
+
+                if(num_dimention == 1) {
+                    if(type_identify_with_class_name(result_type, "char") && result_type->mPointerNum == 0 && num_initialize_array_value == 1 && gNodes[initialize_array_values[0]].mNodeType == kNodeTypeCString) 
+                    {
+                        unsigned int node = initialize_array_values[0];
+
+                        char* str = gNodes[node].uValue.sString.mString;
+
+                        if(strlen(str)+1 >= INIT_ARRAY_MAX) {
+                            parser_err_msg(info, "invalid array initializer");
+                            info->err_num++;
+                            return FALSE;
+                        }
+
+                        int i;
+                        for(i=0; i<strlen(str); i++) {
+                            initialize_array_values[i] = sNodeTree_create_character_value(str[i], info);
+                        }
+                        initialize_array_values[i] = sNodeTree_create_character_value('\0', info);
+
+                        num_initialize_array_value = strlen(str)+1;
+                    }
+
+                    int i;
+                    for(i=0; i<num_initialize_array_value; i++) {
+                        unsigned int index_node[ARRAY_DIMENTION_MAX];
+
+                        index_node[0] = sNodeTree_create_int_value(i, info);
+                        unsigned int right_node = initialize_array_values[i];
+
+                        nodes[num_nodes++] = sNodeTree_create_store_element(array_node, index_node, num_dimention, right_node, info);
+
+                        if(num_nodes >= INIT_ARRAY_MAX+128) {
+                            fprintf(stderr, "overflow array initializer number\n");
+                            exit(2);
+                        }
+                    }
+
+                    *node = sNodeTree_create_nodes(nodes, num_nodes, info);
+                }
+                else if(num_dimention == 2) {
+                    int i;
+                    for(i=0; i<num_initialize_array_value; i++) {
+                        unsigned int index_node[ARRAY_DIMENTION_MAX];
+
+                        index_node[0] = sNodeTree_create_int_value(i/result_type->mArrayNum[1], info);
+                        index_node[1] = sNodeTree_create_int_value(i%result_type->mArrayNum[1], info);
+
+                        unsigned int right_node = initialize_array_values[i];
+
+                        nodes[num_nodes++] = sNodeTree_create_store_element(array_node, index_node, num_dimention, right_node, info);
+
+                        if(num_nodes >= INIT_ARRAY_MAX+128) {
+                            fprintf(stderr, "overflow array initializer number\n");
+                            exit(2);
+                        }
+                    }
+
+                    *node = sNodeTree_create_nodes(nodes, num_nodes, info);
+                }
+                else if(num_dimention == 3) {
+                    int i;
+                    for(i=0; i<num_initialize_array_value; i++) {
+                        unsigned int index_node[ARRAY_DIMENTION_MAX];
+
+                        int n = result_type->mArrayNum[1]*result_type->mArrayNum[2];
+
+                        index_node[0] = sNodeTree_create_int_value(i/n, info);
+                        index_node[1] = sNodeTree_create_int_value((i/result_type->mArrayNum[2])%result_type->mArrayNum[1], info);
+                        index_node[2] = sNodeTree_create_int_value(i%result_type->mArrayNum[2], info);
+
+                        unsigned int right_node = initialize_array_values[i];
+
+                        nodes[num_nodes++] = sNodeTree_create_store_element(array_node, index_node, num_dimention, right_node, info);
+
+                        if(num_nodes >= INIT_ARRAY_MAX+128) {
+                            fprintf(stderr, "overflow array initializer number\n");
+                            exit(2);
+                        }
+                    }
+
+                    *node = sNodeTree_create_nodes(nodes, num_nodes, info);
+                }
+            }
         }
         else {
             unsigned int right_node = 0;
@@ -3552,42 +3205,6 @@ BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, 
     info->mNumMethodGenerics = 0;
 
     BOOL operator_fun = FALSE;
-
-    if(strcmp(fun_name, "operator") == 0) {
-        operator_fun = TRUE;
-
-        switch(*info->p) {
-            case '+': 
-                info->p++;
-                skip_spaces_and_lf(info);
-                xstrncpy(fun_name, "op_add", VAR_NAME_MAX);
-                break;
-
-            case '-': 
-                info->p++;
-                skip_spaces_and_lf(info);
-                xstrncpy(fun_name, "op_sub", VAR_NAME_MAX);
-                break;
-
-            case '*': 
-                info->p++;
-                skip_spaces_and_lf(info);
-                xstrncpy(fun_name, "op_mult", VAR_NAME_MAX);
-                break;
-
-            case '/': 
-                info->p++;
-                skip_spaces_and_lf(info);
-                xstrncpy(fun_name, "op_div", VAR_NAME_MAX);
-                break;
-
-            case '%': 
-                info->p++;
-                skip_spaces_and_lf(info);
-                xstrncpy(fun_name, "op_mod", VAR_NAME_MAX);
-                break;
-        }
-    }
 
     expect_next_character_with_one_forward("(", info);
 
@@ -6970,13 +6587,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                         return FALSE;
                     }
 
-                    if(strcmp(name, "operator") == 0)
-                    {
-                        if(!parse_function(node, result_type2, name, NULL, info)) {
-                            return FALSE;
-                        }
-                    }
-                    else if(*info->p == '(') {
+                    if(*info->p == '(') {
                         char* struct_name = NULL;
                         if(strcmp(info->impl_struct_name, "") != 0)
                         {
@@ -7382,13 +6993,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                         return FALSE;
                     }
 
-                    if(strcmp(name, "operator") == 0)
-                    {
-                        if(!parse_function(node, result_type2, name, NULL, info)) {
-                            return FALSE;
-                        }
-                    }
-                    else if(*info->p == '(') {
+                    if(*info->p == '(') {
                         char* struct_name = NULL;
                         if(strcmp(info->impl_struct_name, "") != 0)
                         {

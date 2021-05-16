@@ -20,25 +20,6 @@ char *strncpy(char *dest, const char *src, size_t n);
 
 int strcmp(const char *s1, const char *s2);
 
-/*
-string xsprintf(char* msg, ...)
-{
-    va_list args;
-    va_start(args, msg);
-    char* tmp;
-    int len = vasprintf(&tmp, msg, args);
-    va_end(args);
-
-    if(len < 0) {
-        fprintf(stderr, "can't get heap memory. Heap memory number is %d. xsprintf len %d\n", gNumMemAlloc, len);
-
-        exit(2);
-    }
-
-    return dummy_heap tmp;
-}
-*/
-
 void xassert(const char* msg, bool exp)
 {
     printf(msg);
@@ -135,12 +116,55 @@ union uData {
     struct { int a; long b; long c; } data3;
 } gUnionData;
 
+int gGlobalArray[3];
+int gGlobalArray2[3][3];
+
+int gGlobalArray3[3] = {
+    1,2,3
+};
+
+int gGlobalArray4[3][2] = {
+    1,2, 3,4, 5,6
+};
+
+int gGlobalArray5[2][3][4] = {
+    1,2,3,4, 5,6,7,8, 9,10,11,12,
+    13,14,15,16, 17,18,19,20, 21,22,23,24
+};
+
+char gGlobalString[] = "ABC";
+
+char* gGlobalArray6[3] = { "AAA", "BBB", "CCC" };
+
+char gGlobalArray7[4] = { "ABC" };
+
+char gGlobalArray8[4] = "ABC";
+
 /*
 struct sGenericsData<T>
 {
     T data;
     T data2;
 };
+*/
+
+/*
+string xsprintf(char* msg, ...)
+{
+    va_list args;
+    va_start(args, msg);
+    char* tmp;
+    int len = vasprintf(&tmp, msg, args);
+    va_end(args);
+
+    if(len < 0) {
+        fprintf(stderr, "can't get heap memory. Heap memory number is %d. xsprintf len %d\n", gNumMemAlloc, len);
+
+        exit(2);
+    }
+
+    return dummy_heap tmp;
+}
 */
 
 int main()
@@ -242,19 +266,19 @@ int main()
 
     xassert("union test4", gUnionData.data1 == 123);
 
-    int m[123];
+    int m[5];
 
     m[0] = 123;
 
     xassert("array test", m[0] == 123);
 
-    int n[123][123];
+    int n[5][5];
 
     n[1][2] = 123;
 
     xassert("array test2", n[1][2] == 123);
 
-    int o[123][123][123];
+    int o[5][5][5];
 
     o[1][2][3] = 123;
 
@@ -262,11 +286,90 @@ int main()
 
     int p[5][5][5][5];
 
-/*
-    p[1][2][3][4] = 111;
+    int q = 123;
 
-    xassert("array test4", p[1][2][3][4] == 111);
-*/
+    int* r = &q;
+
+    xassert("pointer test", *r == 123);
+
+    int s[5][5];
+
+    int* t = &s[1][0];
+
+    *t = 123;
+
+    xassert("pointer test2", s[1][0] == 123);
+
+    int u[5][5];
+
+    u[1][0] = 123;
+
+    int* v = u[1];
+
+    *v = 234;
+
+    xassert("pointer test3", u[1][0] == 234);
+
+    int w[5] = { 1,2,3,4,5 };
+
+    xassert("array test4", w[1] == 2);
+
+    int x[3][2] = { 1,2, 3,4, 5,6 };
+
+    xassert("array test5", x[2][0] == 5);
+    xassert("array test6", x[1][1] == 4);
+
+    int y[2][3][2] = { 1,2, 3,4, 5,6
+                     , 7,8, 9,10, 11,12 };
+
+    xassert("array test7", y[0][1][0] == 3);
+    xassert("array test8", y[1][2][1] == 12);
+
+    gGlobalArray[1] = 2;
+
+    xassert("global array", gGlobalArray[1] == 2);
+
+    gGlobalArray2[1][1] = 2;
+
+    xassert("global array2", gGlobalArray2[1][1] == 2);
+
+    xassert("global array3", gGlobalArray3[0] == 1);
+
+    xassert("global array4", gGlobalArray4[2][1] == 6);
+
+    xassert("global array5", gGlobalArray5[1][2][0] == 21);
+
+    int len = 5;
+
+    int z[len];
+
+    z[3] = 1;
+
+    xassert("array test9", z[3] == 1);
+
+    xassert("global variable test", strcmp(gGlobalString, "ABC") == 0);
+
+    xassert("global variable test2", strcmp(gGlobalArray6[1], "BBB") == 0);
+
+    char* aa[3] = { "AAA", "BBB", "CCC" };
+
+    xassert("array test9", strcmp(aa[0], "AAA") == 0);
+
+    xassert("global variable test3", strcmp(gGlobalArray7, "ABC") == 0);
+
+    xassert("global variable test3", strcmp(gGlobalArray8, "ABC") == 0);
+
+    char str[4] = "ABC";
+
+    xassert("array test10", strcmp(str, "ABC") == 0);
+
+    char str2[4] = { 'A', 'B', 'C', '\0' };
+
+    xassert("array test11", strcmp(str2, "ABC") == 0);
+
+    char str3[4] = { "ABC" };
+
+    xassert("array test12", strcmp(str3, "ABC") == 0);
 
 
 /*
