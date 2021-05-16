@@ -148,7 +148,8 @@ struct sGenericsData<T>
 };
 */
 
-/*
+int vasprintf(char **strp, const char *fmt, va_list ap);
+
 string xsprintf(char* msg, ...)
 {
     va_list args;
@@ -157,15 +158,16 @@ string xsprintf(char* msg, ...)
     int len = vasprintf(&tmp, msg, args);
     va_end(args);
 
+/*
     if(len < 0) {
         fprintf(stderr, "can't get heap memory. Heap memory number is %d. xsprintf len %d\n", gNumMemAlloc, len);
 
         exit(2);
     }
+*/
 
     return dummy_heap tmp;
 }
-*/
 
 int main()
 {
@@ -370,6 +372,9 @@ int main()
     char str3[4] = { "ABC" };
 
     xassert("array test12", strcmp(str3, "ABC") == 0);
+
+    char* msx = "MSX";
+    puts(xsprintf("%s", msx));
 
 
 /*

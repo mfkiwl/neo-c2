@@ -96,6 +96,10 @@ void free_right_value_objects(sCompileInfo* info)
 
 LLVMTypeRef create_llvm_type_with_class_name(char* class_name);
 
+BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body);
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text);
+LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type);
+
 void init_nodes(char* sname)
 {
     // create context, module and builder
@@ -173,6 +177,252 @@ void init_nodes(char* sname)
         LLVMMetadataRef dwarf_info_version_meta_data = LLVMValueAsMetadata(dwarf_info_version);
 
         LLVMAddModuleFlag(gModule, LLVMModuleFlagBehaviorWarning, "Debug Info Version", strlen("Debug Info Version"), dwarf_info_version_meta_data);
+    }
+
+    /// va_list ///
+#ifdef __X86_64_CPU__
+    LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+
+    field_types[0] = create_llvm_type_with_class_name("int");
+    field_types[1] = create_llvm_type_with_class_name("int");
+    field_types[2] = create_llvm_type_with_class_name("char*");
+    field_types[3] = create_llvm_type_with_class_name("char*");
+
+    int num_fields = 4;
+
+    LLVMTypeRef struct_type = LLVMStructTypeInContext(gContext, field_types, num_fields, FALSE);
+
+    LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+
+    char* class_name = "__builtin_va_list";
+    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE);
+    sNodeType* node_type = create_node_type_with_class_pointer(va_list_struct);
+
+    if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+        fprintf(stderr, "overflow struct number\n");
+        exit(2);
+    }
+
+    class_name = "va_list";
+    va_list_struct = alloc_struct("va_list", FALSE);
+    node_type = create_node_type_with_class_pointer(va_list_struct);
+
+    if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+        fprintf(stderr, "overflow struct number\n");
+        exit(2);
+    }
+#elif __AARCH64_CPU__
+    LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+
+    field_types[0] = create_llvm_type_with_class_name("char*");
+    field_types[1] = create_llvm_type_with_class_name("char*");
+    field_types[2] = create_llvm_type_with_class_name("char*");
+    field_types[3] = create_llvm_type_with_class_name("int");
+    field_types[4] = create_llvm_type_with_class_name("int");
+
+    int num_fields = 5;
+
+    LLVMTypeRef struct_type = LLVMStructTypeInContext(gContext, field_types, num_fields, FALSE);
+
+    LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+
+    char* class_name = "__builtin_va_list";
+    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE);
+    sNodeType* node_type = create_node_type_with_class_pointer(va_list_struct);
+
+    if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+        fprintf(stderr, "overflow struct number\n");
+        exit(2);
+    }
+
+    class_name = "va_list";
+    va_list_struct = alloc_struct("va_list", FALSE);
+    node_type = create_node_type_with_class_pointer(va_list_struct);
+
+    if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+        fprintf(stderr, "overflow struct number\n");
+        exit(2);
+    }
+#else
+    LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+
+    field_types[0] = create_llvm_type_with_class_name("char*");
+    field_types[1] = create_llvm_type_with_class_name("char*");
+    field_types[2] = create_llvm_type_with_class_name("char*");
+    field_types[3] = create_llvm_type_with_class_name("int");
+    field_types[4] = create_llvm_type_with_class_name("int");
+
+    int num_fields = 5;
+
+    LLVMTypeRef struct_type = LLVMStructTypeInContext(gContext, field_types, num_fields, FALSE);
+
+    LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+
+    char* class_name = "__builtin_va_list";
+    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE);
+    sNodeType* node_type = create_node_type_with_class_pointer(va_list_struct);
+
+    if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+        fprintf(stderr, "overflow struct number\n");
+        exit(2);
+    }
+
+    class_name = "va_list";
+    va_list_struct = alloc_struct("va_list", FALSE);
+    node_type = create_node_type_with_class_pointer(va_list_struct);
+
+    if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+        fprintf(stderr, "overflow struct number\n");
+        exit(2);
+    }
+#endif
+    {
+        char* name = "llvm.va_start";
+        int num_params = 1;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "p", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("char*");
+
+        sNodeType* result_type = create_node_type_with_class_name("void");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+
+    {
+        char* name = "__builtin_va_start";
+        int num_params = 1;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "p", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("char*");
+
+        sNodeType* result_type = create_node_type_with_class_name("void");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+
+    /// va_end ///
+    {
+        char* name = "llvm.va_end";
+        int num_params = 1;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "p", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("char*");
+
+        sNodeType* result_type = create_node_type_with_class_name("void");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+
+    {
+        char* name = "__builtin_va_end";
+        int num_params = 1;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "p", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("char*");
+
+        sNodeType* result_type = create_node_type_with_class_name("void");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
     }
 }
 
@@ -589,7 +839,14 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
     sCLClass* klass = node_type->mClass;
     char* class_name = CLASS_NAME(klass);
 
-    if(type_identify_with_class_name(node_type, "int")) {
+    if(klass->mFlags & CLASS_FLAGS_ENUM) 
+    {
+        result_type = LLVMInt32TypeInContext(gContext);
+    }
+    else if(node_type->mSizeNum > 0) {
+        result_type = LLVMIntTypeInContext(gContext, node_type->mSizeNum*8);
+    }
+    else if(type_identify_with_class_name(node_type, "int")) {
         result_type = LLVMInt32TypeInContext(gContext);
     }
     else if(type_identify_with_class_name(node_type, "long")) {
@@ -713,6 +970,38 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
         }
 
         *right_type = create_node_type_with_class_name("int");
+    }
+    else if(type_identify_with_class_name(left_type, "char*") && (type_identify_with_class_name(*right_type, "va_list") || type_identify_with_class_name(*right_type, "__builtin_va_list")))
+    {
+        if(rvalue) {
+            LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "cast");
+            rvalue->type = create_node_type_with_class_name("char*");
+        }
+
+        *right_type = create_node_type_with_class_name("char*");
+    }
+    else if((type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) && type_identify_with_class_name(*right_type, "char*"))
+    {
+        if(rvalue) {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "cast");
+            rvalue->type = create_node_type_with_class_name("va_list");
+        }
+
+        *right_type = create_node_type_with_class_name("va_list");
+    }
+    else if((type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) && type_identify_with_class_name(*right_type, "char*"))
+    {
+        if(rvalue) {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "cast");
+            rvalue->type = create_node_type_with_class_name("__builtin_va_list");
+        }
+
+        *right_type = create_node_type_with_class_name("__builtin_va_list");
     }
 
     return TRUE;
@@ -2185,6 +2474,12 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
 
     LLVMTypeRef llvm_type = create_llvm_type_from_node_type(var_type);
 
+#ifdef __X86_64_CPU__
+    if(type_identify_with_class_name(var_type, "__builtin_va_list") || type_identify_with_class_name(var_type, "va_list")) {
+        llvm_type = LLVMArrayType(llvm_type, 1);
+    }
+#endif
+
     if(extern_) {
         LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
 
@@ -2311,6 +2606,12 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         if(global) {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
+#ifdef __X86_64_CPU__
+            if(type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) {
+                llvm_type = LLVMArrayType(llvm_type, 1);
+            }
+#endif
+
             LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
 
             if(((left_type->mClass->mFlags & CLASS_FLAGS_STRUCT) || (left_type->mClass->mFlags & CLASS_FLAGS_UNION)) && left_type->mPointerNum == 0) {
@@ -2340,6 +2641,12 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         else {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
+#ifdef __X86_64_CPU__
+            if(type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) {
+                llvm_type = LLVMArrayType(llvm_type, 1);
+            }
+#endif
+
             LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
 
             LLVMBuildStore(gBuilder, rvalue.value, alloca_value);
@@ -2360,6 +2667,12 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
     }
     else {
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+#ifdef __X86_64_CPU__
+        if(type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) {
+            llvm_type = LLVMArrayType(llvm_type, 1);
+        }
+#endif
 
         LLVMValueRef alloca_value = var->mLLVMValue;
 
@@ -2493,7 +2806,13 @@ static BOOL compile_external_function(unsigned int node, sCompileInfo* info)
     LLVMTypeRef llvm_param_types[PARAMS_MAX];
 
     for(i=0; i<num_params; i++) {
-        llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        if(type_identify_with_class_name(param_types[i], "__builtin_va_list") || type_identify_with_class_name(param_types[i], "va_list")) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+            llvm_param_types[i] = LLVMPointerType(llvm_param_types[i], 0);
+        }
+        else {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
     }
 
     LLVMTypeRef llvm_result_type;
@@ -2591,10 +2910,10 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         xstrncpy(generics_type_names[i], gNodes[node].uValue.sFunctionCall.mGenericsTypeNames[i], VAR_NAME_MAX);
     }
 
-    if(strcmp(fun_name, "__builtin_va_start") == 0) {
+    if(strcmp(fun_name, "__builtin_va_start") == 0 || strcmp(fun_name, "va_start") == 0) {
         xstrncpy(fun_name, "llvm.va_start", VAR_NAME_MAX);
     }
-    else if(strcmp(fun_name, "__builtin_va_end") == 0) {
+    else if(strcmp(fun_name, "__builtin_va_end") == 0 || strcmp(fun_name, "va_end") == 0) {
         xstrncpy(fun_name, "llvm.va_end", VAR_NAME_MAX);
     }
     else if(strcmp(fun_name, "__builtin_memmove") == 0) {
@@ -2652,6 +2971,16 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         }
 
         llvm_params[i] = param.value;
+    }
+
+    if(strcmp(fun_name, "llvm.va_start") == 0 || strcmp(fun_name, "llvm.va_end") == 0)
+    {
+        LLVMValueRef param = llvm_params[0];
+
+        LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
+        param = LLVMBuildCast(gBuilder, LLVMBitCast, param, llvm_type, "cast");
+
+        llvm_params[0] = param;
     }
 
     sNodeType* result_type = clone_node_type(fun->mResultType);
@@ -2900,16 +3229,21 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     for(i=0; i<num_params; i++) {
         llvm_param_types[i] = create_llvm_type_from_node_type(params[i].mType);
         param_types[i] = params[i].mType;
+
+        if(type_identify_with_class_name(param_types[i], "__builtin_va_list") || type_identify_with_class_name(param_types[i], "va_list")) {
+            llvm_param_types[i] = LLVMPointerType(llvm_param_types[i], 0);
+        }
+
         xstrncpy(param_names[i], params[i].mName, VAR_NAME_MAX);
     }
 
     LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
     LLVMTypeRef  llvm_fun_type;
     if(num_params == 0) {
-        llvm_fun_type = LLVMFunctionType(llvm_result_type, NULL, 0, FALSE);
+        llvm_fun_type = LLVMFunctionType(llvm_result_type, NULL, 0, var_arg);
     }
     else {
-        llvm_fun_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, FALSE);
+        llvm_fun_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
     }
     LLVMValueRef llvm_fun = LLVMAddFunction(gModule, fun_name, llvm_fun_type);
 
@@ -3196,7 +3530,24 @@ static BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
         llvm_value.value = var_address;
     }
     else {
-        llvm_value.value = LLVMBuildLoad(gBuilder, var_address, var_name);
+        if(type_identify_with_class_name(var_type, "__builtin_va_list") || type_identify_with_class_name(var_type, "va_list")) {
+#ifdef __X86_64_CPU__
+
+            LLVMValueRef indices[2];
+
+            LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
+
+            indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
+            indices[1] = LLVMConstInt(llvm_type, 0, FALSE);
+
+            llvm_value.value = LLVMBuildGEP(gBuilder, var_address, indices, 2, "gep");
+#else
+            llvm_value.value = var_address;
+#endif
+        }
+        else {
+            llvm_value.value = LLVMBuildLoad(gBuilder, var_address, var_name);
+        }
     }
 
     llvm_value.type = var_type;
@@ -3679,7 +4030,7 @@ static BOOL compile_dummy_heap(unsigned int node, sCompileInfo* info)
     LVALUE llvm_value = *get_value_from_stack(-1);
     dec_stack_ptr(1, info);
 
-    llvm_value.type->mDummyHeap = TRUE;
+    llvm_value.type->mHeap = TRUE;
 
     push_value_to_stack_ptr(&llvm_value, info);
 

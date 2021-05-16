@@ -6,10 +6,6 @@ function pointer
 
 static local variable
 
-var args
-
-    xsprintf
-
 struct 
 
     generics struct
@@ -50,4 +46,7 @@ array
 
     char array initializer
 
+var args
+
+    xsprintf
 
