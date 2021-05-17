@@ -169,6 +169,18 @@ string xsprintf(char* msg, ...)
     return dummy_heap tmp;
 }
 
+void funA()
+{
+    static int xxx = 1;
+    printf("%d\n", xxx);
+    xxx++;
+}
+
+int funB(int x, int y)
+{
+    return x + y;
+}
+
 int main()
 {
     printf("HELLO WORLD\n");
@@ -375,6 +387,14 @@ int main()
 
     char* msx = "MSX";
     puts(xsprintf("%s", msx));
+
+
+    funA();
+    funA();
+
+    int (*fun)(int, int) = funB;
+
+    xassert("fun pointer test", fun(1, 2) == 3);
 
 
 /*

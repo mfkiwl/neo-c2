@@ -855,6 +855,22 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
     else if(type_identify_with_class_name(node_type, "char")) {
         result_type = LLVMInt8TypeInContext(gContext);
     }
+    else if(type_identify_with_class_name(node_type, "__uint128_t"))
+    {
+        result_type = LLVMInt128TypeInContext(gContext);
+    }
+    else if(type_identify_with_class_name(node_type, "float"))
+    {
+        result_type = LLVMFloatTypeInContext(gContext);
+    }
+    else if(type_identify_with_class_name(node_type, "double"))
+    {
+        result_type = LLVMDoubleTypeInContext(gContext);
+    }
+    else if(type_identify_with_class_name(node_type, "long_double"))
+    {
+        result_type = LLVMFP128TypeInContext(gContext);
+    }
     else if(type_identify_with_class_name(node_type, "bool")) {
         result_type = LLVMInt1TypeInContext(gContext);
     }
@@ -864,6 +880,31 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
     else if(get_struct_from_table(class_name)) {
         sStruct* st = get_struct_from_table(class_name);
         result_type = st->mLLVMType;
+    }
+    else if(type_identify_with_class_name(node_type, "lambda"))
+    {
+        int num_params = node_type->mNumParams;
+        sNodeType* fun_result_type = node_type->mResultType;
+
+        LLVMTypeRef llvm_result_type= create_llvm_type_from_node_type(fun_result_type);
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            sNodeType* param_type = node_type->mParamTypes[i];
+
+            LLVMTypeRef llvm_param_type = create_llvm_type_from_node_type(param_type);
+
+            llvm_param_types[i] = llvm_param_type;
+        }
+
+        BOOL var_arg = node_type->mVarArgs;
+    
+        result_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        if(node_type->mPointerNum == 0) {
+            result_type = LLVMPointerType(result_type, 0);
+        }
     }
 
     if(node_type->mPointerNum > 0 && type_identify_with_class_name(node_type, "void")) {
@@ -2578,6 +2619,8 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
+    BOOL static_ = var->mType->mStatic;
+
     sNodeType* left_type = clone_node_type(var->mType);
 
     if(!compile(right_node, info)) {
@@ -2627,6 +2670,32 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
 
             if(left_type->mHeap) {
                 remove_object_from_right_values(rvalue.value);
+            }
+        }
+        else if(static_) {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+            char static_var_name[VAR_NAME_MAX*2];
+            snprintf(static_var_name, VAR_NAME_MAX*2, "%s_%s", info->fun_name, var_name);
+
+            if(var->mLLVMValue == NULL)
+            {
+                LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, static_var_name);
+
+                if(((left_type->mClass->mFlags & CLASS_FLAGS_STRUCT) || (left_type->mClass->mFlags & CLASS_FLAGS_UNION)) && left_type->mPointerNum == 0) {
+                    /// zero initializer ///
+                }
+                else {
+                    LLVMSetInitializer(alloca_value, rvalue.value);
+                }
+
+                var->mLLVMValue = alloca_value;
+
+                info->type = left_type;
+
+                if(left_type->mHeap) {
+                    remove_object_from_right_values(rvalue.value);
+                }
             }
         }
         else if(constant) {
@@ -3191,6 +3260,8 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
     char fun_name[VAR_NAME_MAX];
     xstrncpy(fun_name, gNodes[node].uValue.sFunction.mName, VAR_NAME_MAX);
+
+    xstrncpy(info->fun_name, fun_name, VAR_NAME_MAX);
 
     char asm_fun_name[VAR_NAME_MAX];
     xstrncpy(asm_fun_name, gNodes[node].uValue.sFunction.mAsmName, VAR_NAME_MAX);
@@ -4603,6 +4674,101 @@ unsigned int sNodeTree_create_lambda_call(unsigned int lambda_node, unsigned int
 
 BOOL compile_lambda_call(unsigned int node, sCompileInfo* info)
 {
+    int num_params = gNodes[node].uValue.sFunctionCall.mNumParams;
+    unsigned int params[PARAMS_MAX];
+
+    unsigned int lambda_node = gNodes[node].mLeft;
+
+    /// go ///
+    if(!compile(lambda_node, info)) {
+        return FALSE;
+    }
+
+    sNodeType* lambda_type = info->type;
+
+    LVALUE lambda_value = *get_value_from_stack(-1);
+    dec_stack_ptr(1, info);
+
+    sNodeType* param_types[PARAMS_MAX];
+
+    int i;
+    for(i=0; i<num_params; i++) {
+        params[i] = gNodes[node].uValue.sFunctionCall.mParams[i];
+        
+        if(!compile(params[i], info)) {
+            return FALSE;
+        }
+
+        param_types[i] = info->type;
+
+        LVALUE param = *get_value_from_stack(-1);
+    }
+
+    /// convert param type ///
+    LLVMValueRef llvm_params[PARAMS_MAX];
+    LVALUE* lvalue_params[PARAMS_MAX];
+
+    for(i=0; i<num_params; i++) {
+        sNodeType* left_type = lambda_type->mParamTypes[i];
+        sNodeType* right_type = param_types[i];
+
+        LVALUE* param = get_value_from_stack(-num_params+i);
+
+        lvalue_params[i] = param;
+        
+        if(left_type == NULL || right_type == NULL) {
+            compile_err_msg(info, "null lambda type");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+
+        if(auto_cast_posibility(left_type, right_type)) 
+        {
+            if(!cast_right_type_to_left_type(left_type, &right_type, param, info))
+            {
+                compile_err_msg(info, "Cast failed");
+                info->err_num++;
+
+                info->type = create_node_type_with_class_name("int"); // dummy
+
+                return TRUE;
+            }
+        }
+
+        llvm_params[i] = param->value;
+    }
+
+    dec_stack_ptr(num_params, info);
+
+    if(type_identify_with_class_name(lambda_type->mResultType, "void"))
+    {
+        LLVMBuildCall(gBuilder, lambda_value.value, llvm_params, num_params, "fun_result");
+
+        info->type = clone_node_type(lambda_type->mResultType);
+    }
+    else {
+        sNodeType* result_type = clone_node_type(lambda_type->mResultType);
+
+        LVALUE llvm_value;
+        llvm_value.value = LLVMBuildCall(gBuilder, lambda_value.value, llvm_params, num_params, "fun_result");
+        llvm_value.type = result_type;
+        llvm_value.address = NULL;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = FALSE;
+        llvm_value.load_field = FALSE;
+
+        push_value_to_stack_ptr(&llvm_value, info);
+
+        info->type = result_type;
+
+
+        if(result_type->mHeap) {
+            append_object_to_right_values(llvm_value.value, result_type, info);
+        }
+    }
 
     return TRUE;
 }
@@ -5862,6 +6028,41 @@ unsigned int sNodeTree_create_load_function(char* fun_name, sParserInfo* info)
 
 static BOOL compile_load_function(unsigned int node, sCompileInfo* info)
 {
+    char* fun_name = gNodes[node].uValue.sLoadFunction.mFunName;
+
+    sFunction* fun = get_function_from_table(fun_name);
+
+    if(fun == NULL) {
+        compile_err_msg(info, "undeclared function %s\n", fun_name);
+        return FALSE;
+    }
+    
+    sNodeType* lambda_type = create_node_type_with_class_name("lambda");
+
+    int num_params = fun->mNumParams;
+
+    int i;
+    for(i=0; i<num_params; i++) {
+        sNodeType* param_type = fun->mParamTypes[i];
+
+        lambda_type->mParamTypes[i] = param_type;
+    }
+
+    lambda_type->mResultType = clone_node_type(fun->mResultType);
+    lambda_type->mNumParams = num_params;
+
+    LVALUE llvm_value;
+    llvm_value.value = fun->mLLVMFunction;
+    llvm_value.type = lambda_type;
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = lambda_type;
+
     return TRUE;
 }
 
