@@ -50,3 +50,5 @@ var args
 static local variable
 
 function pointer
+
+static function

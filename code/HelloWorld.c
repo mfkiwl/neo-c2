@@ -169,7 +169,7 @@ string xsprintf(char* msg, ...)
     return dummy_heap tmp;
 }
 
-void funA()
+static void funA()
 {
     static int xxx = 1;
     printf("%d\n", xxx);

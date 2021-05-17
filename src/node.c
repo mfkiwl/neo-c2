@@ -3317,6 +3317,10 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         llvm_fun_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
     }
     LLVMValueRef llvm_fun = LLVMAddFunction(gModule, fun_name, llvm_fun_type);
+    BOOL static_ = result_type->mStatic;
+    if(static_) {
+        LLVMSetLinkage(llvm_fun, LLVMInternalLinkage);
+    }
 
     LLVMValueRef function = gFunction;
     gFunction = llvm_fun;
