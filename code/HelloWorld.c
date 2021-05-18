@@ -396,6 +396,35 @@ int main()
 
     xassert("fun pointer test", fun(1, 2) == 3);
 
+    int ab = 1;
+
+    ab++;
+
+    xassert("operator test", ab == 2);
+
+    int ac = 2;
+
+    xassert("operator test2", ac % 3 == 2);
+
+    xassert("operator test3", true && true);
+
+    xassert("operator test4", false || true);
+
+    char* ad = null;
+
+    xassert("operator test5", ad == null);
+
+    xassert("operator test5", !false);
+
+    int ii=0;
+    while(ii < 5) {
+        printf("%d\n", ii);
+        ii++;
+    }
+
+    for(int jj=0; jj<5; jj++) {
+        printf("%d\n", jj);
+    }
 
 /*
     sGenericsData<int> data;
