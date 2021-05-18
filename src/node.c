@@ -6915,30 +6915,32 @@ BOOL compile_sizeof_expression(unsigned int node, sCompileInfo* info)
 
     dec_stack_ptr(1, info);
 
-    LLVMValueRef value = LLVMSizeOf(llvm_value.value);
+    LLVMTypeRef llvm_type = create_llvm_type_from_node_type(llvm_value.type);
+
+    LLVMValueRef value = LLVMSizeOf(llvm_type);
 
 #ifdef __32BIT_CPU__
-    LVALUE llvm_value;
-    llvm_value.value = value;
-    llvm_value.type = create_node_type_with_class_name("int");
-    llvm_value.address = NULL;
-    llvm_value.var = NULL;
-    llvm_value.binded_value = FALSE;
-    llvm_value.load_field = FALSE;
+    LVALUE llvm_value2;
+    llvm_value2.value = value;
+    llvm_value2.type = create_node_type_with_class_name("int");
+    llvm_value2.address = NULL;
+    llvm_value2.var = NULL;
+    llvm_value2.binded_value = FALSE;
+    llvm_value2.load_field = FALSE;
 
-    push_value_to_stack_ptr(&llvm_value, info);
+    push_value_to_stack_ptr(&llvm_value2, info);
 
     info->type = create_node_type_with_class_name("int");
 #else
-    LVALUE llvm_value;
-    llvm_value.value = value;
-    llvm_value.type = create_node_type_with_class_name("long");
-    llvm_value.address = NULL;
-    llvm_value.var = NULL;
-    llvm_value.binded_value = FALSE;
-    llvm_value.load_field = FALSE;
+    LVALUE llvm_value2;
+    llvm_value2.value = value;
+    llvm_value2.type = create_node_type_with_class_name("long");
+    llvm_value2.address = NULL;
+    llvm_value2.var = NULL;
+    llvm_value2.binded_value = FALSE;
+    llvm_value2.load_field = FALSE;
 
-    push_value_to_stack_ptr(&llvm_value, info);
+    push_value_to_stack_ptr(&llvm_value2, info);
 
     info->type = create_node_type_with_class_name("long");
 #endif
@@ -6987,22 +6989,6 @@ static BOOL compile_alignof(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-unsigned int sNodeTree_create_sizeof_expression(unsigned int lnode, sParserInfo* info)
-{
-    unsigned int node = alloc_node();
-
-    gNodes[node].mNodeType = kNodeTypeSizeOfExpression;
-
-    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
-    gNodes[node].mLine = info->sline;
-
-    gNodes[node].mLeft = lnode;
-    gNodes[node].mRight = 0;
-    gNodes[node].mMiddle = 0;
-
-    return node;
-}
-
 unsigned int sNodeTree_create_alignof_expression(unsigned int lnode, sParserInfo* info)
 {
     unsigned int node = alloc_node();
@@ -7039,30 +7025,33 @@ BOOL compile_alignof_expression(unsigned int node, sCompileInfo* info)
 
     dec_stack_ptr(1, info);
 
-    LLVMValueRef value = LLVMAlignOf(llvm_value.value);
+    LLVMTypeRef llvm_type = create_llvm_type_from_node_type(llvm_value.type);
+
+
+    LLVMValueRef value = LLVMAlignOf(llvm_type);
 
 #ifdef __32BIT_CPU__
-    LVALUE llvm_value;
-    llvm_value.value = value;
-    llvm_value.type = create_node_type_with_class_name("int");
-    llvm_value.address = NULL;
-    llvm_value.var = NULL;
-    llvm_value.binded_value = FALSE;
-    llvm_value.load_field = FALSE;
+    LVALUE llvm_value2;
+    llvm_value2.value = value;
+    llvm_value2.type = create_node_type_with_class_name("int");
+    llvm_value2.address = NULL;
+    llvm_value2.var = NULL;
+    llvm_value2.binded_value = FALSE;
+    llvm_value2.load_field = FALSE;
 
-    push_value_to_stack_ptr(&llvm_value, info);
+    push_value_to_stack_ptr(&llvm_value2, info);
 
     info->type = create_node_type_with_class_name("int");
 #else
-    LVALUE llvm_value;
-    llvm_value.value = value;
-    llvm_value.type = create_node_type_with_class_name("long");
-    llvm_value.address = NULL;
-    llvm_value.var = NULL;
-    llvm_value.binded_value = FALSE;
-    llvm_value.load_field = FALSE;
+    LVALUE llvm_value2;
+    llvm_value2.value = value;
+    llvm_value2.type = create_node_type_with_class_name("long");
+    llvm_value2.address = NULL;
+    llvm_value2.var = NULL;
+    llvm_value2.binded_value = FALSE;
+    llvm_value2.load_field = FALSE;
 
-    push_value_to_stack_ptr(&llvm_value, info);
+    push_value_to_stack_ptr(&llvm_value2, info);
 
     info->type = create_node_type_with_class_name("long");
 #endif
