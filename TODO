@@ -3,6 +3,41 @@ operators
 
     pointer sub and add
 
+    struct with initialization
+
+    load address value
+
+    comma
+
+    func_name
+
+    plus plus
+
+    minus minus
+
+    equal plus
+
+    equals minus
+
+    equal mult
+
+    equal div
+
+    equal mod
+
+    equal lshift
+    
+    equal rshift
+
+    equal and
+
+    equal xor
+
+    equal or
+
+substring
+sublist?
+
 struct 
 
     generics struct
@@ -52,3 +87,22 @@ static local variable
 function pointer
 
 static function
+    normal block
+
+    switch
+
+    case
+
+    break
+
+    cotinue
+
+    label
+
+    goto
+
+    class name
+
+    is heap
+    conditional
+    complement

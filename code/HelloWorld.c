@@ -426,6 +426,43 @@ int main()
         printf("%d\n", jj);
     }
 
+    {
+        int a = 123;
+        printf("%d\n", a);
+    }
+    {
+        int a = 234;
+        printf("%d\n", a);
+    }
+
+    switch(2) {
+        case 1:
+            puts("AAA");
+            break;
+
+        case 2:
+            puts("BBB");
+            break;
+    }
+
+    int kk = 0;
+
+test_label:
+    printf("kk %d\n", kk);
+    kk++;
+    if(kk < 5) {
+        goto test_label;
+    }
+
+
+    xassert("conditional operator", 1 == 1 ? true: false);
+
+    int bd = 2;
+    int bf = 2;
+    xassert("conditional operator", ((bd == 2) ? bf : 0) == 2);
+
+    xassert("complement operator", (0x01 ^ 0xFF) == 0xFE);
+
 /*
     sGenericsData<int> data;
 */

@@ -518,4 +518,3 @@ void free_objects_on_return(struct sNodeBlockStruct* current_node_block, struct 
         }
     }
 }
-

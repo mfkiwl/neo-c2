@@ -44,6 +44,7 @@
 #define ARRAY_DIMENTION_MAX 5
 #define FUN_NUM_MAX 8096*2
 #define STRUCT_NUM_MAX 8096*2
+#define LABEL_MAX 512
 
 #define clint64 long long      // for 32 bit cpu
 
@@ -337,6 +338,8 @@ struct sParserInfoStruct
     BOOL parse_block;
 
     BOOL in_case;
+    BOOL in_struct;
+    BOOL in_conditional_operator;
 
     BOOL no_comma_operator;
 
@@ -457,7 +460,7 @@ struct sCompileInfoStruct
 typedef struct sCompileInfoStruct sCompileInfo;
 extern LLVMBuilderRef gBuilder;
 
-enum eNodeType { kNodeTypeIntValue, kNodeTypeUIntValue, kNodeTypeLongValue, kNodeTypeULongValue, kNodeTypeAdd, kNodeTypeSub, kNodeTypeStoreVariable, kNodeTypeLoadVariable, kNodeTypeDefineVariable, kNodeTypeCString, kNodeTypeFunction, kNodeTypeExternalFunction, kNodeTypeFunctionCall, kNodeTypeIf, kNodeTypeEquals, kNodeTypeNotEquals, kNodeTypeStruct, kNodeTypeObject, kNodeTypeStackObject, kNodeTypeStoreField, kNodeTypeLoadField, kNodeTypeWhile, kNodeTypeDoWhile, kNodeTypeGteq, kNodeTypeLeeq, kNodeTypeGt, kNodeTypeLe, kNodeTypeLogicalDenial, kNodeTypeTrue, kNodeTypeFalse, kNodeTypeAndAnd, kNodeTypeOrOr, kNodeTypeFor, kNodeTypeLambdaCall, kNodeTypeSimpleLambdaParam, kNodeTypeDerefference, kNodeTypeRefference, kNodeTypeNull, kNodeTypeClone, kNodeTypeLoadElement, kNodeTypeStoreElement, kNodeTypeChar, kNodeTypeMult, kNodeTypeDiv, kNodeTypeMod, kNodeTypeCast, kNodeTypeImpl, kNodeTypeGenericsFunction, kNodeTypeInlineFunction, kNodeTypeTypeDef, kNodeTypeUnion, kNodeTypeLeftShift, kNodeTypeRightShift, kNodeTypeAnd, kNodeTypeXor, kNodeTypeOr, kNodeTypeReturn, kNodeTypeSizeOf, kNodeTypeSizeOfExpression, kNodeTypeNodes, kNodeTypeLoadFunction, kNodeTypeArrayWithInitialization, kNodeTypeStructWithInitialization, kNodeTypeNormalBlock, kNodeTypeSwitch, kNodeTypeBreak, kNodeTypeContinue, kNodeTypeCase, kNodeTypeLabel, kNodeTypeGoto, kNodeTypeIsHeap, kNodeTypeIsHeapExpression, kNodeTypeVaArg, kNodeTypeDelete, kNodeTypeClassNameExpression, kNodeTypeClassName, kNodeTypeConditional, kNodeTypeAlignOf, kNodeTypeAlignOfExpression, kNodeTypeBorrow, kNodeTypeDummyHeap, kNodeTypeManaged, kNodeTypeComplement, kNodeTypeStoreAddress, kNodeTypeLoadAddressValue, kNodeTypePlusPlus, kNodeTypeMinusMinus, kNodeTypeEqualPlus, kNodeTypeEqualMinus, kNodeTypeEqualMult, kNodeTypeEqualDiv, kNodeTypeEqualMod, kNodeTypeEqualLShift, kNodeTypeEqualRShift, kNodeTypeEqualAnd, kNodeTypeEqualXor, kNodeTypeEqualOr, kNodeTypeComma, kNodeTypeFunName };
+enum eNodeType { kNodeTypeIntValue, kNodeTypeUIntValue, kNodeTypeLongValue, kNodeTypeULongValue, kNodeTypeAdd, kNodeTypeSub, kNodeTypeStoreVariable, kNodeTypeLoadVariable, kNodeTypeDefineVariable, kNodeTypeCString, kNodeTypeFunction, kNodeTypeExternalFunction, kNodeTypeFunctionCall, kNodeTypeIf, kNodeTypeEquals, kNodeTypeNotEquals, kNodeTypeStruct, kNodeTypeObject, kNodeTypeStackObject, kNodeTypeStoreField, kNodeTypeLoadField, kNodeTypeWhile, kNodeTypeDoWhile, kNodeTypeGteq, kNodeTypeLeeq, kNodeTypeGt, kNodeTypeLe, kNodeTypeLogicalDenial, kNodeTypeTrue, kNodeTypeFalse, kNodeTypeAndAnd, kNodeTypeOrOr, kNodeTypeFor, kNodeTypeLambdaCall, kNodeTypeSimpleLambdaParam, kNodeTypeDerefference, kNodeTypeRefference, kNodeTypeNull, kNodeTypeClone, kNodeTypeLoadElement, kNodeTypeStoreElement, kNodeTypeChar, kNodeTypeMult, kNodeTypeDiv, kNodeTypeMod, kNodeTypeCast, kNodeTypeImpl, kNodeTypeGenericsFunction, kNodeTypeInlineFunction, kNodeTypeTypeDef, kNodeTypeUnion, kNodeTypeLeftShift, kNodeTypeRightShift, kNodeTypeAnd, kNodeTypeXor, kNodeTypeOr, kNodeTypeReturn, kNodeTypeSizeOf, kNodeTypeSizeOfExpression, kNodeTypeNodes, kNodeTypeLoadFunction, kNodeTypeArrayWithInitialization, kNodeTypeStructWithInitialization, kNodeTypeNormalBlock, kNodeTypeSwitch, kNodeTypeBreak, kNodeTypeContinue, kNodeTypeCase, kNodeTypeLabel, kNodeTypeGoto, kNodeTypeIsHeap, kNodeTypeVaArg, kNodeTypeDelete, kNodeTypeConditional, kNodeTypeAlignOf, kNodeTypeAlignOfExpression, kNodeTypeBorrow, kNodeTypeDummyHeap, kNodeTypeManaged, kNodeTypeComplement, kNodeTypeStoreAddress, kNodeTypeLoadAddressValue, kNodeTypePlusPlus, kNodeTypeMinusMinus, kNodeTypeEqualPlus, kNodeTypeEqualMinus, kNodeTypeEqualMult, kNodeTypeEqualDiv, kNodeTypeEqualMod, kNodeTypeEqualLShift, kNodeTypeEqualRShift, kNodeTypeEqualAnd, kNodeTypeEqualXor, kNodeTypeEqualOr, kNodeTypeComma, kNodeTypeFunName };
 
 struct sNodeTreeStruct 
 {
