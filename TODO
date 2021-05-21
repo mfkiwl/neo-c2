@@ -3,9 +3,9 @@ operators
 
     struct with initialization
 
-new type_name --> type_name()
-
 finalize --> type_name_finalize()
+
+1.print --> int_print(1)
 
 substring
 
@@ -114,3 +114,5 @@ sublist?
 
 anonymous union
 anonymous struct
+
+new type_name --> type_name()

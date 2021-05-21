@@ -98,7 +98,7 @@ permission:
 # clean
 #########################################
 clean:
-	rm -fR come src/*.o code/*.i code/*.ll code/HelloWorld code/HelloWorld2
+	rm -fR come src/*.o code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 *.i *.ll a.out
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache 
@@ -112,6 +112,8 @@ test:
 	./code/HelloWorld
 	PWD=`pwd` ./come code/HelloWorld2.c && $(CC) -o code/HelloWorld2 code/HelloWorld2.c.ll
 	./code/HelloWorld2
+	PWD=`pwd` ./come code/HelloWorld3.c && $(CC) -o code/HelloWorld3 code/HelloWorld3.c.ll
+	./code/HelloWorld3
 
 debug-test: 
 	@echo "Compile to test code..."
@@ -119,6 +121,8 @@ debug-test:
 	./code/HelloWorld
 	PWD=`pwd` ./come -g code/HelloWorld2.c && $(CC) -o code/HelloWorld2 code/HelloWorld2.c.ll
 	./code/HelloWorld2
+	PWD=`pwd` ./come -g code/HelloWorld3.c && $(CC) -o code/HelloWorld3 code/HelloWorld3.c.ll
+	./code/HelloWorld3
 
 #########################################
 # uninstall

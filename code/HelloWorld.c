@@ -37,7 +37,7 @@ void xassert(const char* msg, bool exp)
 string string(char* str)
 {
     int len = strlen(str) + 1;
-    char%* msg = new char[len];
+    char%* msg = dummy_heap calloc(len, sizeof(char));
 
     strncpy(msg, str, len);
 
