@@ -3548,7 +3548,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         xstrncpy(param_names[0], fun->mParamNames[0], VAR_NAME_MAX);
     }
 
-    for(i=(method?1:0); i<num_params; i++) {
+    for(i=method?1:0; i<num_params; i++) {
         params[i] = gNodes[node].uValue.sFunctionCall.mParams[i];
         
         if(!compile(params[i], info)) {
