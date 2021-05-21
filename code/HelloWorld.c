@@ -181,10 +181,43 @@ int funB(int x, int y)
     return x + y;
 }
 
+/*
+void int_show(int self)
+{
+    printf("int_show %d\n", self);
+}
+
+struct sData2 {
+    int value1;
+    int value2;
+};
+
+sData2*% sData2(int value1, int value2)
+{
+    sData2*% self = sData2();
+
+    self.value1 = value1;
+    self.value2 = value2;
+
+    return self;
+}
+
+void sData2_finalize(sData2* self)
+{
+    printf("finalize %d %d\n", self.value1, self.value2);
+}
+
+void sData2_show(sData2* self)
+{
+    printf("show %d %d\n", self.value1, self.value2);
+}
+*/
+
 int main()
 {
     printf("HELLO WORLD\n");
 
+/*
     xassert("assert test", true);
     xassert("exp test", 1 < 2);
     xassert("exp2 test", 2 > 1);
@@ -496,6 +529,34 @@ test_label:
     ppp++;
 
     xassert("pointer sub test", ppp - array == 1);
+
+    int*% value = int();
+
+    *value = 123
+
+    printf("value %d\n", *value);
+
+    char*% value2 = string("ABC");
+
+    printf("%s\n", value2);
+
+    sData2*% data = sData2();
+
+    data.value1 = 111;
+    data.value2 = 222;
+
+    data.show();
+
+    3.show();
+
+    sData2*% data2 = sData2(123, 345);
+
+    data2.show();
+*/
+
+    return 0;
+}
+
 /*
     sGenericsData<int> data;
 */

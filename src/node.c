@@ -52,22 +52,46 @@ void remove_object_from_right_values(LLVMValueRef obj)
     }
 }
 
+struct sFunctionStruct {
+    char mName[VAR_NAME_MAX];
+    int mNumParams;
+    char mParamNames[PARAMS_MAX][VAR_NAME_MAX];
+    sNodeType* mParamTypes[PARAMS_MAX];
+    sNodeType* mResultType;
+    LLVMValueRef mLLVMFunction;
+    char* mBlockText;
+};
+
+typedef struct sFunctionStruct sFunction;
+
 LLVMTypeRef create_llvm_type_with_class_name(char* class_name);
+sFunction* get_function_from_table(char* name);
 
 void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
 {
     sCLClass* klass = node_type->mClass;
 
-    int i;
-    for(i=0; i<klass->mNumFields; i++) {
-        sNodeType* field_type = clone_node_type(klass->mFields[i]);
+    char* class_name = CLASS_NAME(klass);
 
-        if(field_type->mPointerNum > 0 && field_type->mHeap) {
-        }
+    char fun_name[VAR_NAME_MAX];
+    snprintf(fun_name, VAR_NAME_MAX, "%s_finalize", class_name);
+
+    sFunction* finalizer = get_function_from_table(fun_name);
+
+    if(finalizer != NULL) {
+        int num_params = 1;
+
+        LLVMValueRef llvm_params[PARAMS_MAX];
+        memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
+
+        llvm_params[0] = obj;
+
+        LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
+        LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
     }
 
     /// free ///
-    if(node_type->mHeap && node_type->mPointerNum) {
+    if(node_type->mHeap && node_type->mPointerNum > 0) {
         int num_params = 1;
 
         LLVMValueRef llvm_params[PARAMS_MAX];
@@ -578,18 +602,6 @@ static DISubroutineType* createDebugFunctionType(sFunction* function, DIFile* un
     return DBuilder->createSubroutineType(DBuilder->getOrCreateTypeArray(EltTys));
 }
 */
-
-struct sFunctionStruct {
-    char mName[VAR_NAME_MAX];
-    int mNumParams;
-    char mParamNames[PARAMS_MAX][VAR_NAME_MAX];
-    sNodeType* mParamTypes[PARAMS_MAX];
-    sNodeType* mResultType;
-    LLVMValueRef mLLVMFunction;
-    char* mBlockText;
-};
-
-typedef struct sFunctionStruct sFunction;
 
 LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
 {
@@ -3505,6 +3517,26 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     LLVMValueRef llvm_params[PARAMS_MAX];
     memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
 
+    if(method) {
+        params[0] = gNodes[node].uValue.sFunctionCall.mParams[0];
+
+        if(!compile(params[0], info)) {
+            return FALSE;
+        }
+
+        param_types[0] = clone_node_type(info->type);
+        LVALUE param = *get_value_from_stack(-1);
+
+        llvm_params[0] = param.value;
+
+        char* class_name = CLASS_NAME(param_types[0]->mClass);
+
+        char method_name[VAR_NAME_MAX];
+        snprintf(method_name, VAR_NAME_MAX, "%s_%s", class_name, fun_name);
+
+        xstrncpy(fun_name, method_name, VAR_NAME_MAX);
+    }
+
     sFunction* fun = get_function_from_table(fun_name);
 
     if(fun == NULL) {
@@ -3512,7 +3544,11 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    for(i=0; i<num_params; i++) {
+    if(method) {
+        xstrncpy(param_names[0], fun->mParamNames[0], VAR_NAME_MAX);
+    }
+
+    for(i=(method?1:0); i<num_params; i++) {
         params[i] = gNodes[node].uValue.sFunctionCall.mParams[i];
         
         if(!compile(params[i], info)) {
@@ -4537,7 +4573,7 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
 
     sFunction* constructor_fun = get_function_from_table(class_name);
 
-    if(constructor_fun && num_params >= 0) {
+    if(constructor_fun && num_params >= 0 && num_params == constructor_fun->mNumParams) {
         unsigned int node2 = sNodeTree_create_function_call(class_name, params, num_params, FALSE, FALSE, 0, info->pinfo);
 
         if(!compile(node2, info)) {
@@ -7999,7 +8035,7 @@ unsigned int sNodeTree_create_struct_with_initialization(char* name, int num_ini
 
 BOOL compile_struct_with_initialization(unsigned int node, sCompileInfo* info)
 {
-    compile_err_msg(info, "no support for struct initializer");
+    compile_err_msg(info, "no support for struct initializer(2)");
 
     return FALSE;
 }

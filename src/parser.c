@@ -2633,10 +2633,6 @@ static BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* nam
 
                 *node = 0;
             }
-            else if(result_type && result_type->mClass->mFlags & CLASS_FLAGS_STRUCT) {
-                parser_err_msg(info, "no support for struct initializer");
-                return FALSE;
-            }
             else {
                 *node = sNodeTree_create_store_variable(name, right_node, TRUE, info);
             }
