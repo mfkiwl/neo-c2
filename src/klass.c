@@ -127,7 +127,7 @@ static BOOL search_for_class_file(char* class_name_, char* class_file_name, size
         }
 
         /// system shared directory ///
-        snprintf(class_file_name, class_file_name_size, "%s/share/neo-c/%s%s", PREFIX, class_name_, extname);
+        snprintf(class_file_name, class_file_name_size, "%s/share/comelang/%s%s", PREFIX, class_name_, extname);
 
         if(access(class_file_name, F_OK) == 0) {
             return TRUE;
@@ -146,7 +146,7 @@ static BOOL search_for_class_file(char* class_name_, char* class_file_name, size
         }
 
         /// system shared directory ///
-        snprintf(class_file_name, class_file_name_size, "%s/share/neo-c/%s@%d%s", PREFIX, class_name_, version, extname);
+        snprintf(class_file_name, class_file_name_size, "%s/share/comelang/%s@%d%s", PREFIX, class_name_, version, extname);
 
         if(access(class_file_name, F_OK) == 0) {
             return TRUE;

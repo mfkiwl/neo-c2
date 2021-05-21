@@ -1,61 +1,15 @@
 
 operators
 
-    pointer sub and add
-
     struct with initialization
 
-    load address value
+new type_name --> type_name()
 
-    comma
-
-    func_name
-
-    plus plus
-
-    minus minus
-
-    equal plus
-
-    equals minus
-
-    equal mult
-
-    equal div
-
-    equal mod
-
-    equal lshift
-    
-    equal rshift
-
-    equal and
-
-    equal xor
-
-    equal or
+finalize --> type_name_finalize()
 
 substring
-sublist?
 
-struct 
-
-    generics struct
-
-foreach
-
-    select
-    map
-    each
-    --> foreach 
-
-generics
-
-    code generated generics or none code generated generics
-
-    vector, list, map, tuple, string, wstring
-
-    no lambda and method block
+void* list library inline
 
 ---- implemented ----
 debug info
@@ -106,3 +60,57 @@ static function
     is heap
     conditional
     complement
+
+    load address value
+
+    func_name
+
+    comma
+    plus plus
+
+    minus minus
+
+    equal plus
+
+    equals minus
+
+    equal mult
+
+    equal div
+
+    equal mod
+
+    equal lshift
+    
+    equal rshift
+
+    equal and
+
+    equal xor
+
+    equal or
+
+    pointer sub and add
+
+struct 
+
+    generics struct
+
+foreach
+
+    select
+    map
+    each
+    --> foreach 
+
+generics
+
+    code generated generics or none code generated generics
+
+    vector, list, map, tuple, string, wstring
+
+    no lambda and method block
+sublist?
+
+anonymous union
+anonymous struct

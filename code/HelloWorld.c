@@ -463,6 +463,39 @@ test_label:
 
     xassert("complement operator", (0x01 ^ 0xFF) == 0xFE);
 
+    xassert("func name", strcmp(__func__, "main") == 0);
+
+    int bg = 3;
+
+    xassert("++", bg++ == 3);
+    xassert("++", bg == 4);
+
+    int bh = 4;
+
+    xassert("--", bh-- == 4);
+    xassert("--", bh == 3);
+
+    xassert("--", --bh == 2);
+
+    int bi = 5;
+
+    bi += 4;
+
+    xassert("+=", bi == 9);
+
+    int bj = 4;
+    bj *= 4;
+
+    xassert("*=", bj == 16);
+    xassert("++", ++bj == 17);
+    xassert("++", bj == 17);
+
+    int array[128];
+    int* ppp = array;
+
+    ppp++;
+
+    xassert("pointer sub test", ppp - array == 1);
 /*
     sGenericsData<int> data;
 */
