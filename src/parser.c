@@ -164,6 +164,12 @@ void expect_next_character_with_one_forward(char* characters, sParserInfo* info)
     else {
         char buf[1024];
         snprintf(buf, 1024, "expected that next character is (%s), but it is %c(%d)", characters, *info->p, *info->p);
+
+/*
+        int a = 0;
+        int b = 1;
+        int c = b/a;
+*/
         parser_err_msg(info, buf);
         info->err_num++;
         info->p++;
@@ -824,6 +830,14 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
     }
 
     if(*info->p == '*') {
+        if(terminated) {
+            *terminated = FALSE;
+            info->in_struct = FALSE;
+            return TRUE;
+        }
+    }
+
+    if(isalpha(*info->p) || *info->p == '_') {
         if(terminated) {
             *terminated = FALSE;
             info->in_struct = FALSE;
@@ -2882,6 +2896,9 @@ static BOOL parse_params(sParserParam* params, int* num_params, sParserInfo* inf
         else {
             char msg[1024];
             snprintf(msg, 1024, "Unexpected character(%c). It is required to ',' or ')' or '|' character", *info->p);
+        int a = 0;
+        int b = 1;
+        int c = b/a;
             parser_err_msg(info, msg);
             if(*info->p == '\n') {
                 info->sline++;
