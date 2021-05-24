@@ -280,23 +280,6 @@ static BOOL skip_paren(char head_char, char tail_char, sParserInfo* info)
     return TRUE;
 }
 
-static void parse_version(int* version, sParserInfo* info)
-{
-    if(parse_cmp(info->p, "version") == 0) {
-        info->p += 7;
-        skip_spaces_and_lf(info);
-
-        *version = 0;
-        while(isdigit(*info->p)) {
-            *version = *version * 10 + (*info->p - '0');
-            info->p++;
-            skip_spaces_and_lf(info);
-        }
-
-        skip_spaces_and_lf(info);
-    }
-}
-
 BOOL get_number(BOOL minus, unsigned int* node, sParserInfo* info)
 {
     const int buf_size = 128;
@@ -843,6 +826,48 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
             info->in_struct = FALSE;
             return TRUE;
         }
+    }
+
+    info->mNumGenerics = 0;
+
+    if(*info->p == '<') {
+        info->p++;
+        skip_spaces_and_lf(info);
+
+        int num_generics = 0;
+
+        while(TRUE) {
+            char buf[VAR_NAME_MAX];
+            if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE)) {
+                return FALSE;
+            }
+
+            info->mGenericsTypeNames[num_generics] = strdup(buf);
+            num_generics++;
+
+            if(num_generics >= GENERICS_TYPES_MAX)
+            {
+                parser_err_msg(info, "overflow generics types");
+                return FALSE;
+            }
+
+            if(*info->p == ',') {
+                info->p++;
+                skip_spaces_and_lf(info);
+            }
+            else if(*info->p == '>') {
+                info->p++;
+                skip_spaces_and_lf(info);
+                break;
+            }
+            else {
+                parser_err_msg(info, "require , or > character");
+                info->err_num++;
+                break;
+            }
+        }
+
+        info->mNumGenerics = num_generics;
     }
 
     expect_next_character_with_one_forward("{", info);
@@ -1829,6 +1854,15 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
         }
 
         int i;
+        for(i=0; i<info->mNumGenerics; i++) {
+            if(strcmp(type_name, info->mGenericsTypeNames[i]) == 0)
+            {
+                char buf[VAR_NAME_MAX+1];
+                snprintf(buf, VAR_NAME_MAX, "generics%d", i);
+
+                *result_type = create_node_type_with_class_name(buf);
+            }
+        }
 
         if(*result_type == NULL) {
             *result_type = get_typedef(type_name);
@@ -2187,6 +2221,47 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
             info->p = p;
             info->sline = sline;
         }
+    }
+
+    /// generics ///
+    if(*info->p == '<' && *(info->p+1) != '<' && *(info->p+1) != '=') 
+    {
+        info->p++;
+        skip_spaces_and_lf(info);
+
+        int generics_num = 0;
+
+        while(1) {
+            if(!parse_type(&(*result_type)->mGenericsTypes[generics_num], info, NULL, FALSE, FALSE)) {
+                return FALSE;
+            }
+
+            generics_num++;
+
+            if(generics_num >= GENERICS_TYPES_MAX) {
+                parser_err_msg(info, "overflow generics parametor number");
+                return FALSE;
+            }
+
+            if(*info->p == ',') {
+                info->p++;
+                skip_spaces_and_lf(info);
+            }
+            else if(*info->p == '>') {
+                info->p++;
+                skip_spaces_and_lf(info);
+                break;
+            }
+            else {
+                char msg[1024];
+                snprintf(msg, 1024, "invalid character(%c) in generics types", *info->p);
+                parser_err_msg(info, msg);
+                info->err_num++;
+                break;
+            }
+        }
+
+        (*result_type)->mNumGenericsTypes = generics_num;
     }
 
     /// pointer ///
@@ -2808,24 +2883,6 @@ static BOOL get_block_text(sBuf* buf, sParserInfo* info, BOOL append_head_currly
     return TRUE;
 }
 
-static BOOL parse_simple_lambda_params(unsigned int* node, int sline, sParserInfo* info)
-{
-    char sname[PATH_MAX];
-    xstrncpy(sname, info->sname, PATH_MAX);
-
-    sBuf buf;
-    sBuf_init(&buf);
-
-    if(!get_block_text(&buf, info, TRUE, FALSE)) {
-        free(buf.mBuf);
-        return FALSE;
-    };
-
-    *node = sNodeTree_create_simple_lambda_param(MANAGED buf.mBuf, sname, sline, info);
-
-    return TRUE;
-}
-
 
 /// character_type --> 0: () 1: ||
 static BOOL parse_params(sParserParam* params, int* num_params, sParserInfo* info, int character_type, BOOL* var_arg)
@@ -2951,10 +3008,6 @@ static BOOL parse_generics_function(unsigned int* node, sNodeType* result_type, 
         return FALSE;
     }
 
-    int version = info->mImplVersion;
-    parse_version(&version, info);
-    info->mFunVersion = version;
-
     skip_spaces_and_lf(info);
 
     char sname[PATH_MAX];
@@ -2976,7 +3029,7 @@ static BOOL parse_generics_function(unsigned int* node, sNodeType* result_type, 
         return FALSE;
     };
 
-    *node = sNodeTree_create_generics_function(fun_name, params, num_params, result_type, MANAGED buf.mBuf, struct_name, sname, sline, var_arg, version, info);
+    *node = sNodeTree_create_generics_function(fun_name, params, num_params, result_type, MANAGED buf.mBuf, struct_name, sname, sline, var_arg, 0, info);
 
     //info->mNumMethodGenerics = 0;
 
@@ -3013,11 +3066,6 @@ BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, 
 
     xstrncpy(info->fun_name, fun_name, VAR_NAME_MAX);
 
-    int version = info->mImplVersion;
-    parse_version(&version, info);
-
-    info->mFunVersion = version;
-    
     /// remove function pointer params if the result is function pointer ///
     if(*info->p == ')') {
         info->p++;
@@ -3049,7 +3097,7 @@ BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, 
         info->p++;
         skip_spaces_and_lf(info);
 
-        *node = sNodeTree_create_external_function(fun_name, asm_fname, params, num_params, var_arg, result_type, struct_name, operator_fun, version, info);
+        *node = sNodeTree_create_external_function(fun_name, asm_fname, params, num_params, var_arg, result_type, struct_name, operator_fun, 0, info);
     }
     else {
         int i;
@@ -3093,364 +3141,7 @@ BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, 
         BOOL simple_lambda_param = FALSE;
         BOOL construct_fun = FALSE;
 
-        *node = sNodeTree_create_function(fun_name, asm_fname, params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, struct_name, operator_fun, construct_fun, simple_lambda_param, info, FALSE, var_arg, version, FALSE, -1, fun_name);
-    }
-
-    info->mNumMethodGenerics = 0;
-
-    return TRUE;
-}
-
-static BOOL parse_constructor(unsigned int* node, char* struct_name, sParserInfo* info, BOOL inline_) 
-{
-    char* function_head = info->p;
-
-    /// method generics ///
-    info->mNumMethodGenerics = 0;
-
-    BOOL operator_fun = FALSE;
-
-    char* fun_name = "initialize";
-    xstrncpy(info->fun_name, fun_name, VAR_NAME_MAX);
-
-
-    expect_next_character_with_one_forward("(", info);
-
-    /// result_type ///
-    sNodeType* result_type = create_node_type_with_class_name(struct_name);
-
-    if(result_type == NULL) {
-        char msg[1024];
-        snprintf(msg, 1024, "%s is undefined", struct_name);
-        parser_err_msg(info, msg);
-        info->err_num++;
-        return TRUE;
-    }
-
-    result_type->mPointerNum++;
-    result_type->mHeap = TRUE;
-
-    if(inline_) {
-        result_type->mStatic = TRUE;
-    }
-
-    int i;
-    for(i=0; i<info->mNumGenerics; i++) {
-        char class_name_[VAR_NAME_MAX+1];
-
-        snprintf(class_name_, VAR_NAME_MAX, "generics%d", i);
-        result_type->mGenericsTypes[i] = create_node_type_with_class_name(class_name_);
-    }
-    result_type->mNumGenericsTypes = info->mNumGenerics;
-
-    /// params ///
-    sParserParam params[PARAMS_MAX];
-    memset(params, 0, sizeof(sParserParam)*PARAMS_MAX);
-
-    /// parse_params ///
-    int num_params = 0;
-    BOOL var_arg = FALSE;
-
-    params[0].mType = clone_node_type(result_type);
-    xstrncpy(params[0].mName, "self", VAR_NAME_MAX);
-
-    num_params++;
-
-    if(!parse_params(params, &num_params, info, 0, &var_arg))
-    {
-        return FALSE;
-    }
-
-    for(i=0; i<num_params; i++) {
-        char* name = params[i].mName;
-
-        if(name[0] == '\0') {
-            parser_err_msg(info, "Require parametor variable names");
-            info->err_num++;
-        }
-    }
-
-    char asm_fname[VAR_NAME_MAX];
-    if(!parse_attribute(info, asm_fname)) {
-        return FALSE;
-    }
-
-    int version = info->mImplVersion;
-    parse_version(&version, info);
-    info->mFunVersion = version;
-
-    if(info->mNumGenerics > 0) {
-        char sname[PATH_MAX];
-        xstrncpy(sname, info->sname, PATH_MAX);
-
-        skip_spaces_and_lf(info);
-
-        int sline = info->sline;
-
-        if(*info->p == '{') {
-            info->p++;
-        }
-
-        sBuf buf;
-        sBuf_init(&buf);
-
-        if(!get_block_text(&buf, info, TRUE, TRUE)) {
-            free(buf.mBuf);
-            return FALSE;
-        };
-
-        *node = sNodeTree_create_generics_function(fun_name, params, num_params, result_type, MANAGED buf.mBuf, struct_name, sname, sline, var_arg, version, info);
-    }
-    else {
-        if(*info->p == ';') {
-            info->p++;
-            skip_spaces_and_lf(info);
-
-            *node = sNodeTree_create_external_function(fun_name, "", params, num_params, var_arg, result_type, struct_name, operator_fun, version, info);
-        }
-        else {
-            sNodeBlock* node_block = ALLOC sNodeBlock_alloc();
-            expect_next_character_with_one_forward("{", info);
-            sVarTable* old_table = info->lv_table;
-
-            info->lv_table = init_block_vtable(old_table, FALSE);
-
-            sVarTable* block_var_table = info->lv_table;
-
-            int i;
-            for(i=0; i<num_params; i++) {
-                sParserParam* param = params + i;
-
-                BOOL readonly = FALSE;
-                if(!add_variable_to_table(info->lv_table, param->mName, param->mType, readonly, NULL, -1, FALSE, param->mType->mConstant))
-                {
-                    return FALSE;
-                }
-            }
-
-            if(!parse_block(node_block, FALSE, FALSE, info)) {
-                sNodeBlock_free(node_block);
-                return FALSE;
-            }
-
-            int sline = info->sline;
-            char sname[PATH_MAX];
-            xstrncpy(sname, info->sname, PATH_MAX);
-
-            unsigned int result_node = sNodeTree_create_load_variable("self", info);
-
-            if(result_node == 0) {
-                parser_err_msg(info, "require an expression");
-                info->err_num++;
-            }
-
-            gNodes[result_node].mLine = sline;
-            xstrncpy(gNodes[result_node].mSName, sname, PATH_MAX);
-
-            append_node_to_node_block(node_block, result_node);
-
-            node_block->mHasResult = TRUE;
-
-            expect_next_character_with_one_forward("}", info);
-            info->lv_table = old_table;
-
-            BOOL lambda_ = FALSE;
-
-            BOOL simple_lambda_param = FALSE;
-            BOOL construct_fun = TRUE;
-
-            BOOL generics_function = info->mNumGenerics > 0;
-
-            *node = sNodeTree_create_function(fun_name, "", params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, struct_name, operator_fun, construct_fun, simple_lambda_param, info, generics_function, FALSE, version, FALSE, -1, fun_name);
-        }
-    }
-
-    info->mNumMethodGenerics = 0;
-
-    return TRUE;
-}
-
-BOOL parse_destructor(unsigned int* node, char* struct_name, sParserInfo* info, BOOL recursive, BOOL inline_) 
-{
-    char* function_head = info->p;
-
-    /// method generics ///
-    info->mNumMethodGenerics = 0;
-
-    BOOL operator_fun = FALSE;
-
-    char fun_name[BUFSIZ];
-    if(recursive) {
-        snprintf(fun_name, BUFSIZ, "finalize_%s", info->sname);
-    }
-    else {
-        snprintf(fun_name, BUFSIZ, "finalize");
-    }
-    xstrncpy(info->fun_name, fun_name, VAR_NAME_MAX);
-
-    expect_next_character_with_one_forward("(", info);
-
-    /// result_type ///
-    sNodeType* result_type = create_node_type_with_class_name("void");
-
-    if(inline_) {
-        result_type->mStatic = TRUE;
-    }
-
-    /// params ///
-    sParserParam params[PARAMS_MAX];
-    memset(params, 0, sizeof(sParserParam)*PARAMS_MAX);
-
-    /// parse_params ///
-    int num_params = 0;
-    BOOL var_arg = FALSE;
-
-    sNodeType* self_type = create_node_type_with_class_name(struct_name);
-
-    if(self_type == NULL) {
-        char msg[1024];
-        snprintf(msg, 1024, "%s is undefined", struct_name);
-        parser_err_msg(info, msg);
-        info->err_num++;
-        return TRUE;
-    }
-
-    self_type->mPointerNum++;
-    self_type->mNullable = TRUE;
-
-    int i;
-    for(i=0; i<info->mNumGenerics; i++) {
-        char class_name_[VAR_NAME_MAX+1];
-
-        snprintf(class_name_, VAR_NAME_MAX, "generics%d", i);
-        self_type->mGenericsTypes[i] = create_node_type_with_class_name(class_name_);
-    }
-    self_type->mNumGenericsTypes = info->mNumGenerics;
-
-    params[0].mType = clone_node_type(self_type);
-    xstrncpy(params[0].mName, "self", VAR_NAME_MAX);
-
-    num_params++;
-
-    if(!parse_params(params, &num_params, info, 0, &var_arg))
-    {
-        return FALSE;
-    }
-
-    for(i=0; i<num_params; i++) {
-        char* name = params[i].mName;
-
-        if(name[0] == '\0') {
-            parser_err_msg(info, "Require parametor variable names");
-            info->err_num++;
-        }
-    }
-
-    char asm_fname[VAR_NAME_MAX];
-    if(!parse_attribute(info, asm_fname)) {
-        return FALSE;
-    }
-
-    int version = info->mImplVersion;
-    parse_version(&version, info);
-    info->mFunVersion = version;
-
-    if(info->mNumGenerics > 0) {
-        char sname[PATH_MAX];
-        xstrncpy(sname, info->sname, PATH_MAX);
-
-        skip_spaces_and_lf(info);
-
-        int sline = info->sline;
-
-        if(*info->p == '{') {
-            info->p++;
-        }
-
-        sBuf buf;
-        sBuf_init(&buf);
-
-        sBuf_append_str(&buf, "{");
-
-        sBuf_append_str(&buf, "\nif(self == null) { return; }\n");
-
-        if(!get_block_text(&buf, info, FALSE, FALSE)) {
-            free(buf.mBuf);
-            return FALSE;
-        };
-
-        *node = sNodeTree_create_generics_function(fun_name, params, num_params, result_type, MANAGED buf.mBuf, struct_name, sname, sline, var_arg, version, info);
-
-        //info->mNumMethodGenerics = 0;
-    }
-    else {
-        if(*info->p == ';') {
-            info->p++;
-            skip_spaces_and_lf(info);
-
-            *node = sNodeTree_create_external_function(fun_name, "", params, num_params, var_arg, result_type, struct_name, operator_fun, version, info);
-        }
-        else {
-            sNodeBlock* node_block = ALLOC sNodeBlock_alloc();
-            expect_next_character_with_one_forward("{", info);
-            sVarTable* old_table = info->lv_table;
-
-            info->lv_table = init_block_vtable(old_table, FALSE);
-
-            sVarTable* block_var_table = info->lv_table;
-
-            int i;
-            for(i=0; i<num_params; i++) {
-                sParserParam* param = params + i;
-
-                BOOL readonly = FALSE;
-                if(!add_variable_to_table(info->lv_table, param->mName, param->mType, readonly, NULL, -1, FALSE, param->mType->mConstant))
-                {
-                    return FALSE;
-                }
-            }
-
-            unsigned int node2 = 0;
-
-            skip_spaces_and_lf(info);
-
-            int sline = info->sline;
-            char* sname = info->sname;
-
-            char* p_before = info->p;
-
-            info->p = "if(self == null) { return; }";
-
-            if(!expression(&node2, info)) {
-                return FALSE;
-            }
-
-            gNodes[node2].mLine = sline;
-            xstrncpy(gNodes[node2].mSName, sname, PATH_MAX);
-
-            if(info->err_num == 0) {
-                append_node_to_node_block(node_block, node2);
-            }
-
-            info->p = p_before;
-
-            if(!parse_block(node_block, FALSE, FALSE, info)) {
-                sNodeBlock_free(node_block);
-                return FALSE;
-            }
-
-            expect_next_character_with_one_forward("}", info);
-            info->lv_table = old_table;
-
-            BOOL lambda_ = FALSE;
-
-            BOOL simple_lambda_param = FALSE;
-            BOOL construct_fun = TRUE;
-
-            BOOL generics_function = info->mNumGenerics > 0;
-
-            *node = sNodeTree_create_function(fun_name, "", params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, struct_name, operator_fun, construct_fun, simple_lambda_param, info, generics_function, FALSE, version, TRUE, -1, fun_name);
-        }
+        *node = sNodeTree_create_function(fun_name, asm_fname, params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, struct_name, operator_fun, construct_fun, simple_lambda_param, info, FALSE, var_arg, 0, FALSE, -1, fun_name);
     }
 
     info->mNumMethodGenerics = 0;
@@ -3667,32 +3358,6 @@ static BOOL parse_funcation_call_params(int* num_params, unsigned int* params, s
     }
 
     skip_spaces_and_lf(info);
-
-    /// simple lambda params ///
-    if(*info->p == '{') {
-        info->p++;
-        int sline = info->sline;
-
-        unsigned int node = 0;
-        if(!parse_simple_lambda_params(&node, sline, info))
-        {
-            return FALSE;
-        }
-
-        if(node == 0) {
-            parser_err_msg(info, "require expression");
-            info->err_num++;
-            return TRUE;
-        }
-
-        params[*num_params] = node;
-        (*num_params)++;
-
-        if(*num_params >= PARAMS_MAX) {
-            parser_err_msg(info, "overflow parametor number for function call");
-            return FALSE;
-        }
-    }
 
     return TRUE;
 }
@@ -4752,90 +4417,6 @@ BOOL parse_typedef(unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
-
-static BOOL parse_impl(unsigned int* node, sParserInfo* info)
-{
-    char struct_name[VAR_NAME_MAX];
-
-    char buf[VAR_NAME_MAX];
-    if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE)) {
-        return FALSE;
-    }
-
-    xstrncpy(struct_name, buf, VAR_NAME_MAX);
-
-    while(*info->p == '*') {
-        info->p++;
-        xstrncat(struct_name, "*", VAR_NAME_MAX);
-    }
-
-    xstrncpy(info->impl_struct_name, struct_name, VAR_NAME_MAX);
-
-    info->mNumGenerics = 0;
-
-    if(*info->p == '<') {
-        info->p++;
-        skip_spaces_and_lf(info);
-
-        int num_generics = 0;
-
-        while(TRUE) {
-            char buf[VAR_NAME_MAX];
-            if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE)) {
-                return FALSE;
-            }
-
-            info->mGenericsTypeNames[num_generics] = strdup(buf);
-            num_generics++;
-
-            if(num_generics >= GENERICS_TYPES_MAX)
-            {
-                parser_err_msg(info, "overflow generics types");
-                return FALSE;
-            }
-
-            if(*info->p == ',') {
-                info->p++;
-                skip_spaces_and_lf(info);
-            }
-            else if(*info->p == '>') {
-                info->p++;
-                skip_spaces_and_lf(info);
-                break;
-            }
-            else {
-                parser_err_msg(info, "require , or > character");
-                info->err_num++;
-                break;
-            }
-        }
-
-        info->mNumGenerics = num_generics;
-    }
-
-    int version = 0;
-    parse_version(&version, info);
-    skip_spaces_and_lf(info);
-
-    info->mImplVersion = version;
-
-    expect_next_character_with_one_forward("{", info);
-
-    if(!expression(node, info)) {
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-
-static void parse_impl_end(sParserInfo* info)
-{
-    strcpy(info->impl_struct_name, "");
-    info->mImplVersion = 0;
-    info->mNumGenerics = 0;
-}
-
 static BOOL parse_switch(unsigned int* node, sParserInfo* info)
 {
     expect_next_character_with_one_forward("(", info);
@@ -5003,35 +4584,6 @@ static BOOL parse_goto(unsigned int* node, sParserInfo* info)
     };
 
     *node = sNodeTree_goto_expression(buf, info);
-
-    return TRUE;
-}
-static BOOL parse_va_arg(unsigned int* node, sParserInfo* info)
-{
-    expect_next_character_with_one_forward("(", info);
-
-    /// expression1 ///
-    if(!expression(node, info)) {
-        return FALSE;
-    }
-
-    if(*node == 0) {
-        parser_err_msg(info, "require expression for va_arg");
-        info->err_num++;
-        return TRUE;
-    }
-
-    expect_next_character_with_one_forward(",", info);
-
-    sNodeType* node_type = NULL;
-    if(!parse_type(&node_type, info, NULL, FALSE, FALSE))
-    {
-        return FALSE;
-    }
-
-    expect_next_character_with_one_forward(")", info);
-
-    *node = sNodeTree_create_va_arg(*node, node_type, info);
 
     return TRUE;
 }
@@ -5253,6 +4805,80 @@ static BOOL parse_inherit(unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
+static BOOL parse_impl(unsigned int* node, sParserInfo* info)
+{
+    char struct_name[VAR_NAME_MAX];
+
+    char buf[VAR_NAME_MAX];
+    if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE)) {
+        return FALSE;
+    }
+
+    xstrncpy(struct_name, buf, VAR_NAME_MAX);
+
+    while(*info->p == '*') {
+        info->p++;
+        xstrncat(struct_name, "*", VAR_NAME_MAX);
+    }
+
+    xstrncpy(info->impl_struct_name, struct_name, VAR_NAME_MAX);
+
+    info->mNumGenerics = 0;
+
+    if(*info->p == '<') {
+        info->p++;
+        skip_spaces_and_lf(info);
+
+        int num_generics = 0;
+
+        while(TRUE) {
+            char buf[VAR_NAME_MAX];
+            if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE)) {
+                return FALSE;
+            }
+
+            info->mGenericsTypeNames[num_generics] = strdup(buf);
+            num_generics++;
+
+            if(num_generics >= GENERICS_TYPES_MAX)
+            {
+                parser_err_msg(info, "overflow generics types");
+                return FALSE;
+            }
+
+            if(*info->p == ',') {
+                info->p++;
+                skip_spaces_and_lf(info);
+            }
+            else if(*info->p == '>') {
+                info->p++;
+                skip_spaces_and_lf(info);
+                break;
+            }
+            else {
+                parser_err_msg(info, "require , or > character");
+                info->err_num++;
+                break;
+            }
+        }
+
+        info->mNumGenerics = num_generics;
+    }
+
+    expect_next_character_with_one_forward("{", info);
+
+    if(!expression(node, info)) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static void parse_impl_end(sParserInfo* info)
+{
+    strcpy(info->impl_struct_name, "");
+    info->mNumGenerics = 0;
+}
 
 static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* info)
 {
@@ -5905,12 +5531,6 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                 return FALSE;
             }
         }
-        else if(strcmp(buf, "__builtin_va_arg") == 0) {
-            if(!parse_va_arg(node, info))
-            {
-                return FALSE;
-            }
-        }
         else if(strcmp(buf, "struct") == 0 && *info->p != '{' && define_struct) {
             char struct_name[VAR_NAME_MAX];
 
@@ -6071,24 +5691,6 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         else if(strcmp(buf, "continue") == 0) {
             *node = sNodeTree_create_continue_expression(info);
         }
-        else if(strcmp(info->impl_struct_name, "") != 0 && strcmp(buf, "initialize") == 0) 
-        
-        {
-            char* struct_name = info->impl_struct_name;
-            BOOL inline_ = FALSE;
-            if(!parse_constructor(node, struct_name, info, inline_)) {
-                return FALSE;
-            }
-        }
-        else if(strcmp(info->impl_struct_name, "") != 0 && strcmp(buf, "finalize") == 0) 
-        
-        {
-            char* struct_name = info->impl_struct_name;
-            BOOL inline_ = FALSE;
-            if(!parse_destructor(node, struct_name, info, FALSE, inline_)) {
-                return FALSE;
-            }
-        }
         else if(strcmp(buf, "extern") == 0) {
             sNodeType* result_type = NULL;
             char name[VAR_NAME_MAX+1];
@@ -6119,20 +5721,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                     if(*info->p == '(') {
                         char* struct_name = NULL;
-                        if(strcmp(info->impl_struct_name, "") != 0)
-                        {
-                            struct_name = info->impl_struct_name;
-                        }
-
-                        if(info->mNumGenerics > 0) {
-                            if(!parse_generics_function(node, result_type2, name, struct_name, info)) {
-                                return FALSE;
-                            }
-                        }
-                        else {
-                            if(!parse_function(node, result_type2, name, struct_name, info)) {
-                                return FALSE;
-                            }
+                        if(!parse_function(node, result_type2, name, struct_name, info)) {
+                            return FALSE;
                         }
                     }
                     else {
@@ -6165,17 +5755,9 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         }
         else if(static_inline || strcmp(buf, "inline") == 0 || strcmp(buf, "__inline") == 0 || strcmp(buf, "__inline__") == 0|| strcmp(buf, "__DARWIN_OS_INLINE") == 0) 
         {
-            if(strcmp(info->impl_struct_name, "") == 0)
+            if(!parse_inline_function(node, NULL, info)) 
             {
-                if(!parse_inline_function(node, NULL, info)) 
-                {
-                    return FALSE;
-                }
-            }
-            else {
-                if(!parse_inline_function(node, info->impl_struct_name, info)) {
-                    return FALSE;
-                }
+                return FALSE;
             }
         }
         else if(strcmp(buf, "goto") == 0) {
@@ -6542,7 +6124,6 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                             {
                                 struct_name = info->impl_struct_name;
                             }
-
 
                             if(info->mNumGenerics > 0) {
                                 if(!parse_generics_function(node, result_type2, name, struct_name, info)) {

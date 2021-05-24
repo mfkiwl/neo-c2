@@ -211,6 +211,24 @@ void sData2_show(sData2* self)
     printf("show %d %d\n", self.value1, self.value2);
 }
 
+struct GenericsType<T, T2> 
+{
+    T item;
+    T2 item2;
+};
+
+void fun(GenericsType<int, bool>* data)
+{
+}
+
+impl GenericsType<T,T2>
+{
+    void fun(GenericsType<T,T2>* self)
+    {
+        printf("%d %s\n", self.item, self.item2);
+    }
+}
+
 int main()
 {
     printf("HELLO WORLD\n");
@@ -549,6 +567,15 @@ test_label:
     sData2*% data2 = sData2(123, 345);
 
     data2.show();
+
+    GenericsType<int, char*>%* data4 = GenericsType<int, char*>();
+
+    data4.item = 123;
+    data4.item2 = "aaa";
+
+    xassert("generics type", data4.item == 123 && strcmp(data4.item2, "aaa") == 0);
+
+    data4.fun();
 
     return 0;
 }
