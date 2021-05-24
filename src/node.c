@@ -3775,156 +3775,161 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
     /// call generics function ///
     if(fun->mGenericsFunction) {
-        LLVMBasicBlockRef current_block = LLVMGetLastBasicBlock(gFunction);
+        char real_fun_name[REAL_FUN_NAME_MAX];
+        create_generics_fun_name(real_fun_name, REAL_FUN_NAME_MAX, fun_name,  generics_type);
+        
+        LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, real_fun_name);
 
-        char* buf = fun->mBlockText;
-        BOOL var_args = fun->mVarArgs;
+        if(llvm_fun == NULL) {
+            LLVMBasicBlockRef current_block = LLVMGetLastBasicBlock(gFunction);
 
-        /// params ///
-        sParserParam params[PARAMS_MAX];
-        memset(params, 0, sizeof(sParserParam)*PARAMS_MAX);
+            char* buf = fun->mBlockText;
+            BOOL var_args = fun->mVarArgs;
 
-        int num_params = fun->mNumParams;
-        int i;
-        for(i=0; i<num_params; i++) {
-            sParserParam* param = params + i;
+            /// params ///
+            sParserParam params[PARAMS_MAX];
+            memset(params, 0, sizeof(sParserParam)*PARAMS_MAX);
 
-            xstrncpy(param->mName, fun->mParamNames[i], VAR_NAME_MAX);
+            int num_params = fun->mNumParams;
+            int i;
+            for(i=0; i<num_params; i++) {
+                sParserParam* param = params + i;
 
-            param->mType = clone_node_type(fun->mParamTypes[i]);
+                xstrncpy(param->mName, fun->mParamNames[i], VAR_NAME_MAX);
 
-            if(is_typeof_type(param->mType))
+                param->mType = clone_node_type(fun->mParamTypes[i]);
+
+                if(is_typeof_type(param->mType))
+                {
+                    if(!solve_typeof(&param->mType, info)) 
+                    {
+                        compile_err_msg(info, "Can't solve typeof types");
+                        show_node_type(param->mType);
+                        info->err_num++;
+
+                        return TRUE;
+                    }
+                }
+
+                if(!solve_generics(&param->mType, generics_type)) 
+                {
+                    compile_err_msg(info, "Can't solve generics types(3)");
+                    show_node_type(param->mType);
+                    show_node_type(generics_type);
+                    info->err_num++;
+
+                    return FALSE;
+                }
+            }
+
+            sParserInfo info2;
+
+            memset(&info2, 0, sizeof(sParserInfo));
+
+            sBuf_init(&info2.mConst);
+
+            info2.p = buf;
+            xstrncpy(info2.sname, info->sname, PATH_MAX);
+            info2.source = buf;
+            info2.module_name = info->pinfo->module_name;
+            info2.lv_table = info->pinfo->lv_table;
+
+            info2.mGenericsType = clone_node_type(generics_type);
+
+            info2.mNumGenerics = num_generics;
+            for(i=0; i<num_generics; i++) {
+                info2.mGenericsTypeNames[i] = strdup(generics_type_names[i]);
+            }
+
+            sNodeType* result_type = clone_node_type(fun->mResultType);
+
+            result_type->mStatic = TRUE;
+
+            if(is_typeof_type(result_type))
             {
-                if(!solve_typeof(&param->mType, info)) 
+                if(!solve_typeof(&result_type, info)) 
                 {
                     compile_err_msg(info, "Can't solve typeof types");
-                    show_node_type(param->mType);
+                    show_node_type(result_type);
                     info->err_num++;
 
                     return TRUE;
                 }
             }
 
-            if(!solve_generics(&param->mType, generics_type)) 
+            if(!solve_generics(&result_type, generics_type))
             {
-                compile_err_msg(info, "Can't solve generics types(3)");
-                show_node_type(param->mType);
+                compile_err_msg(info, "Can't solve generics types(4))");
+                show_node_type(result_type);
                 show_node_type(generics_type);
                 info->err_num++;
 
                 return FALSE;
             }
-        }
 
-        sParserInfo info2;
+            xstrncpy(info2.fun_name, fun->mName, VAR_NAME_MAX);
 
-        memset(&info2, 0, sizeof(sParserInfo));
+            sNodeBlock* node_block = ALLOC sNodeBlock_alloc();
+            expect_next_character_with_one_forward("{", &info2);
+            sVarTable* old_table = info2.lv_table;
 
-        sBuf_init(&info2.mConst);
+            info2.lv_table = init_block_vtable(old_table, FALSE);
+            sVarTable* block_var_table = info2.lv_table;
+            for(i=0; i<num_params; i++) {
+                sParserParam param = params[i];
 
-        info2.p = buf;
-        xstrncpy(info2.sname, info->sname, PATH_MAX);
-        info2.source = buf;
-        info2.module_name = info->pinfo->module_name;
-        info2.lv_table = info->pinfo->lv_table;
-
-        info2.mGenericsType = clone_node_type(generics_type);
-
-        info2.mNumGenerics = num_generics;
-        for(i=0; i<num_generics; i++) {
-            info2.mGenericsTypeNames[i] = strdup(generics_type_names[i]);
-        }
-
-        sNodeType* result_type = clone_node_type(fun->mResultType);
-
-        if(is_typeof_type(result_type))
-        {
-            if(!solve_typeof(&result_type, info)) 
-            {
-                compile_err_msg(info, "Can't solve typeof types");
-                show_node_type(result_type);
-                info->err_num++;
-
-                return TRUE;
+                BOOL readonly = FALSE;
+                if(!add_variable_to_table(info2.lv_table, param.mName, param.mType, readonly, NULL, -1, FALSE, param.mType->mConstant))
+                {
+                    compile_err_msg(info, "overflow variable table");
+                    return FALSE;
+                }
             }
-        }
 
-        if(!solve_generics(&result_type, generics_type))
-        {
-            compile_err_msg(info, "Can't solve generics types(4))");
-            show_node_type(result_type);
-            show_node_type(generics_type);
-            info->err_num++;
-
-            return FALSE;
-        }
-
-        xstrncpy(info2.fun_name, fun->mName, VAR_NAME_MAX);
-
-        sNodeBlock* node_block = ALLOC sNodeBlock_alloc();
-        expect_next_character_with_one_forward("{", &info2);
-        sVarTable* old_table = info2.lv_table;
-
-        info2.lv_table = init_block_vtable(old_table, FALSE);
-        sVarTable* block_var_table = info2.lv_table;
-        for(i=0; i<num_params; i++) {
-            sParserParam param = params[i];
-
-            BOOL readonly = FALSE;
-            if(!add_variable_to_table(info2.lv_table, param.mName, param.mType, readonly, NULL, -1, FALSE, param.mType->mConstant))
-            {
-                compile_err_msg(info, "overflow variable table");
+            info2.sline = info->pinfo->sline;
+            if(!parse_block(node_block, FALSE, FALSE, &info2)) {
+                sNodeBlock_free(node_block);
                 return FALSE;
             }
+
+            if(info2.err_num > 0) {
+                fprintf(stderr, "Parser error number is %d. ", info2.err_num);
+                return FALSE;
+            }
+
+            expect_next_character_with_one_forward("}", &info2);
+            info2.lv_table = old_table;
+
+            BOOL lambda = FALSE;
+            BOOL simple_lambda_param = FALSE;
+            BOOL constructor_fun = FALSE;
+            BOOL operator_fun = FALSE;
+            BOOL generics_function = FALSE;
+            int version = 0;
+            BOOL finalize = FALSE;
+            int generics_fun_num = 0;
+            char* struct_name = NULL;
+
+            unsigned int node = sNodeTree_create_function(real_fun_name, real_fun_name, params, num_params, result_type, MANAGED node_block, lambda, block_var_table, struct_name, operator_fun, constructor_fun, simple_lambda_param, &info2, generics_function, var_args, version, finalize, generics_fun_num, fun->mName);
+
+            sCompileInfo cinfo;
+
+            memset(&cinfo, 0, sizeof(sCompileInfo));
+
+            cinfo.no_output = FALSE;
+            cinfo.pinfo = info->pinfo;
+            cinfo.sline = info->sline;
+            xstrncpy(cinfo.sname, info->sname, PATH_MAX);
+
+            if(!compile(node, &cinfo)) {
+                return FALSE;
+            }
+
+            LLVMPositionBuilderAtEnd(gBuilder, current_block);
+
+            llvm_fun = LLVMGetNamedFunction(gModule, real_fun_name);
         }
 
-        info2.sline = info->pinfo->sline;
-        if(!parse_block(node_block, FALSE, FALSE, &info2)) {
-            sNodeBlock_free(node_block);
-            return FALSE;
-        }
-
-        if(info2.err_num > 0) {
-            fprintf(stderr, "Parser error number is %d. ", info2.err_num);
-            return FALSE;
-        }
-
-        expect_next_character_with_one_forward("}", &info2);
-        info2.lv_table = old_table;
-
-        char real_fun_name[REAL_FUN_NAME_MAX];
-        create_generics_fun_name(real_fun_name, REAL_FUN_NAME_MAX, fun_name,  generics_type);
-
-        BOOL lambda = FALSE;
-        BOOL simple_lambda_param = FALSE;
-        BOOL constructor_fun = FALSE;
-        BOOL operator_fun = FALSE;
-        BOOL generics_function = FALSE;
-        int version = 0;
-        BOOL finalize = FALSE;
-        int generics_fun_num = 0;
-        char* struct_name = NULL;
-
-puts(real_fun_name);
-
-        unsigned int node = sNodeTree_create_function(real_fun_name, real_fun_name, params, num_params, result_type, MANAGED node_block, lambda, block_var_table, struct_name, operator_fun, constructor_fun, simple_lambda_param, &info2, generics_function, var_args, version, finalize, generics_fun_num, fun->mName);
-
-        sCompileInfo cinfo;
-
-        memset(&cinfo, 0, sizeof(sCompileInfo));
-
-        cinfo.no_output = FALSE;
-        cinfo.pinfo = info->pinfo;
-        cinfo.sline = info->sline;
-        xstrncpy(cinfo.sname, info->sname, PATH_MAX);
-
-        if(!compile(node, &cinfo)) {
-            return FALSE;
-        }
-
-        LLVMPositionBuilderAtEnd(gBuilder, current_block);
-
-        LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, real_fun_name);
 
         if(type_identify_with_class_name(result_type, "void") && result_type->mPointerNum == 0) {
             LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
