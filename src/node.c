@@ -62,6 +62,8 @@ struct sFunctionStruct {
     char* mBlockText;
     BOOL mGenericsFunction;
     BOOL mVarArgs;
+    int mNumGenerics;
+    char mGenericsTypeNames[GENERICS_TYPES_MAX][VAR_NAME_MAX];
 };
 
 typedef struct sFunctionStruct sFunction;
@@ -129,7 +131,7 @@ void free_right_value_objects(sCompileInfo* info)
 LLVMTypeRef create_llvm_type_with_class_name(char* class_name);
 
 BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body);
-BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL va_args);
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names);
 LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type);
 
 void init_nodes(char* sname)
@@ -340,7 +342,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -379,7 +381,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -419,7 +421,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -458,7 +460,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -1630,7 +1632,7 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
 
 sFunction gFuncs[FUN_NUM_MAX];
 
-BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args)
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names)
 {
     int hash_value = get_hash_key(name, FUN_NUM_MAX);
     sFunction* p = gFuncs + hash_value;
@@ -1652,6 +1654,11 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
             p->mBlockText = block_text;
             p->mGenericsFunction = generics_function;
             p->mVarArgs = var_args;
+            p->mNumGenerics = num_generics;
+
+            for(i=0; i<num_generics; i++) {
+                xstrncpy(p->mGenericsTypeNames[i], generics_type_names[i], VAR_NAME_MAX);
+            }
 
             return TRUE;
         }
@@ -1672,6 +1679,11 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
                 p->mBlockText = block_text;
                 p->mGenericsFunction = generics_function;
                 p->mVarArgs = var_args;
+                p->mNumGenerics = num_generics;
+
+                for(i=0; i<num_generics; i++) {
+                    xstrncpy(p->mGenericsTypeNames[i], generics_type_names[i], VAR_NAME_MAX);
+                }
 
                 return TRUE;
             }
@@ -3108,6 +3120,30 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
+    if(is_typeof_type(var_type))
+    {
+        if(!solve_typeof(&var_type, info))
+        {
+            compile_err_msg(info, "Can't solve typeof types");
+            show_node_type(var_type);
+            info->err_num++;
+
+            return TRUE;
+        }
+    }
+
+    if(info->generics_type) {
+        if(!solve_generics(&var_type, info->generics_type)) 
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(var_type);
+            show_node_type(info->generics_type);
+            info->err_num++;
+
+            return FALSE;
+        }
+    }
+
     LLVMTypeRef llvm_type = create_llvm_type_from_node_type(var_type);
 
 #ifdef __X86_64_CPU__
@@ -3262,6 +3298,30 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
 
         info->type = create_node_type_with_class_name("int"); // dummy
         return TRUE;
+    }
+
+    if(is_typeof_type(left_type))
+    {
+        if(!solve_typeof(&left_type, info))
+        {
+            compile_err_msg(info, "Can't solve typeof types");
+            show_node_type(left_type);
+            info->err_num++;
+
+            return TRUE;
+        }
+    }
+
+    if(info->generics_type) {
+        if(!solve_generics(&left_type, info->generics_type)) 
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(left_type);
+            show_node_type(info->generics_type);
+            info->err_num++;
+
+            return FALSE;
+        }
     }
 
     if(!compile(right_node, info)) {
@@ -3552,7 +3612,7 @@ static BOOL compile_external_function(unsigned int node, sCompileInfo* info)
     }
 
     BOOL generics_function = FALSE;
-    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg)) {
+    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL)) {
         fprintf(stderr, "overflow function table\n");
         return FALSE;
     }
@@ -3656,7 +3716,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     int version = gNodes[node].uValue.sFunctionCall.mVersion;
 
     int num_generics = gNodes[node].uValue.sFunctionCall.mNumGenerics;
-    char generics_type_names[PARAMS_MAX][VAR_NAME_MAX];
+    char generics_type_names[GENERICS_TYPES_MAX][VAR_NAME_MAX];
 
     int i;
     for(i=0; i<num_generics; i++)
@@ -3832,13 +3892,13 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
             xstrncpy(info2.sname, info->sname, PATH_MAX);
             info2.source = buf;
             info2.module_name = info->pinfo->module_name;
-            info2.lv_table = info->pinfo->lv_table;
+            info2.lv_table = init_block_vtable(NULL, FALSE);
 
             info2.mGenericsType = clone_node_type(generics_type);
 
-            info2.mNumGenerics = num_generics;
-            for(i=0; i<num_generics; i++) {
-                info2.mGenericsTypeNames[i] = strdup(generics_type_names[i]);
+            info2.mNumGenerics = fun->mNumGenerics;
+            for(i=0; i<fun->mNumGenerics; i++) {
+                info2.mGenericsTypeNames[i] = strdup(fun->mGenericsTypeNames[i]);
             }
 
             sNodeType* result_type = clone_node_type(fun->mResultType);
@@ -3920,6 +3980,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
             cinfo.pinfo = info->pinfo;
             cinfo.sline = info->sline;
             xstrncpy(cinfo.sname, info->sname, PATH_MAX);
+            cinfo.generics_type = clone_node_type(info->generics_type);
 
             if(!compile(node, &cinfo)) {
                 return FALSE;
@@ -4265,7 +4326,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     }
 
     BOOL generics_function = FALSE;
-    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg)) {
+    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL)) {
         fprintf(stderr, "overflow function table\n");
         info->function_node_block = function_node_block;
         return FALSE;
@@ -4421,7 +4482,7 @@ BOOL compile_generics_function(unsigned int node, sCompileInfo* info)
 
     int num_generics = gNodes[node].uValue.sFunction.mNumGenerics;
 
-    char generics_type_names[PARAMS_MAX][VAR_NAME_MAX];
+    char generics_type_names[GENERICS_TYPES_MAX][VAR_NAME_MAX];
     for(i=0; i<num_generics; i++) {
         xstrncpy(generics_type_names[i], gNodes[node].uValue.sFunction.mGenericsTypeNames[i], VAR_NAME_MAX);
     }
@@ -4449,9 +4510,14 @@ BOOL compile_generics_function(unsigned int node, sCompileInfo* info)
         param_names2[i] = param_names[i];
     }
 
+    char* generics_type_names2[PARAMS_MAX];
+    for(i=0; i<num_generics; i++) {
+        generics_type_names2[i] = generics_type_names[i];
+    }
+
     LLVMValueRef llvm_fun = NULL;
     BOOL generics_function = TRUE;
-    if(!add_function_to_table(real_fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg)) {
+    if(!add_function_to_table(real_fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, num_generics, generics_type_names2)) {
         return TRUE;
     }
     
@@ -4562,7 +4628,7 @@ BOOL compile_inline_function(unsigned int node, sCompileInfo* info)
     }
 
     BOOL generics_function = FALSE;
-    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg)) {
+    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL)) {
         fprintf(stderr, "overflow function table\n");
         return FALSE;
     }

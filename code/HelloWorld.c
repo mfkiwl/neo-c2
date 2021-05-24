@@ -140,14 +140,6 @@ char gGlobalArray7[4] = { "ABC" };
 
 char gGlobalArray8[4] = "ABC";
 
-/*
-struct sGenericsData<T>
-{
-    T data;
-    T data2;
-};
-*/
-
 int vasprintf(char **strp, const char *fmt, va_list ap);
 
 string xsprintf(char* msg, ...)
@@ -157,14 +149,6 @@ string xsprintf(char* msg, ...)
     char* tmp;
     int len = vasprintf(&tmp, msg, args);
     va_end(args);
-
-/*
-    if(len < 0) {
-        fprintf(stderr, "can't get heap memory. Heap memory number is %d. xsprintf len %d\n", gNumMemAlloc, len);
-
-        exit(2);
-    }
-*/
 
     return dummy_heap tmp;
 }
@@ -226,6 +210,25 @@ impl GenericsType<T,T2>
     void fun(GenericsType<T,T2>* self)
     {
         printf("%d %s\n", self.item, self.item2);
+    }
+
+    int fun2(GenericsType<T,T2>* self)
+    {
+        return self.item + 1;
+    }
+
+    int fun3(GenericsType<T,T2>* self) {
+        GenericsType<int, char*>*% data = GenericsType<int, char*>();
+
+        data.item = 1;
+
+        return self.fun2() + data.fun2();
+    }
+
+    int fun4(GenericsType<T,T2>* self) {
+        T i = 1;
+        T j = 2;
+        return i + j;
     }
 }
 
@@ -301,6 +304,7 @@ int main()
     xassert("enum test4", kEnumJ == 0);
 
     enum ENUMENUM { kEnumX, kEnumY, kEnumZ } i;
+/*
     enum { kEnumX2, kEnumY2, kEnumZ2 } j;
 
     xassert("enum test5", kEnumX == 0);
@@ -567,6 +571,7 @@ test_label:
     sData2*% data2 = sData2(123, 345);
 
     data2.show();
+*/
 
     GenericsType<int, char*>%* data4 = GenericsType<int, char*>();
 
@@ -577,16 +582,12 @@ test_label:
 
     data4.fun();
 
+    xassert("generics method call", data4.fun2() == 124);
+
+    xassert("generics method call2", data4.fun3() == 126);
+
+    xassert("generics method call3", data4.fun4() == 3);
+
     return 0;
 }
 
-/*
-    sGenericsData<int> data;
-*/
-
-/*
-    int d = 0;
-    int e = 1;
-
-    int f = e / d;
-*/
