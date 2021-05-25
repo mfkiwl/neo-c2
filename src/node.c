@@ -3304,6 +3304,18 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
 
     sNodeType* left_type = clone_node_type(var->mType);
 
+    if(info->generics_type) {
+        if(!solve_generics(&left_type, info->generics_type)) 
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(left_type);
+            show_node_type(info->generics_type);
+            info->err_num++;
+
+            return FALSE;
+        }
+    }
+
     if(!create_generics_struct_type(left_type)) {
         compile_err_msg(info, "invalid type %s", var_name);
         info->err_num++;
@@ -3791,6 +3803,18 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
     sNodeType* generics_type_before = info->generics_type;
     info->generics_type = generics_type;
+
+    if(info->generics_type) {
+        if(!solve_generics(&generics_type, generics_type_before))
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(generics_type);
+            show_node_type(info->generics_type);
+            info->err_num++;
+
+            return FALSE;
+        }
+    }
 
     sFunction* fun = get_function_from_table(fun_name);
 

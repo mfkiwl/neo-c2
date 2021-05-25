@@ -232,6 +232,41 @@ impl GenericsType<T,T2>
     }
 }
 
+struct Data <T>
+{
+    T a;
+    T b;
+};
+
+struct Data2<T,T2>
+{
+    T a;
+    T2 b;
+};
+
+impl Data2<T,T2>
+{
+    int fun(Data2<T,T2>* self) {
+        return 2;
+    }
+}
+
+impl Data <T>
+{
+    void finalize(Data<T>* self) {
+        xassert("finalzie", true);
+    }
+    int fun(Data<T>* self,int a, int b) {
+        return a+b;
+    }
+
+    int fun2(Data<T>* self, int a, int b) {
+        Data2<T, char*>* c = Data2<int, char*>();
+        return c.fun();
+    }
+}
+
+
 int main()
 {
     printf("HELLO WORLD\n");
@@ -304,7 +339,6 @@ int main()
     xassert("enum test4", kEnumJ == 0);
 
     enum ENUMENUM { kEnumX, kEnumY, kEnumZ } i;
-/*
     enum { kEnumX2, kEnumY2, kEnumZ2 } j;
 
     xassert("enum test5", kEnumX == 0);
@@ -571,7 +605,6 @@ test_label:
     sData2*% data2 = sData2(123, 345);
 
     data2.show();
-*/
 
     GenericsType<int, char*>%* data4 = GenericsType<int, char*>();
 
@@ -587,6 +620,10 @@ test_label:
     xassert("generics method call2", data4.fun3() == 126);
 
     xassert("generics method call3", data4.fun4() == 3);
+
+    Data<int>*% axz = Data<int>();
+
+    xassert("generics method call4", axz.fun2(1,2) == 2);
 
     return 0;
 }

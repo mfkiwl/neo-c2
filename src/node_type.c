@@ -542,6 +542,7 @@ BOOL solve_generics(sNodeType** node_type, sNodeType* generics_type)
 
     sCLClass* klass = (*node_type)->mClass;
 
+
     if(type_identify_with_class_name(*node_type, "lambda")) 
     {
         if(!solve_generics(&(*node_type)->mResultType, generics_type))
