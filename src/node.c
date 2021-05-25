@@ -5157,6 +5157,7 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
         llvm_params[0] = object_num;
 
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type2);
+show_node_type(node_type2);
         llvm_params[1] = LLVMSizeOf(llvm_type);
 
         LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
