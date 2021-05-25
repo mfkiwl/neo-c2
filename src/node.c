@@ -133,6 +133,7 @@ LLVMTypeRef create_llvm_type_with_class_name(char* class_name);
 BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body);
 BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names);
 LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type);
+BOOL create_generics_struct_type(sNodeType* node_type);
 
 void init_nodes(char* sname)
 {
@@ -954,6 +955,12 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
     char class_name[VAR_NAME_MAX];
     create_generics_struct_name(class_name, VAR_NAME_MAX, node_type);
 
+    sStruct* st = get_struct_from_table(class_name);
+
+    if(st == NULL) {
+        create_generics_struct_type(node_type);
+    }
+
     sCLClass* klass = node_type->mClass;
 
     if(klass->mFlags & CLASS_FLAGS_ENUM) 
@@ -1025,6 +1032,11 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
         if(node_type->mPointerNum == 0) {
             result_type = LLVMPointerType(result_type, 0);
         }
+    }
+
+    if(result_type == NULL) {
+        fprintf(stderr, "invalid type %s\n", class_name);
+        exit(1);
     }
 
     if(node_type->mPointerNum > 0 && type_identify_with_class_name(node_type, "void")) {
@@ -1207,7 +1219,7 @@ BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sP
     return TRUE;
 }
 
-BOOL create_llvm_struct_type(char* struct_name, sNodeType* node_type, sNodeType* generics_type, BOOL undefined_body,  sCompileInfo* info)
+BOOL create_llvm_struct_type(char* struct_name, sNodeType* node_type, sNodeType* generics_type, BOOL undefined_body)
 {
     sCLClass* klass = node_type->mClass;
 
@@ -1231,7 +1243,7 @@ BOOL create_llvm_struct_type(char* struct_name, sNodeType* node_type, sNodeType*
             sNodeType* field = clone_node_type(klass->mFields[i]);
 
             if(!solve_generics(&field, generics_type)) {
-                compile_err_msg(info, "can't solve generics types");
+                fprintf(stderr, "can't solve generics types");
                 return FALSE;
             }
 
@@ -1268,7 +1280,7 @@ BOOL create_llvm_struct_type(char* struct_name, sNodeType* node_type, sNodeType*
                 sNodeType* field = clone_node_type(klass->mFields[i]);
 
                 if(!solve_generics(&field, generics_type)) {
-                    compile_err_msg(info, "can't solve generics types");
+                    fprintf(stderr, "can't solve generics types");
                     return FALSE;
                 }
 
@@ -3067,7 +3079,7 @@ unsigned int sNodeTree_create_define_variable(char* var_name, BOOL extern_, sPar
     return node;
 }
 
-BOOL solve_generics_struct_type(sNodeType* node_type, sCompileInfo* info)
+BOOL create_generics_struct_type(sNodeType* node_type)
 {
     sCLClass* klass = node_type->mClass;
 
@@ -3087,7 +3099,7 @@ BOOL solve_generics_struct_type(sNodeType* node_type, sCompileInfo* info)
         create_generics_struct_name(struct_name, VAR_NAME_MAX, generics_type);
 
         BOOL undefined_body = FALSE;
-        create_llvm_struct_type(struct_name, generics_type, generics_type, undefined_body, info);
+        create_llvm_struct_type(struct_name, generics_type, generics_type, undefined_body);
     }
 
     return TRUE;
@@ -3112,7 +3124,7 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
 
     sNodeType* var_type = clone_node_type(var->mType);
 
-    if(!solve_generics_struct_type(var_type, info)) {
+    if(!create_generics_struct_type(var_type)) {
         compile_err_msg(info, "invalid type %s", var_name);
         info->err_num++;
 
@@ -3292,7 +3304,7 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
 
     sNodeType* left_type = clone_node_type(var->mType);
 
-    if(!solve_generics_struct_type(left_type, info)) {
+    if(!create_generics_struct_type(left_type)) {
         compile_err_msg(info, "invalid type %s", var_name);
         info->err_num++;
 
@@ -3572,7 +3584,7 @@ static BOOL compile_external_function(unsigned int node, sCompileInfo* info)
     for(i=0; i<num_params; i++) {
         sNodeType* param_type = params[i].mType;
 
-        if(!solve_generics_struct_type(param_type, info)) {
+        if(!create_generics_struct_type(param_type)) {
             compile_err_msg(info, "invalid type %s", param_names[i]);
             info->err_num++;
 
@@ -4267,7 +4279,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     for(i=0; i<num_params; i++) {
         param_types[i] = params[i].mType;
 
-        if(!solve_generics_struct_type(param_types[i], info)) {
+        if(!create_generics_struct_type(param_types[i])) {
             compile_err_msg(info, "invalid type %s", param_names[i]);
             info->err_num++;
 
@@ -4999,7 +5011,7 @@ static BOOL compile_struct(unsigned int node, sCompileInfo* info)
     }
     else {
         char* struct_name = CLASS_NAME(node_type->mClass);
-        create_llvm_struct_type(struct_name, node_type, NULL, undefined_body, info);
+        create_llvm_struct_type(struct_name, node_type, NULL, undefined_body);
     }
 
     return TRUE;
@@ -5089,7 +5101,7 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
         }
     }
 
-    if(!solve_generics_struct_type(node_type2, info)) {
+    if(!create_generics_struct_type(node_type2)) {
         compile_err_msg(info, "invalid type %s", CLASS_NAME(node_type2->mClass));
         info->err_num++;
 
@@ -5157,11 +5169,24 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
         llvm_params[0] = object_num;
 
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type2);
-show_node_type(node_type2);
-        llvm_params[1] = LLVMSizeOf(llvm_type);
+
+        uint64_t alloc_size = 0;
+        if(!get_size_from_node_type(&alloc_size, node_type2, node_type2, info))
+        {
+            return FALSE;
+        }
+
+        LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
+        llvm_params[1] = LLVMConstInt(long_type, alloc_size, FALSE);
 
         LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
-        LLVMValueRef address = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
+
+        if(llvm_fun == NULL) {
+            compile_err_msg(info, "require calloc difinition to create object");
+            return FALSE;
+        }
+
+        LLVMValueRef address = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "fun_result");
 
         node_type2->mPointerNum++;
 
@@ -8115,9 +8140,14 @@ BOOL compile_sizeof_expression(unsigned int node, sCompileInfo* info)
 
     dec_stack_ptr(1, info);
 
-    LLVMTypeRef llvm_type = create_llvm_type_from_node_type(llvm_value.type);
+    uint64_t alloc_size = 0;
+    if(!get_size_from_node_type(&alloc_size, llvm_value.type, llvm_value.type, info))
+    {
+        return FALSE;
+    }
 
-    LLVMValueRef value = LLVMSizeOf(llvm_type);
+    LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
+    LLVMValueRef value = LLVMConstInt(long_type, alloc_size, FALSE);
 
 #ifdef __32BIT_CPU__
     LVALUE llvm_value2;
