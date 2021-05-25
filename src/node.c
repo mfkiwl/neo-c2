@@ -1299,28 +1299,16 @@ BOOL create_llvm_struct_type(char* struct_name, sNodeType* node_type, sNodeType*
     return TRUE;
 }
 
-BOOL get_size_from_node_type(uint64_t* result, sNodeType* node_type, sNodeType* generics_type, sCompileInfo* info);
+uint64_t get_size_from_node_type(sNodeType* node_type);
 
-uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, sCompileInfo* info)
+uint64_t get_struct_size(sCLClass* klass)
 {
     uint64_t result = 0;
     int i;
     for(i=0; i<klass->mNumFields; i++) {
         sNodeType* field_type = clone_node_type(klass->mFields[i]);
 
-        if(generics_type) {
-            if(!solve_generics(&field_type, generics_type))
-            {
-                fprintf(stderr, "%s %d: The error at solve_generics\n", info->sname, info->sline);
-                return result;
-            }
-        }
-
-        uint64_t size;
-        if(!get_size_from_node_type(&size, field_type, generics_type, info)) {
-            fprintf(stderr, "%s %d: The error at solve_generics\n", info->sname, info->sline);
-            return result;
-        }
+        uint64_t size = get_size_from_node_type(field_type);
 
         if(size == 4 || size == 8) {
             result = (result + 3) & ~3;
@@ -1335,25 +1323,14 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, sCompileInfo
     return result;
 }
 
-uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, sCompileInfo* info)
+uint64_t get_union_size(sCLClass* klass)
 {
     uint64_t result = 0;
     int i;
     for(i=0; i<klass->mNumFields; i++) {
         sNodeType* field_type = clone_node_type(klass->mFields[i]);
 
-        if(generics_type) {
-            if(!solve_generics(&field_type, generics_type))
-            {
-                fprintf(stderr, "%s %d: The error at solve_generics\n", info->sname, info->sline);
-                return result;
-            }
-        }
-
-        uint64_t size;
-        if(!get_size_from_node_type(&size, field_type, generics_type, info)) {
-            return result;
-        }
+        uint64_t size = get_size_from_node_type(field_type);
 
         if(result < size) {
             result = size;
@@ -1363,8 +1340,9 @@ uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, sCompileInfo*
     return result;
 }
 
-BOOL get_size_from_node_type(uint64_t* result, sNodeType* node_type, sNodeType* generics_type, sCompileInfo* info)
+uint64_t get_size_from_node_type(sNodeType* node_type)
 {
+    uint64_t result = 0;
     sNodeType* node_type2 = clone_node_type(node_type);
 
     if(node_type2->mArrayInitializeNum > 0){
@@ -1374,21 +1352,21 @@ BOOL get_size_from_node_type(uint64_t* result, sNodeType* node_type, sNodeType* 
     }
 
     if(node_type2->mSizeNum > 0) {
-        *result = node_type2->mSizeNum;
+        result = node_type2->mSizeNum;
 
         if(node_type2->mArrayDimentionNum == 1) {
-            *result *= node_type2->mArrayNum[0];
+            result *= node_type2->mArrayNum[0];
         }
     }
     else if(node_type2->mPointerNum > 0) {
 #ifdef __32BIT_CPU__
-        *result = 4;
+        result = 4;
 #else
-        *result = 8;
+        result = 8;
 #endif
 
         if(node_type2->mArrayDimentionNum == 1) {
-            *result *= node_type2->mArrayNum[0];
+            result *= node_type2->mArrayNum[0];
         }
     }
     else {
@@ -1396,71 +1374,71 @@ BOOL get_size_from_node_type(uint64_t* result, sNodeType* node_type, sNodeType* 
         }
 
         if(node_type->mPointerNum == 0 && (node_type->mClass->mFlags & CLASS_FLAGS_STRUCT)) {
-            *result = get_struct_size(node_type->mClass, generics_type, info);
+            result = get_struct_size(node_type->mClass);
 
             if(node_type->mArrayDimentionNum == 1) {
-                *result *= node_type->mArrayNum[0];
+                result *= node_type->mArrayNum[0];
             }
         }
         else if(node_type->mPointerNum == 0 && (node_type->mClass->mFlags & CLASS_FLAGS_UNION)) {
-            *result = get_union_size(node_type->mClass, generics_type, info);
+            result = get_union_size(node_type->mClass);
 
             if(node_type->mArrayDimentionNum == 1) {
-                *result *= node_type->mArrayNum[0];
+                result *= node_type->mArrayNum[0];
             }
         }
         else if(type_identify_with_class_name(node_type, "int")){
-            *result = 4;
+            result = 4;
 
             if(node_type->mArrayDimentionNum == 1) {
-                *result *= node_type->mArrayNum[0];
+                result *= node_type->mArrayNum[0];
             }
         }
         else if(type_identify_with_class_name(node_type, "long")){
-            *result = 8;
+            result = 8;
 
             if(node_type->mArrayDimentionNum == 1) {
-                *result *= node_type->mArrayNum[0];
+                result *= node_type->mArrayNum[0];
             }
         }
         else if(type_identify_with_class_name(node_type, "short")){
-            *result = 2;
+            result = 2;
 
             if(node_type->mArrayDimentionNum == 1) {
-                *result *= node_type->mArrayNum[0];
+                result *= node_type->mArrayNum[0];
             }
         }
         else if(type_identify_with_class_name(node_type, "char")){
-            *result = 1;
+            result = 1;
 
             if(node_type->mArrayDimentionNum == 1) {
-                *result *= node_type->mArrayNum[0];
+                result *= node_type->mArrayNum[0];
             }
         }
         else if(type_identify_with_class_name(node_type, "bool")){
-            *result = 1;
+            result = 1;
 
             if(node_type->mArrayDimentionNum == 1) {
-                *result *= node_type->mArrayNum[0];
+                result *= node_type->mArrayNum[0];
             }
         }
         else if(type_identify_with_class_name(node_type, "float")){
-            *result = 4;
+            result = 4;
 
             if(node_type->mArrayDimentionNum == 1) {
-                *result *= node_type->mArrayNum[0];
+                result *= node_type->mArrayNum[0];
             }
         }
         else if(type_identify_with_class_name(node_type, "float")){
-            *result = 8;
+            result = 8;
 
             if(node_type->mArrayDimentionNum == 1) {
-                *result *= node_type->mArrayNum[0];
+                result *= node_type->mArrayNum[0];
             }
         }
     }
 
-    return TRUE;
+    return result;
 }
 
 BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL undefined_body, sCompileInfo* info)
@@ -1484,11 +1462,7 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
                 return FALSE;
             }
 
-            uint64_t size;
-            if(!get_size_from_node_type(&size, field, generics_type, info)) {
-                fprintf(stderr, "%s %d: The error at solve_generics\n", info->sname, info->sline);
-                return FALSE;
-            }
+            uint64_t size = get_size_from_node_type(field);
 
             if(size > max_size) {
                 field_types[0] = create_llvm_type_from_node_type(field);
@@ -1536,11 +1510,7 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
                 }
 
 
-                uint64_t size;
-                if(!get_size_from_node_type(&size, field, generics_type, info)) {
-                    fprintf(stderr, "%s %d: The error at solve_generics\n", info->sname, info->sline);
-                    return FALSE;
-                }
+                uint64_t size = get_size_from_node_type(field);
 
                 if(size > max_size) {
                     field_types[0] = create_llvm_type_from_node_type(field);
@@ -2043,11 +2013,7 @@ static BOOL compile_add(unsigned int node, sCompileInfo* info)
         sNodeType* left_type3 = clone_node_type(left_type);
         left_type3->mPointerNum--;
 
-        uint64_t alloc_size = 0;
-        if(!get_size_from_node_type(&alloc_size, left_type3, left_type3, info))
-        {
-            return FALSE;
-        }
+        uint64_t alloc_size = get_size_from_node_type(left_type3);
 
         LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -2094,11 +2060,7 @@ static BOOL compile_add(unsigned int node, sCompileInfo* info)
         sNodeType* left_type3 = clone_node_type(left_type);
         left_type3->mPointerNum--;
 
-        uint64_t alloc_size = 0;
-        if(!get_size_from_node_type(&alloc_size, left_type3, left_type3, info))
-        {
-            return FALSE;
-        }
+        uint64_t alloc_size = get_size_from_node_type(left_type3);
 
         LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -2232,11 +2194,7 @@ static BOOL compile_sub(unsigned int node, sCompileInfo* info)
         sNodeType* left_type3 = clone_node_type(left_type);
         left_type3->mPointerNum--;
 
-        uint64_t alloc_size = 0;
-        if(!get_size_from_node_type(&alloc_size, left_type3, left_type3, info))
-        {
-            return FALSE;
-        }
+        uint64_t alloc_size = get_size_from_node_type(left_type3);
 
         LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -2274,11 +2232,7 @@ static BOOL compile_sub(unsigned int node, sCompileInfo* info)
         element_type->mPointerNum = 0;
         element_type->mArrayDimentionNum = 0;
 
-        uint64_t element_size = 0;
-        if(!get_size_from_node_type(&element_size, element_type, element_type, info))
-        {
-            return FALSE;
-        }
+        uint64_t element_size = get_size_from_node_type(element_type);
 
         LLVMValueRef elemet_size_value = LLVMConstInt(long_type, element_size, FALSE);
 
@@ -2321,11 +2275,7 @@ static BOOL compile_sub(unsigned int node, sCompileInfo* info)
         sNodeType* left_type3 = clone_node_type(left_type);
         left_type3->mPointerNum--;
 
-        uint64_t alloc_size = 0;
-        if(!get_size_from_node_type(&alloc_size, left_type3, left_type3, info))
-        {
-            return FALSE;
-        }
+        uint64_t alloc_size = get_size_from_node_type(left_type3);
 
         LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -3123,6 +3073,18 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
     }
 
     sNodeType* var_type = clone_node_type(var->mType);
+
+    if(info->generics_type) {
+        if(!solve_generics(&var_type, info->generics_type)) 
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(var_type);
+            show_node_type(info->generics_type);
+            info->err_num++;
+
+            return FALSE;
+        }
+    }
 
     if(!create_generics_struct_type(var_type)) {
         compile_err_msg(info, "invalid type %s", var_name);
@@ -5125,6 +5087,18 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
         }
     }
 
+    if(info->generics_type) {
+        if(!solve_generics(&node_type2, info->generics_type)) 
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(node_type2);
+            show_node_type(info->generics_type);
+            info->err_num++;
+
+            return FALSE;
+        }
+    }
+
     if(!create_generics_struct_type(node_type2)) {
         compile_err_msg(info, "invalid type %s", CLASS_NAME(node_type2->mClass));
         info->err_num++;
@@ -5194,11 +5168,7 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
 
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type2);
 
-        uint64_t alloc_size = 0;
-        if(!get_size_from_node_type(&alloc_size, node_type2, node_type2, info))
-        {
-            return FALSE;
-        }
+        uint64_t alloc_size = get_size_from_node_type(node_type2);
 
         LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
         llvm_params[1] = LLVMConstInt(long_type, alloc_size, FALSE);
@@ -8102,11 +8072,7 @@ static BOOL compile_sizeof(unsigned int node, sCompileInfo* info)
 
     //LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type2);
 
-    uint64_t alloc_size = 0;
-    if(!get_size_from_node_type(&alloc_size, node_type2, node_type2, info))
-    {
-        return FALSE;
-    }
+    uint64_t alloc_size = get_size_from_node_type(node_type2);
 
     LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
     LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
@@ -8164,11 +8130,7 @@ BOOL compile_sizeof_expression(unsigned int node, sCompileInfo* info)
 
     dec_stack_ptr(1, info);
 
-    uint64_t alloc_size = 0;
-    if(!get_size_from_node_type(&alloc_size, llvm_value.type, llvm_value.type, info))
-    {
-        return FALSE;
-    }
+    uint64_t alloc_size = get_size_from_node_type(llvm_value.type);
 
     LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
     LLVMValueRef value = LLVMConstInt(long_type, alloc_size, FALSE);
@@ -9724,11 +9686,7 @@ static BOOL compile_plus_plus(unsigned int node, sCompileInfo* info)
                 }
             }
 
-            uint64_t alloc_size = 0;
-            if(!get_size_from_node_type(&alloc_size, left_type, left_type, info))
-            {
-                return FALSE;
-            }
+            uint64_t alloc_size = get_size_from_node_type(left_type);
 
             LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -9855,11 +9813,7 @@ static BOOL compile_minus_minus(unsigned int node, sCompileInfo* info)
                 }
             }
 
-            uint64_t alloc_size = 0;
-            if(!get_size_from_node_type(&alloc_size, left_type, left_type, info))
-            {
-                return FALSE;
-            }
+            uint64_t alloc_size = get_size_from_node_type(left_type);
 
             LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -9986,11 +9940,7 @@ static BOOL compile_equal_plus(unsigned int node, sCompileInfo* info)
                 }
             }
 
-            uint64_t alloc_size = 0;
-            if(!get_size_from_node_type(&alloc_size, left_type, left_type, info))
-            {
-                return FALSE;
-            }
+            uint64_t alloc_size = get_size_from_node_type(left_type);
 
             LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -10116,11 +10066,7 @@ static BOOL compile_equal_minus(unsigned int node, sCompileInfo* info)
                 }
             }
 
-            uint64_t alloc_size = 0;
-            if(!get_size_from_node_type(&alloc_size, left_type, left_type, info))
-            {
-                return FALSE;
-            }
+            uint64_t alloc_size = get_size_from_node_type(left_type);
 
             LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 

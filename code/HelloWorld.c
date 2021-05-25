@@ -253,9 +253,11 @@ impl Data2<T,T2>
 
 impl Data <T>
 {
+/*
     void finalize(Data<T>* self) {
         xassert("finalzie", true);
     }
+*/
     int fun(Data<T>* self,int a, int b) {
         return a+b;
     }
