@@ -50,39 +50,15 @@ $(OBJS): src/*.h Makefile configure
 #########################################
 # install
 #########################################
-#ifeq  ($(shell uname),Darwin)
-#install:
-#	mkdir -p $(DESTDIR)/include
-#	cp ./come.h.osx $(DESTDIR)/include/come.h
-#
-#	mkdir -p $(DESTDIR)/lib
-#	ranlib $(DESTDIR)/lib/libcome.a
-#
-##	mkdir -p $(DESTDIR)/share/man/man1
-##	$(INSTALL) ./man/come.1.gz $(DESTDIR)/share/man/man1
-#
-#	mkdir -p "$(DESTDIR)/bin"
-#	$(INSTALL) -m 755 ./come "$(DESTDIR)/bin"
-#
-#	mkdir -p $(DESTDIR)/share/doc/come
-#	$(INSTALL) -m 644 ./README.md "$(DESTDIR)/share/doc/come"
-#else
-#install:
-#	mkdir -p $(DESTDIR)/include
-#	$(INSTALL) -m 644 ./come.h $(DESTDIR)/include
-#
-#	mkdir -p $(DESTDIR)/lib
-#	$(INSTALL) -m 644 ./libcome.a $(DESTDIR)/lib
-#
-##	mkdir -p $(DESTDIR)/share/man/man1
-##	$(INSTALL) ./man/come.1.gz $(DESTDIR)/share/man/man1
-#
-#	mkdir -p "$(DESTDIR)/bin"
-#	$(INSTALL) -m 755 ./come "$(DESTDIR)/bin"
-#
-#	mkdir -p $(DESTDIR)/share/doc/come
-#	$(INSTALL) -m 644 ./README.md "$(DESTDIR)/share/doc/come"
-#endif
+install:
+	mkdir -p $(DESTDIR)/include
+	$(INSTALL) -m 644 ./come.h $(DESTDIR)/include
+
+	mkdir -p "$(DESTDIR)/bin"
+	$(INSTALL) -m 755 ./come "$(DESTDIR)/bin"
+
+	mkdir -p $(DESTDIR)/share/doc/come
+	$(INSTALL) -m 644 ./README.md "$(DESTDIR)/share/doc/come"
 
 #########################################
 # permission

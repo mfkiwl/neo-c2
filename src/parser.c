@@ -113,12 +113,6 @@ BOOL parse_word(char* buf, int buf_size, sParserInfo* info, BOOL print_out_err_m
 
     if(buf[0] == 0) {
         if(print_out_err_msg) {
-/*
-            int a = 0;
-            int b = 1;
-            int c = b/a;
-*/
-
             char buf[1024];
             snprintf(buf, 1024, "require word(alphabet or _ or number). this is (%c)", *info->p);
             parser_err_msg(info, buf);
@@ -164,12 +158,6 @@ void expect_next_character_with_one_forward(char* characters, sParserInfo* info)
     else {
         char buf[1024];
         snprintf(buf, 1024, "expected that next character is (%s), but it is %c(%d)", characters, *info->p, *info->p);
-
-/*
-        int a = 0;
-        int b = 1;
-        int c = b/a;
-*/
         parser_err_msg(info, buf);
         info->err_num++;
         info->p++;
@@ -2773,7 +2761,7 @@ static BOOL parse_param(sParserParam* param, sParserInfo* info)
     return TRUE;
 }
 
-static BOOL get_block_text(sBuf* buf, sParserInfo* info, BOOL append_head_currly_brace, BOOL last_expresssion_is_self)
+static BOOL get_block_text(sBuf* buf, sParserInfo* info, BOOL append_head_currly_brace)
 {
     if(append_head_currly_brace) {
         sBuf_append_str(buf, "{ ");
@@ -2784,12 +2772,12 @@ static BOOL get_block_text(sBuf* buf, sParserInfo* info, BOOL append_head_currly
 
     int nest = 0;
     while(TRUE) {
-        if(*info->p == '"') {
+        if(!squort && *info->p == '"') {
             sBuf_append_char(buf, *info->p);
             info->p++;
             dquort = !dquort;
         }
-        else if(*info->p == '\'') {
+        else if(!dquort && *info->p == '\'') {
             sBuf_append_char(buf, *info->p);
             info->p++;
             sBuf_append_char(buf, *info->p);
@@ -2819,9 +2807,6 @@ static BOOL get_block_text(sBuf* buf, sParserInfo* info, BOOL append_head_currly
         }
         else if(*info->p == '}') {
             if(nest == 0) {
-                if(last_expresssion_is_self) {
-                    sBuf_append_str(buf, "\nself\n");
-                }
                 sBuf_append_str(buf, "}");
                 info->p++;
 
@@ -2920,6 +2905,7 @@ static BOOL parse_params(sParserParam* params, int* num_params, sParserInfo* inf
             skip_spaces_and_lf(info);
 
             expect_next_character_with_one_forward(")", info);
+            skip_spaces_and_lf(info);
 
             *var_arg = TRUE;
             break;
@@ -2953,9 +2939,6 @@ static BOOL parse_params(sParserParam* params, int* num_params, sParserInfo* inf
         else {
             char msg[1024];
             snprintf(msg, 1024, "Unexpected character(%c). It is required to ',' or ')' or '|' character", *info->p);
-        int a = 0;
-        int b = 1;
-        int c = b/a;
             parser_err_msg(info, msg);
             if(*info->p == '\n') {
                 info->sline++;
@@ -3024,7 +3007,7 @@ static BOOL parse_generics_function(unsigned int* node, sNodeType* result_type, 
     sBuf buf;
     sBuf_init(&buf);
 
-    if(!get_block_text(&buf, info, TRUE, FALSE)) {
+    if(!get_block_text(&buf, info, TRUE)) {
         free(buf.mBuf);
         return FALSE;
     };
@@ -3156,46 +3139,6 @@ static BOOL parse_inline_function(unsigned int* node, char* struct_name, sParser
     /// method generics ///
     info->mNumMethodGenerics = 0;
 
-    if(*info->p == '<') {
-        info->p++;
-        skip_spaces_and_lf(info);
-
-        int num_generics = 0;
-
-        while(TRUE) {
-            char buf[VAR_NAME_MAX];
-            if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE)) {
-                return FALSE;
-            }
-
-            info->mMethodGenericsTypeNames[num_generics] = strdup(buf);
-            num_generics++;
-
-            if(num_generics >= GENERICS_TYPES_MAX)
-            {
-                parser_err_msg(info, "overflow generics types");
-                return FALSE;
-            }
-
-            info->mNumMethodGenerics = num_generics;
-
-            if(*info->p == ',') {
-                info->p++;
-                skip_spaces_and_lf(info);
-            }
-            else if(*info->p == '>') {
-                info->p++;
-                skip_spaces_and_lf(info);
-                break;
-            }
-            else {
-                parser_err_msg(info, "require , or > character");
-                info->err_num++;
-                break;
-            }
-        }
-    }
-
     char asm_fname[VAR_NAME_MAX];
     if(!parse_attribute(info, asm_fname)) {
         return FALSE;
@@ -3258,14 +3201,17 @@ static BOOL parse_inline_function(unsigned int* node, char* struct_name, sParser
 
     int sline = info->sline;
 
+    skip_spaces_and_lf(info);
+
     if(*info->p == '{') {
         info->p++;
+        skip_spaces_and_lf(info);
     }
 
     sBuf buf;
     sBuf_init(&buf);
 
-    if(!get_block_text(&buf, info, TRUE, FALSE)) {
+    if(!get_block_text(&buf, info, TRUE)) {
         free(buf.mBuf);
         return FALSE;
     };
