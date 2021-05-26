@@ -456,6 +456,10 @@ struct sCompileInfoStruct
 
     LLVMMetadataRef function_meta_data;
     LLVMValueRef inline_result_variable;
+
+    BOOL in_generics;
+    char generics_sname[PATH_MAX];
+    int generics_sline;
 };
 
 typedef struct sCompileInfoStruct sCompileInfo;

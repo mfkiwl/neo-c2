@@ -203,6 +203,11 @@ struct GenericsType<T, T2>
 
 void fun(GenericsType<int, bool>* data)
 {
+    int a = 1;
+}
+
+void funX()
+{
 }
 
 impl GenericsType<T,T2>
@@ -253,11 +258,6 @@ impl Data2<T,T2>
 
 impl Data <T>
 {
-/*
-    void finalize(Data<T>* self) {
-        xassert("finalzie", true);
-    }
-*/
     int fun(Data<T>* self,int a, int b) {
         return a+b;
     }
@@ -268,6 +268,60 @@ impl Data <T>
     }
 }
 
+struct sData3<T>
+{
+    T data;
+    T data2;
+};
+
+impl sData3<T>
+{
+    int fun(sData3<T>* self, T data)
+    {
+        self.data = data;
+
+        return self.data;
+    }
+}
+
+impl Data<T>
+{
+    void finalize(Data<T>* self) {
+        xassert("Data finalizer", true);
+    }
+}
+
+struct sData3<T>
+{
+    T data;
+    T data2;
+};
+
+struct sDataX <T>
+{
+    T data;
+};
+
+impl sData3<T>
+{
+    int fun(sData3<T>* self, T data)
+    {
+        T data2 = data;
+        sDataX<T>*% x = sDataX<T>();
+
+        xassert("generics test", data2 == 123);
+
+        x.data = data;
+
+        xassert("generics test", x.data == 123);
+
+        self.data = data;
+
+        xassert("generics test", self.data == 123);
+
+        return x.data;
+    }
+}
 
 int main()
 {
@@ -626,6 +680,10 @@ test_label:
     Data<int>*% axz = Data<int>();
 
     xassert("generics method call4", axz.fun2(1,2) == 2);
+
+    sData3<int>*% xyi = sData3<int>();
+
+    xassert("generics mthod call5", xyi.fun(123) == 123);
 
     return 0;
 }

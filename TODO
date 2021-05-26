@@ -5,8 +5,6 @@ operators
 
 code generated generics
 
-    generics finalize
-
 
 substring
 
@@ -135,3 +133,5 @@ new type_name --> type_name()
 finalize --> type_name_finalize()
 
 1.print --> int_print(1)
+    debug info
+    generics finalize
