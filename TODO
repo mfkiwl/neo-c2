@@ -3,9 +3,6 @@ operators
 
     struct with initialization
 
-code generated generics
-
-
 substring
 
 list
@@ -13,17 +10,9 @@ vector
 map
 tuple
 
-code generated generics
+foreach C macro
 
-no method generics, pcre
-
-simpler method definition
-
-no method block
-
-no pcre
-
-foreach
+auto
 
 ---- implemented ----
 debug info
@@ -135,3 +124,10 @@ finalize --> type_name_finalize()
 1.print --> int_print(1)
     debug info
     generics finalize
+
+code generated generics
+code generated generics
+no method generics, pcre
+simpler method definition
+no method block
+no pcre

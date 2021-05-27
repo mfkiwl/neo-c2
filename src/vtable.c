@@ -445,8 +445,15 @@ void free_objects(sVarTable* table, sCompileInfo* info)
                 {
                     if(p->mLLVMValue)
                     {
-                        LLVMValueRef obj = LLVMBuildLoad(gBuilder, p->mLLVMValue, "obj");
-                        free_object(p->mType, obj, info);
+                        if(p->mConstant) {
+                            LLVMValueRef obj = p->mLLVMValue;
+                            free_object(p->mType, obj, info);
+                        }
+                        else {
+                            LLVMValueRef obj = LLVMBuildLoad(gBuilder, p->mLLVMValue, "obj");
+                            free_object(p->mType, obj, info);
+                        }
+
                         p->mLLVMValue = NULL;
                     }
                 }
@@ -476,8 +483,14 @@ static void free_block_variables(sVarTable* table, LLVMValueRef ret_value, sComp
                     if(p->mLLVMValue)
                     {
                         if(p->mLLVMValue != ret_value) {
-                            LLVMValueRef obj = LLVMBuildLoad(gBuilder, p->mLLVMValue, "obj");
-                            free_object(p->mType, obj, info);
+                            if(p->mConstant) {
+                                LLVMValueRef obj = p->mLLVMValue;
+                                free_object(p->mType, obj, info);
+                            }
+                            else {
+                                LLVMValueRef obj = LLVMBuildLoad(gBuilder, p->mLLVMValue, "obj");
+                                free_object(p->mType, obj, info);
+                            }
                         }
 
                         p->mLLVMValue = NULL;

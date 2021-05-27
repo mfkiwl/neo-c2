@@ -4126,7 +4126,7 @@ void create_lambda_name(char* lambda_name, size_t size_lambda_name, char* module
     gNumLambdaName++;
 }
 
-static BOOL parse_new(unsigned int* node, int num_params, unsigned int* params, sNodeType* node_type, sParserInfo* info)
+static BOOL parse_new2(unsigned int* node, int num_params, unsigned int* params, sNodeType* node_type, sParserInfo* info)
 {
     sCLClass* klass = node_type->mClass;
 
@@ -4824,6 +4824,39 @@ static void parse_impl_end(sParserInfo* info)
 {
     strcpy(info->impl_struct_name, "");
     info->mNumGenerics = 0;
+}
+
+static BOOL parse_new(unsigned int* node, sParserInfo* info)
+{
+    sNodeType* node_type = NULL;
+
+    if(!parse_type(&node_type, info, NULL, FALSE, FALSE)) {
+        return FALSE;
+    }
+
+    sCLClass* klass = node_type->mClass;
+
+    if(klass) {
+        unsigned int object_num = 0;
+        if(*info->p == '[') {
+            info->p++;
+            skip_spaces_and_lf(info);
+
+            if(!expression(&object_num, info)) {
+                return FALSE;
+            }
+
+            expect_next_character_with_one_forward("]", info);
+        }
+
+        *node = sNodeTree_create_object(node_type, object_num, 0, NULL, info->sname, info->sline, info);
+    }
+    else {
+        parser_err_msg(info, "Invalid type name");
+        info->err_num++;
+    }
+
+    return TRUE;
 }
 
 static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* info)
@@ -5565,6 +5598,11 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                 return FALSE;
             }
         }
+        else if(strcmp(buf, "new") == 0) {
+            if(!parse_new(node, info)) {
+                return FALSE;
+            }
+        }
         else if(strcmp(buf, "delete") == 0) {
             if(!parse_delete(node, info)) {
                 return FALSE;
@@ -6026,7 +6064,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             }
 
             if(*info->p == '[') {
-                if(!parse_new(node, -1, NULL, result_type, info)) {
+                if(!parse_new2(node, -1, NULL, result_type, info)) {
                     return FALSE;
                 }
             }
@@ -6039,7 +6077,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                     return FALSE;
                 };
 
-                if(!parse_new(node, num_params, params, result_type, info)) {
+                if(!parse_new2(node, num_params, params, result_type, info)) {
                     return FALSE;
                 }
             }

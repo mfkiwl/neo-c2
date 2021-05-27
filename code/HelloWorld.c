@@ -323,6 +323,21 @@ impl sData3<T>
     }
 }
 
+struct GData<T>
+{
+    T data;
+};
+
+impl GData<T>
+{
+    GData<T>*% initialize(GData<T>*% self)
+    {
+        self.data = 123;
+
+        return self;
+    }
+}
+
 int main()
 {
     printf("HELLO WORLD\n");
@@ -649,7 +664,7 @@ test_label:
 
     printf("%s\n", value2);
 
-    sData2*% data = sData2();
+    sData2*% data = new sData2;
 
     data.value1 = 111;
     data.value2 = 222;
@@ -662,7 +677,7 @@ test_label:
 
     data2.show();
 
-    GenericsType<int, char*>%* data4 = GenericsType<int, char*>();
+    GenericsType<int, char*>*% data4 = new GenericsType<int, char*>;
 
     data4.item = 123;
     data4.item2 = "aaa";
@@ -684,6 +699,10 @@ test_label:
     sData3<int>*% xyi = sData3<int>();
 
     xassert("generics mthod call5", xyi.fun(123) == 123);
+
+    GData<int>*% xvi = new GData<int>.initialize();
+
+    xassert("new test", xvi.data == 123);
 
     return 0;
 }

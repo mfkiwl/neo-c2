@@ -12,6 +12,7 @@ LLVMBuilderRef gBuilder;
 LLVMDIBuilderRef gDIBuilder;
 
 LLVMValueRef gFunction;
+char gFunctionName[VAR_NAME_MAX];
 
 LVALUE* gLLVMStack;
 LVALUE* gLLVMStackHead;
@@ -20,6 +21,7 @@ struct sRightValueObject {
     LLVMValueRef obj;
     sNodeType* node_type;
     struct sRightValueObject* next;
+    char fun_name[VAR_NAME_MAX];
 };
 
 struct sRightValueObject* gRightValueObjects;
@@ -30,6 +32,7 @@ void append_object_to_right_values(LLVMValueRef obj, sNodeType* node_type, sComp
     new_list_item->obj = obj;
     new_list_item->node_type = clone_node_type(node_type);
     new_list_item->next = gRightValueObjects;
+    xstrncpy(new_list_item->fun_name, gFunctionName, VAR_NAME_MAX);
     gRightValueObjects = new_list_item;
 }
 
@@ -74,72 +77,72 @@ BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_
 
 void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
 {
-    sCLClass* klass = node_type->mClass;
-
-    char* class_name = CLASS_NAME(klass);
-
-    char fun_name[VAR_NAME_MAX];
-    snprintf(fun_name, VAR_NAME_MAX, "%s_finalize", class_name);
-
-    sFunction* finalizer = get_function_from_table(fun_name);
-
-    if(finalizer != NULL) {
-        if(finalizer->mGenericsFunction) {
-            LLVMValueRef llvm_fun = NULL;
-
-            sNodeType* generics_type_before = info->generics_type;
-            info->generics_type = clone_node_type(node_type);
-
-            if(!create_generics_function(&llvm_fun, finalizer, fun_name, node_type, info)) {
-                fprintf(stderr, "can't craete generics finalizer %s\n", fun_name);
-                return;
-            }
-
-            info->generics_type = generics_type_before;
-
-            int num_params = 1;
-
-            LLVMValueRef llvm_params[PARAMS_MAX];
-            memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
-
-            llvm_params[0] = obj;
-
-            LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
-        }
-        else {
-            int num_params = 1;
-
-            LLVMValueRef llvm_params[PARAMS_MAX];
-            memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
-
-            llvm_params[0] = obj;
-
-            LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
-            LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
-        }
-    }
-
-    /// free ///
     if(node_type->mHeap && node_type->mPointerNum > 0) {
+        sCLClass* klass = node_type->mClass;
+
+        char* class_name = CLASS_NAME(klass);
+
+        char fun_name[VAR_NAME_MAX];
+        snprintf(fun_name, VAR_NAME_MAX, "%s_finalize", class_name);
+
+        sFunction* finalizer = get_function_from_table(fun_name);
+
+        if(finalizer != NULL) {
+            if(finalizer->mGenericsFunction) {
+                LLVMValueRef llvm_fun = NULL;
+
+                sNodeType* generics_type_before = info->generics_type;
+                info->generics_type = clone_node_type(node_type);
+
+                if(!create_generics_function(&llvm_fun, finalizer, fun_name, node_type, info)) {
+                    fprintf(stderr, "can't craete generics finalizer %s\n", fun_name);
+                    return;
+                }
+
+                info->generics_type = generics_type_before;
+
+                int num_params = 1;
+
+                LLVMValueRef llvm_params[PARAMS_MAX];
+                memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
+
+                llvm_params[0] = obj;
+
+                LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
+            }
+            else {
+                int num_params = 1;
+
+                LLVMValueRef llvm_params[PARAMS_MAX];
+                memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
+
+                llvm_params[0] = obj;
+
+                LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
+                LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
+            }
+        }
+
+        /// free ///
         int num_params = 1;
 
         LLVMValueRef llvm_params[PARAMS_MAX];
         memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
 
-        char* fun_name = "free";
+        char* fun_name2 = "free";
 
         LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
 
-        LLVMValueRef llvm_value = LLVMBuildCast(gBuilder, LLVMBitCast, obj, llvm_type, "cast");
+        LLVMValueRef llvm_value = LLVMBuildCast(gBuilder, LLVMBitCast, obj, llvm_type, "castA");
 
         llvm_params[0] = llvm_value;
 
-        LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
+        LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name2);
         LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
-    }
 
-    /// remove right value objects from list
-    remove_object_from_right_values(obj);
+        /// remove right value objects from list
+        remove_object_from_right_values(obj);
+    }
 }
 
 void free_right_value_objects(sCompileInfo* info)
@@ -148,7 +151,9 @@ void free_right_value_objects(sCompileInfo* info)
     struct sRightValueObject* it_next = NULL;
     while(it) {
         it_next = it->next;
-        free_object(it->node_type, it->obj, info);
+        if(strcmp(it->fun_name, gFunctionName) == 0) {
+            free_object(it->node_type, it->obj, info);
+        }
         it = it_next;
     }
 }
@@ -1115,7 +1120,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
         if(rvalue) {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "cast");
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castB");
             rvalue->type = clone_node_type(left_type);
         }
 
@@ -1183,7 +1188,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
     {
         if(rvalue) {
             LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
-            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "cast");
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castC");
             rvalue->type = create_node_type_with_class_name("char*");
         }
 
@@ -1194,7 +1199,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
         if(rvalue) {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "cast");
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castD");
             rvalue->type = create_node_type_with_class_name("va_list");
         }
 
@@ -1205,7 +1210,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
         if(rvalue) {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "cast");
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castE");
             rvalue->type = create_node_type_with_class_name("__builtin_va_list");
         }
 
@@ -1326,15 +1331,30 @@ BOOL create_llvm_struct_type(char* struct_name, sNodeType* node_type, sNodeType*
 
 uint64_t get_size_from_node_type(sNodeType* node_type);
 
-uint64_t get_struct_size(sCLClass* klass)
+uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type)
 {
     uint64_t result = 0;
     int i;
     for(i=0; i<klass->mNumFields; i++) {
         sNodeType* field_type = clone_node_type(klass->mFields[i]);
 
+        if(!solve_generics(&field_type, generics_type)) {
+            fprintf(stderr, "can't solve generics types");
+            exit(1);
+        }
+
         uint64_t size = get_size_from_node_type(field_type);
 
+        if(size == 4 || size == 8) {
+            result = (result + 7) & ~7;
+            result += size;
+        }
+        else {
+            result = (result + 1) & ~1;
+            result += size;
+        }
+
+/*
         if(size == 4 || size == 8) {
             result = (result + 3) & ~3;
             result += size;
@@ -1343,17 +1363,24 @@ uint64_t get_struct_size(sCLClass* klass)
             result = (result + 1) & ~1;
             result += size;
         }
+*/
     }
 
     return result;
 }
 
-uint64_t get_union_size(sCLClass* klass)
+uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type)
 {
     uint64_t result = 0;
     int i;
     for(i=0; i<klass->mNumFields; i++) {
         sNodeType* field_type = clone_node_type(klass->mFields[i]);
+
+        if(!solve_generics(&field_type, generics_type)) {
+            fprintf(stderr, "can't solve generics types");
+            exit(1);
+        }
+
 
         uint64_t size = get_size_from_node_type(field_type);
 
@@ -1399,14 +1426,14 @@ uint64_t get_size_from_node_type(sNodeType* node_type)
         }
 
         if(node_type->mPointerNum == 0 && (node_type->mClass->mFlags & CLASS_FLAGS_STRUCT)) {
-            result = get_struct_size(node_type->mClass);
+            result = get_struct_size(node_type->mClass, node_type);
 
             if(node_type->mArrayDimentionNum == 1) {
                 result *= node_type->mArrayNum[0];
             }
         }
         else if(node_type->mPointerNum == 0 && (node_type->mClass->mFlags & CLASS_FLAGS_UNION)) {
-            result = get_union_size(node_type->mClass);
+            result = get_union_size(node_type->mClass, node_type);
 
             if(node_type->mArrayDimentionNum == 1) {
                 result *= node_type->mArrayNum[0];
@@ -1594,6 +1621,7 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
     BOOL last_expression_is_return = FALSE;
 
     if(block->mNumNodes == 0) {
+        free_right_value_objects(info);
         info->type = create_node_type_with_class_name("void");
     }
     else {
@@ -3337,6 +3365,14 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         }
     }
 
+    /// std::move ///
+    if(left_type->mHeap && right_type->mHeap) {
+        sVar* var = rvalue.var;
+        if(var) {
+            var->mLLVMValue = NULL;
+        }
+    }
+
     BOOL constant = var->mConstant;
 
     if(alloc) {
@@ -3908,6 +3944,8 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     LLVMValueRef llvm_params[PARAMS_MAX];
     memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
 
+    LVALUE lvalue_params[PARAMS_MAX];
+
     sNodeType* generics_type = NULL;
 
     char struct_name[VAR_NAME_MAX];
@@ -3924,6 +3962,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
         generics_type = clone_node_type(info->type);
 
+        lvalue_params[0] = param;
         llvm_params[0] = param.value;
 
         xstrncpy(struct_name, CLASS_NAME(param_types[0]->mClass), VAR_NAME_MAX);
@@ -3971,6 +4010,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         xstrncpy(param_names[i], fun->mParamNames[i], VAR_NAME_MAX);
 
         LVALUE param = *get_value_from_stack(-1);
+        lvalue_params[i] = param;
 
         if(fun->mParamTypes[i]) {
             if(auto_cast_posibility(fun->mParamTypes[i], param_types[i])) {
@@ -3989,12 +4029,25 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         llvm_params[i] = param.value;
     }
 
+
+    /// std move //
+    for(i=0; i<fun->mNumParams; i++) {
+        LVALUE param = lvalue_params[i];
+
+        if(fun->mParamTypes[i]->mHeap && param.type->mHeap) {
+            sVar* var = param.var;
+            if(var) {
+                var->mLLVMValue = NULL;
+            }
+        }
+    }
+
     if(strcmp(fun_name, "llvm.va_start") == 0 || strcmp(fun_name, "llvm.va_end") == 0)
     {
         LLVMValueRef param = llvm_params[0];
 
         LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
-        param = LLVMBuildCast(gBuilder, LLVMBitCast, param, llvm_type, "cast");
+        param = LLVMBuildCast(gBuilder, LLVMBitCast, param, llvm_type, "castF");
 
         llvm_params[0] = param;
         num_params = 1;
@@ -4004,6 +4057,12 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
     /// call generics function ///
     if(fun->mGenericsFunction) {
+        for(i=0; i<num_params; i++) {
+            if(fun->mParamTypes[i]->mHeap) {
+                remove_object_from_right_values(llvm_params[i]);
+            }
+        }
+
         LLVMValueRef llvm_fun= NULL;
 
         if(!create_generics_function(&llvm_fun, fun, fun_name, generics_type, info)) {
@@ -4156,6 +4215,12 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     }
     /// call normal function ///
     else {
+        for(i=0; i<fun->mNumParams; i++) {
+            if(fun->mParamTypes[i]->mHeap) {
+                remove_object_from_right_values(llvm_params[i]);
+            }
+        }
+
         LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
 
         if(type_identify_with_class_name(result_type, "void") && result_type->mPointerNum == 0) {
@@ -4329,7 +4394,11 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     }
 
     LLVMValueRef function = gFunction;
+    char fun_name_before[VAR_NAME_MAX];
+    xstrncpy(fun_name_before, gFunctionName, VAR_NAME_MAX);
+
     gFunction = llvm_fun;
+    xstrncpy(gFunctionName, fun_name, VAR_NAME_MAX);
 
     LLVMBasicBlockRef entry = LLVMAppendBasicBlockInContext(gContext, llvm_fun, "entry");
     LLVMPositionBuilderAtEnd(gBuilder, entry);
@@ -4416,6 +4485,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     info->type = clone_node_type(result_type);
 
     gFunction = function;
+    xstrncpy(gFunctionName, fun_name_before, VAR_NAME_MAX);
     info->function_node_block = function_node_block;
 
     return TRUE;
@@ -4735,12 +4805,12 @@ static BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
         }
         else {
             llvm_value.value = LLVMBuildLoad(gBuilder, var_address, var_name);
+            llvm_value.var = var;
         }
     }
 
     llvm_value.type = var_type;
     llvm_value.address = var_address;
-    llvm_value.var = NULL;
     llvm_value.binded_value = FALSE;
     llvm_value.load_field = FALSE;
 
@@ -5217,6 +5287,7 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
         LLVMValueRef address = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "fun_result");
 
         node_type2->mPointerNum++;
+        node_type2->mHeap = TRUE;
 
         LLVMTypeRef llvm_type2 = create_llvm_type_from_node_type(node_type2);
 
@@ -6159,14 +6230,6 @@ static BOOL compile_do_while_expression(unsigned int node, sCompileInfo* info)
 
     llvm_change_block(cond_end_block, info);
 
-/*
-    if(!info->last_expression_is_return) {
-        free_right_value_objects(info);
-        Builder.CreateBr(loop_top_block);
-    }
-
-    info->last_expression_is_return = last_expression_is_return_before;
-*/
     info->type = create_node_type_with_class_name("void");
 
     info->switch_expression = switch_expression_before;
@@ -6232,7 +6295,7 @@ static BOOL compile_null(unsigned int node, sCompileInfo* info)
     LVALUE llvm_value;
     llvm_value.value = LLVMConstInt(llvm_type, 0, FALSE);
     LLVMTypeRef llvm_type2 = create_llvm_type_with_class_name("char*");
-    llvm_value.value = LLVMBuildCast(gBuilder, LLVMBitCast, llvm_value.value, llvm_type2, "cast");
+    llvm_value.value = LLVMBuildCast(gBuilder, LLVMBitCast, llvm_value.value, llvm_type2, "castG");
     llvm_value.type = create_node_type_with_class_name("void*");
     llvm_value.address = NULL;
     llvm_value.var = NULL;
@@ -9714,7 +9777,7 @@ static BOOL compile_plus_plus(unsigned int node, sCompileInfo* info)
 
             LLVMValueRef left_value = address;
             LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
-            LLVMValueRef left_value2 = LLVMBuildCast(gBuilder, LLVMPtrToInt, left_value, long_type, "cast");
+            LLVMValueRef left_value2 = LLVMBuildCast(gBuilder, LLVMPtrToInt, left_value, long_type, "castI");
 
             LLVMValueRef right_value;
             if(type_identify_with_class_name(right_type, "long")) {
@@ -10094,7 +10157,7 @@ static BOOL compile_equal_minus(unsigned int node, sCompileInfo* info)
             LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
 
             LLVMValueRef left_value = address;
-            LLVMValueRef left_value2 = LLVMBuildCast(gBuilder, LLVMPtrToInt, left_value, long_type, "cast");
+            LLVMValueRef left_value2 = LLVMBuildCast(gBuilder, LLVMPtrToInt, left_value, long_type, "castJ");
 
             LLVMValueRef right_value;
             if(type_identify_with_class_name(right_type, "long")) {
