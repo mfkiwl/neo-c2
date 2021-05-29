@@ -61,7 +61,7 @@ impl vector<T>
     {
         self.size = 16;
         self.len = 0;
-        self.items = borrow new T[self.size];
+        self.items = calloc(1, sizeof(T)*self.size);
 
         return self;
     }
@@ -75,10 +75,9 @@ impl vector<T>
 
             }
         }
-        delete self.items;
+        free(self.items);
     }
     
-/*
     void push_back(vector<T>* self, T item) {
         managed item;
 
@@ -86,7 +85,7 @@ impl vector<T>
             var new_size = self.size * 2;
             var items = self.items;
 
-            self.items = borrow new T[new_size];
+            self.items = calloc(1, sizeof(T)*new_size);
 
             int i;
             for(i=0; i<self.size; i++) {
@@ -161,5 +160,4 @@ impl vector<T>
         self.len = 0;
     }
     
-*/
 }

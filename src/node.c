@@ -91,15 +91,10 @@ void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
             if(finalizer->mGenericsFunction) {
                 LLVMValueRef llvm_fun = NULL;
 
-                sNodeType* generics_type_before = info->generics_type;
-                info->generics_type = clone_node_type(node_type);
-
                 if(!create_generics_function(&llvm_fun, finalizer, fun_name, node_type, info)) {
                     fprintf(stderr, "can't craete generics finalizer %s\n", fun_name);
                     return;
                 }
-
-                info->generics_type = generics_type_before;
 
                 int num_params = 1;
 
@@ -1643,6 +1638,7 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
                 setCurrentDebugLocation(info->sline, info);
             }
 
+
             if(!compile(node, info)) {
                 info->pinfo->lv_table = old_table;
                 return FALSE;
@@ -2974,10 +2970,10 @@ static BOOL compile_le(unsigned int node, sCompileInfo* info)
 
     LVALUE llvm_value;
     if(left_type->mUnsigned) {
-        llvm_value.value = LLVMBuildICmp(gBuilder, LLVMIntULT, lvalue.value, rvalue.value, "leeq");
+        llvm_value.value = LLVMBuildICmp(gBuilder, LLVMIntULT, lvalue.value, rvalue.value, "le");
     }
     else {
-        llvm_value.value = LLVMBuildICmp(gBuilder, LLVMIntSLT, lvalue.value, rvalue.value, "leeq");
+        llvm_value.value = LLVMBuildICmp(gBuilder, LLVMIntSLT, lvalue.value, rvalue.value, "le");
     }
     llvm_value.type = create_node_type_with_class_name("bool");
     llvm_value.address = NULL;
@@ -3309,9 +3305,24 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
-    BOOL static_ = var->mType->mStatic;
+    if(!compile(right_node, info)) {
+        return FALSE;
+    }
 
-    sNodeType* left_type = clone_node_type(var->mType);
+    sNodeType* right_type = clone_node_type(info->type);
+
+    /// type inference ///
+    sNodeType* left_type = NULL;
+    if(var->mType == NULL) {
+        right_type->mStatic = FALSE;
+        left_type = clone_node_type(right_type);
+        var->mType = clone_node_type(right_type);
+    }
+    else {
+        left_type = clone_node_type(var->mType);
+    }
+
+    BOOL static_ = var->mType->mStatic;
 
     if(is_typeof_type(left_type))
     {
@@ -3344,12 +3355,6 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         info->type = create_node_type_with_class_name("int"); // dummy
         return TRUE;
     }
-
-    if(!compile(right_node, info)) {
-        return FALSE;
-    }
-
-    sNodeType* right_type = clone_node_type(info->type);
 
     LVALUE rvalue = *get_value_from_stack(-1);
 
@@ -3734,13 +3739,28 @@ void create_generics_fun_name(char* real_fun_name, int size_real_fun_name, char*
 
 BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_name, sNodeType* generics_type, sCompileInfo* info)
 {
+    sNodeType* generics_type_before = info->generics_type;
+    info->generics_type = clone_node_type(generics_type);
+
+    if(info->generics_type) {
+        if(!solve_generics(&generics_type, generics_type_before))
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(generics_type);
+            show_node_type(info->generics_type);
+            info->err_num++;
+
+            return FALSE;
+        }
+    }
+
     char real_fun_name[REAL_FUN_NAME_MAX];
     create_generics_fun_name(real_fun_name, REAL_FUN_NAME_MAX, fun_name,  generics_type);
     
     *llvm_fun = LLVMGetNamedFunction(gModule, real_fun_name);
 
     if(*llvm_fun == NULL) {
-        LLVMBasicBlockRef current_block = LLVMGetLastBasicBlock(gFunction);
+        LLVMBasicBlockRef current_block = info->current_block; //LLVMGetLastBasicBlock(gFunction);
 
         char* buf = fun->mBlockText;
         BOOL var_args = fun->mVarArgs;
@@ -3889,10 +3909,12 @@ BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_
             return FALSE;
         }
 
-        LLVMPositionBuilderAtEnd(gBuilder, current_block);
+        llvm_change_block(current_block, info);
 
         *llvm_fun = LLVMGetNamedFunction(gModule, real_fun_name);
     }
+
+    info->generics_type = generics_type_before;
 
     return TRUE;
 }
@@ -3971,21 +3993,6 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         snprintf(method_name, VAR_NAME_MAX, "%s_%s", struct_name, fun_name);
 
         xstrncpy(fun_name, method_name, VAR_NAME_MAX);
-    }
-
-    sNodeType* generics_type_before = info->generics_type;
-    info->generics_type = generics_type;
-
-    if(info->generics_type) {
-        if(!solve_generics(&generics_type, generics_type_before))
-        {
-            compile_err_msg(info, "Can't solve generics types(3)");
-            show_node_type(generics_type);
-            show_node_type(info->generics_type);
-            info->err_num++;
-
-            return FALSE;
-        }
     }
 
     sFunction* fun = get_function_from_table(fun_name);
@@ -4146,8 +4153,6 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
         LLVMBuildBr(gBuilder, inline_func_begin);
 
-        LLVMPositionBuilderAtEnd(gBuilder, inline_func_begin);
-
         llvm_change_block(inline_func_begin, info);
 
         LLVMValueRef inline_result_variable = info->inline_result_variable;
@@ -4249,8 +4254,6 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
             }
         }
     }
-
-    info->generics_type = generics_type_before;
 
     return TRUE;
 }
@@ -4401,20 +4404,26 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     xstrncpy(gFunctionName, fun_name, VAR_NAME_MAX);
 
     LLVMBasicBlockRef entry = LLVMAppendBasicBlockInContext(gContext, llvm_fun, "entry");
-    LLVMPositionBuilderAtEnd(gBuilder, entry);
+
+    llvm_change_block(entry, info);
 
     for(i=0; i<num_params; i++) {
-        LLVMValueRef llvm_value = LLVMGetParam(llvm_fun, i);
+        LLVMValueRef param = LLVMGetParam(llvm_fun, i);
 
         char* name = params[i].mName;
         sNodeType* type_ = params[i].mType;
 
-        LLVMSetValueName2(llvm_value, name, strlen(name));
-
         sVar* var = get_variable_from_table(block_var_table, name);
 
-        var->mLLVMValue = llvm_value;
-        var->mConstant = TRUE;
+        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(type_);
+
+        LVALUE llvm_value;
+        llvm_value.value = LLVMBuildAlloca(gBuilder, llvm_type, name);
+
+        LLVMBuildStore(gBuilder, param, llvm_value.value);
+
+        var->mLLVMValue = llvm_value.value;
+        var->mConstant = FALSE;
     }
 
     char* block_text = NULL;
@@ -5203,6 +5212,16 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
         }
     }
 
+    if(!solve_generics(&node_type2, node_type2)) 
+    {
+        compile_err_msg(info, "Can't solve generics types(3)");
+        show_node_type(node_type2);
+        show_node_type(info->generics_type);
+        info->err_num++;
+
+        return FALSE;
+    }
+
     if(!create_generics_struct_type(node_type2)) {
         compile_err_msg(info, "invalid type %s", CLASS_NAME(node_type2->mClass));
         info->err_num++;
@@ -5349,6 +5368,8 @@ static BOOL compile_delete(unsigned int node, sCompileInfo* info)
     dec_stack_ptr(1, info);
 
     sNodeType* node_type = clone_node_type(info->type);
+
+    //node_type->mHeap = TRUE;
 
     free_object(node_type, llvm_value.address, info);
 
@@ -5967,7 +5988,7 @@ static BOOL compile_load_field(unsigned int node, sCompileInfo* info)
 
             return TRUE;
         }
-        
+
         LLVMValueRef field_address;
         if(left_type->mPointerNum == 0) {
             field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
@@ -7104,7 +7125,6 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
     //}
 
     /// go ///
-printf("left_Type->mArrayDimentionNum %d num_dimention %d\n", left_type->mArrayDimentionNum, num_dimention);
     if(left_type->mArrayDimentionNum > num_dimention) {
         int i;
         LLVMValueRef lvalue2 = lvalue.address;
@@ -8142,6 +8162,11 @@ static BOOL compile_sizeof(unsigned int node, sCompileInfo* info)
     sNodeType* node_type2 = clone_node_type(node_type);
 
     //LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type2);
+    
+    if(!solve_generics(&node_type2, info->generics_type)) {
+        compile_err_msg(info, "can't solve generics types");
+        return FALSE;
+    }
 
     uint64_t alloc_size = get_size_from_node_type(node_type2);
 
@@ -8196,12 +8221,17 @@ BOOL compile_sizeof_expression(unsigned int node, sCompileInfo* info)
     info->no_output = no_output;
 
     sNodeType* node_type = clone_node_type(info->type);
+    
+    if(!solve_generics(&node_type, info->generics_type)) {
+        compile_err_msg(info, "can't solve generics types");
+        return FALSE;
+    }
 
     LVALUE llvm_value = *get_value_from_stack(-1);
 
     dec_stack_ptr(1, info);
 
-    uint64_t alloc_size = get_size_from_node_type(llvm_value.type);
+    uint64_t alloc_size = get_size_from_node_type(node_type);
 
     LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
     LLVMValueRef value = LLVMConstInt(long_type, alloc_size, FALSE);
@@ -9340,7 +9370,7 @@ static BOOL compile_conditional(unsigned int node, sCompileInfo* info)
 
             result_value = LLVMBuildAlloca(gBuilder, llvm_result_type, "conditional_result_type");
 
-            LLVMPositionBuilderAtEnd(gBuilder, this_block);
+            llvm_change_block(this_block, info);
 
             LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
             LLVMValueRef zero_value = LLVMConstInt(llvm_type, 0, FALSE);
@@ -9362,7 +9392,7 @@ static BOOL compile_conditional(unsigned int node, sCompileInfo* info)
 
             result_value = LLVMBuildAlloca(gBuilder, llvm_result_type, "condtional_result_value");
 
-            LLVMPositionBuilderAtEnd(gBuilder, this_block);
+            llvm_change_block(this_block, info);
 
             LLVMBuildStore(gBuilder, value1.value, result_value);
         }

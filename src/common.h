@@ -460,6 +460,8 @@ struct sCompileInfoStruct
     BOOL in_generics;
     char generics_sname[PATH_MAX];
     int generics_sline;
+
+    LLVMBasicBlockRef block_after_creating_generics;
 };
 
 typedef struct sCompileInfoStruct sCompileInfo;

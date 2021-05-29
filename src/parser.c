@@ -3543,13 +3543,10 @@ static BOOL postposition_operator(unsigned int* node, BOOL enable_assginment, sP
                             char var_name[VAR_NAME_MAX];
                             xstrncpy(var_name, buf, VAR_NAME_MAX);
 
-                            *node = sNodeTree_create_load_field(buf, obj_node, info);
-
-                            unsigned int field_node = *node;
+                            unsigned int field_node = sNodeTree_create_load_field(buf, obj_node, info);
 
                             *node = sNodeTree_create_add(field_node, right_node, 0, info);
                             *node = sNodeTree_create_store_field(var_name, obj_node, *node, info);
-                            *node = sNodeTree_create_sub(*node, right_node, 0, info);
                         }
                         else if(enable_assginment && *info->p == '-' && *(info->p+1) == '=')
                         {
@@ -3569,7 +3566,6 @@ static BOOL postposition_operator(unsigned int* node, BOOL enable_assginment, sP
 
                             *node = sNodeTree_create_sub(field_node, right_node, 0, info);
                             *node = sNodeTree_create_store_field(var_name, obj_node, *node, info);
-                            *node = sNodeTree_create_add(*node, right_node, 0, info);
                         }
                         else if(enable_assginment && *info->p == '*' && *(info->p+1) == '=')
                         {
@@ -4859,6 +4855,81 @@ static BOOL parse_new(unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
+static BOOL parse_var(unsigned int* node, sParserInfo* info, BOOL readonly)
+{
+    char buf[VAR_NAME_MAX];
+
+    if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE)) {
+        return FALSE;
+    }
+
+    if(*info->p == ':') {
+        info->p++;
+        skip_spaces_and_lf(info);
+    }
+
+    sNodeType* node_type;
+    if(*info->p != '=') {
+        if(!parse_type(&node_type, info, NULL, FALSE, FALSE)) {
+            return FALSE;
+        }
+
+        if(node_type->mClass == NULL) {
+            *node = 0;
+            return TRUE;
+        }
+        if(node_type) {
+            check_already_added_variable(info->lv_table, buf, info);
+            if(!add_variable_to_table(info->lv_table, buf, node_type, readonly, NULL, -1, info->mBlockLevel == 0, node_type->mConstant))
+            {
+                fprintf(stderr, "overflow variable table\n");
+                exit(2);
+            }
+        }
+    }
+    else {
+        node_type = NULL;
+        check_already_added_variable(info->lv_table, buf, info);
+        if(!add_variable_to_table(info->lv_table, buf, node_type, readonly, NULL, -1, info->mBlockLevel == 0, FALSE))
+        {
+            fprintf(stderr, "overflow variable table\n");
+            exit(2);
+        }
+    }
+
+    /// assign the value to a variable ///
+    if(*info->p == '=' && *(info->p+1) != '=') {
+        info->p++;
+        skip_spaces_and_lf(info);
+
+        unsigned int right_node = 0;
+
+        if(!expression(&right_node, info)) {
+            return FALSE;
+        }
+
+        if(right_node == 0) {
+            parser_err_msg(info, "Require right value for =");
+            info->err_num++;
+
+            *node = 0;
+        }
+        else {
+            *node = sNodeTree_create_store_variable(buf, right_node, TRUE, info);
+        }
+    }
+    else {
+        char msg[1024];
+        snprintf(msg, 1024, "%s should be initialized", buf);
+        parser_err_msg(info, msg);
+        info->err_num++;
+
+        *node = 0;
+    }
+
+    return TRUE;
+}
+
 static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* info)
 {
     if(!parse_sharp(info)) {
@@ -5600,6 +5671,11 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         }
         else if(strcmp(buf, "new") == 0) {
             if(!parse_new(node, info)) {
+                return FALSE;
+            }
+        }
+        else if(strcmp(buf, "var") == 0) {
+            if(!parse_var(node, info, FALSE)) {
                 return FALSE;
             }
         }
