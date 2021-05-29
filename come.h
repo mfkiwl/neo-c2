@@ -47,7 +47,6 @@ inline string xsprintf(char* msg, ...)
     return dummy_heap result;
 }
 
-/*
 /// vector ///
 struct vector<T> 
 {
@@ -66,41 +65,8 @@ impl vector<T>
 
         return self;
     }
-    vector<T>%* initialize_with_values(vector<T>%* self, int len, T& value) 
-    {
-        self.size = len;
-        self.len = len;
-        self.items = borrow new T[self.size];
 
-        for(int i=0; i<len; i++) {
-            if(isheap(T)) {
-                self.items[i] = borrow clone value;
-            }
-            else {
-                self.items[i] = value;
-            }
-        }
-
-        return self;
-    }
-
-    vector<T>%* clone(vector<T>* self) {
-        var result = new vector<T>.initialize();
-
-        for(int i=0; i<self.len; i++) {
-            T& it = self.items[i];
-            if(isheap(T)) {
-                result.push_back(clone it);
-            }
-            else {
-                result.push_back(dummy_heap it);
-            }
-        }
-
-        return result;
-    }
-
-    finalize()
+    void finalize(vector<T>* self)
     {
         if(isheap(T)) {
             for(int i=0; i<self.len; i++) 
@@ -112,6 +78,7 @@ impl vector<T>
         delete self.items;
     }
     
+/*
     void push_back(vector<T>* self, T item) {
         managed item;
 
@@ -135,19 +102,6 @@ impl vector<T>
         self.len++;
     }
 
-    T pop_back(vector<T>* self, T& default_value)
-    {
-        if(self.len == 0) {
-            return dummy_heap default_value;
-        }
-
-        T result = (T)self.items[self.len-1];
-
-        self.len--;
-
-        return result;
-    }
-
     T& item(vector<T>* self, int index, T& default_value) 
     {
         if(index < 0) {
@@ -160,57 +114,6 @@ impl vector<T>
         }
 
         return default_value;
-    }
-    T clone_item(vector<T>* self, int index, T& default_value) 
-    {
-        if(index < 0) {
-            index += self.len;
-        }
-
-        if(index >= 0 && index < self.len)
-        {
-            if(isheap(T)) {
-                return clone self.items[index];
-            }
-            else {
-                return dummy_heap self.items[index];
-            }
-        }
-
-        return dummy_heap default_value;
-    }
-    void each(vector<T>* self, void (*block_)(T&,int,bool*)) {
-        for(int i_=0; i_<self.len; i_++) {
-            bool end_flag_ = false;
-            block_(self.items[i_], i_, &end_flag_);
-            if(end_flag_ == true) {
-                break;
-            }
-        };
-    }
-
-    int find(vector<T>* self, T& item, int default_value) {
-        int result = default_value;
-        self.each {
-            if(it.equals(item)) {
-                result = it2;
-                *it3 = true;
-                return;
-            }
-        }
-
-        return result;
-    }
-
-    template <R> vector<R>*% map(vector<T>* self, R (*block_)(T&))
-    {
-        var result_ = new vector<R>.initialize();
-
-        for(int i_=0; i_<self.len; i_++) {
-            result_.push_back(block_(self.items[i_]));
-        }
-
-        result_
     }
 
     bool equals(vector<T>* left, vector<T>* right)
@@ -258,19 +161,5 @@ impl vector<T>
         self.len = 0;
     }
     
-    list<T>*% to_list(vector<T>* self) {
-        var result = new vector<T>.initialize();
-        
-        self.each {
-            if(isheap(T)) {
-                result.push_back(clone it);
-            }
-            else {
-                result.push_back(dummy_heap it);
-            }
-        }
-        
-        return result;
-    }
-}
 */
+}

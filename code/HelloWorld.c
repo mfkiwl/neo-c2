@@ -774,6 +774,14 @@ test_label:
     char*% bbziziizizizizizzi = new char[123];
     inline_funX2(bbziziizizizizizzi);
 
+    int abibibibibi[3];
+
+    int* bbibibibibib = abibibibibi;
+
+    bbibibibibib[0] = 123;
+
+    xassert("pointer test", bbibibibibib[0] == 123);
+
     return 0;
 }
 

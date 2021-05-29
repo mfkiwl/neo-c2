@@ -7104,6 +7104,7 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
     //}
 
     /// go ///
+printf("left_Type->mArrayDimentionNum %d num_dimention %d\n", left_type->mArrayDimentionNum, num_dimention);
     if(left_type->mArrayDimentionNum > num_dimention) {
         int i;
         LLVMValueRef lvalue2 = lvalue.address;
@@ -7319,75 +7320,19 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
             info->type = clone_node_type(var_type);
         }
     }
-    else {
-        compile_err_msg(info, "come lang supports under 3 dimention array");
-        return FALSE;
-    }
-/*
-    else if(left_type->mArrayDimentionNum > 3) {
-        int i;
-        LLVMValueRef lvalue2 = lvalue.address;
-
-        LLVMValueRef load_element_addresss = lvalue2;
-
-        LLVMValueRef indices[left_type->mArrayDimentionNum+1];
-
-        int j;
-        for(j=0; j<left_type->mArrayDimentionNum-num_dimention; j++) {
-            LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
-            indices[j] = LLVMConstInt(llvm_type, 0, FALSE);
-        }
-        int k=0;
-        for(; j<left_type->mArrayDimentionNum; j++, k++) {
-            indices[j] = rvalue[k].value;
-        }
-        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, left_type->mArrayDimentionNum, "gep");
-
-        for(j=0; j<left_type->mArrayDimentionNum; j++) {
-            LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
-            indices[j] = LLVMConstInt(llvm_type, 0, FALSE);
-        }
-        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, left_type->mArrayDimentionNum, "gep");
-
-        sNodeType* var_type3 = clone_node_type(var_type);
-        var_type3->mPointerNum -= num_dimention;
-        var_type3->mPointerNum+=2;
-        var_type3->mArrayDimentionNum = 0;
-
-        LLVMTypeRef llvm_var_type2 = create_llvm_type_from_node_type(var_type3);
-
-        LLVMValueRef element_value;
-        if(var_type3->mPointerNum == 0) {
-            element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
-        }
-        else {
-            load_element_addresss = LLVMBuildCast(gBuilder, LLVMBitCast, load_element_addresss, llvm_var_type2, "array_cast");
-            element_value = load_element_addresss;
-        }
-
-        LVALUE llvm_value;
-        llvm_value.value = element_value;
-        llvm_value.type = clone_node_type(var_type);
-        llvm_value.address = load_element_addresss;
-        llvm_value.var = NULL;
-        llvm_value.binded_value = FALSE;
-        llvm_value.load_field = FALSE;
-
-        dec_stack_ptr(1+num_dimention, info);
-        push_value_to_stack_ptr(&llvm_value, info);
-    }
-    else {
+    else if(left_type->mPointerNum > 0) {
         LLVMValueRef lvalue2 = lvalue.value;
 
         LLVMValueRef load_element_addresss = lvalue2;
 
         int pointer_num = left_type->mPointerNum;
 
-        LLVMValueRef element_value = NULL;
+        LLVMValueRef element_value;
+
         for(i=0; i<num_dimention; i++) {
             load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, &rvalue[i].value, 1, "element_address");
 
-            element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "elementX");
+            element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
             if(i < num_dimention-1) {
                 load_element_addresss = element_value;
             }
@@ -7405,8 +7350,13 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
 
         dec_stack_ptr(1+num_dimention, info);
         push_value_to_stack_ptr(&llvm_value, info);
+
+        info->type = clone_node_type(var_type);
     }
-*/
+    else {
+        compile_err_msg(info, "come lang supports under 3 dimention array");
+        return FALSE;
+    }
 
     return TRUE;
 }
@@ -7624,6 +7574,21 @@ BOOL compile_store_element(unsigned int node, sCompileInfo* info)
         var_type3->mArrayDimentionNum = 0;
 
         LLVMBuildStore(gBuilder, rvalue.value, load_element_addresss);
+
+        dec_stack_ptr(2+num_dimention, info);
+        push_value_to_stack_ptr(&rvalue, info);
+
+        info->type = clone_node_type(right_type);
+    }
+    else if(left_type->mPointerNum > 0) {
+        LLVMValueRef lvalue2 = lvalue.value;
+
+        LLVMValueRef element_address = lvalue2;
+        for(i=0; i<num_dimention; i++) {
+            element_address = LLVMBuildGEP(gBuilder, element_address, &mvalue[i].value,  1, "element_address");
+        }
+
+        LLVMBuildStore(gBuilder, rvalue.value, element_address);
 
         dec_stack_ptr(2+num_dimention, info);
         push_value_to_stack_ptr(&rvalue, info);

@@ -8,7 +8,7 @@ int main()
 
     xassert("string test", strcmp(string("AAA"), "AAA") == 0);
 
-//    vector<int>*% v = new vector<int>.initialize();
+    vector<int>*% v = new vector<int>.initialize();
     
     return 0;
 }
