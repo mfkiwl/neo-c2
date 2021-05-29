@@ -4123,7 +4123,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
         for(i=0; i<num_params; i++) {
             BOOL readonly = FALSE;
-            if(!add_variable_to_table(info2.lv_table, param_names[i], param_types[i], readonly, NULL, -1, FALSE, param_types[i]->mConstant))
+            if(!add_variable_to_table(info2.lv_table, param_names[i], fun->mParamTypes[i], readonly, NULL, -1, FALSE, param_types[i]->mConstant))
             {
                 compile_err_msg(info, "overflow variable table");
                 return FALSE;
@@ -4166,7 +4166,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
             LLVMBuildStore(gBuilder, llvm_params[i], param);
 
-            if(param_types[i]->mHeap) {
+            if(fun->mParamTypes[i]->mHeap) {
                 remove_object_from_right_values(llvm_params[i]);
             }
 

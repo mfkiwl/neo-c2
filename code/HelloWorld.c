@@ -336,6 +336,38 @@ impl GData<T>
 
         return self;
     }
+
+    void fun(GData<T>* self, char* a)
+    {
+    }
+    void fun2(GData<T>* self, char*% a)
+    {
+    }
+}
+
+inline void inline_funX(char* a)
+{
+    puts(a);
+}
+
+inline void inline_funX2(char*% a)
+{
+    puts(a);
+}
+
+void normal_fun(char* a)
+{
+    puts(a);
+}
+
+void normal_fun2(char*% a)
+{
+    puts(a);
+}
+
+char*% get_char()
+{
+    return new char[123];
 }
 
 int main()
@@ -702,7 +734,45 @@ test_label:
 
     GData<int>*% xvi = new GData<int>.initialize();
 
-    xassert("new test", xvi.data == 123);
+    xassert("xvi", xvi.data == 123);
+
+    xvi.fun(new char[123]);
+    xvi.fun2(new char[123]);
+
+    char*% xy = new char[123];
+
+    xvi.fun(xy);
+    xvi.fun2(xy);
+
+    xvi.fun(get_char());
+    xvi.fun2(get_char());
+
+    normal_fun(new char[123]);
+    normal_fun2(new char[123]);
+
+    char*% azizi = new char[123];
+
+    normal_fun(azizi);
+    normal_fun2(azizi);
+
+    normal_fun(get_char());
+    normal_fun2(get_char());
+
+    char*% bzizi = new char[123];
+    char*% czizi = bzizi;
+    normal_fun2(czizi);
+
+    inline_funX(new char[123]);
+    inline_funX2(new char[123]);
+
+    inline_funX(get_char());
+    inline_funX2(get_char());
+
+    char*% aazizizizizzizi = new char[123];
+    inline_funX(aazizizizizzizi);
+
+    char*% bbziziizizizizizzi = new char[123];
+    inline_funX2(bbziziizizizizizzi);
 
     return 0;
 }
