@@ -1625,16 +1625,20 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
         for(i=0; i<block->mNumNodes; i++) {
             unsigned int node = block->mNodes[i];
 
-            if(info->in_generics) {
+            if(info->in_generics_function) {
                 xstrncpy(info->sname, info->generics_sname, PATH_MAX);
                 info->sline = info->generics_sline;
+            }
+            else if(info->in_inline_function) {
+                xstrncpy(info->sname, info->generics_sname, PATH_MAX);
+                info->sline = info->inline_sline;
             }
             else {
                 xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
                 info->sline = gNodes[node].mLine;
             }
 
-            if(gNCDebug && !info->in_generics) {
+            if(gNCDebug && !info->in_generics_function && !info->in_inline_function) {
                 setCurrentDebugLocation(info->sline, info);
             }
 
@@ -3903,7 +3907,7 @@ BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_
         xstrncpy(cinfo.generics_sname, info->sname, PATH_MAX);
         cinfo.generics_sline = info->sline;
 
-        cinfo.in_generics = TRUE;
+        cinfo.in_generics_function = TRUE;
 
         if(!compile(node, &cinfo)) {
             return FALSE;
@@ -4180,6 +4184,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
         BOOL in_inline_function = info->in_inline_function;
         info->in_inline_function = TRUE;
+        info->inline_sline = info->sline;
 
         if(!compile_block(node_block, info, result_type)) {
             return FALSE;
@@ -4404,27 +4409,9 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     xstrncpy(gFunctionName, fun_name, VAR_NAME_MAX);
 
     LLVMBasicBlockRef entry = LLVMAppendBasicBlockInContext(gContext, llvm_fun, "entry");
-
     llvm_change_block(entry, info);
 
-    for(i=0; i<num_params; i++) {
-        LLVMValueRef param = LLVMGetParam(llvm_fun, i);
-
-        char* name = params[i].mName;
-        sNodeType* type_ = params[i].mType;
-
-        sVar* var = get_variable_from_table(block_var_table, name);
-
-        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(type_);
-
-        LVALUE llvm_value;
-        llvm_value.value = LLVMBuildAlloca(gBuilder, llvm_type, name);
-
-        LLVMBuildStore(gBuilder, param, llvm_value.value);
-
-        var->mLLVMValue = llvm_value.value;
-        var->mConstant = FALSE;
-    }
+    BOOL empty_function = node_block->mNumNodes == 0;
 
     char* block_text = NULL;
 
@@ -4442,19 +4429,41 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
     sFunction* fun = get_function_from_table(fun_name);
 
-    BOOL empty_function = node_block->mNumNodes == 0;
-
-    if(gNCDebug && !info->in_generics && !empty_function) {
+    if(gNCDebug && !info->in_generics_function && !empty_function) {
         int sline = gNodes[node].mLine;
         createDebugFunctionInfo(sline, fun_name, fun, llvm_fun, gFName, info);
     }
+
+    for(i=0; i<num_params; i++) {
+        LLVMValueRef param = LLVMGetParam(llvm_fun, i);
+
+        char* name = params[i].mName;
+        sNodeType* type_ = params[i].mType;
+
+        sVar* var = get_variable_from_table(block_var_table, name);
+
+        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(type_);
+
+        if(gNCDebug && !info->in_generics_function && !info->in_inline_function) {
+            setCurrentDebugLocation(info->sline, info);
+        }
+
+        LVALUE llvm_value;
+        llvm_value.value = LLVMBuildAlloca(gBuilder, llvm_type, name);
+
+        LLVMBuildStore(gBuilder, param, llvm_value.value);
+
+        var->mLLVMValue = llvm_value.value;
+        var->mConstant = FALSE;
+    }
+
 
     if(!compile_block(node_block, info, result_type)) {
         info->function_node_block = function_node_block;
         return FALSE;
     }
 
-    if(gNCDebug && !info->in_generics && !empty_function) {
+    if(gNCDebug && !info->in_generics_function && !empty_function) {
         finishDebugFunctionInfo();
     }
 
@@ -8410,7 +8419,7 @@ static BOOL compile_nodes(unsigned int node, sCompileInfo* info)
         xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
         info->sline = gNodes[node].mLine;
 
-        if(gNCDebug && !info->in_generics) {
+        if(gNCDebug && !info->in_generics_function && !info->in_inline_function) {
             setCurrentDebugLocation(info->sline, info);
         }
 

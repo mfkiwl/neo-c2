@@ -448,6 +448,7 @@ struct sCompileInfoStruct
     struct sNodeBlockStruct* function_node_block;
 
     BOOL in_inline_function;
+    int inline_sline;
 
     BOOL has_block_result;
 
@@ -457,7 +458,7 @@ struct sCompileInfoStruct
     LLVMMetadataRef function_meta_data;
     LLVMValueRef inline_result_variable;
 
-    BOOL in_generics;
+    BOOL in_generics_function;
     char generics_sname[PATH_MAX];
     int generics_sline;
 
