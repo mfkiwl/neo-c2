@@ -396,6 +396,13 @@ extern char gMainModulePath[PATH_MAX];
 //////////////////////////////
 /// node.c
 //////////////////////////////
+struct sRightValueObject {
+    LLVMValueRef obj;
+    sNodeType* node_type;
+    struct sRightValueObject* next;
+    char fun_name[VAR_NAME_MAX];
+};
+
 struct sCompileInfoStruct
 {
     BOOL no_output;
@@ -423,8 +430,6 @@ struct sCompileInfoStruct
 
     void* result_variable;
 
-    LLVMBasicBlockRef inline_func_end;
-
     BOOL last_expression_is_return;
     void* loop_end_block[LOOP_NEST_MAX];
     int num_loop;
@@ -441,14 +446,13 @@ struct sCompileInfoStruct
 
     BOOL prevent_from_free_right_value_objects;
 
-    void* right_value_objects;
-
     struct sNodeBlockStruct* current_node_block;
 
     struct sNodeBlockStruct* function_node_block;
 
     BOOL in_inline_function;
     int inline_sline;
+    LLVMBasicBlockRef inline_func_end;
 
     BOOL has_block_result;
 
@@ -463,6 +467,8 @@ struct sCompileInfoStruct
     int generics_sline;
 
     LLVMBasicBlockRef block_after_creating_generics;
+
+    struct sRightValueObject* right_value_objects;
 };
 
 typedef struct sCompileInfoStruct sCompileInfo;

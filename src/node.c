@@ -17,33 +17,36 @@ char gFunctionName[VAR_NAME_MAX];
 LVALUE* gLLVMStack;
 LVALUE* gLLVMStackHead;
 
-struct sRightValueObject {
-    LLVMValueRef obj;
-    sNodeType* node_type;
-    struct sRightValueObject* next;
-    char fun_name[VAR_NAME_MAX];
-};
+void clear_right_value_objects(sCompileInfo* info)
+{
+    struct sRightValueObject* it = info->right_value_objects;
+    while(it) {
+        struct sRightValueObject* it_next = it->next;
+        free(it);
+        it = it_next;
+    }
 
-struct sRightValueObject* gRightValueObjects;
+    info->right_value_objects = NULL;
+}
 
 void append_object_to_right_values(LLVMValueRef obj, sNodeType* node_type, sCompileInfo* info)
 {
     struct sRightValueObject* new_list_item = calloc(1, sizeof(struct sRightValueObject));
     new_list_item->obj = obj;
     new_list_item->node_type = clone_node_type(node_type);
-    new_list_item->next = gRightValueObjects;
+    new_list_item->next = info->right_value_objects;
     xstrncpy(new_list_item->fun_name, gFunctionName, VAR_NAME_MAX);
-    gRightValueObjects = new_list_item;
+    info->right_value_objects = new_list_item;
 }
 
-void remove_object_from_right_values(LLVMValueRef obj)
+void remove_object_from_right_values(LLVMValueRef obj, sCompileInfo* info)
 {
-    struct sRightValueObject* it = gRightValueObjects;
+    struct sRightValueObject* it = info->right_value_objects;
     struct sRightValueObject* it_before = NULL;
     while(it) {
         if(it->obj == obj) {
             if(it_before == NULL) {
-                gRightValueObjects = it->next;
+                info->right_value_objects = it->next;
             }
             else {
                 it_before->next = it->next;
@@ -52,6 +55,47 @@ void remove_object_from_right_values(LLVMValueRef obj)
         }
         it_before = it;
         it = it->next;
+    }
+}
+
+void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info);
+
+void free_right_value_objects(sCompileInfo* info)
+{
+    struct sRightValueObject* it = info->right_value_objects;
+
+    while(it) {
+        struct sRightValueObject* it_next = it->next;
+        if(strcmp(it->fun_name, gFunctionName) == 0) {
+            sNodeType* node_type = clone_node_type(it->node_type);
+
+            if(is_typeof_type(node_type))
+            {
+                if(!solve_typeof(&node_type, info))
+                {
+                    compile_err_msg(info, "Can't solve typeof types");
+                    show_node_type(node_type);
+                    info->err_num++;
+                    return;
+                }
+            }
+
+            if(info->generics_type) {
+                if(!solve_generics(&node_type, info->generics_type)) 
+                {
+                    compile_err_msg(info, "Can't solve generics types(3)");
+                    show_node_type(node_type);
+                    show_node_type(info->generics_type);
+                    info->err_num++;
+
+                    return;
+                }
+            }
+
+            free_object(node_type, it->obj, info);
+        }
+
+        it = it_next;
     }
 }
 
@@ -136,28 +180,92 @@ void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
         LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
 
         /// remove right value objects from list
-        remove_object_from_right_values(obj);
+        remove_object_from_right_values(obj, info);
     }
 }
 
-void free_right_value_objects(sCompileInfo* info)
+
+
+LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type);
+
+LLVMValueRef clone_object(sNodeType* node_type, LLVMValueRef address, sCompileInfo* info)
 {
-    struct sRightValueObject* it = gRightValueObjects;
-    struct sRightValueObject* it_next = NULL;
-    while(it) {
-        it_next = it->next;
-        if(strcmp(it->fun_name, gFunctionName) == 0) {
-            free_object(it->node_type, it->obj, info);
+    sCLClass* klass = node_type->mClass;
+
+    LLVMValueRef obj = LLVMBuildLoad(gBuilder, address, "obj");
+
+    if(node_type->mHeap && node_type->mPointerNum > 0) {
+        sCLClass* klass = node_type->mClass;
+
+        char* class_name = CLASS_NAME(klass);
+
+        char fun_name[VAR_NAME_MAX];
+        snprintf(fun_name, VAR_NAME_MAX, "%s_clone", class_name);
+
+        sFunction* cloner = get_function_from_table(fun_name);
+
+        if(cloner != NULL) {
+            if(cloner->mGenericsFunction) {
+                LLVMValueRef llvm_fun = NULL;
+
+                if(!create_generics_function(&llvm_fun, cloner, fun_name, node_type, info)) {
+                    fprintf(stderr, "can't craete generics finalizer %s\n", fun_name);
+                    exit(1);
+                }
+
+                int num_params = 1;
+
+                LLVMValueRef llvm_params[PARAMS_MAX];
+                memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
+
+                llvm_params[0] = obj;
+
+                obj = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
+            }
+            else {
+                int num_params = 1;
+
+                LLVMValueRef llvm_params[PARAMS_MAX];
+                memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
+
+                llvm_params[0] = obj;
+
+                LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
+                obj = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
+            }
         }
-        it = it_next;
+        else {
+            /// ncmemdup ///
+            int num_params = 1;
+
+            LLVMValueRef llvm_params[PARAMS_MAX];
+            memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
+
+            char* fun_name2 = "ncmemdup";
+
+            LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
+
+            LLVMValueRef llvm_value = LLVMBuildCast(gBuilder, LLVMBitCast, obj, llvm_type, "castA");
+
+            llvm_params[0] = llvm_value;
+
+            LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name2);
+            obj = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
+
+            LLVMTypeRef llvm_type2 = create_llvm_type_from_node_type(node_type);
+
+            obj = LLVMBuildCast(gBuilder, LLVMBitCast, obj, llvm_type2, "cast");
+        }
     }
+
+    return obj;
 }
+
 
 LLVMTypeRef create_llvm_type_with_class_name(char* class_name);
 
 BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body);
 BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names);
-LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type);
 BOOL create_generics_struct_type(sNodeType* node_type);
 
 void init_nodes(char* sname)
@@ -177,8 +285,6 @@ void init_nodes(char* sname)
         gSizeNodes = node_size;
         gUsedNodes = 1;   // 0 of index means null
     }
-
-    gRightValueObjects = NULL;
 
     if(gNCDebug) {
         gDIBuilder = LLVMCreateDIBuilder(gModule);
@@ -590,14 +696,6 @@ void free_nodes(char* sname)
 
         gSizeNodes = 0;
         gUsedNodes = 0;
-    }
-
-    struct sRightValueObject* it = gRightValueObjects;
-    struct sRightValueObject* it_next = NULL;
-    while(it) {
-        it_next = it->next;
-        free(it);
-        it = it_next;
     }
 }
 
@@ -1060,7 +1158,10 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
     }
 
     if(result_type == NULL) {
-        fprintf(stderr, "invalid type %s\n", class_name);
+        fprintf(stderr, "invalid type %s(1)\n", class_name);
+        int a = 0;
+        int b = 1;
+        int c = b/a;
         exit(1);
     }
 
@@ -1130,6 +1231,12 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
                 LLVMValueRef cmp_right_value = LLVMConstInt(llvm_type, 0, FALSE);
                 rvalue->value = LLVMBuildICmp(gBuilder, LLVMIntNE, rvalue->value, cmp_right_value, "icmp");
             }
+            else if((*right_type)->mPointerNum > 0) {
+                LLVMTypeRef llvm_type = create_llvm_type_from_node_type(*right_type);
+
+                LLVMValueRef cmp_right_value = LLVMConstNull(llvm_type);
+                rvalue->value = LLVMBuildICmp(gBuilder, LLVMIntNE, rvalue->value, cmp_right_value, "icmp");
+            }
 
             rvalue->type = create_node_type_with_class_name("bool");
         }
@@ -1173,12 +1280,23 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
                 rvalue->value = LLVMBuildTrunc(gBuilder, rvalue->value, llvm_type, "icast");
             }
+            else if((*right_type)->mPointerNum > 0) {
+                if(rvalue) {
+                    LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+                    rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castB");
+                    rvalue->type = clone_node_type(left_type);
+                }
+
+                *right_type = clone_node_type(left_type);
+            }
 
             rvalue->type = create_node_type_with_class_name("int");
         }
 
         *right_type = create_node_type_with_class_name("int");
     }
+    /// va_list ///
     else if(type_identify_with_class_name(left_type, "char*") && (type_identify_with_class_name(*right_type, "va_list") || type_identify_with_class_name(*right_type, "__builtin_va_list")))
     {
         if(rvalue) {
@@ -1602,7 +1720,7 @@ void compile_err_msg(sCompileInfo* info, const char* msg, ...)
     output_num++;
 }
 
-BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type)
+BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type, BOOL no_clear_right_value_objects)
 {
     int sline_before = info->pinfo->sline;
 
@@ -1614,6 +1732,10 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
     int stack_num_before = info->stack_num;
 
     BOOL last_expression_is_return = FALSE;
+
+    if(!no_clear_right_value_objects) {
+        clear_right_value_objects(info);
+    }
 
     if(block->mNumNodes == 0) {
         free_right_value_objects(info);
@@ -1642,7 +1764,6 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
                 setCurrentDebugLocation(info->sline, info);
             }
 
-
             if(!compile(node, info)) {
                 info->pinfo->lv_table = old_table;
                 return FALSE;
@@ -1658,6 +1779,7 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
             arrange_stack(info, stack_num_before);
             free_right_value_objects(info);
         }
+
 
         info->last_expression_is_return = last_expression_is_return;
     }
@@ -3131,7 +3253,7 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
-    sNodeType* var_type = clone_node_type(var->mType);
+    sNodeType* var_type = var->mType;
 
     if(is_typeof_type(var_type))
     {
@@ -3158,7 +3280,7 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
     }
 
     if(!create_generics_struct_type(var_type)) {
-        compile_err_msg(info, "invalid type %s", var_name);
+        compile_err_msg(info, "invalid type %s(2)", var_name);
         info->err_num++;
 
         info->type = create_node_type_with_class_name("int"); // dummy
@@ -3319,11 +3441,11 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
     sNodeType* left_type = NULL;
     if(var->mType == NULL) {
         right_type->mStatic = FALSE;
-        left_type = clone_node_type(right_type);
         var->mType = clone_node_type(right_type);
+        left_type = var->mType;
     }
     else {
-        left_type = clone_node_type(var->mType);
+        left_type = var->mType;
     }
 
     BOOL static_ = var->mType->mStatic;
@@ -3353,7 +3475,7 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
     }
 
     if(!create_generics_struct_type(left_type)) {
-        compile_err_msg(info, "invalid type %s", var_name);
+        compile_err_msg(info, "invalid type %s(3)", var_name);
         info->err_num++;
 
         info->type = create_node_type_with_class_name("int"); // dummy
@@ -3410,7 +3532,7 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
             info->type = left_type;
 
             if(left_type->mHeap) {
-                remove_object_from_right_values(rvalue.value);
+                remove_object_from_right_values(rvalue.value, info);
             }
         }
         else if(static_) {
@@ -3437,7 +3559,7 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
                 info->type = left_type;
 
                 if(left_type->mHeap) {
-                    remove_object_from_right_values(rvalue.value);
+                    remove_object_from_right_values(rvalue.value, info);
                 }
             }
         }
@@ -3447,7 +3569,7 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
             info->type = left_type;
 
             if(left_type->mHeap) {
-                remove_object_from_right_values(rvalue.value);
+                remove_object_from_right_values(rvalue.value, info);
             }
         }
         else {
@@ -3468,7 +3590,7 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
             info->type = left_type;
 
             if(left_type->mHeap) {
-                remove_object_from_right_values(rvalue.value);
+                remove_object_from_right_values(rvalue.value, info);
             }
         }
     }
@@ -3611,7 +3733,7 @@ static BOOL compile_external_function(unsigned int node, sCompileInfo* info)
         sNodeType* param_type = params[i].mType;
 
         if(!create_generics_struct_type(param_type)) {
-            compile_err_msg(info, "invalid type %s", param_names[i]);
+            compile_err_msg(info, "invalid type %s(4)", param_names[i]);
             info->err_num++;
 
             info->type = create_node_type_with_class_name("int"); // dummy
@@ -3739,6 +3861,7 @@ void create_generics_fun_name(char* real_fun_name, int size_real_fun_name, char*
             xstrncat(real_fun_name, "_", size_real_fun_name);
         }
     }
+
 }
 
 BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_name, sNodeType* generics_type, sCompileInfo* info)
@@ -3993,6 +4116,13 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
         xstrncpy(struct_name, CLASS_NAME(param_types[0]->mClass), VAR_NAME_MAX);
 
+/*
+        int i;
+        for(i=0; i<param_types[0]->mPointerNum; i++) {
+            xstrncat(struct_name, "p", VAR_NAME_MAX);
+        }
+*/
+
         char method_name[VAR_NAME_MAX];
         snprintf(method_name, VAR_NAME_MAX, "%s_%s", struct_name, fun_name);
 
@@ -4070,7 +4200,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     if(fun->mGenericsFunction) {
         for(i=0; i<num_params; i++) {
             if(fun->mParamTypes[i]->mHeap) {
-                remove_object_from_right_values(llvm_params[i]);
+                remove_object_from_right_values(llvm_params[i], info);
             }
         }
 
@@ -4176,7 +4306,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
             LLVMBuildStore(gBuilder, llvm_params[i], param);
 
             if(fun->mParamTypes[i]->mHeap) {
-                remove_object_from_right_values(llvm_params[i]);
+                remove_object_from_right_values(llvm_params[i], info);
             }
 
             var->mLLVMValue = param;
@@ -4186,13 +4316,16 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         info->in_inline_function = TRUE;
         info->inline_sline = info->sline;
 
-        if(!compile_block(node_block, info, result_type)) {
+        LLVMBasicBlockRef inline_func_end_before = info->inline_func_end;
+        LLVMBasicBlockRef inline_func_end = LLVMAppendBasicBlockInContext(gContext, gFunction, "inline_func_end");
+        info->inline_func_end = inline_func_end;
+
+        BOOL no_clear_right_value_objects = TRUE;
+        if(!compile_block(node_block, info, result_type, no_clear_right_value_objects)) {
             return FALSE;
         }
 
         info->in_inline_function = in_inline_function;
-
-        LLVMBasicBlockRef inline_func_end = LLVMAppendBasicBlockInContext(gContext, gFunction, "inline_func_end");
 
         LLVMBuildBr(gBuilder, inline_func_end);
         llvm_change_block(inline_func_end, info);
@@ -4222,12 +4355,13 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         info->type = clone_node_type(result_type);
 
         info->inline_result_variable = inline_result_variable;
+        info->inline_func_end = inline_func_end_before;
     }
     /// call normal function ///
     else {
         for(i=0; i<fun->mNumParams; i++) {
             if(fun->mParamTypes[i]->mHeap) {
-                remove_object_from_right_values(llvm_params[i]);
+                remove_object_from_right_values(llvm_params[i], info);
             }
         }
 
@@ -4257,6 +4391,29 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
             if(result_type->mHeap) {
                 append_object_to_right_values(llvm_value.value, result_type, info);
             }
+        }
+    }
+
+    if(is_typeof_type(info->type))
+    {
+        if(!solve_typeof(&info->type, info)) 
+        {
+            compile_err_msg(info, "Can't solve typeof types");
+            show_node_type(info->type); 
+            info->err_num++;
+            return TRUE;
+        }
+    }
+
+    if(generics_type) {
+        if(!solve_generics(&info->type, generics_type))
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(info->type);
+            show_node_type(generics_type);
+            info->err_num++;
+
+            return FALSE;
         }
     }
 
@@ -4371,7 +4528,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         }
 
         if(!create_generics_struct_type(param_types[i])) {
-            compile_err_msg(info, "invalid type %s", param_names[i]);
+            compile_err_msg(info, "invalid type %s(5)", param_names[i]);
             info->err_num++;
 
             info->type = create_node_type_with_class_name("int"); // dummy
@@ -4457,8 +4614,8 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         var->mConstant = FALSE;
     }
 
-
-    if(!compile_block(node_block, info, result_type)) {
+    BOOL no_clear_right_value_objects = FALSE;
+    if(!compile_block(node_block, info, result_type, no_clear_right_value_objects)) {
         info->function_node_block = function_node_block;
         return FALSE;
     }
@@ -4467,7 +4624,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         finishDebugFunctionInfo();
     }
 
-    if(type_identify_with_class_name(result_type, "void")) {
+    if(type_identify_with_class_name(result_type, "void") && result_type->mPointerNum == 0) {
         LLVMBuildRet(gBuilder, NULL);
     }
     else {
@@ -4912,13 +5069,14 @@ static BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
         int i;
         for(i=0; i<elif_num; i++) {
             char buf[128];
-            snprintf(buf, 128, "cond_jump_elif%d\n", i);
+            snprintf(buf, 128, "cond_jump_elif%d", i);
 
             cond_elif_block[i] = LLVMAppendBasicBlockInContext(gContext, gFunction, buf);
 
-            snprintf(buf, 128, "cond_jump_elif_then%d\n", i);
+            char buf2[128];
+            snprintf(buf2, 128, "cond_jump_elif_then%d", i);
 
-            cond_elif_then_block[i] = LLVMAppendBasicBlockInContext(gContext, gFunction, buf);
+            cond_elif_then_block[i] = LLVMAppendBasicBlockInContext(gContext, gFunction, buf2);
         }
     }
 
@@ -4945,7 +5103,8 @@ static BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
     BOOL last_expression_is_return_before = info->last_expression_is_return;
     info->last_expression_is_return = FALSE;
 
-    if(!compile_block(if_block, info, result_type)) {
+    BOOL no_clear_right_value_objects = FALSE;
+    if(!compile_block(if_block, info, result_type, no_clear_right_value_objects)) {
         return FALSE;
     }
 
@@ -5015,7 +5174,8 @@ static BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
             BOOL last_expression_is_return_before = info->last_expression_is_return;
             info->last_expression_is_return = FALSE;
 
-            if(!compile_block(elif_node_block, info, result_type)) 
+            BOOL no_clear_right_value_objects = FALSE;
+            if(!compile_block(elif_node_block, info, result_type, no_clear_right_value_objects)) 
             {
                 return FALSE;
             }
@@ -5034,7 +5194,8 @@ static BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
         BOOL last_expression_is_return_before = info->last_expression_is_return;
         info->last_expression_is_return = FALSE;
 
-        if(!compile_block(else_node_block, info, result_type)) 
+        BOOL no_clear_right_value_objects = FALSE;
+        if(!compile_block(else_node_block, info, result_type, no_clear_right_value_objects)) 
         {
             return FALSE;
         }
@@ -5232,7 +5393,7 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
     }
 
     if(!create_generics_struct_type(node_type2)) {
-        compile_err_msg(info, "invalid type %s", CLASS_NAME(node_type2->mClass));
+        compile_err_msg(info, "invalid type %s(6)", CLASS_NAME(node_type2->mClass));
         info->err_num++;
 
         info->type = create_node_type_with_class_name("int"); // dummy
@@ -5425,7 +5586,7 @@ static BOOL compile_borrow(unsigned int node, sCompileInfo* info)
 
     llvm_value.type->mHeap = FALSE;
 
-    remove_object_from_right_values(llvm_value.value);
+    remove_object_from_right_values(llvm_value.value, info);
 
     push_value_to_stack_ptr(&llvm_value, info);
 
@@ -6128,7 +6289,8 @@ static BOOL compile_while_expression(unsigned int node, sCompileInfo* info)
 
     sNodeType* result_type = create_node_type_with_class_name("void");
 
-    if(!compile_block(while_node_block, info, result_type)) {
+    BOOL no_clear_right_value_objects = FALSE;
+    if(!compile_block(while_node_block, info, result_type, no_clear_right_value_objects)) {
         return FALSE;
     }
 
@@ -6216,8 +6378,9 @@ static BOOL compile_do_while_expression(unsigned int node, sCompileInfo* info)
     sNodeBlock* current_node_block = info->current_node_block;
     info->current_node_block = while_node_block;
 
+    BOOL no_clear_right_value_objects = FALSE;
     sNodeType* result_type = create_node_type_with_class_name("void");
-    if(!compile_block(while_node_block, info, result_type)) {
+    if(!compile_block(while_node_block, info, result_type, no_clear_right_value_objects)) {
         return FALSE;
     }
 
@@ -6733,7 +6896,8 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
     /// block of for expression ///
     sNodeType* result_type = create_node_type_with_class_name("void");
-    if(!compile_block(for_block, info, result_type))
+    BOOL no_clear_right_value_objects = FALSE;
+    if(!compile_block(for_block, info, result_type, no_clear_right_value_objects))
     {
         info->num_loop--;
         info->pinfo->lv_table = lv_table_before;
@@ -7025,6 +7189,44 @@ unsigned int sNodeTree_create_clone(unsigned int left, sParserInfo* info)
 
 static BOOL compile_clone(unsigned int node, sCompileInfo* info)
 {
+    unsigned int left_node = gNodes[node].mLeft;
+
+    if(!compile(left_node, info)) {
+        return FALSE;
+    }
+
+    LVALUE lvalue = *get_value_from_stack(-1);
+
+    if(lvalue.address == NULL) {
+        compile_err_msg(info, "Can't get address of this value on clone operator");
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+        return TRUE;
+    }
+
+    sNodeType* left_type = clone_node_type(info->type);
+    sNodeType* left_type2 = clone_node_type(left_type);
+    left_type2->mHeap = TRUE;
+
+    LLVMValueRef obj = clone_object(left_type, lvalue.address, info);
+
+    dec_stack_ptr(1, info);
+
+    LVALUE llvm_value;
+    llvm_value.value = obj;
+    llvm_value.type = clone_node_type(left_type2);
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    append_object_to_right_values(llvm_value.value, left_type2, info);
+
+    info->type = clone_node_type(left_type2);
+
     return TRUE;
 }
 
@@ -8115,29 +8317,35 @@ static BOOL compile_return(unsigned int node, sCompileInfo* info)
 
         LVALUE llvm_value = *get_value_from_stack(-1);
 
+        if(llvm_value.type->mHeap) {
+            remove_object_from_right_values(llvm_value.value, info);
+        }
+
+        free_right_value_objects(info);
+
         if(info->in_inline_function) {
             free_objects_on_return(info->function_node_block, info, llvm_value.address, FALSE);
             LLVMBuildStore(gBuilder, llvm_value.value, info->inline_result_variable);
+            LLVMBuildBr(gBuilder, info->inline_func_end);
         }
         else {
             free_objects_on_return(info->function_node_block, info, llvm_value.address, TRUE);
             LLVMBuildRet(gBuilder, llvm_value.value);
         }
 
-        if(llvm_value.type->mHeap) {
-            remove_object_from_right_values(llvm_value.value);
-        }
-
         dec_stack_ptr(1, info);
     }
     else {
+        free_right_value_objects(info);
+
         if(info->in_inline_function) {
             free_objects_on_return(info->function_node_block, info, NULL, FALSE);
+            LLVMBuildBr(gBuilder, info->inline_func_end);
         }
         else {
             free_objects_on_return(info->function_node_block, info, NULL, TRUE);
+            LLVMBuildRet(gBuilder, NULL);
         }
-        LLVMBuildRet(gBuilder, NULL);
 
         info->type = create_node_type_with_class_name("void");
     }
@@ -8743,7 +8951,8 @@ BOOL compile_normal_block(unsigned int node, sCompileInfo* info)
 
     sNodeType* result_type = create_node_type_with_class_name("void");
 
-    if(!compile_block(node_block, info, result_type))
+    BOOL no_clear_right_value_objects = FALSE;
+    if(!compile_block(node_block, info, result_type, no_clear_right_value_objects))
     {
         return FALSE;
     }

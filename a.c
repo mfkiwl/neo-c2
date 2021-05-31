@@ -1,34 +1,27 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-/*
-void xassert(const char* msg, bool exp)
+char*% get_char()
 {
-    printf(msg);
-    printf("...");
-
-    if(exp) {
-        puts("ok");
-    }
-    else {
-        puts("false");
-        exit(2);
-    }
+    return new char[123];
 }
-*/
 
-char* string(char* str)
+inline void inline_funX(char* a)
 {
-    int len = strlen(str) + 1;
-    char* msg = calloc(len, sizeof(char));
+    int b = 123;
+}
 
-    strncpy(msg, str, len);
-
-    return msg;
+inline void inline_funX2(char*% a)
+{
+    int c = 123;
 }
 
 int main()
 {
+    inline_funX(new char[123]);
+    inline_funX2(new char[123]);
+
+    inline_funX(get_char());
+    inline_funX2(get_char());
+
     return 0;
 }

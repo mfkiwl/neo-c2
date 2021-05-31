@@ -2,6 +2,7 @@
 
 int main()
 {
+/*
     xassert("xaasert test", true);
 
     xassert("xsprintf test", strcmp(xsprintf("AAA"), "AAA") == 0);
@@ -15,6 +16,59 @@ int main()
     v.push_back(3);
 
     xassert("vector test1", v.item(0, -1) == 1 && v.item(1, -1) == 2 && v.item(2, -1) == 3 && v.item(100, -1) == -1 && v.length() == 3);
-    
+
+    v.replace(0, 7);
+
+    xassert("vector test2", v.item(0, -1) == 7);
+
+    foreach(it, v) {
+        printf("%d\n", it);
+    }
+
+    list<int>*% l = new list<int>.initialize();
+
+    xassert("list test1", l.length() == 0);
+
+    l.push_back(1);
+    l.push_back(2);
+    l.push_back(3);
+
+    xassert("list test2", l.length() == 3 && l.item(0, -1) == 1 && l.item(1, -1) == 2 && l.item(2, -1) == 3);
+
+    l.insert(0,0);
+
+    xassert("list test3", l.length() == 4 && l.item(0, -1) == 0 && l.item(1, -1) == 1 && l.item(2, -1) == 2 && l.item(3, -1) == 3);
+
+    l.delete(0, 1);
+
+    xassert("list test4", l.length() == 3 && l.item(0, -1) == 1 && l.item(1, -1) == 2 && l.item(2, -1) == 3);
+
+    l.replace(0, 7);
+
+    xassert("list test5", l.length() == 3 && l.item(0, -1) == 7 && l.item(1, -1) == 2 && l.item(2, -1) == 3);
+
+    list<int>*% l2 = l.sublist(1,-1);
+
+    xassert("list test6", l2.length() == 2 && l2.item(0, -1) == 2 && l2.item(1, -1) == 3);
+
+    list<int>*% l3 = l2.reverse();
+
+    xassert("list test7", l3.length() == 2 && l3.item(0, -1) == 3 && l3.item(1, -1) == 2);
+*/
+
+    list<int>*% l4 = new list<int>.initialize();
+
+    l4.push_back(3);
+    l4.push_back(1);
+    l4.push_back(2);
+
+    list<int>*% l5 = l4.sort();
+
+/*
+    foreach(it, l5) {
+        printf("%d\n", it);
+    }
+*/
+
     return 0;
 }
