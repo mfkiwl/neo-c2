@@ -2,7 +2,6 @@
 
 int main()
 {
-/*
     xassert("xaasert test", true);
 
     xassert("xsprintf test", strcmp(xsprintf("AAA"), "AAA") == 0);
@@ -54,7 +53,6 @@ int main()
     list<int>*% l3 = l2.reverse();
 
     xassert("list test7", l3.length() == 2 && l3.item(0, -1) == 3 && l3.item(1, -1) == 2);
-*/
 
     list<int>*% l4 = new list<int>.initialize();
 
@@ -64,11 +62,9 @@ int main()
 
     list<int>*% l5 = l4.sort();
 
-/*
     foreach(it, l5) {
         printf("%d\n", it);
     }
-*/
 
     return 0;
 }

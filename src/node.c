@@ -121,7 +121,7 @@ BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_
 
 void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
 {
-    if(node_type->mHeap && node_type->mPointerNum > 0) {
+    if(node_type->mPointerNum > 0) {
         sCLClass* klass = node_type->mClass;
 
         char* class_name = CLASS_NAME(klass);
@@ -131,7 +131,7 @@ void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
 
         sFunction* finalizer = get_function_from_table(fun_name);
 
-        if(finalizer != NULL) {
+        if(node_type->mHeap && finalizer != NULL) {
             if(finalizer->mGenericsFunction) {
                 LLVMValueRef llvm_fun = NULL;
 
@@ -172,9 +172,9 @@ void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
 
         LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
 
-        LLVMValueRef llvm_value = LLVMBuildCast(gBuilder, LLVMBitCast, obj, llvm_type, "castA");
+        obj = LLVMBuildCast(gBuilder, LLVMBitCast, obj, llvm_type, "castA");
 
-        llvm_params[0] = llvm_value;
+        llvm_params[0] = obj;
 
         LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name2);
         LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
@@ -194,7 +194,7 @@ LLVMValueRef clone_object(sNodeType* node_type, LLVMValueRef address, sCompileIn
 
     LLVMValueRef obj = LLVMBuildLoad(gBuilder, address, "obj");
 
-    if(node_type->mHeap && node_type->mPointerNum > 0) {
+    if(node_type->mPointerNum > 0) {
         sCLClass* klass = node_type->mClass;
 
         char* class_name = CLASS_NAME(klass);
@@ -1777,7 +1777,9 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
             }
 
             arrange_stack(info, stack_num_before);
-            free_right_value_objects(info);
+            if(!last_expression_is_return) {
+                free_right_value_objects(info);
+            }
         }
 
 
@@ -3762,19 +3764,23 @@ static BOOL compile_external_function(unsigned int node, sCompileInfo* info)
     llvm_result_type = create_llvm_type_from_node_type(result_type);
 
     LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
-    LLVMValueRef llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+    LLVMValueRef llvm_fun_already = LLVMGetNamedFunction(gModule, fun_name);
 
-    char* block_text = NULL;
+    if(llvm_fun_already == NULL) {
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
 
-    char* param_names2[PARAMS_MAX];
-    for(i=0; i<PARAMS_MAX; i++) {
-        param_names2[i] = param_names[i];
-    }
+        char* block_text = NULL;
 
-    BOOL generics_function = FALSE;
-    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL)) {
-        fprintf(stderr, "overflow function table\n");
-        return FALSE;
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<PARAMS_MAX; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL)) {
+            fprintf(stderr, "overflow function table\n");
+            return FALSE;
+        }
     }
 
     return TRUE;
@@ -5541,7 +5547,7 @@ static BOOL compile_delete(unsigned int node, sCompileInfo* info)
 
     //node_type->mHeap = TRUE;
 
-    free_object(node_type, llvm_value.address, info);
+    free_object(node_type, llvm_value.value, info);
 
     info->type = create_node_type_with_class_name("void");
 

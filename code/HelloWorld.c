@@ -263,7 +263,7 @@ impl Data <T>
     }
 
     int fun2(Data<T>* self, int a, int b) {
-        Data2<T, char*>* c = Data2<int, char*>();
+        Data2<T, char*>*% c = Data2<int, char*>();
         return c.fun();
     }
 }

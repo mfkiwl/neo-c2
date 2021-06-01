@@ -12,6 +12,20 @@ static void p(char* msg)
     puts(msg)
 }
 
+/*
+static void ncfree(void* mem)
+{
+    free(mem);
+}
+
+static void* nccalloc(size_t nmemb, size_t size)
+{
+    void* result = calloc(nmemb, size);
+
+    return result;
+}
+*/
+
 static void*% ncmemdup(void*% block)
 {
     managed block;
@@ -116,7 +130,7 @@ impl vector<T>
     {
         self.size = 16;
         self.len = 0;
-        self.items = calloc(1, sizeof(T)*self.size);
+        self.items = borrow new T[self.size];
 
         return self;
     }
@@ -130,7 +144,7 @@ impl vector<T>
 
             }
         }
-        free(self.items);
+        delete self.items;
     }
     
     void push_back(vector<T>* self, T item) {
@@ -264,10 +278,8 @@ impl list <T>
     }
 
     void finalize(list<T>* self) {
-printf("%p\n", self);
-        list_item<T>* it = self.head;
+        list_item<T>* it = self->head;
         while(it != null) {
-printf("it %p\n", it);
             if(isheap(T)) {
                 delete it.item;
             }
@@ -277,7 +289,6 @@ printf("it %p\n", it);
         }
     }
     list<T>*% clone(list<T>* self) {
-puts("clone");
         var result = new list<T>.initialize();
 
         list_item<T>* it = self.head;
@@ -305,6 +316,7 @@ puts("clone");
 
         if(self.len == 0) {
             list_item<T>* litem = borrow new list_item<T>;
+
             litem.prev = null;
             litem.next = null;
             litem.item = item;
@@ -715,28 +727,18 @@ puts("clone");
             }
         }
 
-printf("merge_list result %p\n", result);
         return result;
     }
     list<T>*% merge_sort(list<T>* self) {
-p("merge_sort");
-p("1");
-p("2");
-p("3");
-p("4");
         if(self.head == null) {
-puts("LLL");
             return clone self;
         }
         if(self.head.next == null) {
-puts("GGG");
             return clone self;
         }
 
         var list1 = new list<T>.initialize();
         var list2 = new list<T>.initialize();
-
-printf("list1 %p list2 %p\n", list1, list2);
 
         list_item<T>* it = self.head;
 

@@ -470,7 +470,6 @@ void free_objects(sVarTable* table, sCompileInfo* info)
 
 static void free_block_variables(sVarTable* table, LLVMValueRef ret_value, sCompileInfo* info)
 {
-printf("free_block_variables %p\n", table);
     sVar* p = table->mLocalVariables;
 
     while(1) {
@@ -491,7 +490,6 @@ printf("free_block_variables %p\n", table);
                             else {
                                 LLVMValueRef obj = LLVMBuildLoad(gBuilder, p->mLLVMValue, "obj");
                                 free_object(p->mType, obj, info);
-printf("free_object %s %p\n", p->mName, obj);
                             }
                         }
 

@@ -1,27 +1,42 @@
 #include <stdlib.h>
 
-char*% get_char()
+
+struct Data <T>
 {
-    return new char[123];
+    T a;
+    T b;
+};
+
+struct Data2<T,T2>
+{
+    T a;
+    T2 b;
+};
+
+impl Data2<T,T2>
+{
+    int fun(Data2<T,T2>* self) {
+        return 2;
+    }
 }
 
-inline void inline_funX(char* a)
+impl Data <T>
 {
-    int b = 123;
-}
+    int fun(Data<T>* self,int a, int b) {
+        return a+b;
+    }
 
-inline void inline_funX2(char*% a)
-{
-    int c = 123;
+    int fun2(Data<T>* self, int a, int b) {
+        Data2<T, char*>*% c = Data2<int, char*>();
+        return c.fun();
+    }
 }
 
 int main()
 {
-    inline_funX(new char[123]);
-    inline_funX2(new char[123]);
+    Data<int>*% a = new Data<int>;
 
-    inline_funX(get_char());
-    inline_funX2(get_char());
+    a.fun2(1, 2);
 
     return 0;
 }
