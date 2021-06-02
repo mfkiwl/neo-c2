@@ -79,5 +79,15 @@ int main()
         printf("%d\n", it);
     }
 
+    map<string, int>*% m = new map<string, int>.initialize();
+
+/*
+    m.insert(string("AAA"), 1);
+    m.insert(string("BBB"), 2);
+    m.insert(string("CCC"), 3);
+
+    xassert("map test1", m.length() == 3);
+*/
+
     return 0;
 }

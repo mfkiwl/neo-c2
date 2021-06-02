@@ -1225,8 +1225,8 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
     else if(type_identify_with_class_name(left_type, "bool"))
     {
         if(rvalue) {
-            if(type_identify_with_class_name(*right_type, "int")) {
-                LLVMTypeRef llvm_type = create_llvm_type_with_class_name("bool");
+            if(type_identify_with_class_name(*right_type, "int") || type_identify_with_class_name(*right_type, "char") || type_identify_with_class_name(*right_type, "short") || type_identify_with_class_name(*right_type, "long")) {
+                LLVMTypeRef llvm_type = create_llvm_type_from_node_type(*right_type);
 
                 LLVMValueRef cmp_right_value = LLVMConstInt(llvm_type, 0, FALSE);
                 rvalue->value = LLVMBuildICmp(gBuilder, LLVMIntNE, rvalue->value, cmp_right_value, "icmp");
