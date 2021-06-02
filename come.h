@@ -7,12 +7,14 @@
 
 typedef char*% string;
 
+/*
+// for assembler debug
 static void p(char* msg)
 {
     puts(msg)
 }
 
-/*
+ * for printf debug
 static void ncfree(void* mem)
 {
     free(mem);
@@ -94,24 +96,6 @@ inline string xsprintf(char* msg, ...)
     }
 
     return dummy_heap result;
-}
-
-inline int int_compare(int left, int right)
-{
-    if(left < right) {
-        return -1
-    }
-    else if(left > right) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
-
-inline int string_compare(strin left, string right)
-{
-    return strcmp(left, right) == 0;
 }
 
 /// vector ///
@@ -657,11 +641,11 @@ impl list <T>
         return result;
     }
 
-    list<T>*% merge_list(list<T>* left, list<T>* right) {
+    list<T>*% merge_list(list<T>* left, list<T>* right, int (*compare)(T&,T&)) {
         var result = new list<T>.initialize();
 
-        list_item<T>* it = left.head;
-        list_item<T>* it2= right.head;
+        list_item<T>*? it = left.head;
+        list_item<T>*? it2= right.head;
 
         while(true) {
             if(it && it2) {
@@ -671,7 +655,7 @@ impl list <T>
                 else if(it2.item == null) {
                     it2 = it2.next;
                 }
-                else if(it.item.compare(it2.item) <= 0) 
+                else if(compare(it.item, it2.item) <= 0) 
                 {
                     if(isheap(T)) {
                         result.push_back(clone it.item);
@@ -729,7 +713,7 @@ impl list <T>
 
         return result;
     }
-    list<T>*% merge_sort(list<T>* self) {
+    list<T>*% merge_sort(list<T>* self, int (*compare)(T&,T&)) {
         if(self.head == null) {
             return clone self;
         }
@@ -774,10 +758,10 @@ impl list <T>
             }
         }
 
-        return list1.merge_sort().merge_list( list2.merge_sort());
+        return list1.merge_sort(compare).merge_list( list2.merge_sort(compare), compare);
     }
-    list<T>*% sort(list<T>* self) {
-        return self.merge_sort();
+    list<T>*% sort(list<T>* self, int (*compare)(T&,T&)) {
+        return self.merge_sort(compare);
     }
 
     bool equals(list<T>* left, list<T>* right)
