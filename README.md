@@ -232,6 +232,20 @@ inline string xsprintf(char* msg, ...)
     return dummy_heap result;
 }
 
+static string char_reverse(char* str) 
+{
+    int len = strlen(str);
+    string result = new char[len + 1];
+
+    for(int i=0; i<len; i++) {
+        result[i] = str[len-i-1];
+    }
+
+    result[len] = '\0';
+
+    return result;
+}
+
 static string char_substring(char* str, int head, int tail)
 {
     if(str == null) {
@@ -269,22 +283,8 @@ static string char_substring(char* str, int head, int tail)
 
     string result = new char[tail-head+1];
 
-    ncmemcpy(result, str + head, tail-head);
+    memcpy(result, str + head, tail-head);
     result[tail-head] = '\0';
-
-    return result;
-}
-
-static string char_reverse(char* str) 
-{
-    int len = strlen(str);
-    string result = new char[len + 1];
-
-    for(int i=0; i<len; i++) {
-        result[i] = str[len-i-1];
-    }
-
-    result[len] = '\0';
 
     return result;
 }
