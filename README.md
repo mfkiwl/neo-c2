@@ -1217,7 +1217,7 @@ int main(int argc, char** argv)
     l.push_back(1);
     l.push_back(2);
 
-    var l2 = l.sort();
+    var l2 = l.sort(int_compare);
 
     if(l2.item(0, -1) == 1 && l2.item(1, -1) == 2 && l2.item(2, -1) == 7) {
         puts("OK");
