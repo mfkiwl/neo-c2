@@ -81,12 +81,18 @@ int main()
 
     map<string, int>*% m = new map<string, int>.initialize();
 
-/*
     m.insert(string("AAA"), 1);
     m.insert(string("BBB"), 2);
     m.insert(string("CCC"), 3);
 
     xassert("map test1", m.length() == 3);
+    xassert("map test2", m.at(string("AAA"), -1) == 1 && m.at(string("BBB"), -1) == 2 && m.at(string("CCC"), -1) == 3);
+/*
+    xassert("map test3", m.at("AAA", -1) == 1 && m.at("BBB", -1) == 2 && m.at("CCC", -1) == 3);
+
+    foreach(it, m) {
+        puts(it);
+    }
 */
 
     return 0;

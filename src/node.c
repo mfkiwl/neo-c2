@@ -4205,7 +4205,32 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     /// call generics function ///
     if(fun->mGenericsFunction) {
         for(i=0; i<num_params; i++) {
-            if(fun->mParamTypes[i]->mHeap) {
+            sNodeType* node_type = clone_node_type(fun->mParamTypes[i]);
+
+            if(is_typeof_type(node_type))
+            {
+                if(!solve_typeof(&node_type, info)) 
+                {
+                    compile_err_msg(info, "Can't solve typeof types");
+                    show_node_type(node_type);
+                    info->err_num++;
+                    return TRUE;
+                }
+            }
+
+            if(generics_type) {
+                if(!solve_generics(&node_type, generics_type))
+                {
+                    compile_err_msg(info, "Can't solve generics types(3)");
+                    show_node_type(node_type);
+                    show_node_type(generics_type);
+                    info->err_num++;
+
+                    return FALSE;
+                }
+            }
+
+            if(node_type->mHeap) {
                 remove_object_from_right_values(llvm_params[i], info);
             }
         }
@@ -4311,7 +4336,32 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
             LLVMBuildStore(gBuilder, llvm_params[i], param);
 
-            if(fun->mParamTypes[i]->mHeap) {
+            sNodeType* node_type = clone_node_type(fun->mParamTypes[i]);
+
+            if(is_typeof_type(node_type))
+            {
+                if(!solve_typeof(&node_type, info)) 
+                {
+                    compile_err_msg(info, "Can't solve typeof types");
+                    show_node_type(node_type);
+                    info->err_num++;
+                    return TRUE;
+                }
+            }
+
+            if(generics_type) {
+                if(!solve_generics(&node_type, generics_type))
+                {
+                    compile_err_msg(info, "Can't solve generics types(3)");
+                    show_node_type(node_type);
+                    show_node_type(generics_type);
+                    info->err_num++;
+
+                    return FALSE;
+                }
+            }
+
+            if(node_type->mHeap) {
                 remove_object_from_right_values(llvm_params[i], info);
             }
 
@@ -4366,7 +4416,31 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     /// call normal function ///
     else {
         for(i=0; i<fun->mNumParams; i++) {
-            if(fun->mParamTypes[i]->mHeap) {
+            sNodeType* node_type = clone_node_type(fun->mParamTypes[i]);
+
+            if(is_typeof_type(node_type))
+            {
+                if(!solve_typeof(&node_type, info)) 
+                {
+                    compile_err_msg(info, "Can't solve typeof types");
+                    show_node_type(node_type);
+                    info->err_num++;
+                    return TRUE;
+                }
+            }
+
+            if(generics_type) {
+                if(!solve_generics(&node_type, generics_type))
+                {
+                    compile_err_msg(info, "Can't solve generics types(3)");
+                    show_node_type(node_type);
+                    show_node_type(generics_type);
+                    info->err_num++;
+
+                    return FALSE;
+                }
+            }
+            if(node_type->mHeap) {
                 remove_object_from_right_values(llvm_params[i], info);
             }
         }
@@ -4949,6 +5023,29 @@ static BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
     BOOL constant = var->mConstant;
 
     sNodeType* var_type = clone_node_type(var->mType);
+
+    if(is_typeof_type(var_type))
+    {
+        if(!solve_typeof(&var_type, info)) 
+        {
+            compile_err_msg(info, "Can't solve typeof types");
+            show_node_type(var_type); 
+            info->err_num++;
+            return TRUE;
+        }
+    }
+
+    if(info->generics_type) {
+        if(!solve_generics(&var_type, info->generics_type)) 
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(var_type);
+            show_node_type(info->generics_type);
+            info->err_num++;
+
+            return FALSE;
+        }
+    }
 
     LLVMValueRef var_address = var->mLLVMValue;
 
@@ -6163,6 +6260,18 @@ static BOOL compile_load_field(unsigned int node, sCompileInfo* info)
             info->type = create_node_type_with_class_name("int"); // dummy
 
             return TRUE;
+        }
+
+        if(info->generics_type) {
+            if(!solve_generics(&field_type, info->generics_type)) 
+            {
+                compile_err_msg(info, "Can't solve generics types(3)");
+                show_node_type(field_type);
+                show_node_type(info->generics_type);
+                info->err_num++;
+
+                return FALSE;
+            }
         }
 
         LLVMValueRef field_address;
@@ -7714,6 +7823,30 @@ BOOL compile_store_element(unsigned int node, sCompileInfo* info)
         var_type->mPointerNum--;
     }
     var_type->mHeap = right_type->mHeap;
+
+    if(is_typeof_type(var_type))
+    {
+        if(!solve_typeof(&var_type, info))
+        {
+            compile_err_msg(info, "Can't solve typeof types");
+            show_node_type(var_type);
+            info->err_num++;
+
+            return TRUE;
+        }
+    }
+
+    if(info->generics_type) {
+        if(!solve_generics(&var_type, info->generics_type)) 
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(var_type);
+            show_node_type(info->generics_type);
+            info->err_num++;
+
+            return FALSE;
+        }
+    }
 
     if(auto_cast_posibility(var_type, right_type)) {
         if(!cast_right_type_to_left_type(var_type, &right_type, &rvalue, info))
@@ -9322,24 +9455,6 @@ BOOL compile_goto_expression(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-/*
-unsigned int sNodeTree_create_is_heap_expression(unsigned int lnode, sParserInfo* info)
-{
-    unsigned int node = alloc_node();
-
-    gNodes[node].mNodeType = kNodeTypeIsHeapExpression;
-
-    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
-    gNodes[node].mLine = info->sline;
-
-    gNodes[node].mLeft = lnode;
-    gNodes[node].mRight = 0;
-    gNodes[node].mMiddle = 0;
-
-    return node;
-}
-*/
-
 unsigned int sNodeTree_create_is_heap(sNodeType* node_type, sParserInfo* info)
 {
     unsigned int node = alloc_node();
@@ -9363,6 +9478,29 @@ BOOL compile_is_heap(unsigned int node, sCompileInfo* info)
     sNodeType* node_type = gNodes[node].uValue.sIsHeap.mType;
     sNodeType* node_type2 = clone_node_type(node_type);
 
+    if(is_typeof_type(node_type2))
+    {
+        if(!solve_typeof(&node_type2, info))
+        {
+            compile_err_msg(info, "Can't solve typeof types");
+            show_node_type(node_type2);
+            info->err_num++;
+            return FALSE;
+        }
+    }
+
+    if(info->generics_type) {
+        if(!solve_generics(&node_type2, info->generics_type)) 
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(node_type2);
+            show_node_type(info->generics_type);
+            info->err_num++;
+
+            return FALSE;
+        }
+    }
+
     BOOL value = node_type2->mHeap && node_type2->mPointerNum > 0;
 
     LLVMTypeRef llvm_type = create_llvm_type_with_class_name("bool");
@@ -9378,8 +9516,6 @@ BOOL compile_is_heap(unsigned int node, sCompileInfo* info)
     push_value_to_stack_ptr(&llvm_value, info);
 
     info->type = create_node_type_with_class_name("bool");
-
-    return TRUE;
 
     return TRUE;
 }

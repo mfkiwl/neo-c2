@@ -126,8 +126,8 @@ int int_compare(int left, int right) {
     }
 }
 
-/// string methods ///
-int string_get_hash_key(string& value)
+/// char methods ///
+int char_get_hash_key(char* value)
 {
     int result = 0;
     char* p = value;
@@ -138,9 +138,21 @@ int string_get_hash_key(string& value)
     return result;
 }
 
-bool string_equals(string& left, string& right)
+bool char_equals(string& left, string& right)
 {
     return strcmp(left, right) == 0;
+}
+
+int char_compare(int left, int right) {
+    if(left < right) {
+        return -1;
+    }
+    else if(left > right) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
 }
 
 /// vector ///
@@ -865,13 +877,11 @@ struct map<T, T2>
     T2&* items;
     int size;
     int len;
+
+    int it;
 };
 
 #define MAP_TABLE_DEFAULT_SIZE 128
-
-int string_compare(string& left, string& right) {
-    return strcmp(left, right);
-}
 
 impl map <T, T2>
 {
@@ -887,6 +897,8 @@ impl map <T, T2>
 
         self.size = MAP_TABLE_DEFAULT_SIZE;
         self.len = 0;
+
+        self.it = 0;
 
         return self;
     }
@@ -911,80 +923,6 @@ impl map <T, T2>
         delete self.keys;
 
         delete self.item_existance;
-    }
-
-    map<T, T2>*% clone(map<T, T2>* self)
-    {
-        var result = new map<T,T2>.initialize();
-
-        self.each {
-            if(isheap(T)) {
-                if(isheap(T2)) {
-                    result.insert(clone it, clone it2);
-                }
-                else {
-                    result.insert(clone it, dummy_heap it2);
-                }
-            }
-            else {
-                if(isheap(T2)) {
-                    result.insert(dummy_heap it, clone it2);
-                }
-                else {
-                    result.insert(dummy_heap it, dummy_heap it2);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    void rehash(map<T,T2>* self) {
-        int size = self.size * 3;
-        T&* keys = borrow new T[size];
-        T2&* items = borrow new T2[size];
-        bool* item_existance = borrow new bool[size];
-
-        int len = 0;
-
-        self.each {
-            int hash = ((T)it).get_hash_key() % size;
-            int n = hash;
-
-            while(true) {
-                if(item_existance[n])
-                {
-                    n++;
-
-                    if(n >= size) {
-                        n = 0;
-                    }
-                    else if(n == hash) {
-                        fprintf(stderr, "unexpected error in map.rehash(1)\n");
-                        exit(2);
-                    }
-                }
-                else {
-                    item_existance[n] = true;
-                    keys[n] = it;
-                    items[n] = it2;
-
-                    len++;
-                    break;
-                }
-            }
-        }
-
-        delete self.items;
-        delete self.item_existance;
-        delete self.keys;
-
-        self.keys = keys;
-        self.items = items;
-        self.item_existance = item_existance;
-
-        self.size = size;
-        self.len = len;
     }
 
     T2& at(map<T, T2>* self, T& key, T2& default_value) 
@@ -1017,6 +955,56 @@ impl map <T, T2>
         return default_value;
     }
 
+
+    void rehash(map<T,T2>* self) {
+        int size = self.size * 3;
+        T&* keys = borrow new T[size];
+        T2&* items = borrow new T2[size];
+        bool* item_existance = borrow new bool[size];
+
+        int len = 0;
+
+        foreach(it, self) {
+            T2& it2 = self.at(it, NULL);
+            int hash = it.get_hash_key() % size;
+            int n = hash;
+
+            while(true) {
+                if(item_existance[n])
+                {
+                    n++;
+
+                    if(n >= size) {
+                        n = 0;
+                    }
+                    else if(n == hash) {
+                        //fprintf(stderr, "unexpected error in map.rehash(1)\n");
+                        exit(2);
+                    }
+                }
+                else {
+                    item_existance[n] = true;
+                    keys[n] = it;
+                    items[n] = self.at(it, NULL);
+
+                    len++;
+                    break;
+                }
+            }
+        }
+
+        delete self.items;
+        delete self.item_existance;
+        delete self.keys;
+
+        self.keys = keys;
+        self.items = items;
+        self.item_existance = item_existance;
+
+        self.size = size;
+        self.len = len;
+    }
+
     void insert(map<T,T2>* self, T key, T2 item) 
     {
         managed key;
@@ -1026,7 +1014,7 @@ impl map <T, T2>
             self.rehash();
         }
 
-        int hash = ((T)key).get_hash_key() % self.size;
+        int hash = key.get_hash_key() % self.size;
         int it = hash;
 
         while(true) {
@@ -1052,7 +1040,7 @@ impl map <T, T2>
                     it = 0;
                 }
                 else if(it == hash) {
-                    fprintf(stderr, "unexpected error in map.insert\n");
+//                    fprintf(stderr, "unexpected error in map.insert\n");
                     exit(2);
                 }
             }
@@ -1066,6 +1054,34 @@ impl map <T, T2>
                 break;
             }
         }
+    }
+
+    map<T, T2>*% clone(map<T, T2>* self)
+    {
+        var result = new map<T,T2>.initialize();
+
+        foreach(it, self) {
+            var it2 = self.at(it, NULL);
+
+            if(isheap(T)) {
+                if(isheap(T2)) {
+                    result.insert(clone it, clone it2);
+                }
+                else {
+                    result.insert(clone it, dummy_heap it2);
+                }
+            }
+            else {
+                if(isheap(T2)) {
+                    result.insert(dummy_heap it, clone it2);
+                }
+                else {
+                    result.insert(dummy_heap it, dummy_heap it2);
+                }
+            }
+        }
+
+        return result;
     }
 
     bool equals(map<T, T2>* left, map<T, T2>* right)
@@ -1093,5 +1109,44 @@ impl map <T, T2>
 
     int length(map<T, T2>* self) {
         return self.len;
+    }
+
+    T& begin(map<T, T2>* self) {
+        self.it = 0;
+        while(self.it < self.size) {
+            if(self.item_existance[self.it]) {
+                return self.keys[self.it++];
+            }
+            self.it++;
+        }
+
+        return null;
+    }
+
+    T& next(map<T, T2>* self) {
+        while(self.it < self.size) {
+            if(self.item_existance[self.it]) {
+                return self.keys[self.it++];
+            }
+            self.it++;
+        }
+
+        return null;
+    }
+
+    bool end(map<T, T2>* self) {
+        int count = 0;
+        for(int i=self.it-1; i<self.size; i++) {
+            if(self.item_existance[i]) {
+                count ++;
+            }
+        }
+
+        if(count == 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }
