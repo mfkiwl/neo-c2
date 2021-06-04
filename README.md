@@ -28,7 +28,7 @@ int main()
     m.insert("CCC", 3);
 
     foreach(key, m) {
-        var item = m.at(key);
+        var item = m.at(key, -1);
 
         printf("%s %d\n", key, item);
     }
@@ -48,9 +48,9 @@ int main()
 ```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
 
-git clone https://github.com/ab25cq/come
+git clone https://github.com/ab25cq/comelang
 
-cd neo-c
+cd comelang
 
 ./configure --with-optimize
 make
@@ -232,7 +232,7 @@ inline string xsprintf(char* msg, ...)
     return dummy_heap result;
 }
 
-inline string substring(string& str, int head, int tail)
+static string char_substring(char* str, int head, int tail)
 {
     if(str == null) {
         return string("");
