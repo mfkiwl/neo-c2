@@ -360,8 +360,8 @@ sVarTable* init_block_vtable(sVarTable* lv_table, BOOL no_increment_block_level)
         new_table->mParent = lv_table;
     }
     else {
-        new_table->mBlockLevel = 0;
-        new_table->mParent = NULL;
+        new_table->mBlockLevel = 1;
+        new_table->mParent = gModuleVarTable;
     }
 
     return new_table;

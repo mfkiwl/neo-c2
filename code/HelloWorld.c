@@ -177,7 +177,7 @@ struct sData2 {
 
 sData2*% sData2(int value1, int value2)
 {
-    sData2*% self = sData2();
+    sData2*% self = new sData2;
 
     self.value1 = value1;
     self.value2 = value2;
@@ -223,7 +223,7 @@ impl GenericsType<T,T2>
     }
 
     int fun3(GenericsType<T,T2>* self) {
-        GenericsType<int, char*>*% data = GenericsType<int, char*>();
+        GenericsType<int, char*>*% data = new GenericsType<int, char*>;
 
         data.item = 1;
 
@@ -263,7 +263,7 @@ impl Data <T>
     }
 
     int fun2(Data<T>* self, int a, int b) {
-        Data2<T, char*>*% c = Data2<int, char*>();
+        Data2<T, char*>*% c = new Data2<int, char*>;
         return c.fun();
     }
 }
@@ -307,7 +307,7 @@ impl sData3<T>
     int fun(sData3<T>* self, T data)
     {
         T data2 = data;
-        sDataX<T>*% x = sDataX<T>();
+        sDataX<T>*% x = new sDataX<T>;
 
         xassert("generics test", data2 == 123);
 
@@ -686,7 +686,7 @@ test_label:
 
     xassert("pointer sub test", ppp - array == 1);
 
-    int*% value = int();
+    int*% value = new int;
 
     *value = 123
 
@@ -724,11 +724,11 @@ test_label:
 
     xassert("generics method call3", data4.fun4() == 3);
 
-    Data<int>*% axz = Data<int>();
+    Data<int>*% axz = new Data<int>;
 
     xassert("generics method call4", axz.fun2(1,2) == 2);
 
-    sData3<int>*% xyi = sData3<int>();
+    sData3<int>*% xyi = new sData3<int>;
 
     xassert("generics mthod call5", xyi.fun(123) == 123);
 

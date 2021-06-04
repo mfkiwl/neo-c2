@@ -55,6 +55,14 @@
 struct sParserInfoStruct;
 struct sNodeBlockStruct;
 struct sCompileInfoStruct;
+struct sVarTableStruct;
+
+//////////////////////////////
+/// main.c 
+//////////////////////////////
+extern BOOL gNCDebug;
+extern char gFName[PATH_MAX];
+extern struct sVarTableStruct* gModuleVarTable;
 
 //////////////////////////////
 /// constant.c 
@@ -204,7 +212,6 @@ sNodeType* create_node_type_with_class_pointer(sCLClass* klass);
 BOOL cast_posibility(sNodeType* left_type, sNodeType* right_type);
 BOOL auto_cast_posibility(sNodeType* left_type, sNodeType* right_type);
 
-struct sCompileInfoStruct;
 BOOL substitution_posibility(sNodeType* left_type, sNodeType* right_type, struct sCompileInfoStruct* info);
 BOOL type_identify(sNodeType* left, sNodeType* right);
 BOOL type_identify_with_class_name(sNodeType* left, char* right_class_name);
@@ -290,10 +297,53 @@ sVar* get_variable_from_this_table_only(sVarTable* table, char* name);
 void free_objects_on_return(struct sNodeBlockStruct* current_node_block, struct sCompileInfoStruct* info, LLVMValueRef ret_value, BOOL top_block);
 
 //////////////////////////////
+/// node_block.c
+//////////////////////////////
+struct sNodeBlockStruct
+{
+    unsigned int* mNodes;
+    unsigned int mSizeNodes;
+    unsigned int mNumNodes;
+
+    sVarTable* mLVTable;
+
+    sBuf mSource;
+    char mSName[PATH_MAX];
+    int mSLine;
+    
+    BOOL mHasResult;
+    int mExternCLang;
+
+    BOOL mInCLang;
+};
+
+typedef struct sNodeBlockStruct sNodeBlock;
+
+BOOL parse_block_easy(ALLOC sNodeBlock** node_block, BOOL extern_clang, struct sParserInfoStruct* info);
+BOOL parse_block(sNodeBlock* node_block, BOOL extern_clang, BOOL single_expression, struct sParserInfoStruct* info);
+BOOL skip_block(struct sParserInfoStruct* info);
+
+
+//////////////////////////////
+/// typedef.c
+//////////////////////////////
+void init_typedef();
+
+void add_typedef(char* name, sNodeType* node_type);
+sNodeType* get_typedef(char* name);
+
+//////////////////////////////
+/// compiler.c
+//////////////////////////////
+BOOL delete_comment(sBuf* source, sBuf* source2);
+BOOL read_source(char* fname, sBuf* source);
+BOOL compile_source(char* fname, char* source, BOOL optimize, sVarTable* module_var_table);
+
+extern char gMainModulePath[PATH_MAX];
+
+//////////////////////////////
 /// parser.c
 //////////////////////////////
-extern BOOL gMainFunctionExistance;
-
 struct sParserInfoStruct
 {
     sBuf mConst;
@@ -368,30 +418,11 @@ void skip_spaces_and_lf(sParserInfo* info);
 BOOL parse_word(char* buf, int buf_size, sParserInfo* info, BOOL print_out_err_msg, BOOL no_skip_lf);
 void expect_next_character_with_one_forward(char* characters, sParserInfo* info);
 BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, char* struct_name, sParserInfo* info);
-void create_lambda_name(char* lambda_name, size_t size_lambda_name, char* module_name);
 void expect_next_character_with_one_forward(char* characters, sParserInfo* info);
 void skip_spaces(sParserInfo* info);
-void create_lambda_name(char* lambda_name, size_t size_lambda_name, char* module_name);
-BOOL parse_destructor(unsigned int* node, char* struct_name, sParserInfo* info, BOOL recursive, BOOL inline_);
 
-extern int gNumLambdaName;
-
-BOOL expression(unsigned int* node, sParserInfo* info);
 BOOL expression(unsigned int* node, sParserInfo* info);
 BOOL parse_sharp(sParserInfo* info);
-BOOL parse_clone(unsigned int* node, sParserInfo* info);
-BOOL parse_class_name_expression(unsigned int* node, sParserInfo* info);
-BOOL get_hex_number(unsigned int* node, sParserInfo* info);
-BOOL get_oct_number(unsigned int* node, sParserInfo* info);
-
-//////////////////////////////
-/// source compiler 
-//////////////////////////////
-BOOL delete_comment(sBuf* source, sBuf* source2);
-BOOL read_source(char* fname, sBuf* source);
-BOOL compile_source(char* fname, char* source, BOOL optimize, sVarTable* module_var_table);
-
-extern char gMainModulePath[PATH_MAX];
 
 //////////////////////////////
 /// node.c
@@ -719,6 +750,16 @@ typedef struct sNodeTreeStruct sNodeTree;
 extern sNodeTree* gNodes;
 extern int gUsedNodes;
 
+void init_nodes(char* sname);
+void free_nodes(char* snmae);
+
+unsigned int alloc_node();
+
+ALLOC sNodeBlock* sNodeBlock_alloc();
+void sNodeBlock_free(sNodeBlock* block);
+
+void append_node_to_node_block(sNodeBlock* node_block, unsigned int node);
+
 void compile_err_msg(sCompileInfo* info, const char* msg, ...);
 void free_object(sNodeType* node_type, LLVMValueRef address, sCompileInfo* info);
 void free_object_on_return(struct sNodeBlockStruct* current_node_block, struct sCompileInfoStruct* info, BOOL top_block);
@@ -812,78 +853,6 @@ unsigned int sNodeTree_label_expression(char* name, sParserInfo* info);
 unsigned int sNodeTree_goto_expression(char* name, sParserInfo* info);
 unsigned int sNodeTree_create_is_heap(sNodeType* node_type, sParserInfo* info);
 unsigned int sNodeTree_create_is_heap_expression(unsigned int lnode, sParserInfo* info);
-
-void show_node(unsigned int node);
-BOOL compile(unsigned int node, sCompileInfo* info);
-unsigned int sNodeTree_create_class_name(sNodeType* node_type, sParserInfo* info);
-unsigned int sNodeTree_create_class_name_expression(unsigned int lnode, sParserInfo* info);
-unsigned int sNodeTree_create_conditional(unsigned int conditional, unsigned int value1, unsigned int value2, sParserInfo* info);
-
-//////////////////////////////
-/// node_block.c
-//////////////////////////////
-struct sNodeBlockStruct
-{
-    unsigned int* mNodes;
-    unsigned int mSizeNodes;
-    unsigned int mNumNodes;
-
-    sVarTable* mLVTable;
-
-    sBuf mSource;
-    char mSName[PATH_MAX];
-    int mSLine;
-    
-    BOOL mHasResult;
-    int mExternCLang;
-
-    BOOL mInCLang;
-};
-
-typedef struct sNodeBlockStruct sNodeBlock;
-
-//void parse_version(int* version, sParserInfo* info);
-BOOL parse_block_easy(ALLOC sNodeBlock** node_block, BOOL extern_clang, sParserInfo* info);
-BOOL parse_block(sNodeBlock* node_block, BOOL extern_clang, BOOL single_expression, sParserInfo* info);
-BOOL skip_block(sParserInfo* info);
-
-//////////////////////////////
-/// node_alloc.c
-//////////////////////////////
-void init_nodes(char* sname);
-void free_nodes(char* snmae);
-
-unsigned int alloc_node();
-
-ALLOC sNodeBlock* sNodeBlock_alloc();
-void sNodeBlock_free(sNodeBlock* block);
-
-void append_node_to_node_block(sNodeBlock* node_block, unsigned int node);
-
-
-/// typedef.c ///
-void init_typedef();
-
-void add_typedef(char* name, sNodeType* node_type);
-sNodeType* get_typedef(char* name);
-
-/// macro ///
-void init_macro();
-void finalize_macro();
-
-char* get_macro(char* name);
-void append_macro(char* name, char* body);
-BOOL call_macro(unsigned int* node, char* name, char* params, sParserInfo* info);
-
-/// parser.c ///
-BOOL get_number(BOOL minus, unsigned int* node, sParserInfo* info);
-BOOL parse_macro(unsigned int* node, sParserInfo* info);
-BOOL parse_ruby_macro(unsigned int* node, sParserInfo* info, BOOL really_appended);
-BOOL parse_delete(unsigned int* node, sParserInfo* info);
-BOOL parse_borrow(unsigned int* node, sParserInfo* info);
-BOOL parse_managed(unsigned int* node, sParserInfo* info);
-BOOL parse_typedef(unsigned int* node, sParserInfo* info);
-
 unsigned int sNodeTree_create_plus_plus(unsigned int left_node, sParserInfo* info);
 unsigned int sNodeTree_create_minus_minus(unsigned int left_node, sParserInfo* info);
 unsigned int sNodeTree_create_equal_plus(unsigned int left_node, unsigned int right_node, sParserInfo* info);
@@ -897,11 +866,13 @@ unsigned int sNodeTree_create_equal_and(unsigned int left_node, unsigned int rig
 unsigned int sNodeTree_create_equal_xor(unsigned int left_node, unsigned int right_node, sParserInfo* info);
 unsigned int sNodeTree_create_equal_or(unsigned int left_node, unsigned int right_node, sParserInfo* info);
 unsigned int sNodeTree_create_comma(unsigned int left_node, unsigned int right_node, sParserInfo* info);
-
-extern BOOL gNCDebug;
-extern char gFName[PATH_MAX];
-
 unsigned int sNodeTree_create_func_name(sParserInfo* info);
+
+void show_node(unsigned int node);
+BOOL compile(unsigned int node, sCompileInfo* info);
+unsigned int sNodeTree_create_class_name(sNodeType* node_type, sParserInfo* info);
+unsigned int sNodeTree_create_class_name_expression(unsigned int lnode, sParserInfo* info);
+unsigned int sNodeTree_create_conditional(unsigned int conditional, unsigned int value1, unsigned int value2, sParserInfo* info);
 
 #endif
 

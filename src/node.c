@@ -706,8 +706,12 @@ void setCurrentDebugLocation(int sline, sCompileInfo* info)
     LLVMMetadataRef inlinedat = NULL;
     LLVMMetadataRef loc = LLVMDIBuilderCreateDebugLocation(gContext, sline, colum, scope, inlinedat);
 
-
     LLVMSetCurrentDebugLocation(gBuilder, LLVMMetadataAsValue(gContext, loc));
+}
+
+void setNullCurrentDebugLocation(int sline, sCompileInfo* info)
+{
+    LLVMSetCurrentDebugLocation(gBuilder, NULL);
 }
 
 
@@ -1720,7 +1724,7 @@ void compile_err_msg(sCompileInfo* info, const char* msg, ...)
     output_num++;
 }
 
-BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type, BOOL no_clear_right_value_objects)
+BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
 {
     int sline_before = info->pinfo->sline;
 
@@ -1733,9 +1737,9 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
 
     BOOL last_expression_is_return = FALSE;
 
-    if(!no_clear_right_value_objects) {
+//    if(!info->in_inline_function) {
         clear_right_value_objects(info);
-    }
+//    }
 
     if(block->mNumNodes == 0) {
         free_right_value_objects(info);
@@ -1746,6 +1750,10 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
         int i;
         for(i=0; i<block->mNumNodes; i++) {
             unsigned int node = block->mNodes[i];
+
+            char sname[PATH_MAX];
+            xstrncpy(sname, info->sname, VAR_NAME_MAX);
+            int sline = info->sline;
 
             if(info->in_generics_function) {
                 xstrncpy(info->sname, info->generics_sname, PATH_MAX);
@@ -1760,14 +1768,24 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
                 info->sline = gNodes[node].mLine;
             }
 
-            if(gNCDebug && !info->in_generics_function && !info->in_inline_function) {
-                setCurrentDebugLocation(info->sline, info);
+            if(gNCDebug) {
+                if(info->in_generics_function || info->in_inline_function) {
+                    setNullCurrentDebugLocation(info->sline, info);
+                }
+                else {
+                    setCurrentDebugLocation(info->sline, info);
+                }
             }
 
             if(!compile(node, info)) {
                 info->pinfo->lv_table = old_table;
                 return FALSE;
             }
+
+            xstrncpy(info->sname, sname, VAR_NAME_MAX);
+            info->sline = sline;
+
+            arrange_stack(info, stack_num_before);
 
             if(gNodes[node].mNodeType == kNodeTypeReturn) {
                 last_expression_is_return = TRUE;
@@ -1776,7 +1794,6 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, sNodeType* result_type
                 last_expression_is_return = FALSE;
             }
 
-            arrange_stack(info, stack_num_before);
             if(!last_expression_is_return) {
                 free_right_value_objects(info);
             }
@@ -3889,7 +3906,7 @@ BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_
 
     char real_fun_name[REAL_FUN_NAME_MAX];
     create_generics_fun_name(real_fun_name, REAL_FUN_NAME_MAX, fun_name,  generics_type);
-    
+
     *llvm_fun = LLVMGetNamedFunction(gModule, real_fun_name);
 
     if(*llvm_fun == NULL) {
@@ -4138,7 +4155,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     sFunction* fun = get_function_from_table(fun_name);
 
     if(fun == NULL) {
-        fprintf(stderr, "function not found(%s)\n", fun_name);
+        compile_err_msg(info, "function not found(%s)\n", fun_name);
         return FALSE;
     }
 
@@ -4372,19 +4389,29 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         info->in_inline_function = TRUE;
         info->inline_sline = info->sline;
 
+        char fun_end_label[PATH_MAX];
+        snprintf(fun_end_label, PATH_MAX, "%s_end", fun_name);
+
         LLVMBasicBlockRef inline_func_end_before = info->inline_func_end;
-        LLVMBasicBlockRef inline_func_end = LLVMAppendBasicBlockInContext(gContext, gFunction, "inline_func_end");
+        LLVMBasicBlockRef inline_func_end = LLVMAppendBasicBlockInContext(gContext, gFunction, fun_end_label);
         info->inline_func_end = inline_func_end;
 
-        BOOL no_clear_right_value_objects = TRUE;
-        if(!compile_block(node_block, info, result_type, no_clear_right_value_objects)) {
+        struct sRightValueObject* right_value_objects = info->right_value_objects;
+        info->right_value_objects = NULL;
+
+        if(!compile_block(node_block, info)) {
             return FALSE;
         }
 
         info->in_inline_function = in_inline_function;
 
-        LLVMBuildBr(gBuilder, inline_func_end);
+        if(!info->last_expression_is_return) {
+            LLVMBuildBr(gBuilder, inline_func_end);
+        }
+
         llvm_change_block(inline_func_end, info);
+
+        info->right_value_objects = right_value_objects;
 
         if(type_identify_with_class_name(result_type, "void") && result_type->mPointerNum == 0) {
             dec_stack_ptr(num_params, info);
@@ -4694,8 +4721,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         var->mConstant = FALSE;
     }
 
-    BOOL no_clear_right_value_objects = FALSE;
-    if(!compile_block(node_block, info, result_type, no_clear_right_value_objects)) {
+    if(!compile_block(node_block, info)) {
         info->function_node_block = function_node_block;
         return FALSE;
     }
@@ -5201,13 +5227,11 @@ static BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
     llvm_change_block(cond_then_block, info);
 
     sNodeBlock* if_block = gNodes[node].uValue.sIf.mIfNodeBlock;
-    sNodeType* result_type = create_node_type_with_class_name("void");
 
     BOOL last_expression_is_return_before = info->last_expression_is_return;
     info->last_expression_is_return = FALSE;
 
-    BOOL no_clear_right_value_objects = FALSE;
-    if(!compile_block(if_block, info, result_type, no_clear_right_value_objects)) {
+    if(!compile_block(if_block, info)) {
         return FALSE;
     }
 
@@ -5277,8 +5301,7 @@ static BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
             BOOL last_expression_is_return_before = info->last_expression_is_return;
             info->last_expression_is_return = FALSE;
 
-            BOOL no_clear_right_value_objects = FALSE;
-            if(!compile_block(elif_node_block, info, result_type, no_clear_right_value_objects)) 
+            if(!compile_block(elif_node_block, info)) 
             {
                 return FALSE;
             }
@@ -5297,8 +5320,7 @@ static BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
         BOOL last_expression_is_return_before = info->last_expression_is_return;
         info->last_expression_is_return = FALSE;
 
-        BOOL no_clear_right_value_objects = FALSE;
-        if(!compile_block(else_node_block, info, result_type, no_clear_right_value_objects)) 
+        if(!compile_block(else_node_block, info))
         {
             return FALSE;
         }
@@ -6402,10 +6424,7 @@ static BOOL compile_while_expression(unsigned int node, sCompileInfo* info)
     sNodeBlock* current_node_block = info->current_node_block;
     info->current_node_block = while_node_block;
 
-    sNodeType* result_type = create_node_type_with_class_name("void");
-
-    BOOL no_clear_right_value_objects = FALSE;
-    if(!compile_block(while_node_block, info, result_type, no_clear_right_value_objects)) {
+    if(!compile_block(while_node_block, info)) {
         return FALSE;
     }
 
@@ -6493,9 +6512,7 @@ static BOOL compile_do_while_expression(unsigned int node, sCompileInfo* info)
     sNodeBlock* current_node_block = info->current_node_block;
     info->current_node_block = while_node_block;
 
-    BOOL no_clear_right_value_objects = FALSE;
-    sNodeType* result_type = create_node_type_with_class_name("void");
-    if(!compile_block(while_node_block, info, result_type, no_clear_right_value_objects)) {
+    if(!compile_block(while_node_block, info)) {
         return FALSE;
     }
 
@@ -6680,6 +6697,8 @@ static BOOL compile_and_and(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
+    free_right_value_objects(info);
+
     sNodeType* left_type = info->type;
 
     LVALUE conditional_value = *get_value_from_stack(-1);
@@ -6722,6 +6741,8 @@ static BOOL compile_and_and(unsigned int node, sCompileInfo* info)
     if(!compile(right_node, info)) {
         return FALSE;
     }
+
+    free_right_value_objects(info);
 
     sNodeType* right_type = info->type;
 
@@ -6800,6 +6821,8 @@ static BOOL compile_or_or(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
+    free_right_value_objects(info);
+
     sNodeType* left_type = info->type;
 
     LVALUE conditional_value = *get_value_from_stack(-1);
@@ -6841,6 +6864,8 @@ static BOOL compile_or_or(unsigned int node, sCompileInfo* info)
     if(!compile(right_node, info)) {
         return FALSE;
     }
+
+    free_right_value_objects(info);
 
     sNodeType* right_type = info->type;
 
@@ -7010,9 +7035,7 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     info->current_node_block = for_block;
 
     /// block of for expression ///
-    sNodeType* result_type = create_node_type_with_class_name("void");
-    BOOL no_clear_right_value_objects = FALSE;
-    if(!compile_block(for_block, info, result_type, no_clear_right_value_objects))
+    if(!compile_block(for_block, info))
     {
         info->num_loop--;
         info->pinfo->lv_table = lv_table_before;
@@ -9088,11 +9111,7 @@ BOOL compile_normal_block(unsigned int node, sCompileInfo* info)
 {
     struct sNodeBlockStruct* node_block = gNodes[node].uValue.sNormalBlock.mNodeBlock;
 
-    sNodeType* result_type = create_node_type_with_class_name("void");
-
-    BOOL no_clear_right_value_objects = FALSE;
-    if(!compile_block(node_block, info, result_type, no_clear_right_value_objects))
-    {
+    if(!compile_block(node_block, info)) {
         return FALSE;
     }
 
@@ -9323,6 +9342,8 @@ BOOL compile_break_expression(unsigned int node, sCompileInfo* info)
     if(info->switch_expression == NULL && info->current_node_block) {
         free_objects_on_return(info->current_node_block, info, NULL, TRUE);
     }
+    free_right_value_objects(info);
+
     LLVMBuildBr(gBuilder, loop_end_block);
 
     LLVMBasicBlockRef after_break = LLVMAppendBasicBlockInContext(gContext, gFunction, "after_break");
@@ -9364,6 +9385,7 @@ BOOL compile_continue_expression(unsigned int node, sCompileInfo* info)
     LLVMBasicBlockRef loop_begin_block = (LLVMBasicBlockRef)info->loop_begin_block[info->num_loop2-1];
     info->num_loop2--;
 
+    free_right_value_objects(info);
     LLVMBuildBr(gBuilder, loop_begin_block);
 
     LLVMBasicBlockRef after_continue = LLVMAppendBasicBlockInContext(gContext, gFunction, "after_continue");
@@ -9407,6 +9429,7 @@ BOOL compile_label_expression(unsigned int node, sCompileInfo* info)
         }
     }
 
+    free_right_value_objects(info);
     LLVMBuildBr(gBuilder, block);
 
     llvm_change_block(block, info);
@@ -9446,6 +9469,7 @@ BOOL compile_goto_expression(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
+    free_right_value_objects(info);
     LLVMBuildBr(gBuilder, block);
 
     LLVMBasicBlockRef block2 = LLVMAppendBasicBlockInContext(gContext, gFunction, "after goto");
@@ -9700,6 +9724,7 @@ static BOOL compile_conditional(unsigned int node, sCompileInfo* info)
         LLVMBasicBlockRef cond_else_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "cond_else_block");
 
         LLVMBasicBlockRef cond_end_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "cond_end");
+        free_right_value_objects(info);
 
         LLVMBuildCondBr(gBuilder, conditional_value.value, cond_then_block, cond_else_block);
 
@@ -9711,6 +9736,7 @@ static BOOL compile_conditional(unsigned int node, sCompileInfo* info)
         {
             return FALSE;
         }
+        free_right_value_objects(info);
 
         LVALUE value1;
         LLVMValueRef result_value;
@@ -9767,6 +9793,7 @@ static BOOL compile_conditional(unsigned int node, sCompileInfo* info)
         {
             return FALSE;
         }
+        free_right_value_objects(info);
 
         LVALUE value2;
         if(type_identify_with_class_name(info->type, "void")) {

@@ -98,6 +98,63 @@ inline string xsprintf(char* msg, ...)
     return dummy_heap result;
 }
 
+static string char_reverse(char* str) 
+{
+    int len = strlen(str);
+    string result = new char[len + 1];
+
+    for(int i=0; i<len; i++) {
+        result[i] = str[len-i-1];
+    }
+
+    result[len] = '\0';
+
+    return result;
+}
+
+static string char_substring(char* str, int head, int tail)
+{
+    if(str == null) {
+        return string("");
+    }
+
+    int len = strlen(str);
+
+    if(head < 0) {
+        head += len;
+    }
+    if(tail < 0) {
+        tail += len + 1;
+    }
+
+    if(head > tail) {
+        return str.substring(tail, head).reverse();
+    }
+
+    if(head < 0) {
+        head = 0;
+    }
+
+    if(tail >= len) {
+        tail = len;
+    }
+
+    if(head == tail) {
+        return string("");
+    }
+
+    if(tail-head+1 < 1) {
+        return string("");
+    }
+
+    string result = new char[tail-head+1];
+
+    memcpy(result, str + head, tail-head);
+    result[tail-head] = '\0';
+
+    return result;
+}
+
 /// int methods ///
 int int_get_hash_key(int value)
 {
@@ -978,7 +1035,7 @@ impl map <T, T2>
                         n = 0;
                     }
                     else if(n == hash) {
-                        //fprintf(stderr, "unexpected error in map.rehash(1)\n");
+                        fprintf(stderr, "unexpected error in map.rehash(1)\n");
                         exit(2);
                     }
                 }
@@ -1040,7 +1097,7 @@ impl map <T, T2>
                     it = 0;
                 }
                 else if(it == hash) {
-//                    fprintf(stderr, "unexpected error in map.insert\n");
+                    fprintf(stderr, "unexpected error in map.insert\n");
                     exit(2);
                 }
             }

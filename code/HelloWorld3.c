@@ -21,6 +21,9 @@ int main()
 
     xassert("string test", strcmp(string("AAA"), "AAA") == 0);
 
+    xassert("string test2", strcmp("ABC".reverse(), "CBA") == 0);
+    xassert("string test3", strcmp("ABC".substring(0,1), "A") == 0);
+
     vector<int>*% v = new vector<int>.initialize();
 
     v.push_back(1);
@@ -87,13 +90,11 @@ int main()
 
     xassert("map test1", m.length() == 3);
     xassert("map test2", m.at(string("AAA"), -1) == 1 && m.at(string("BBB"), -1) == 2 && m.at(string("CCC"), -1) == 3);
-/*
     xassert("map test3", m.at("AAA", -1) == 1 && m.at("BBB", -1) == 2 && m.at("CCC", -1) == 3);
 
     foreach(it, m) {
         puts(it);
     }
-*/
 
     return 0;
 }

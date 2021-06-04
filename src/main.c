@@ -99,9 +99,10 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     return TRUE;
 }
 
-char* gVersion = "0.9.8";
+char* gVersion = "0.9.9";
 BOOL gNCDebug = FALSE;
 char gFName[PATH_MAX];
+sVarTable* gModuleVarTable;
 
 int main(int argc, char** argv)
 {
@@ -147,10 +148,10 @@ int main(int argc, char** argv)
 
     compiler_init(sname);
 
-    sVarTable* module_var_table = init_var_table();
+    gModuleVarTable = init_var_table();
 
     BOOL optimize = TRUE;
-    if(!compiler(sname, optimize, module_var_table, FALSE))
+    if(!compiler(sname, optimize, gModuleVarTable, FALSE))
     {
         fprintf(stderr, "come can't compile(2) %s\n", sname);
         compiler_final(sname);
