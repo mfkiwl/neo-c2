@@ -4851,6 +4851,25 @@ static BOOL parse_var(unsigned int* node, sParserInfo* info, BOOL readonly)
     return TRUE;
 }
 
+static BOOL parse_inherit(unsigned int* node, sParserInfo* info) 
+{
+    if(*info->p == '(') {
+        unsigned int params[PARAMS_MAX];
+        int num_params = 0;
+
+        if(!parse_funcation_call_params(&num_params, params, info)) 
+        {
+            return FALSE;
+        }
+
+        char* fun_name = "inherit";
+
+        *node = sNodeTree_create_function_call(fun_name, params, num_params, FALSE, TRUE, 0, info);
+    }
+
+    return TRUE;
+}
+
 static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* info)
 {
     if(!parse_sharp(info)) {
@@ -5653,6 +5672,11 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         }
         else if(info->mBlockLevel == 0 && strcmp(buf, "impl") == 0) {
             if(!parse_impl(node, info)) {
+                return FALSE;
+            }
+        }
+        else if(strcmp(buf, "inherit") == 0 && *info->p == '(') {
+            if(!parse_inherit(node, info)) {
                 return FALSE;
             }
         }

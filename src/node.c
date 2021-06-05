@@ -3781,10 +3781,23 @@ static BOOL compile_external_function(unsigned int node, sCompileInfo* info)
     llvm_result_type = create_llvm_type_from_node_type(result_type);
 
     LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
-    LLVMValueRef llvm_fun_already = LLVMGetNamedFunction(gModule, fun_name);
+    LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
 
-    if(llvm_fun_already == NULL) {
-        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+    if(llvm_fun) {
+        char old_fun_name[VAR_NAME_MAX];
+
+        int i;
+        for(i=1; i<FUN_VERSION_MAX; i++) {
+            snprintf(old_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, i);
+
+            LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, old_fun_name);
+
+            if(llvm_fun == NULL) {
+               break;
+            }
+        }
+
+        LLVMSetValueName2(llvm_fun, old_fun_name, strlen(old_fun_name));
 
         char* block_text = NULL;
 
@@ -3794,10 +3807,25 @@ static BOOL compile_external_function(unsigned int node, sCompileInfo* info)
         }
 
         BOOL generics_function = FALSE;
-        if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL)) {
+        if(!add_function_to_table(old_fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL)) {
             fprintf(stderr, "overflow function table\n");
             return FALSE;
         }
+    }
+
+    llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+
+    char* block_text = NULL;
+
+    char* param_names2[PARAMS_MAX];
+    for(i=0; i<PARAMS_MAX; i++) {
+        param_names2[i] = param_names[i];
+    }
+
+    BOOL generics_function = FALSE;
+    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL)) {
+        fprintf(stderr, "overflow function table\n");
+        return FALSE;
     }
 
     return TRUE;
@@ -4079,6 +4107,25 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     BOOL method = gNodes[node].uValue.sFunctionCall.mMethod;
     BOOL inherit = gNodes[node].uValue.sFunctionCall.mInherit;
     int version = gNodes[node].uValue.sFunctionCall.mVersion;
+
+    if(inherit) {
+        char old_fun_name[VAR_NAME_MAX];
+
+        int i;
+        for(i=1; i<FUN_VERSION_MAX; i++) {
+            snprintf(old_fun_name, VAR_NAME_MAX, "%s_v%d", gFunctionName, i);
+
+            LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, old_fun_name);
+
+            if(llvm_fun == NULL) {
+                break;
+            }
+        }
+
+        snprintf(old_fun_name, VAR_NAME_MAX, "%s_v%d", gFunctionName, i-1);
+
+        strncpy(fun_name, old_fun_name, VAR_NAME_MAX);
+    }
 
     int num_generics = gNodes[node].uValue.sFunctionCall.mNumGenerics;
     char generics_type_names[GENERICS_TYPES_MAX][VAR_NAME_MAX];
@@ -4651,6 +4698,8 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         xstrncpy(param_names[i], params[i].mName, VAR_NAME_MAX);
     }
 
+    BOOL static_ = result_type->mStatic;
+
     LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
     LLVMTypeRef  llvm_fun_type;
     if(num_params == 0) {
@@ -4659,8 +4708,43 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     else {
         llvm_fun_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
     }
-    LLVMValueRef llvm_fun = LLVMAddFunction(gModule, fun_name, llvm_fun_type);
-    BOOL static_ = result_type->mStatic;
+
+    LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
+
+    if(llvm_fun) {
+        char old_fun_name[VAR_NAME_MAX];
+
+        int i;
+        for(i=1; i<FUN_VERSION_MAX; i++) {
+            snprintf(old_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, i);
+
+            LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, old_fun_name);
+
+            if(llvm_fun == NULL) {
+                break;
+            }
+        }
+
+        LLVMSetValueName2(llvm_fun, old_fun_name, strlen(old_fun_name));
+
+        char* block_text = NULL;
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<PARAMS_MAX; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        if(!add_function_to_table(old_fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL)) {
+            fprintf(stderr, "overflow function table\n");
+            info->function_node_block = function_node_block;
+            return FALSE;
+        }
+    }
+
+
+    llvm_fun = LLVMAddFunction(gModule, fun_name, llvm_fun_type);
+
     if(static_) {
         LLVMSetLinkage(llvm_fun, LLVMInternalLinkage);
     }

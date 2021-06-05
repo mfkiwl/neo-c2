@@ -46,6 +46,7 @@
 #define STRUCT_NUM_MAX 8096*2
 #define LABEL_MAX 512
 #define GENERICS_STRUCT_MAX 512
+#define FUN_VERSION_MAX 512
 
 #define clint64 long long      // for 32 bit cpu
 
