@@ -96,5 +96,12 @@ int main()
         puts(it);
     }
 
+    tuple2<int, char*>*% t = new tuple2<int, char*>;
+
+    t.v1 = 123;
+    t.v2 = "ABC";
+
+    xassert("tuple test", t.v1 == 123 && t.v2 == "ABC");
+
     return 0;
 }

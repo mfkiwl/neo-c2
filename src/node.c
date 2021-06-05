@@ -711,7 +711,7 @@ void setCurrentDebugLocation(int sline, sCompileInfo* info)
 
 void setNullCurrentDebugLocation(int sline, sCompileInfo* info)
 {
-    LLVMSetCurrentDebugLocation(gBuilder, NULL);
+//    LLVMSetCurrentDebugLocation(gBuilder, NULL);
 }
 
 

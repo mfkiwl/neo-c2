@@ -1525,3 +1525,99 @@ if(m.length() == 3 && m.at("AAA", -1) == 1 && m.at("BBB", -1) == 2 && m.at("CCC"
 ```
 
 となります。
+
+tupleもあります。以下のように定義されています。
+
+```
+struct tuple1<T>
+{
+    T v1;
+};
+
+impl tuple1 <T>
+{
+    bool equals(tuple1<T>* left, tuple1<T>* right)
+    {
+        if(!left.v1.equals(right.v1)) {
+            return false;
+        }
+
+        return true;
+    }
+}
+
+struct tuple2<T, T2>
+{
+    T v1;
+    T2 v2;
+};
+
+impl tuple2 <T, T2>
+{
+    bool equals(tuple2<T, T2>* left, tuple2<T, T2>* right)
+    {
+        if(!left.v1.equals(right.v1)) {
+            return false;
+        }
+        if(!left.v2.equals(right.v2)) {
+            return false;
+        }
+
+        return true;
+    }
+}
+
+struct tuple3<T, T2, T3>
+{
+    T v1;
+    T2 v2;
+    T3 v3;
+};
+
+impl tuple3 <T, T2, T3>
+{
+    bool equals(tuple3<T, T2, T3>* left, tuple3<T, T2, T3>* right)
+    {
+        if(!left.v1.equals(right.v1)) {
+            return false;
+        }
+        if(!left.v2.equals(right.v2)) {
+            return false;
+        }
+        if(!left.v3.equals(right.v3)) {
+            return false;
+        }
+
+        return true;
+    }
+}
+
+struct tuple4<T, T2, T3, T4>
+{
+    T v1;
+    T2 v2;
+    T3 v3;
+    T4 v3;
+};
+
+impl tuple4 <T, T2, T3, T4>
+{
+    bool equals(tuple4<T, T2, T3, T4>* left, tuple4<T, T2, T3, T4>* right)
+    {
+        if(!left.v1.equals(right.v1)) {
+            return false;
+        }
+        if(!left.v2.equals(right.v2)) {
+            return false;
+        }
+        if(!left.v3.equals(right.v3)) {
+            return false;
+        }
+        if(!left.v4.equals(right.v4)) {
+            return false;
+        }
+
+        return true;
+    }
+}
+```
