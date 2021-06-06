@@ -1414,7 +1414,7 @@ static BOOL is_type_name(char* buf, sParserInfo* info)
         }
     }
 
-    return klass || node_type || generics_type_name || method_type_name || strcmp(buf, "const") == 0 || strcmp(buf, "static") == 0|| (strcmp(buf, "struct") == 0 && *info->p == '{') || (strcmp(buf, "struct") == 0) || (strcmp(buf, "union") == 0) || (strcmp(buf, "union") == 0 && *info->p == '{') || (strcmp(buf, "unsigned") == 0) || (strcmp(buf, "signed") == 0) || (strcmp(buf, "__signed") == 0) ||(strcmp(buf, "short") == 0) || (strcmp(buf, "long") == 0) || (strcmp(buf, "signed") == 0) || (strcmp(buf, "register") == 0) || (strcmp(buf, "volatile") == 0) || strcmp(buf, "enum") == 0 || strcmp(buf, "__signed__") == 0 || (strcmp(buf, "__extension__") == 0 && *info->p != '(') || (strcmp(buf, "__uniq__") == 0)|| strcmp(buf, "typeof") == 0|| strcmp(buf, "_Noreturn") == 0 || strcmp(buf, "_Alignas") == 0;
+    return klass || node_type || generics_type_name || method_type_name || strcmp(buf, "const") == 0 || strcmp(buf, "static") == 0|| (strcmp(buf, "struct") == 0 && *info->p == '{') || (strcmp(buf, "struct") == 0) || (strcmp(buf, "union") == 0) || (strcmp(buf, "union") == 0 && *info->p == '{') || (strcmp(buf, "unsigned") == 0) || (strcmp(buf, "signed") == 0) || (strcmp(buf, "__signed") == 0) ||(strcmp(buf, "short") == 0) || (strcmp(buf, "long") == 0) || (strcmp(buf, "signed") == 0) || (strcmp(buf, "register") == 0) || (strcmp(buf, "volatile") == 0) || strcmp(buf, "enum") == 0 || strcmp(buf, "__signed__") == 0 || (strcmp(buf, "__extension__") == 0 && *info->p != '(') || (strcmp(buf, "__uniq__") == 0)|| strcmp(buf, "typeof") == 0|| strcmp(buf, "_Noreturn") == 0 || strcmp(buf, "_Alignas") == 0 || strcmp(buf, "override") == 0;
 }
 
 static BOOL is_premitive_type(char* buf, sParserInfo* info)
@@ -1485,6 +1485,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
     BOOL signed_ = FALSE;
     BOOL no_heap = FALSE;
     BOOL managed_ = FALSE;
+    BOOL override_ = 0;
     int pointer_num = 0;
 
     while(TRUE) {
@@ -1514,6 +1515,9 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
         }
         else if(strcmp(type_name, "static") == 0) {
             static_ = TRUE;
+        }
+        else if(strcmp(type_name, "override") == 0) {
+            override_ = TRUE;
         }
         else {
             info->p = p_before;
@@ -2329,6 +2333,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
     (*result_type)->mRegister = register_;
     (*result_type)->mVolatile = volatile_;
     (*result_type)->mStatic = static_;
+    (*result_type)->mOverride = override_;
     (*result_type)->mUniq = uniq;
     (*result_type)->mNoHeap = no_heap;
 
@@ -3008,6 +3013,23 @@ static BOOL parse_generics_function(unsigned int* node, sNodeType* result_type, 
     return TRUE;
 }
 
+static void parse_version(int* version, sParserInfo* info)
+{
+    if(parse_cmp(info->p, "version") == 0) {
+        info->p += 7;
+        skip_spaces_and_lf(info);
+
+        *version = 0;
+        while(isdigit(*info->p)) {
+            *version = *version * 10 + (*info->p - '0');
+            info->p++;
+            skip_spaces_and_lf(info);
+        }
+
+        skip_spaces_and_lf(info);
+    }
+}
+
 BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, char* struct_name, sParserInfo* info)
 {
     char* function_head = info->p;
@@ -3072,6 +3094,9 @@ BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, 
         *node = sNodeTree_create_external_function(fun_name, asm_fname, params, num_params, var_arg, result_type, struct_name, operator_fun, 0, info);
     }
     else {
+        int version = 0;
+        parse_version(&version, info);
+
         int i;
         for(i=0; i<num_params; i++) {
             char* name = params[i].mName;
@@ -3113,7 +3138,7 @@ BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, 
         BOOL simple_lambda_param = FALSE;
         BOOL construct_fun = FALSE;
 
-        *node = sNodeTree_create_function(fun_name, asm_fname, params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, struct_name, operator_fun, construct_fun, simple_lambda_param, info, FALSE, var_arg, 0, FALSE, -1, fun_name);
+        *node = sNodeTree_create_function(fun_name, asm_fname, params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, struct_name, operator_fun, construct_fun, simple_lambda_param, info, FALSE, var_arg, version, FALSE, -1, fun_name);
     }
 
     info->mNumMethodGenerics = 0;

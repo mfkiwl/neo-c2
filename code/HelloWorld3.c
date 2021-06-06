@@ -1,18 +1,5 @@
 #include <come.h>
 
-int int_compare(int left, int right)
-{
-    if(left < right) {
-        return -1;
-    }
-    else if(left > right) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
-
 int main()
 {
     xassert("xaasert test", true);

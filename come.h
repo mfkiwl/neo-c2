@@ -166,11 +166,6 @@ bool int_equals(int left, int right)
     return left == right;
 }
 
-int int_get_hash_key(int value)
-{
-    return value;
-}
-
 int int_compare(int left, int right) {
     if(left < right) {
         return -1;
