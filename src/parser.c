@@ -786,13 +786,21 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
             return TRUE;
         }
 
-        sCLClass* struct_class = alloc_struct(struct_name, anonymous);
+        sCLClass* struct_class = get_class(struct_name);
+
+        if(struct_class == NULL) {
+            struct_class = alloc_struct(struct_name, anonymous);
+
+
+            sNodeType* struct_type = create_node_type_with_class_pointer(struct_class);
+            BOOL undefined_struct = TRUE;
+            *node = sNodeTree_struct(struct_type, info, sname, sline, undefined_struct);
+        }
+        else {
+            *node = sNodeTree_create_null(info);
+        }
 
         xstrncpy(info->parse_struct_name, struct_name, VAR_NAME_MAX);
-
-        sNodeType* struct_type = create_node_type_with_class_pointer(struct_class);
-        BOOL undefined_struct = TRUE;
-        *node = sNodeTree_struct(struct_type, info, sname, sline, undefined_struct);
 
         info->in_struct = FALSE;
         return TRUE;

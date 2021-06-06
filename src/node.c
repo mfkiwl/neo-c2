@@ -13,7 +13,6 @@ LLVMDIBuilderRef gDIBuilder;
 
 LLVMValueRef gFunction;
 char gFunctionName[VAR_NAME_MAX];
-int gFunctionVersion = 0;
 
 LVALUE* gLLVMStack;
 LVALUE* gLLVMStackHead;
@@ -3767,7 +3766,6 @@ static BOOL compile_external_function(unsigned int node, sCompileInfo* info)
         param_types[i] = param_type;
     }
 
-    // puts function
     LLVMTypeRef llvm_param_types[PARAMS_MAX];
 
     for(i=0; i<num_params; i++) {
@@ -3840,53 +3838,6 @@ static BOOL compile_external_function(unsigned int node, sCompileInfo* info)
     }
 
     return TRUE;
-}
-
-unsigned int sNodeTree_create_function_call(char* fun_name, unsigned int* params, int num_params, BOOL method, BOOL inherit, int version, sParserInfo* info)
-{
-    unsigned int node = alloc_node();
-
-/*
-    if(strcmp(fun_name, "memset") == 0) {
-        params[num_params] = sNodeTree_create_false(info);
-        num_params++;
-    }
-*/
-    if(strcmp(fun_name, "__builtin___strcpy_chk") == 0) {
-        xstrncpy(fun_name, "strcpy", VAR_NAME_MAX);
-        num_params--;
-    }
-
-    xstrncpy(gNodes[node].uValue.sFunctionCall.mName, fun_name, VAR_NAME_MAX);
-    gNodes[node].uValue.sFunctionCall.mNumParams = num_params;
-
-    int i;
-    for(i=0; i<num_params; i++) {
-        gNodes[node].uValue.sFunctionCall.mParams[i] = params[i];
-    }
-
-    gNodes[node].uValue.sFunctionCall.mMethod = method;
-    gNodes[node].uValue.sFunctionCall.mInherit = inherit;
-    
-    gNodes[node].mNodeType = kNodeTypeFunctionCall;
-
-    gNodes[node].uValue.sFunctionCall.mNumGenerics = info->mNumGenerics;
-    for(i=0; i<info->mNumGenerics; i++)
-    {
-        xstrncpy(gNodes[node].uValue.sFunctionCall.mGenericsTypeNames[i], info->mGenericsTypeNames[i], VAR_NAME_MAX);
-    }
-    gNodes[node].uValue.sFunctionCall.mVersion = version;
-
-    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
-    gNodes[node].mLine = info->sline;
-
-    xstrncpy(gNodes[node].uValue.sFunctionCall.mImplStructName, info->impl_struct_name, VAR_NAME_MAX);
-
-    gNodes[node].mLeft = 0;
-    gNodes[node].mRight = 0;
-    gNodes[node].mMiddle = 0;
-
-    return node;
 }
 
 void llvm_change_block(LLVMBasicBlockRef current_block, sCompileInfo* info)
@@ -4106,6 +4057,53 @@ BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_
     info->generics_type = generics_type_before;
 
     return TRUE;
+}
+
+unsigned int sNodeTree_create_function_call(char* fun_name, unsigned int* params, int num_params, BOOL method, BOOL inherit, int version, sParserInfo* info)
+{
+    unsigned int node = alloc_node();
+
+/*
+    if(strcmp(fun_name, "memset") == 0) {
+        params[num_params] = sNodeTree_create_false(info);
+        num_params++;
+    }
+*/
+    if(strcmp(fun_name, "__builtin___strcpy_chk") == 0) {
+        xstrncpy(fun_name, "strcpy", VAR_NAME_MAX);
+        num_params--;
+    }
+
+    xstrncpy(gNodes[node].uValue.sFunctionCall.mName, fun_name, VAR_NAME_MAX);
+    gNodes[node].uValue.sFunctionCall.mNumParams = num_params;
+
+    int i;
+    for(i=0; i<num_params; i++) {
+        gNodes[node].uValue.sFunctionCall.mParams[i] = params[i];
+    }
+
+    gNodes[node].uValue.sFunctionCall.mMethod = method;
+    gNodes[node].uValue.sFunctionCall.mInherit = inherit;
+    
+    gNodes[node].mNodeType = kNodeTypeFunctionCall;
+
+    gNodes[node].uValue.sFunctionCall.mNumGenerics = info->mNumGenerics;
+    for(i=0; i<info->mNumGenerics; i++)
+    {
+        xstrncpy(gNodes[node].uValue.sFunctionCall.mGenericsTypeNames[i], info->mGenericsTypeNames[i], VAR_NAME_MAX);
+    }
+    gNodes[node].uValue.sFunctionCall.mVersion = version;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    xstrncpy(gNodes[node].uValue.sFunctionCall.mImplStructName, info->impl_struct_name, VAR_NAME_MAX);
+
+    gNodes[node].mLeft = 0;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    return node;
 }
 
 BOOL compile_function_call(unsigned int node, sCompileInfo* info)
@@ -4776,9 +4774,6 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     char fun_name_before[VAR_NAME_MAX];
     xstrncpy(fun_name_before, gFunctionName, VAR_NAME_MAX);
 
-    int function_version_before = gFunctionVersion;
-    gFunctionVersion = version;
-
     gFunction = llvm_fun;
     xstrncpy(gFunctionName, fun_name, VAR_NAME_MAX);
 
@@ -4878,8 +4873,6 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     gFunction = function;
     xstrncpy(gFunctionName, fun_name_before, VAR_NAME_MAX);
     info->function_node_block = function_node_block;
-
-    gFunctionVersion = function_version_before;
 
     return TRUE;
 }
