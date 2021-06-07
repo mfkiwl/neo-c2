@@ -1,0 +1,79 @@
+##########################################
+# installed directories
+##########################################
+prefix=@prefix@ exec_prefix=@exec_prefix@
+bindir=@bindir@
+datadir=@datadir@
+mandir=@mandir@
+sharedstatedir=@sharedstatedir@
+sysconfdir=@sysconfdir@/neo-c
+includedir=@includedir@/neo-c
+datarootdir=@datarootdir@/neo-c
+docdir=@datadir@/doc
+libdir=@libdir@
+
+
+#########################################
+# environmnet variables
+##########################################
+CC=@CC@
+NCC=@NCC@
+INSTALL=@INSTALL@
+CFLAGS=@CFLAGS@
+NCFLAGS=@NCFLAGS@
+LIBS=@LIBS@
+OS=@OS@
+DESTDIR=@DESTDIR@
+
+#########################################
+# main
+##########################################
+all: vico
+
+vico: configure Makefile config.h main.o main.c 01init.o 01init.c
+	$(CC) -o vico main.o 01init.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
+
+main.o: configure Makefile config.h main.c common.h
+	come main.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o main.o main.c.ll
+
+01init.o: configure Makefile config.h 01init.c common.h
+	come 01init.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 01init.o 01init.c.ll
+
+#########################################
+# install
+#########################################
+install:
+	mkdir -p "$(DESTDIR)/bin"
+	$(INSTALL) -m 755 ./vico "$(DESTDIR)/bin"
+
+#########################################
+# uninstall
+#########################################
+uninstall:
+	rm -f "$(DESTDIR)"/bin/vico
+
+#########################################
+# permission
+#########################################
+permission:
+	chmod 644 *
+	chmod 755 .git man configure
+	chmod 644 *.c
+	chmod 644 *.h
+
+#########################################
+# clean
+#########################################
+clean:
+	rm -fR *.ll *.bc *.c.tmp *.out *.o valgrind.txt *.i
+	rm -fR vico
+
+distclean: clean
+	rm -fR  config.h Makefile autom4te.cache 
+
+test:
+	rm -f valgrind.txt
+	valgrind --log-file=valgrind.txt --leak-check=full --show-leak-kinds=all ./wi a.c
+

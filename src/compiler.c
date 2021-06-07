@@ -195,7 +195,7 @@ BOOL compile_source(char* fname, char* source, BOOL optimize, sVarTable* module_
         }
         else {
             unsigned int node = 0;
-            if(!expression(&node, &info)) {
+            if(!expression(&node, TRUE, &info)) {
                 free(info.mConst.mBuf);
                 return FALSE;
             }

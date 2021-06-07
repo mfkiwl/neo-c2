@@ -112,7 +112,7 @@ BOOL parse_block(sNodeBlock* node_block, BOOL extern_c_lang, BOOL single_express
         if(*info->p == ';') {
         }
         else {
-            if(!expression(&node, info)) {
+            if(!expression(&node, TRUE, info)) {
                 if(!extern_c_lang) {
                     info->mBlockLevel--;
                 }
@@ -235,7 +235,7 @@ BOOL parse_block(sNodeBlock* node_block, BOOL extern_c_lang, BOOL single_express
                 }
             }
 
-            if(!expression(&node, info)) {
+            if(!expression(&node, TRUE, info)) {
                 if(!extern_c_lang) {
                     info->mBlockLevel--;
                 }

@@ -423,7 +423,7 @@ BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, 
 void expect_next_character_with_one_forward(char* characters, sParserInfo* info);
 void skip_spaces(sParserInfo* info);
 
-BOOL expression(unsigned int* node, sParserInfo* info);
+BOOL expression(unsigned int* node, BOOL comma, sParserInfo* info);
 BOOL parse_sharp(sParserInfo* info);
 
 //////////////////////////////
