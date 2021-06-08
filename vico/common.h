@@ -56,21 +56,21 @@ struct ViWin
 
 struct Vi 
 {
-    list<ViWin*%>*% wins;
+    list<ViWin*%>* wins;
     ViWin* activeWin;
 };
 
 extern Vi* gApp;
-
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
-void ViWin_finalize(ViWin* self);
-
-void ViWin_view(ViWin* self, Vi* nvi);
-void ViWin_input(ViWin* self, Vi* nvi);
 
 Vi*% Vi_initialize(Vi*% self);
 void Vi_finalize(Vi* self);
 
 void Vi_init_curses(Vi* self);
 int Vi_main_loop(Vi* self);
+
+ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
+void ViWin_finalize(ViWin* self);
+
+void ViWin_view(ViWin* self, Vi* nvi);
+void ViWin_input(ViWin* self, Vi* nvi);
 

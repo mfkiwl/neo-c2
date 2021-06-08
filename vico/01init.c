@@ -1,6 +1,7 @@
 #include "common.h"
 
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) {
+ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) 
+{
     self.texts = borrow new list<wstring>.initialize();
 
     self.y = y;
@@ -11,7 +12,7 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     self.scroll = 0;
     self.vi = vi;
 
-    var win = newwin(height, width, y, x);
+    WINDOW* win = newwin(height, width, y, x);
 
     self.win = win;
 
@@ -22,7 +23,7 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
 
 void ViWin_finalize(ViWin* self) 
 {
-    //delete self.texts;
+    delete self.texts;
     delwin(self.win);
 }
 
@@ -30,40 +31,38 @@ void ViWin_view(ViWin* self, Vi* nvi)
 {
     werase(self.win);
 
-/*
     int it2 = 0;
     foreach(it, self.texts) {
         mvwprintw(self.win, it2, 0, "%ls", it);
         it2++;
     }
-*/
 
     wrefresh(self.win);
 }
 
 void ViWin_input(ViWin* self, Vi* nvi) 
 {
-    var key = wgetch(self.win);
+    int key = wgetch(self.win);
 }
 
-Vi*% Vi_initialize(Vi* self) 
+Vi*% Vi_initialize(Vi*% self) 
 {
     self.init_curses();
 
+    int maxx = xgetmaxx();
+    int maxy = xgetmaxy();
+
     self.wins = borrow new list<ViWin*%>.initialize();
 
-    var maxx = xgetmaxx();
-    var maxy = xgetmaxy();
-
-    var win = new ViWin.initialize(0, 0, maxx-1, maxy, self);
+    ViWin* win = borrow new ViWin.initialize(0, 0, maxx-1, maxy, self);
 
     win.texts.push_back(wstring("aaa"));
     win.texts.push_back(wstring("bbb"));
     win.texts.push_back(wstring("ccc"));
 
-    self.activeWin = win;
-
     self.wins.push_back(win);
+
+    self.activeWin = win;
 
     return self;
 }
@@ -81,9 +80,9 @@ int Vi_main_loop(Vi* self)
         it.view(self);
     }
 
-    //self.activeWin.input(self);
+    self.activeWin.input(self);
 
-    return 1;
+    return 0;
 }
 
 void Vi_init_curses(Vi* self) 

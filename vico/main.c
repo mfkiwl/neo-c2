@@ -21,7 +21,8 @@ bool xiswdigit(wchar_t c)
     return (c >= '0' && c <= '9');
 }
 
-int xgetmaxx(){
+int xgetmaxx()
+{
     var ws = new winsize;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, ws);
     
@@ -35,7 +36,8 @@ int xgetmaxx(){
     }
 }
 
-int xgetmaxy(){
+int xgetmaxy()
+{
     var ws = new winsize;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, ws);
     
@@ -74,19 +76,17 @@ int main(int argc, char** argv)
             }
         }
     }
-    var nvi = new Vi.initialize();
+
+    var vi = new Vi.initialize();
     
 /*
     if(num_file_names > 0) {
-        nvi.openFile(file_names[0], line_num);
+        vi.openFile(file_names[0], line_num);
     }
     else {
-        nvi.openFile(null, -1);
+        vi.openFile(null, -1);
     }
 */
     
-    int result = nvi.main_loop()
-
-    
-    return result;
+    return vi.main_loop();
 }
