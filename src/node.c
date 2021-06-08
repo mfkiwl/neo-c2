@@ -171,7 +171,9 @@ void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
         LLVMValueRef llvm_params[PARAMS_MAX];
         memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
 
+
         char* fun_name2 = "free";
+        //char* fun_name2 = "ncfree";
 
         LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
 
@@ -191,11 +193,9 @@ void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
 
 LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type);
 
-LLVMValueRef clone_object(sNodeType* node_type, LLVMValueRef address, sCompileInfo* info)
+LLVMValueRef clone_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
 {
     sCLClass* klass = node_type->mClass;
-
-    LLVMValueRef obj = LLVMBuildLoad(gBuilder, address, "obj");
 
     if(node_type->mPointerNum > 0) {
         sCLClass* klass = node_type->mClass;
@@ -4448,6 +4448,29 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
             info->type = create_node_type_with_class_name("void");
         }
         else {
+            if(is_typeof_type(result_type))
+            {
+                if(!solve_typeof(&result_type, info)) 
+                {
+                    compile_err_msg(info, "Can't solve typeof types");
+                    show_node_type(result_type);
+                    info->err_num++;
+                    return TRUE;
+                }
+            }
+
+            if(generics_type) {
+                if(!solve_generics(&result_type, generics_type))
+                {
+                    compile_err_msg(info, "Can't solve generics types(3)");
+                    show_node_type(result_type);
+                    show_node_type(generics_type);
+                    info->err_num++;
+
+                    return FALSE;
+                }
+            }
+
             LVALUE llvm_value;
             llvm_value.value = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "fun_result");
             llvm_value.type = clone_node_type(result_type);
@@ -5807,6 +5830,7 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
         memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
 
         char* fun_name = "calloc";
+        //char* fun_name = "nccalloc";
 
         llvm_params[0] = object_num;
 
@@ -7190,6 +7214,7 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
     /// compile expression ///
     LLVMBasicBlockRef loop_top_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "loop_top_block");
+    free_right_value_objects(info);
 
     LLVMBuildBr(gBuilder, loop_top_block);
 
@@ -7259,6 +7284,7 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
         return TRUE;
     }
+    //free_right_value_objects(info);
 
     LLVMBuildCondBr(gBuilder, conditional_value.value, cond_then_block, cond_end_block);
 
@@ -7291,6 +7317,7 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     }
 
     if(!info->last_expression_is_return) {
+        free_right_value_objects(info);
         LLVMBuildBr(gBuilder, loop_top_block);
     }
 
@@ -7574,7 +7601,7 @@ static BOOL compile_clone(unsigned int node, sCompileInfo* info)
 
     LVALUE lvalue = *get_value_from_stack(-1);
 
-    if(lvalue.address == NULL) {
+    if(lvalue.value == NULL) {
         compile_err_msg(info, "Can't get address of this value on clone operator");
         info->err_num++;
 
@@ -7586,7 +7613,7 @@ static BOOL compile_clone(unsigned int node, sCompileInfo* info)
     sNodeType* left_type2 = clone_node_type(left_type);
     left_type2->mHeap = TRUE;
 
-    LLVMValueRef obj = clone_object(left_type, lvalue.address, info);
+    LLVMValueRef obj = clone_object(left_type, lvalue.value, info);
 
     dec_stack_ptr(1, info);
 

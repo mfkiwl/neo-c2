@@ -109,6 +109,5 @@ int main()
 
     printf("%d\n", *v3.item(0, null));
 
-
     return 0;
 }

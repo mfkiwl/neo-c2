@@ -13,10 +13,12 @@ static void p(char* msg)
 {
     puts(msg)
 }
+*/
 
- * for printf debug
+// for printf debug
 static void ncfree(void* mem)
 {
+//printf("free %p\n", mem);
     free(mem);
 }
 
@@ -24,9 +26,10 @@ static void* nccalloc(size_t nmemb, size_t size)
 {
     void* result = calloc(nmemb, size);
 
+//printf("calloc %p\n", result);
+
     return result;
 }
-*/
 
 static void*% ncmemdup(void*% block)
 {
@@ -42,7 +45,7 @@ static void*% ncmemdup(void*% block)
         return null;
     }
 
-    void*% ret = calloc(1, size);
+    void*% ret = nccalloc(1, size);
 
     if (ret) {
         char* p = ret;
@@ -74,7 +77,7 @@ inline void xassert(const char* msg, bool exp)
 inline string string(char* str)
 {
     int len = strlen(str) + 1;
-    char* result = (char*)calloc(len, sizeof(char));
+    char* result = (char*)nccalloc(len, sizeof(char));
 
     strncpy(result, str, len);
 
@@ -230,6 +233,31 @@ impl vector<T>
         return self;
     }
 
+    vector<T>*% clone(vector<T>* self)
+    {
+        vector<T>*% result = new vector<T>;
+
+        result.len = self.len;
+        result.size = self.size;
+        result.it = 0;
+        result.items = borrow new T[result.size];
+
+        if(isheap(T)) {
+            for(int i=0; i<self.len; i++) 
+            {
+                result.items[i] = clone self.items[i];
+            }
+        }
+        else {
+            for(int i=0; i<self.len; i++) 
+            {
+                result.items[i] = self.items[i];
+            }
+        }
+
+        return result;
+    }
+
     void finalize(vector<T>* self)
     {
         if(isheap(T)) {
@@ -249,7 +277,7 @@ impl vector<T>
             var new_size = self.size * 2;
             var items = self.items;
 
-            self.items = calloc(1, sizeof(T)*new_size);
+            self.items = nccalloc(1, sizeof(T)*new_size);
 
             int i;
             for(i=0; i<self.size; i++) {
@@ -341,7 +369,7 @@ impl vector<T>
     }
 }
 
-#define foreach(o1, o2) for(var _obj = (o2), var o1 = (_obj).begin(); !(_obj).end(); o1 = (_obj).next())
+#define foreach(o1, o2) for(printf("clone start\n"), var _obj = clone (o2), printf("clone %p\n", _obj), var o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 
 
 /// list ///
@@ -1017,7 +1045,7 @@ impl map <T, T2>
 
         int len = 0;
 
-        foreach(it, self) {
+        for(var it = self.begin(); !self.end(); it = self.next()) {
             T2& it2 = self.at(it, null);
             int hash = it.get_hash_key() % size;
             int n = hash;
@@ -1113,7 +1141,7 @@ impl map <T, T2>
     {
         var result = new map<T,T2>.initialize();
 
-        foreach(it, self) {
+        for(var it = self.begin(); !self.end(); it = self.next()) {
             var it2 = self.at(it, null);
 
             if(isheap(T)) {

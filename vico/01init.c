@@ -1,54 +1,5 @@
 #include "common.h"
 
-bool xiswalpha(wchar_t c)
-{
-    bool result = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-    return result;
-}
-
-bool xiswblank(wchar_t c)
-{
-    return c == ' ' || c == '\t';
-}
-
-bool xiswalnum(wchar_t c)
-{
-    return xiswalpha(c) || xiswdigit(c);
-}
-
-bool xiswdigit(wchar_t c)
-{
-    return (c >= '0' && c <= '9');
-}
-
-int xgetmaxx(){
-    var ws = new winsize;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, ws);
-    
-    int result = ws.ws_col;
-//Raspberry PI return -1
-    if(result == -1) {
-        return getmaxx(stdscr);
-    }
-    else {
-        return result;
-    }
-}
-
-int xgetmaxy(){
-    var ws = new winsize;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, ws);
-    
-    int result = ws.ws_row;
-//Raspberry PI return -1
-    if(result == -1) {
-        return getmaxy(stdscr);
-    }
-    else {
-        return result;
-    }
-}
-
 ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) {
     self.texts = borrow new list<wstring>.initialize();
 
@@ -71,7 +22,7 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
 
 void ViWin_finalize(ViWin* self) 
 {
-    delete self.texts;
+    //delete self.texts;
     delwin(self.win);
 }
 
@@ -79,11 +30,13 @@ void ViWin_view(ViWin* self, Vi* nvi)
 {
     werase(self.win);
 
+/*
     int it2 = 0;
     foreach(it, self.texts) {
         mvwprintw(self.win, it2, 0, "%ls", it);
         it2++;
     }
+*/
 
     wrefresh(self.win);
 }
@@ -128,7 +81,7 @@ int Vi_main_loop(Vi* self)
         it.view(self);
     }
 
-    self.activeWin.input(self);
+    //self.activeWin.input(self);
 
     return 1;
 }

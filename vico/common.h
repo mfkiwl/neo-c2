@@ -9,7 +9,7 @@
 typedef wchar_t*% wstring;
 
 /// wstring ///
-inline wstring wstring(char* str)
+static wstring wstring(char* str)
 {
     int len = strlen(str);
 
@@ -28,9 +28,7 @@ wstring a = new wchar_t[1];
     return wstr;
 }
 
-#define SAVE_INPUT_KEY_MAX 256
-
-// 1init.h
+/// main.c ///
 bool xiswalpha(wchar_t c);
 bool xiswalnum(wchar_t c);
 bool xiswdigit(wchar_t c);
@@ -38,6 +36,10 @@ bool xiswblank(wchar_t c);
 
 int xgetmaxx();
 int xgetmaxy();
+
+
+// 1init.h
+#define SAVE_INPUT_KEY_MAX 256
 
 struct ViWin 
 {
@@ -58,6 +60,8 @@ struct Vi
     ViWin* activeWin;
 };
 
+extern Vi* gApp;
+
 ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
 void ViWin_finalize(ViWin* self);
 
@@ -70,4 +74,3 @@ void Vi_finalize(Vi* self);
 void Vi_init_curses(Vi* self);
 int Vi_main_loop(Vi* self);
 
-extern Vi* gApp;

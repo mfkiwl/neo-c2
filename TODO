@@ -3,10 +3,7 @@ operators
 
     struct with initialization
 
-substring
-
-map
-tuple
+Br no mae no free_right_objects while no conditional, for, do while, switch, case atarino br mae ni ireru?
 
 ---- implemented ----
 debug info
@@ -131,3 +128,8 @@ vector
 foreach C macro
 
 auto
+
+substring
+
+map
+tuple
