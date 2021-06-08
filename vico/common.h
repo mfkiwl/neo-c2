@@ -8,13 +8,33 @@
 
 typedef wchar_t*% wstring;
 
+/// wstring ///
+inline wstring wstring(char* str)
+{
+    int len = strlen(str);
+
+wstring a = new wchar_t[1];
+// I can't understand. this requires for s309x apline linux,... hmm is it my mistake?
+
+    wstring wstr = new wchar_t[len+1];
+
+    int ret = mbstowcs(wstr, str, len+1);
+    wstr[ret] = '\0';
+
+    if(ret < 0) {
+        wstr[0] = 0;
+    }
+
+    return wstr;
+}
+
 #define SAVE_INPUT_KEY_MAX 256
 
 // 1init.h
-bool xiswalpha(wchar_t* c);
-bool xiswalnum(wchar_t* c);
-bool xiswdigit(wchar_t* c);
-bool xiswblank(wchar_t* c);
+bool xiswalpha(wchar_t c);
+bool xiswalnum(wchar_t c);
+bool xiswdigit(wchar_t c);
+bool xiswblank(wchar_t c);
 
 int xgetmaxx();
 int xgetmaxy();

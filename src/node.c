@@ -116,6 +116,8 @@ struct sFunctionStruct {
 
 typedef struct sFunctionStruct sFunction;
 
+sFunction* gComeFunction;
+
 LLVMTypeRef create_llvm_type_with_class_name(char* class_name);
 sFunction* get_function_from_table(char* name);
 BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_name, sNodeType* generics_type, sCompileInfo* info);
@@ -1198,7 +1200,41 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
     sCLClass* left_class = left_type->mClass;
     sCLClass* right_class = (*right_type)->mClass;
 
-    if((left_type->mPointerNum-1 == (*right_type)->mPointerNum) && (*right_type)->mArrayDimentionNum == 1) 
+    /// va_list ///
+    if(type_identify_with_class_name(left_type, "char*") && (type_identify_with_class_name(*right_type, "va_list") || type_identify_with_class_name(*right_type, "__builtin_va_list")))
+    {
+        if(rvalue) {
+            LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castC");
+            rvalue->type = create_node_type_with_class_name("char*");
+        }
+
+        *right_type = create_node_type_with_class_name("char*");
+    }
+    else if((type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) && type_identify_with_class_name(*right_type, "char*"))
+    {
+        if(rvalue) {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castD");
+            rvalue->type = create_node_type_with_class_name("va_list");
+        }
+
+        *right_type = create_node_type_with_class_name("va_list");
+    }
+    else if((type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) && type_identify_with_class_name(*right_type, "char*"))
+    {
+        if(rvalue) {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castE");
+            rvalue->type = create_node_type_with_class_name("__builtin_va_list");
+        }
+
+        *right_type = create_node_type_with_class_name("__builtin_va_list");
+    }
+    /// go ///
+    else if((left_type->mPointerNum-1 == (*right_type)->mPointerNum) && (*right_type)->mArrayDimentionNum == 1) 
     {
         if(rvalue) {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
@@ -1227,6 +1263,18 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = clone_node_type(left_type);
     }
+/*
+    else if(left_type->mPointerNum > 0 && (*right_type)->mPointerNum == 0) {
+        if(rvalue) {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMIntToPtr, rvalue->value, llvm_type, "castB");
+            rvalue->type = clone_node_type(left_type);
+        }
+
+        *right_type = clone_node_type(left_type);
+    }
+*/
     else if(type_identify_with_class_name(left_type, "bool"))
     {
         if(rvalue) {
@@ -1267,6 +1315,40 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = create_node_type_with_class_name("long");
     }
+    else if(type_identify_with_class_name(left_type, "short"))
+    {
+        if(rvalue) {
+            if(type_identify_with_class_name(*right_type, "char")) {
+                LLVMTypeRef llvm_type = create_llvm_type_with_class_name("short");
+
+                if(left_type->mUnsigned) {
+                    rvalue->value = LLVMBuildCast(gBuilder, LLVMZExt, rvalue->value, llvm_type, "icast");
+                }
+                else {
+                    rvalue->value = LLVMBuildCast(gBuilder, LLVMSExt, rvalue->value, llvm_type, "icast");
+                }
+            }
+            else if(type_identify_with_class_name(*right_type, "int") || type_identify_with_class_name(*right_type, "long")) {
+                LLVMTypeRef llvm_type = create_llvm_type_with_class_name("short");
+
+                rvalue->value = LLVMBuildTrunc(gBuilder, rvalue->value, llvm_type, "icast");
+            }
+            else if((*right_type)->mPointerNum > 0) {
+                if(rvalue) {
+                    LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+                    rvalue->value = LLVMBuildCast(gBuilder, LLVMPtrToInt, rvalue->value, llvm_type, "castB");
+                    rvalue->type = clone_node_type(left_type);
+                }
+
+                *right_type = clone_node_type(left_type);
+            }
+
+            rvalue->type = create_node_type_with_class_name("short");
+        }
+
+        *right_type = create_node_type_with_class_name("short");
+    }
     else if(type_identify_with_class_name(left_type, "int"))
     {
         if(rvalue) {
@@ -1289,7 +1371,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
                 if(rvalue) {
                     LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-                    rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castB");
+                    rvalue->value = LLVMBuildCast(gBuilder, LLVMPtrToInt, rvalue->value, llvm_type, "castB");
                     rvalue->type = clone_node_type(left_type);
                 }
 
@@ -1301,39 +1383,18 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = create_node_type_with_class_name("int");
     }
-    /// va_list ///
-    else if(type_identify_with_class_name(left_type, "char*") && (type_identify_with_class_name(*right_type, "va_list") || type_identify_with_class_name(*right_type, "__builtin_va_list")))
-    {
-        if(rvalue) {
-            LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
-            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castC");
-            rvalue->type = create_node_type_with_class_name("char*");
-        }
-
-        *right_type = create_node_type_with_class_name("char*");
-    }
-    else if((type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) && type_identify_with_class_name(*right_type, "char*"))
-    {
+/*
+    else if(left_type->mPointerNum == 0 && (*right_type)->mPointerNum > 0) {
         if(rvalue) {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castD");
-            rvalue->type = create_node_type_with_class_name("va_list");
+            rvalue->value = LLVMBuildCast(gBuilder, LLVMPtrToInt, rvalue->value, llvm_type, "castB");
+            rvalue->type = clone_node_type(left_type);
         }
 
-        *right_type = create_node_type_with_class_name("va_list");
+        *right_type = clone_node_type(left_type);
     }
-    else if((type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) && type_identify_with_class_name(*right_type, "char*"))
-    {
-        if(rvalue) {
-            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
-
-            rvalue->value = LLVMBuildCast(gBuilder, LLVMBitCast, rvalue->value, llvm_type, "castE");
-            rvalue->type = create_node_type_with_class_name("__builtin_va_list");
-        }
-
-        *right_type = create_node_type_with_class_name("__builtin_va_list");
-    }
+*/
 
     return TRUE;
 }
@@ -4275,8 +4336,33 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         lvalue_params[i] = param;
 
         if(fun->mParamTypes[i]) {
-            if(auto_cast_posibility(fun->mParamTypes[i], param_types[i])) {
-                if(!cast_right_type_to_left_type(fun->mParamTypes[i], &param_types[i], &param, info))
+            sNodeType* fun_param_type = clone_node_type(fun->mParamTypes[i]);
+
+            if(is_typeof_type(fun_param_type))
+            {
+                if(!solve_typeof(&fun_param_type, info)) 
+                {
+                    compile_err_msg(info, "Can't solve typeof types");
+                    show_node_type(fun_param_type);
+                    info->err_num++;
+                    return TRUE;
+                }
+            }
+
+            if(generics_type) {
+                if(!solve_generics(&fun_param_type, generics_type))
+                {
+                    compile_err_msg(info, "Can't solve generics types(3)");
+                    show_node_type(fun_param_type);
+                    show_node_type(generics_type);
+                    info->err_num++;
+
+                    return FALSE;
+                }
+            }
+
+            if(auto_cast_posibility(fun_param_type, param_types[i])) {
+                if(!cast_right_type_to_left_type(fun_param_type, &param_types[i], &param, info))
                 {
                     compile_err_msg(info, "Cast failed");
                     info->err_num++;
@@ -4497,10 +4583,15 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         struct sRightValueObject* right_value_objects = info->right_value_objects;
         info->right_value_objects = NULL;
 
+        sFunction* come_function = gComeFunction;
+        gComeFunction = fun;
+
         BOOL no_free_objects = FALSE;
         if(!compile_block(node_block, info, no_free_objects)) {
             return FALSE;
         }
+
+        gComeFunction = come_function;
 
         info->in_inline_function = in_inline_function;
 
@@ -4820,6 +4911,9 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
     sFunction* fun = get_function_from_table(fun_name);
 
+    sFunction* come_function = gComeFunction;
+    gComeFunction = fun;
+
     if(gNCDebug && !info->in_generics_function && !empty_function) {
         int sline = gNodes[node].mLine;
         createDebugFunctionInfo(sline, fun_name, fun, llvm_fun, gFName, info);
@@ -4896,6 +4990,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     gFunction = function;
     xstrncpy(gFunctionName, fun_name_before, VAR_NAME_MAX);
     info->function_node_block = function_node_block;
+    gComeFunction = come_function;
 
     return TRUE;
 }
@@ -6757,7 +6852,7 @@ static BOOL compile_null(unsigned int node, sCompileInfo* info)
 
     LVALUE llvm_value;
     llvm_value.value = LLVMConstInt(llvm_type, 0, FALSE);
-    LLVMTypeRef llvm_type2 = create_llvm_type_with_class_name("char*");
+    LLVMTypeRef llvm_type2 = create_llvm_type_with_class_name("void*");
     llvm_value.value = LLVMBuildCast(gBuilder, LLVMBitCast, llvm_value.value, llvm_type2, "castG");
     llvm_value.type = create_node_type_with_class_name("void*");
     llvm_value.address = NULL;
@@ -8624,6 +8719,15 @@ static BOOL compile_return(unsigned int node, sCompileInfo* info)
         }
 
         LVALUE llvm_value = *get_value_from_stack(-1);
+
+        sNodeType* right_type = clone_node_type(info->type);
+
+        sNodeType* result_type = gComeFunction->mResultType;
+
+        if(auto_cast_posibility(result_type, right_type))
+        {
+            cast_right_type_to_left_type(result_type, &right_type, &llvm_value, info);
+        }
 
         if(llvm_value.type->mHeap) {
             remove_object_from_right_values(llvm_value.value, info);

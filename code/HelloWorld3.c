@@ -101,6 +101,14 @@ int main()
         printf("%d\n", it);
     }
 
+    vector<int*>*% v3 = new vector<init*>.initialize();
+
+    int x = 0;
+
+    v3.push_back(&x);
+
+    printf("%d\n", *v3.item(0, null));
+
 
     return 0;
 }

@@ -1,23 +1,22 @@
 #include "common.h"
 
-/*
-bool xiswalpha(wchar_t* c)
+bool xiswalpha(wchar_t c)
 {
     bool result = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
     return result;
 }
 
-bool xiswblank(wchar_t* c)
+bool xiswblank(wchar_t c)
 {
     return c == ' ' || c == '\t';
 }
 
-bool xiswalnum(wchar_t* c)
+bool xiswalnum(wchar_t c)
 {
     return xiswalpha(c) || xiswdigit(c);
 }
 
-bool xiswdigit(wchar_t* c)
+bool xiswdigit(wchar_t c)
 {
     return (c >= '0' && c <= '9');
 }
@@ -82,7 +81,7 @@ void ViWin_view(ViWin* self, Vi* nvi)
 
     int it2 = 0;
     foreach(it, self.texts) {
-        mvwprintw(self.win, it2, 0, it.to_string(""));
+        mvwprintw(self.win, it2, 0, "%ls", it);
         it2++;
     }
 
@@ -142,4 +141,3 @@ void Vi_init_curses(Vi* self)
     raw();
     curs_set(0);
 }
-*/

@@ -156,17 +156,18 @@ static string char_substring(char* str, int head, int tail)
 }
 
 /// int methods ///
-int int_get_hash_key(int value)
+static int int_get_hash_key(int value)
 {
     return value;
 }
 
-bool int_equals(int left, int right) 
+static bool int_equals(int left, int right) 
 {
     return left == right;
 }
 
-int int_compare(int left, int right) {
+static int int_compare(int left, int right) 
+{
     if(left < right) {
         return -1;
     }
@@ -179,7 +180,7 @@ int int_compare(int left, int right) {
 }
 
 /// char methods ///
-int char_get_hash_key(char* value)
+static int char_get_hash_key(char* value)
 {
     int result = 0;
     char* p = value;
@@ -190,12 +191,13 @@ int char_get_hash_key(char* value)
     return result;
 }
 
-bool char_equals(string& left, string& right)
+static bool char_equals(string& left, string& right)
 {
     return strcmp(left, right) == 0;
 }
 
-int char_compare(int left, int right) {
+static int char_compare(int left, int right) 
+{
     if(left < right) {
         return -1;
     }
@@ -325,13 +327,13 @@ impl vector<T>
     T& begin(vector<T>* self) {
         self.it = 0;
 
-        return self.item(0, NULL);
+        return self.item(0, null);
     }
 
     T& next(vector<T>* self) {
         self.it++;
 
-        return self.item(self.it, NULL);
+        return self.item(self.it, null);
     }
 
     bool end(vector<T>* self) {
@@ -901,9 +903,8 @@ impl list <T>
             return self.it.item;
         }
         else {
-            return NULL;
+            return null;
         }
-
     }
 
     T& next(list<T>* self) {
@@ -913,7 +914,7 @@ impl list <T>
             return self.it.item;
         }
         else {
-            return NULL;
+            return null;
         }
     }
 
@@ -1017,7 +1018,7 @@ impl map <T, T2>
         int len = 0;
 
         foreach(it, self) {
-            T2& it2 = self.at(it, NULL);
+            T2& it2 = self.at(it, null);
             int hash = it.get_hash_key() % size;
             int n = hash;
 
@@ -1037,7 +1038,7 @@ impl map <T, T2>
                 else {
                     item_existance[n] = true;
                     keys[n] = it;
-                    items[n] = self.at(it, NULL);
+                    items[n] = self.at(it, null);
 
                     len++;
                     break;
@@ -1113,7 +1114,7 @@ impl map <T, T2>
         var result = new map<T,T2>.initialize();
 
         foreach(it, self) {
-            var it2 = self.at(it, NULL);
+            var it2 = self.at(it, null);
 
             if(isheap(T)) {
                 if(isheap(T2)) {
