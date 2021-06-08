@@ -369,7 +369,7 @@ impl vector<T>
     }
 }
 
-#define foreach(o1, o2) for(printf("clone start\n"), var _obj = clone (o2), printf("clone %p\n", _obj), var o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
+#define foreach(o1, o2) for(var _obj = clone (o2), var o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 
 
 /// list ///
