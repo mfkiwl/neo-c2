@@ -1263,7 +1263,6 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = clone_node_type(left_type);
     }
-/*
     else if(left_type->mPointerNum > 0 && (*right_type)->mPointerNum == 0) {
         if(rvalue) {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
@@ -1274,8 +1273,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = clone_node_type(left_type);
     }
-*/
-    else if(type_identify_with_class_name(left_type, "bool"))
+    else if(type_identify_with_class_name(left_type, "bool") && left_type->mPointerNum == 0)
     {
         if(rvalue) {
             if(type_identify_with_class_name(*right_type, "int") || type_identify_with_class_name(*right_type, "char") || type_identify_with_class_name(*right_type, "short") || type_identify_with_class_name(*right_type, "long")) {
@@ -1296,7 +1294,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = create_node_type_with_class_name("bool");
     }
-    else if(type_identify_with_class_name(left_type, "long"))
+    else if(type_identify_with_class_name(left_type, "long") && left_type->mPointerNum == 0)
     {
         if(rvalue) {
             if(type_identify_with_class_name(*right_type, "int") || type_identify_with_class_name(*right_type, "char") || type_identify_with_class_name(*right_type, "short")) {
@@ -1315,7 +1313,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = create_node_type_with_class_name("long");
     }
-    else if(type_identify_with_class_name(left_type, "short"))
+    else if(type_identify_with_class_name(left_type, "short") && left_type->mPointerNum == 0)
     {
         if(rvalue) {
             if(type_identify_with_class_name(*right_type, "char")) {
@@ -1349,7 +1347,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = create_node_type_with_class_name("short");
     }
-    else if(type_identify_with_class_name(left_type, "int"))
+    else if(type_identify_with_class_name(left_type, "int") && left_type->mPointerNum == 0)
     {
         if(rvalue) {
             if(type_identify_with_class_name(*right_type, "char") || type_identify_with_class_name(*right_type, "short")) {

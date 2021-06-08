@@ -49,7 +49,7 @@ int xgetmaxy(){
     }
 }
 
-ViWin*% initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) {
+ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) {
     self.texts = borrow new list<wstring>.initialize();
 
     self.y = y;
