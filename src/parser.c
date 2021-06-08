@@ -1323,13 +1323,13 @@ static BOOL parse_enum(unsigned int* node, char* name, int name_size, BOOL* term
             skip_spaces_and_lf(info);
 
             unsigned int node2;
-            if(!expression(&node2, TRUE, info)) {
+            if(!expression(&node2, FALSE, info)) {
                 return FALSE;
             }
 
             if(terminated == NULL) {
                 if(!get_const_value_from_node(&value, node2, info)) {
-                    fprintf(stderr, "%s %d: can't create const value", info->sname, info->sline);
+                    fprintf(stderr, "%s %d: can't create const value(x)\n", info->sname, info->sline);
                     return FALSE;
                 }
             }

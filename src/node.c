@@ -1340,7 +1340,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
 BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sParserInfo* info)
 {
-    info->no_output_err_msg = TRUE;
+    //info->no_output_err_msg = TRUE;
     sCompileInfo cinfo;
 
     memset(&cinfo, 0, sizeof(sCompileInfo));
@@ -1349,7 +1349,7 @@ BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sP
     if(!compile(array_size_node, &cinfo)) {
         return FALSE;
     }
-    info->no_output_err_msg = FALSE;
+    //info->no_output_err_msg = FALSE;
 
     sNodeType* node_type = cinfo.type;
 
@@ -4753,10 +4753,24 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     BOOL static_ = result_type->mStatic;
 
     if(version > 0) {
-        char fun_name2[VAR_NAME_MAX];
-        snprintf(fun_name2, VAR_NAME_MAX, "%s_v%d", fun_name, version);
+        int i;
+        for(i=FUN_VERSION_MAX; i>=0; i--) {
+            char old_fun_name[VAR_NAME_MAX];
+            snprintf(old_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, i);
 
-        xstrncpy(fun_name, fun_name2, VAR_NAME_MAX);
+            LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, old_fun_name);
+
+            if(llvm_fun) {
+                break;
+            }
+        }
+
+        if(version <= i) {
+            char fun_name2[VAR_NAME_MAX];
+            snprintf(fun_name2, VAR_NAME_MAX, "%s_v%d", fun_name, version);
+
+            xstrncpy(fun_name, fun_name2, VAR_NAME_MAX);
+        }
     }
 
     LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);

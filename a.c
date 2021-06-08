@@ -1,12 +1,13 @@
 #include <stdio.h>
 
+
 extern void fun(int a, int b);
 extern override void fun(int a, int b);
 extern override void fun(int a, int b);
 
 void fun(int a, int b) version 1
 {
-    puts("version1");
+    puts("version 1");
 }
 
 void fun(int a, int b) version 2
@@ -15,7 +16,7 @@ void fun(int a, int b) version 2
     puts("version 2");
 }
 
-void fun(int a, int b)
+void fun(int a, int b) version 3
 {
     inherit(a, b);
     puts("verion 3");

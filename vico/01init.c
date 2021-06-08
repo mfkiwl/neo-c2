@@ -1,5 +1,6 @@
 #include "common.h"
 
+/*
 bool xiswalpha(wchar_t* c)
 {
     bool result = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
@@ -141,3 +142,4 @@ void Vi_init_curses(Vi* self)
     raw();
     curs_set(0);
 }
+*/

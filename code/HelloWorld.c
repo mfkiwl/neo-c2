@@ -370,6 +370,13 @@ char*% get_char()
     return new char[123];
 }
 
+enum AAA
+  {
+    kA,
+    kB = kA + 1,
+    kC
+};
+
 int main()
 {
     printf("HELLO WORLD\n");

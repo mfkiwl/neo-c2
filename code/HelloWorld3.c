@@ -90,5 +90,17 @@ int main()
 
     xassert("tuple test", t.v1 == 123 && t.v2 == "ABC");
 
+    var lx = new list<int>.initialize();
+
+    lx.push_back(1);
+    lx.push_back(2);
+    lx.push_back(3);
+
+    
+    foreach(it, lx.sublist(1,3)) {
+        printf("%d\n", it);
+    }
+
+
     return 0;
 }
