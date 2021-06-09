@@ -434,6 +434,7 @@ struct sRightValueObject {
     sNodeType* node_type;
     struct sRightValueObject* next;
     char fun_name[VAR_NAME_MAX];
+    BOOL freed;
 };
 
 struct sCompileInfoStruct

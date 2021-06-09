@@ -35,6 +35,7 @@ void append_object_to_right_values(LLVMValueRef obj, sNodeType* node_type, sComp
     new_list_item->obj = obj;
     new_list_item->node_type = clone_node_type(node_type);
     new_list_item->next = info->right_value_objects;
+    new_list_item->freed = FALSE;
     xstrncpy(new_list_item->fun_name, gFunctionName, VAR_NAME_MAX);
     info->right_value_objects = new_list_item;
 }
@@ -66,33 +67,37 @@ void free_right_value_objects(sCompileInfo* info)
 
     while(it) {
         struct sRightValueObject* it_next = it->next;
-        if(strcmp(it->fun_name, gFunctionName) == 0) {
-            sNodeType* node_type = clone_node_type(it->node_type);
+        if(!it->freed) {
+            if(strcmp(it->fun_name, gFunctionName) == 0) {
+                sNodeType* node_type = clone_node_type(it->node_type);
 
-            if(is_typeof_type(node_type))
-            {
-                if(!solve_typeof(&node_type, info))
+                if(is_typeof_type(node_type))
                 {
-                    compile_err_msg(info, "Can't solve typeof types");
-                    show_node_type(node_type);
-                    info->err_num++;
-                    return;
+                    if(!solve_typeof(&node_type, info))
+                    {
+                        compile_err_msg(info, "Can't solve typeof types");
+                        show_node_type(node_type);
+                        info->err_num++;
+                        return;
+                    }
                 }
-            }
 
-            if(info->generics_type) {
-                if(!solve_generics(&node_type, info->generics_type)) 
-                {
-                    compile_err_msg(info, "Can't solve generics types(3)");
-                    show_node_type(node_type);
-                    show_node_type(info->generics_type);
-                    info->err_num++;
+                if(info->generics_type) {
+                    if(!solve_generics(&node_type, info->generics_type)) 
+                    {
+                        compile_err_msg(info, "Can't solve generics types(3)");
+                        show_node_type(node_type);
+                        show_node_type(info->generics_type);
+                        info->err_num++;
 
-                    return;
+                        return;
+                    }
                 }
-            }
 
-            free_object(node_type, it->obj, info);
+                free_object(node_type, it->obj, info);
+
+                it->freed = TRUE;
+            }
         }
 
         it = it_next;
