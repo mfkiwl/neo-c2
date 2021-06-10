@@ -1,6 +1,8 @@
 # comelang
 
-C extension language. Some compatibility for C Language.
+come together!
+
+C extension compiler language. Some compatibility for C language.
 
 version 0.9.9
 
@@ -33,6 +35,10 @@ int main()
         printf("%s %d\n", key, item);
     }
 
+    var str = string("ABC");
+
+    puts(str.substring(0,1));
+
     return 0;
 }
 ```
@@ -41,9 +47,9 @@ int main()
 
 2. 独自のヒープシステムを備えます。一時的に生成されたヒープ（右辺値）の自動freeと変数に代入されたヒープの自動freeを備えます。
 
-3. Generics, inline function, debug info(-g option)を備えます。
+3. Generics, inline function, debug info(-g option), lambdaを備えます。
 
-4. ライブラリはcome.hに書かれてあり、何もライブラリをリンクする必要はありません。ライブラリは最小限となっており学習コストを抑えています。
+4. ライブラリはcome.hに書かれてあり、何もライブラリをリンクする必要はありません。ライブラリは最小限となっており学習コストを抑えています。コレクションライブラリと文字列ライブラリを備えます。
 
 ```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
@@ -89,7 +95,7 @@ HELLO WORLD
 3. ヒープシステム
 
 ライブラリの学習コストは低いですが、ヒープシステムは学習するのに少し時間がかかるでしょう。基本的にメモリーリークが起こっているかの確認はvalgrindを使ってください。
-また不正なメモリアクセスもvalgrindを使えば分かるでしょう。-gオプションを使うとソースコードでのメモリーリークの位置も分かります。
+また不正なメモリアクセスもvalgrindを使えば分かるでしょう。-gオプションを使うとソースコードでのメモリーリークや不正なメモリアクセスの位置も分かります。
 
 基本的なルールですが、右辺値（変数に代入されない一時的なヒープの生成)は自動的にfreeされます。
 
@@ -97,8 +103,8 @@ HELLO WORLD
 puts(xsprintf("1 + 1 == %d\n", 1 + 1));
 ```
 xsprintfはヒープを使ったメモリが生成されますが、右辺値なので、puts後に自動的にfreeされます。右辺値がfreeされるタイミングですが、1文が実行された後です。
-あまり、RustやRubyのようにメソッドチェインを多用するコードは想定していませんが、メソッドチェインしても１文の実行が終わるまで右辺値のヒープのメモリは存在しているため
-メソッドチェインを行うことも可能でしょう。
+あまり、RustやRubyのようにメソッドチェインを多用するコードは想定していませんが
+メソッドチェインしても１文の実行が終わるまで右辺値のヒープのメモリは存在しているためメソッドチェインを行うことも可能でしょう。
 
 次のルールは%をつけた変数に代入されたヒープを生成する関数やnewなどのメモリはブロックの脱出後にfreeされます。
 
@@ -122,7 +128,7 @@ strncpy(str, "ABC", 123);
 puts(str);
 ```
 
-自分でメモリを管理したい場合はborrowをつけて右辺値じゃないと宣言してから%をつけないポインタに代入してください。
+自分でメモリを管理したい場合はborrowをつけて右辺値じゃないヒープメモリと宣言してから%をつけないポインタに代入してください。
 
 ```
 char* str = borrow char str[123];
@@ -374,7 +380,7 @@ int main(int argc, char** argv)
 }
 ```
 
-eもdと同じ値を保持しているはずです。ただし、この機能は浅いコピーでヒープを保持していた場合ポインタがコピーされるだけです。
+eもdと同じ値を保持しています。ただし、この機能は浅いコピーでヒープを保持していた場合ポインタがコピーされるだけです。
 もしそのポインタをdeleteしてしまうとcloneした場合segmentation faultが起こるでしょう。
 これを防ぐためにはcloneというメソッドを実装します。
 
@@ -1722,7 +1728,7 @@ managed str;
 l.push_back(str)
 ```
 
-managed strとされるとstrは変数テーブルで管理されるヒープでなくなります。%マークがなくなります。strは単なるchar*となります。
+managed strとされるとstrは変数テーブルで管理されるヒープでなくなります。変数の型に%マークがなくなります。strは単なるchar*となります。
 
 もしくは
 
@@ -1736,4 +1742,26 @@ l.push_back(str);
 
 としてもいいでしょう。borrowはヒープの%マークを消します。strは単なるchar*として扱われます。
 どちらの場合もvar lがfreeされるときにstrは一緒にfreeされます。
+
+6. lambda
+
+```
+var fun = lambda(int x, int y):int { return x + y; }
+
+if(fun(1, 2) == 3) {
+    puts("OK");
+}
+```
+
+lambdaは親のスタックの変数にはアクセスできません。
+
+```
+var a = 1;
+
+var fun = lambda(int x, int y):int { return x + y + a; }
+```
+
+上記のコードはコンパイルエラーとなります。
+
+
 

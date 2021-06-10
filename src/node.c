@@ -4827,6 +4827,12 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         params[i] = gNodes[node].uValue.sFunction.mParams[i];
     }
 
+    LLVMBasicBlockRef current_block = NULL;
+
+    if(lambda) {
+        current_block = info->current_block; //LLVMGetLastBasicBlock(gFunction);
+    }
+
     sNodeBlock* function_node_block = info->function_node_block;
     info->function_node_block = node_block;
 
@@ -5009,12 +5015,42 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         }
     }
 
-    info->type = clone_node_type(result_type);
+    if(lambda) {
+        sNodeType* lambda_type = create_node_type_with_class_name("lambda");
+
+        for(i=0; i<num_params; i++) {
+            sNodeType* param_type = param_types[i];
+
+            lambda_type->mParamTypes[i] = param_type;
+        }
+
+        lambda_type->mResultType = clone_node_type(result_type);
+        lambda_type->mNumParams = num_params;
+
+        LVALUE llvm_value;
+        llvm_value.value = llvm_fun;
+        llvm_value.type = clone_node_type(lambda_type);
+        llvm_value.address = NULL;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = FALSE;
+        llvm_value.load_field = FALSE;
+
+        push_value_to_stack_ptr(&llvm_value, info);
+
+        info->type = clone_node_type(lambda_type);
+    }
+    else {
+        info->type = create_node_type_with_class_name("void");
+    }
 
     gFunction = function;
     xstrncpy(gFunctionName, fun_name_before, VAR_NAME_MAX);
     info->function_node_block = function_node_block;
     gComeFunction = come_function;
+
+    if(lambda) {
+        llvm_change_block(current_block, info);
+    }
 
     return TRUE;
 }
