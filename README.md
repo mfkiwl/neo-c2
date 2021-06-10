@@ -566,7 +566,7 @@ impl vector<T>
     }
 }
 
-#define foreach(o1, o2) for(var o1 = (o2).begin(); !(o2).end(); o1 = (o2).next())
+#define foreach(o1, o2) for(var _obj = clone (o2), var o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 ```
 
 型名の&はジェネリクスの型名から%を消すものです。Tに%がついていてもポインタとして処理されます。managedは%がつけられた変数から%を取り除きます。
@@ -1536,6 +1536,21 @@ struct tuple1<T>
 
 impl tuple1 <T>
 {
+    tuple1<T>*% clone(tuple1<T>* self)
+    {
+        tuple1<T>*% result = new tuple1<T>;
+
+        result.v1 = clone self.v1;
+
+        return result;
+    }
+
+    void finalize(tuple1<T>* self)
+    {
+        if(isheap(T)) {
+            delete self.v1;
+        }
+    }
     bool equals(tuple1<T>* left, tuple1<T>* right)
     {
         if(!left.v1.equals(right.v1)) {
@@ -1554,6 +1569,25 @@ struct tuple2<T, T2>
 
 impl tuple2 <T, T2>
 {
+    tuple2<T,T2>*% clone(tuple2<T, T2>* self)
+    {
+        tuple2<T,T2>*% result = new tuple2<T, T2>;
+
+        result.v1 = clone self.v1;
+        result.v2 = clone self.v2;
+
+        return result;
+    }
+
+    void finalize(tuple2<T, T2>* self)
+    {
+        if(isheap(T)) {
+            delete self.v1;
+        }
+        if(isheap(T2)) {
+            delete self.v2;
+        }
+    }
     bool equals(tuple2<T, T2>* left, tuple2<T, T2>* right)
     {
         if(!left.v1.equals(right.v1)) {
@@ -1576,6 +1610,29 @@ struct tuple3<T, T2, T3>
 
 impl tuple3 <T, T2, T3>
 {
+    tuple3<T,T2, T3>*% clone(tuple3<T, T2, T3>* self)
+    {
+        tuple3<T,T2,T3>*% result = new tuple3<T, T2, T3>;
+
+        result.v1 = clone self.v1;
+        result.v2 = clone self.v2;
+        result.v3 = clone self.v3;
+
+        return result;
+    }
+
+    void finalize(tuple3<T, T2, T3>* self)
+    {
+        if(isheap(T)) {
+            delete self.v1;
+        }
+        if(isheap(T2)) {
+            delete self.v2;
+        }
+        if(isheap(T3)) {
+            delete self.v3;
+        }
+    }
     bool equals(tuple3<T, T2, T3>* left, tuple3<T, T2, T3>* right)
     {
         if(!left.v1.equals(right.v1)) {
@@ -1602,6 +1659,33 @@ struct tuple4<T, T2, T3, T4>
 
 impl tuple4 <T, T2, T3, T4>
 {
+    tuple4<T,T2, T3, T4>*% clone(tuple4<T, T2, T3, T4>* self)
+    {
+        tuple4<T,T2,T3,T4>*% result = new tuple4<T, T2, T3, T4>;
+
+        result.v1 = clone self.v1;
+        result.v2 = clone self.v2;
+        result.v3 = clone self.v3;
+        result.v4 = clone self.v4;
+
+        return result;
+    }
+
+    void finalize(tuple4<T, T2, T3, T4>* self)
+    {
+        if(isheap(T)) {
+            delete self.v1;
+        }
+        if(isheap(T2)) {
+            delete self.v2;
+        }
+        if(isheap(T3)) {
+            delete self.v3;
+        }
+        if(isheap(T4)) {
+            delete self.v4;
+        }
+    }
     bool equals(tuple4<T, T2, T3, T4>* left, tuple4<T, T2, T3, T4>* right)
     {
         if(!left.v1.equals(right.v1)) {
@@ -1621,3 +1705,35 @@ impl tuple4 <T, T2, T3, T4>
     }
 }
 ```
+
+5. Collectionとヒープシステム
+
+Collectionに追加された要素は全てコレクション側でメモリの解放やcloneなども行われます。要素を追加する場合は変数テーブルで管理されたヒープを追加しないようにしてください。
+変数テーブルで管理されたヒープはブロックから出たときに自動freeが起こりコレクション側でもfreeが起こるので、2重freeとなるためです。例えば以下のようにします。
+
+
+```
+var l = new list<string>.initialzie();
+
+var str = string("ABC");
+
+managed str;
+
+l.push_back(str)
+```
+
+managed strとされるとstrは変数テーブルで管理されるヒープでなくなります。%マークがなくなります。strは単なるchar*となります。
+
+もしくは
+
+```
+var l = new list<tring>.initialize();
+
+var str = borrow string("ABC");
+
+l.push_back(str);
+```
+
+としてもいいでしょう。borrowはヒープの%マークを消します。strは単なるchar*として扱われます。
+どちらの場合もvar lがfreeされるときにstrは一緒にfreeされます。
+

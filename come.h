@@ -1239,6 +1239,21 @@ struct tuple1<T>
 
 impl tuple1 <T>
 {
+    tuple1<T>*% clone(tuple1<T>* self)
+    {
+        tuple1<T>*% result = new tuple1<T>;
+
+        result.v1 = clone self.v1;
+
+        return result;
+    }
+
+    void finalize(tuple1<T>* self)
+    {
+        if(isheap(T)) {
+            delete self.v1;
+        }
+    }
     bool equals(tuple1<T>* left, tuple1<T>* right)
     {
         if(!left.v1.equals(right.v1)) {
@@ -1257,6 +1272,25 @@ struct tuple2<T, T2>
 
 impl tuple2 <T, T2>
 {
+    tuple2<T,T2>*% clone(tuple2<T, T2>* self)
+    {
+        tuple2<T,T2>*% result = new tuple2<T, T2>;
+
+        result.v1 = clone self.v1;
+        result.v2 = clone self.v2;
+
+        return result;
+    }
+
+    void finalize(tuple2<T, T2>* self)
+    {
+        if(isheap(T)) {
+            delete self.v1;
+        }
+        if(isheap(T2)) {
+            delete self.v2;
+        }
+    }
     bool equals(tuple2<T, T2>* left, tuple2<T, T2>* right)
     {
         if(!left.v1.equals(right.v1)) {
@@ -1279,6 +1313,29 @@ struct tuple3<T, T2, T3>
 
 impl tuple3 <T, T2, T3>
 {
+    tuple3<T,T2, T3>*% clone(tuple3<T, T2, T3>* self)
+    {
+        tuple3<T,T2,T3>*% result = new tuple3<T, T2, T3>;
+
+        result.v1 = clone self.v1;
+        result.v2 = clone self.v2;
+        result.v3 = clone self.v3;
+
+        return result;
+    }
+
+    void finalize(tuple3<T, T2, T3>* self)
+    {
+        if(isheap(T)) {
+            delete self.v1;
+        }
+        if(isheap(T2)) {
+            delete self.v2;
+        }
+        if(isheap(T3)) {
+            delete self.v3;
+        }
+    }
     bool equals(tuple3<T, T2, T3>* left, tuple3<T, T2, T3>* right)
     {
         if(!left.v1.equals(right.v1)) {
@@ -1305,6 +1362,33 @@ struct tuple4<T, T2, T3, T4>
 
 impl tuple4 <T, T2, T3, T4>
 {
+    tuple4<T,T2, T3, T4>*% clone(tuple4<T, T2, T3, T4>* self)
+    {
+        tuple4<T,T2,T3,T4>*% result = new tuple4<T, T2, T3, T4>;
+
+        result.v1 = clone self.v1;
+        result.v2 = clone self.v2;
+        result.v3 = clone self.v3;
+        result.v4 = clone self.v4;
+
+        return result;
+    }
+
+    void finalize(tuple4<T, T2, T3, T4>* self)
+    {
+        if(isheap(T)) {
+            delete self.v1;
+        }
+        if(isheap(T2)) {
+            delete self.v2;
+        }
+        if(isheap(T3)) {
+            delete self.v3;
+        }
+        if(isheap(T4)) {
+            delete self.v4;
+        }
+    }
     bool equals(tuple4<T, T2, T3, T4>* left, tuple4<T, T2, T3, T4>* right)
     {
         if(!left.v1.equals(right.v1)) {
