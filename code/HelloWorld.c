@@ -789,6 +789,11 @@ test_label:
 
     xassert("pointer test", bbibibibibib[0] == 123);
 
+    var lam = int lambda(int x, int y) { return x + y };
+
+    xassert("lambda test", lam(1, 2) = 3);
+
+
     return 0;
 }
 
