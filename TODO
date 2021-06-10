@@ -3,8 +3,6 @@ operators
 
     struct with initialization
 
-Br no mae no free_right_objects while no conditional, for, do while, switch, case atarino br mae ni ireru?
-
 ---- implemented ----
 debug info
 inline
@@ -133,3 +131,5 @@ substring
 
 map
 tuple
+
+Br no mae no free_right_objects while no conditional, for, do while, switch, case atarino br mae ni ireru?
