@@ -1,6 +1,6 @@
 #include "common.h"
 
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) 
+ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 1
 {
     self.texts = borrow new list<wstring>.initialize();
 
@@ -21,13 +21,13 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     return self;
 }
 
-void ViWin_finalize(ViWin* self) 
+void ViWin_finalize(ViWin* self) version 1
 {
     delete self.texts;
     delwin(self.win);
 }
 
-void ViWin_view(ViWin* self, Vi* nvi) 
+void ViWin_view(ViWin* self, Vi* nvi) version 1
 {
     werase(self.win);
 
@@ -40,12 +40,12 @@ void ViWin_view(ViWin* self, Vi* nvi)
     wrefresh(self.win);
 }
 
-void ViWin_input(ViWin* self, Vi* nvi) 
+void ViWin_input(ViWin* self, Vi* nvi) version 1
 {
     int key = wgetch(self.win);
 }
 
-Vi*% Vi_initialize(Vi*% self) 
+Vi*% Vi_initialize(Vi*% self) version 1
 {
     self.init_curses();
 
@@ -72,14 +72,14 @@ bool ViWin_equals(ViWin* left, ViWin* right)
     return left == right;
 }
 
-void Vi_finalize(Vi* self) 
+void Vi_finalize(Vi* self) version 1
 {
     delete self.wins;
 
     endwin();
 }
 
-int Vi_main_loop(Vi* self) 
+int Vi_main_loop(Vi* self) version 1
 {
     foreach(it, self.wins) {
         it.view(self);

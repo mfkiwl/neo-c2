@@ -4035,8 +4035,6 @@ BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_
 
         sNodeType* result_type = clone_node_type(fun->mResultType);
 
-        result_type->mStatic = TRUE;
-
         if(is_typeof_type(result_type))
         {
             if(!solve_typeof(&result_type, info)) 
@@ -4101,6 +4099,8 @@ BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_
         BOOL finalize = FALSE;
         int generics_fun_num = 0;
         char* struct_name = NULL;
+
+        result_type->mStatic = TRUE;
 
         unsigned int node = sNodeTree_create_function(real_fun_name, real_fun_name, params, num_params, result_type, MANAGED node_block, lambda, block_var_table, struct_name, operator_fun, constructor_fun, simple_lambda_param, &info2, generics_function, var_args, version, finalize, generics_fun_num, fun->mName);
 

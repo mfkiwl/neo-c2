@@ -125,6 +125,7 @@ void ViWin_saveInputedKeyOnTheMovingCursor(ViWin* self);
 
 // vi ///
 override Vi*% Vi_initialize(Vi*% self);
+override void Vi_finalize(Vi* self);
 
 override int Vi_main_loop(Vi* self);
 

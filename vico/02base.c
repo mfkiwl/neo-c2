@@ -410,7 +410,9 @@ Vi*% Vi_initialize(Vi* self) version 2
 
     var win = borrow new ViWin.initialize(0,0, maxx-1, maxy, self);
 
-    win.texts.push_back(wstring(""));
+    win.texts.push_back(wstring("ABC"));
+    win.texts.push_back(wstring("DEF"));
+    win.texts.push_back(wstring("GHI"));
 
     self.activeWin = win;
 
@@ -539,7 +541,7 @@ Vi*% Vi_initialize(Vi* self) version 2
     });
 }
 
-void Vi_finalize(Vi* self)
+void Vi_finalize(Vi* self) version 2
 {
 }
 
@@ -572,7 +574,7 @@ void Vi_clearView(Vi* self)
     refresh();
 }
 
-int Vi_main_loop(Vi* self) 
+int Vi_main_loop(Vi* self) version 2
 {
     while(!self.appEnd) {
         self.view();

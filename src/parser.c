@@ -1288,7 +1288,7 @@ static BOOL parse_params(sParserParam* params, int* num_params, sParserInfo* inf
 static void create_lambda_name(char* lambda_name, size_t size_lambda_name, char* module_name)
 {
     static int num_lambda_name = 0;
-    xstrncat(lambda_name, "lambda", size_lambda_name);
+    xstrncpy(lambda_name, "lambda", size_lambda_name);
 
     char buf[128];
     snprintf(buf, 128, "%d", num_lambda_name++);
