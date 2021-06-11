@@ -9,24 +9,10 @@
 typedef wchar_t*% wstring;
 
 /// wstring ///
-static wstring wstring(char* str)
-{
-    int len = strlen(str);
-
-wstring a = new wchar_t[1];
-// I can't understand. this requires for s309x apline linux,... hmm is it my mistake?
-
-    wstring wstr = new wchar_t[len+1];
-
-    int ret = mbstowcs(wstr, str, len+1);
-    wstr[ret] = '\0';
-
-    if(ret < 0) {
-        wstr[0] = 0;
-    }
-
-    return wstr;
-}
+wstring wstring(char* str);
+wstring int_substring(wchar_t* str, int head, int tail);
+wstring int_printable(wchar_t* str);
+int int_length(wchar_t* str);
 
 /// main.c ///
 bool xiswalpha(wchar_t c);
@@ -58,6 +44,7 @@ struct ViWin
     int cursorY;
     int cursorX;
     int scroll;
+    int digitInput;
 
     tuple3<int,int,int>*% returnPoint;
     list<tuple3<int, int, int>*%>*% returnPointStack;
@@ -89,18 +76,20 @@ void ViWin_finalize(ViWin* self);
 
 void ViWin_view(ViWin* self, Vi* nvi);
 void ViWin_input(ViWin* self, Vi* nvi);
+bool ViWin_equals(ViWin* left, ViWin* right);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 02base.h
 ///////////////////////////////////////////////////////////////////////////////
 
 /// VinWin ///
-override ViWin*% ViWin_initialize(ViWin*% int y, int x, int width, int height, Vi* vi);
+override ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
+override void ViWin_finalize(ViWin* self);
 
 void ViWin_textsView(ViWin* self, Vi* nvi);
 void ViWin_statusBarView(ViWin* self, Vi* nvi);
-void ViWin_view(ViWin* self, Vi* nvi);
-void ViWin_input(ViWin* self, Vi* nvi);
+override void ViWin_view(ViWin* self, Vi* nvi);
+override void ViWin_input(ViWin* self, Vi* nvi);
 int ViWin_getKey(ViWin* self, bool head);
 void ViWin_modifyOverCursorYValue(ViWin* self);
 void ViWin_modifyUnderCursorYValue(ViWin* self);

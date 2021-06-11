@@ -488,6 +488,9 @@ struct sCompileInfoStruct
     int inline_sline;
     LLVMBasicBlockRef inline_func_end;
 
+    BOOL in_lambda_function;
+    int lambda_sline;
+
     BOOL has_block_result;
 
     void* andand_result_var;

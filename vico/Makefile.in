@@ -30,8 +30,8 @@ DESTDIR=@DESTDIR@
 ##########################################
 all: vico
 
-vico: configure Makefile config.h main.o main.c 01init.o 01init.c
-	$(CC) -o vico main.o 01init.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
+vico: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c
+	$(CC) -o vico main.o 01init.o 02base.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
 
 main.o: configure Makefile config.h main.c common.h
 	come main.c $(CFLAGS) $(NCFLAGS)
@@ -40,6 +40,10 @@ main.o: configure Makefile config.h main.c common.h
 01init.o: configure Makefile config.h 01init.c common.h
 	come 01init.c $(CFLAGS) $(NCFLAGS)
 	$(CC) -c -o 01init.o 01init.c.ll
+
+02base.o: configure Makefile config.h 02base.c common.h
+	come 02base.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 02base.o 02base.c.ll
 
 #########################################
 # install

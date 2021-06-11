@@ -377,6 +377,28 @@ enum AAA
     kC
 };
 
+extern void funY(int a, int b);
+extern override void funY(int a, int b);
+extern override void funY(int a, int b);
+
+void funY(int a, int b) version 1
+{
+    puts("version 1");
+}
+
+void funY(int a, int b) version 2
+{
+    inherit(a, b);
+    puts("version 2");
+}
+
+void funY(int a, int b) version 3
+{
+    inherit(a, b);
+    puts("verion 3");
+    printf("a %d b %d\n", a, b);
+}
+
 int main()
 {
     printf("HELLO WORLD\n");
@@ -792,6 +814,8 @@ test_label:
     var lam = lambda(int x, int y):int { return x + y };
 
     xassert("lambda test", lam(1, 2) == 3);
+
+    funY(1, 2);
 
     return 0;
 }

@@ -6,16 +6,24 @@
 #include <locale.h>
 #include <wctype.h>
 
+#define __USE_XOPEN
+#include <wchar.h>
+
 #include "common.h"
 
 ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 2
 {
-    self = self.inherit(self, y, x, width, height, vi);
+    var result = inherit(self, y, x, width, height, vi);
     
-    self.returnPointStack 
-        = new list<tuple3<int, int, int>*%>.initialize();
+    result.returnPointStack = borrow new list<tuple3<int, int, int>*%>.initialize();
 
-    return self;
+    return result;
+}
+
+void ViWin_finalize(ViWin* self) version 2
+{
+    inherit(self);
+    delete self.returnPointStack;
 }
 
 void ViWin_textsView(ViWin* self, Vi* nvi)
@@ -23,9 +31,8 @@ void ViWin_textsView(ViWin* self, Vi* nvi)
     int maxy = getmaxy(self.win);
     int maxx = getmaxx(self.win);
 
-    self.texts
-        .sublist(self.scroll, self.scroll+maxy-1)
-        .each 
+    int it2 = 0;
+    foreach(it, self.texts.sublist(self.scroll, self.scroll+maxy-1))
     {
         var line = it.substring(0, maxx-1);
 
@@ -71,6 +78,8 @@ void ViWin_textsView(ViWin* self, Vi* nvi)
         else {
             mvwprintw(self.win, it2, 0, "%ls", line);
         }
+
+        it2++;
     }
 }
 
@@ -86,7 +95,7 @@ void ViWin_statusBarView(ViWin* self, Vi* nvi)
     wrefresh(self.win);
 }
 
-void ViWin_view(ViWin* self, Vi* nvi) 
+void ViWin_view(ViWin* self, Vi* nvi) version 2
 {
     //werase(self.win);
 
@@ -102,7 +111,7 @@ int ViWin_getKey(ViWin* self, bool head)
     return wgetch(self.win);        
 }
 
-void ViWin_input(ViWin* self, Vi* nvi) 
+void ViWin_input(ViWin* self, Vi* nvi) version 2
 {
     var key = self.getKey(true);
 
@@ -366,7 +375,7 @@ void ViWin_openFile(ViWin* self, char* file_name, int line_num)
 
 void ViWin_saveReturnPoint(ViWin* self)
 {
-    var return_point = new tuple3<int,int,int>.initialize();
+    var return_point = new tuple3<int,int,int>;
 
     return_point.v1 = self.cursorY;
     return_point.v2 = self.cursorX;
@@ -409,7 +418,11 @@ Vi*% Vi_initialize(Vi* self) version 2
 
     self.appEnd = false;
 
-    self.events = borrow new vector<void (*lambda)(Vi*, int)>.initialize_with_values(KEY_MAX, null);
+    self.events = borrow new vector<void (*lambda)(Vi*, int)>.initialize();
+    
+    for(int i=0; i<KEY_MAX; i++) {
+        self.events.push_back(null);
+    }
 
     self.events.replace('l', lambda(Vi* self, int key) 
     {
@@ -539,7 +552,7 @@ void Vi_view(Vi* self)
 {
     erase();
 
-    self.wins.each {
+    foreach(it, self.wins) {
         it.view(self);
         wrefresh(it.win);
     }
@@ -550,7 +563,7 @@ void Vi_clearView(Vi* self)
     clearok(stdscr, true);
     clear();
     clearok(stdscr, false);
-    self.wins.each {
+    foreach(it, self.wins) {
         clearok(it.win, true);
         wclear(it.win);
         clearok(it.win, false);

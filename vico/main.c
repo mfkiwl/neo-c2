@@ -51,6 +51,98 @@ int xgetmaxy()
     }
 }
 
+wstring wstring(char* str)
+{
+    int len = strlen(str);
+
+wstring a = new wchar_t[1];
+// I can't understand. this requires for s309x apline linux,... hmm is it my mistake?
+
+    wstring wstr = new wchar_t[len+1];
+
+    int ret = mbstowcs(wstr, str, len+1);
+    wstr[ret] = '\0';
+
+    if(ret < 0) {
+        wstr[0] = 0;
+    }
+
+    return wstr;
+}
+
+wstring int_substring(wchar_t* str, int head, int tail)
+{
+    if(str == null) {
+        return wstring("");
+    }
+
+    int len = wcslen(str);
+
+    if(head < 0) {
+        head += len;
+    }
+    if(tail < 0) {
+        tail += len + 1;
+    }
+
+    if(head > tail) {
+        return wstring("");
+    }
+
+    if(head < 0) {
+        head = 0;
+    }
+
+    if(tail >= len) {
+        tail = len;
+    }
+
+    if(head == tail) {
+        return wstring("");
+    }
+
+    if(tail-head+1 < 1) {
+        return wstring("");
+    }
+
+    wstring result = new wchar_t[tail-head+1];
+
+    memcpy(result, str + head, sizeof(wchar_t)*(tail-head));
+    result[tail-head] = '\0';
+
+    return result;
+}
+
+wstring int_printable(wchar_t* str)
+{
+    int len = str.length();
+    wstring result = new wchar_t[len*2+1];
+
+    int n = 0;
+    for(int i=0; i<len; i++) {
+        wchar_t c = str[i];
+
+        if((c >= 0 && c < ' ') 
+            || c == 127)
+        {
+            result[n++] = '^';
+            result[n++] = c + 'A' - 1;
+        }
+        else {
+            result[n++] = c;
+        }
+    }
+
+    result[n] = '\0'
+
+    return result;
+}
+
+int int_length(wchar_t* str)
+{
+    return wcslen(str);
+}
+
 int main(int argc, char** argv)
 {
     int line_num = -1;

@@ -67,6 +67,11 @@ Vi*% Vi_initialize(Vi*% self)
     return self;
 }
 
+bool ViWin_equals(ViWin* left, ViWin* right) 
+{
+    return left == right;
+}
+
 void Vi_finalize(Vi* self) 
 {
     delete self.wins;

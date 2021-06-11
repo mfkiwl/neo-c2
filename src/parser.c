@@ -1285,7 +1285,7 @@ static BOOL parse_union(unsigned int* node, char* union_name, int size_union_nam
 
 static BOOL parse_params(sParserParam* params, int* num_params, sParserInfo* info, int character_type, BOOL* var_arg);
 
-void create_lambda_name(char* lambda_name, size_t size_lambda_name, char* module_name)
+static void create_lambda_name(char* lambda_name, size_t size_lambda_name, char* module_name)
 {
     static int num_lambda_name = 0;
     xstrncat(lambda_name, "lambda", size_lambda_name);
@@ -2337,7 +2337,8 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
         int generics_num = 0;
 
         while(1) {
-            if(!parse_type(&(*result_type)->mGenericsTypes[generics_num], info, NULL, FALSE, FALSE)) {
+            char func_pointer_name[VAR_NAME_MAX];
+            if(!parse_type(&(*result_type)->mGenericsTypes[generics_num], info, func_pointer_name, FALSE, FALSE)) {
                 return FALSE;
             }
 
