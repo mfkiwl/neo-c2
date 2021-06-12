@@ -39,6 +39,7 @@ struct ViWin
     int height;
     int scroll;
     void* vi;
+    int id;
 
     /// layer 2 ///
     int cursorY;

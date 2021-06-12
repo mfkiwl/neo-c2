@@ -12,6 +12,12 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     self.scroll = 0;
     self.vi = vi;
 
+    static int id = 0;
+    self.id = id;
+    id++;
+
+    id++;
+
     WINDOW* win = newwin(height, width, y, x);
 
     self.win = win;
@@ -69,7 +75,7 @@ Vi*% Vi_initialize(Vi*% self) version 1
 
 bool ViWin_equals(ViWin* left, ViWin* right) 
 {
-    return left == right;
+    return left.id == right.id;
 }
 
 void Vi_finalize(Vi* self) version 1

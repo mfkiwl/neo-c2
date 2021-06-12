@@ -44,7 +44,6 @@ void ViWin_textsView(ViWin* self, Vi* nvi)
             }
             else if(self.cursorX == line.length())
             {
-
                 mvwprintw(self.win, it2, 0, "%ls", line);
                 wstring line2 = line.printable();
 
@@ -539,10 +538,13 @@ Vi*% Vi_initialize(Vi* self) version 2
                 break;
         }
     });
+
+    return self;
 }
 
 void Vi_finalize(Vi* self) version 2
 {
+    inherit(self);
 }
 
 void Vi_exitFromApp(Vi* self) 
