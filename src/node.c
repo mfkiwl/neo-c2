@@ -1365,6 +1365,30 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = create_node_type_with_class_name("short");
     }
+    else if(type_identify_with_class_name(left_type, "char") && left_type->mPointerNum == 0)
+    {
+        if(rvalue) {
+            if((*right_type)->mPointerNum == 0  && (type_identify_with_class_name(*right_type, "short") || (type_identify_with_class_name(*right_type, "int") || type_identify_with_class_name(*right_type, "long")))) {
+                LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char");
+
+                rvalue->value = LLVMBuildTrunc(gBuilder, rvalue->value, llvm_type, "icast");
+            }
+            else if((*right_type)->mPointerNum > 0) {
+                if(rvalue) {
+                    LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
+
+                    rvalue->value = LLVMBuildCast(gBuilder, LLVMPtrToInt, rvalue->value, llvm_type, "castB");
+                    rvalue->type = clone_node_type(left_type);
+                }
+
+                *right_type = clone_node_type(left_type);
+            }
+
+            rvalue->type = create_node_type_with_class_name("char");
+        }
+
+        *right_type = create_node_type_with_class_name("char");
+    }
     else if(type_identify_with_class_name(left_type, "int") && left_type->mPointerNum == 0)
     {
         if(rvalue) {
@@ -4577,36 +4601,38 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
             LLVMBuildStore(gBuilder, llvm_params[i], param);
 
-            sNodeType* node_type = clone_node_type(fun->mParamTypes[i]);
+            if(fun->mParamTypes[i] != NULL) {
+                sNodeType* node_type = clone_node_type(fun->mParamTypes[i]);
 
-            if(is_typeof_type(node_type))
-            {
-                if(!solve_typeof(&node_type, info)) 
+                if(is_typeof_type(node_type))
                 {
-                    compile_err_msg(info, "Can't solve typeof types");
-                    show_node_type(node_type);
-                    info->err_num++;
-                    return TRUE;
+                    if(!solve_typeof(&node_type, info)) 
+                    {
+                        compile_err_msg(info, "Can't solve typeof types");
+                        show_node_type(node_type);
+                        info->err_num++;
+                        return TRUE;
+                    }
                 }
-            }
 
-            if(generics_type) {
-                if(!solve_generics(&node_type, generics_type))
-                {
-                    compile_err_msg(info, "Can't solve generics types(3)");
-                    show_node_type(node_type);
-                    show_node_type(generics_type);
-                    info->err_num++;
+                if(generics_type) {
+                    if(!solve_generics(&node_type, generics_type))
+                    {
+                        compile_err_msg(info, "Can't solve generics types(3)");
+                        show_node_type(node_type);
+                        show_node_type(generics_type);
+                        info->err_num++;
 
-                    return FALSE;
+                        return FALSE;
+                    }
                 }
-            }
 
-            if(node_type->mHeap) {
-                remove_object_from_right_values(llvm_params[i], info);
-            }
+                if(node_type->mHeap) {
+                    remove_object_from_right_values(llvm_params[i], info);
+                }
 
-            var->mLLVMValue = param;
+                var->mLLVMValue = param;
+            }
         }
 
         BOOL in_inline_function = info->in_inline_function;
@@ -5379,6 +5405,9 @@ static BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
 
     if(var_address == NULL) {
         compile_err_msg(info, "no variable address(%s)", var_name);
+        int c = 0;
+        int a = 1;
+        int d = a /c;
         return FALSE;
     }
 

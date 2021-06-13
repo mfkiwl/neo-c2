@@ -519,7 +519,7 @@ void free_objects_on_return(struct sNodeBlockStruct* current_node_block, struct 
         free_block_variables(it, ret_value, info);
     }
     else {
-        while(it->mID != current_block_lv_table->mID && it != NULL) 
+        while(it !=NULL && it->mID != current_block_lv_table->mID)
         {
             free_block_variables(it, ret_value, info);
 

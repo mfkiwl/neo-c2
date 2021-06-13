@@ -490,6 +490,8 @@ impl list <T>
 
     void insert(list<T>* self, int position, T item)
     {
+        managed item;
+
         if(position < 0) {
             position += self.len + 1;
         }
@@ -501,8 +503,6 @@ impl list <T>
             self.push_back(item);
             return;
         }
-
-        managed item;
 
         if(position == 0) {
             list_item<T>* litem = borrow new list_item<T>;

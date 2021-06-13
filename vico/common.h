@@ -13,6 +13,8 @@ wstring wstring(char* str);
 wstring int_substring(wchar_t* str, int head, int tail);
 wstring int_printable(wchar_t* str);
 int int_length(wchar_t* str);
+wchar_t* int_delete(wchar_t* str, int head, int tail);
+int int_index(wchar_t* str, wchar_t* search_str, int default_value);
 
 /// main.c ///
 bool xiswalpha(wchar_t c);
@@ -27,6 +29,8 @@ int xgetmaxy();
 // 01init.h
 ///////////////////////////////////////////////////////////////////////////////
 #define SAVE_INPUT_KEY_MAX 256
+
+enum eMode { kEditMode, kInsertMode };
 
 struct ViWin 
 {
@@ -60,6 +64,9 @@ struct Vi
     /// layer 2 ///
     vector<void (*lambda)(Vi*, int)>*% events;
     bool appEnd;
+
+    /// layer 3 ///
+    int mode;
 };
 
 extern Vi* gApp;
@@ -136,3 +143,30 @@ void Vi_clearView(Vi* self);
 void Vi_exitFromApp(Vi* self);
 void Vi_enterSearchMode(Vi* self, bool regex_search, bool search_reverse);
 
+///////////////////////////////////////////////////////////////////////////////
+// 03insert_mode.h
+///////////////////////////////////////////////////////////////////////////////
+override void ViWin_view(ViWin* self, Vi* nvi);
+void ViWin_insertText(ViWin* self, wstring key);
+void ViWin_enterNewLine(ViWin* self);
+void ViWin_enterNewLine2(ViWin* self);
+override void ViWin_input(ViWin* self, Vi* nvi);
+void ViWin_backSpace(ViWin* self);
+void ViWin_backIndent(ViWin* self);
+void ViWin_blinkBraceFoward(ViWin* self, wchar_t head, wchar_t tail, Vi* nvi);
+void ViWin_blinkBraceEnd(ViWin* self, wchar_t head, wchar_t tail, Vi* nvi);
+
+void ViWin_pushUndo(ViWin* self);
+void ViWin_writedFlagOn(ViWin* self);
+void ViWin_completion(ViWin* self, Vi* nvi);
+void ViWin_clearInputedKey(ViWin* self);
+void ViWin_saveInputedKey(ViWin* self);
+
+void ViWin_backwardWord(ViWin* self); // implement after
+
+override Vi*% Vi_initialize(Vi*% self);
+
+void Vi_enterInsertMode(Vi* self);
+void Vi_enterInsertMode2(Vi* self);
+void Vi_exitFromInsertMode(Vi* self);
+override int Vi_main_loop(Vi* self);

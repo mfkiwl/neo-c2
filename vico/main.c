@@ -143,6 +143,52 @@ int int_length(wchar_t* str)
     return wcslen(str);
 }
 
+wchar_t* int_delete(wchar_t* str, int head, int tail) 
+{
+    int len = wcslen(str);
+
+    if(len == 0) {
+        return str;
+    }
+    
+    if(head < 0) {
+       head += len;
+    }
+    
+    if(tail < 0) {
+       tail += len + 1;
+    }
+
+    if(head < 0) {
+        head = 0;
+    }
+
+    if(tail < 0) {
+        return str;
+    }
+
+    if(tail >= len) {
+        tail = len;
+    }
+    
+    wstring sub_str = str.substring(tail, -1);
+
+    memcpy(str + head, sub_str, sizeof(wchar_t)*(sub_str.length()+1));
+
+    return str;
+}
+
+int int_index(wchar_t* str, wchar_t* search_str, int default_value)
+{
+    wchar_t* head = wcsstr(str, search_str);
+
+    if(head == null) {
+        return default_value;
+    }
+
+    return head - str;
+}
+
 int main(int argc, char** argv)
 {
     int line_num = -1;
