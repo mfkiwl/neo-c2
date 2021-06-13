@@ -59,6 +59,19 @@ void remove_object_from_right_values(LLVMValueRef obj, sCompileInfo* info)
     }
 }
 
+BOOL is_right_values(LLVMValueRef obj, sCompileInfo* info)
+{
+    struct sRightValueObject* it = info->right_value_objects;
+    while(it) {
+        if(it->obj == obj) {
+            return TRUE;
+        }
+        it = it->next;
+    }
+
+    return FALSE;
+}
+
 void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info);
 
 void free_right_value_objects(sCompileInfo* info)
@@ -1790,7 +1803,7 @@ void compile_err_msg(sCompileInfo* info, const char* msg, ...)
     output_num++;
 }
 
-BOOL compile_block(sNodeBlock* block, sCompileInfo* info, BOOL no_free_objects)
+BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
 {
     int sline_before = info->pinfo->sline;
 
@@ -1837,7 +1850,7 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, BOOL no_free_objects)
             }
 
             if(gNCDebug) {
-                if(info->in_generics_function || info->in_inline_function) {
+                if(info->in_generics_function || info->in_inline_function || info->in_lambda_function) {
                     setNullCurrentDebugLocation(info->sline, info);
                 }
                 else {
@@ -1871,9 +1884,7 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info, BOOL no_free_objects)
         info->last_expression_is_return = last_expression_is_return;
     }
 
-    if(!no_free_objects) {
-        free_objects(info->pinfo->lv_table, info);
-    }
+    free_objects(info->pinfo->lv_table, info);
 
     info->pinfo->sline = sline_before;
 
@@ -4512,7 +4523,8 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         info2.module_name = info->pinfo->module_name;
         info2.sline = sline;
         info2.parse_phase = info->pinfo->parse_phase;
-        info2.lv_table = info->pinfo->lv_table;
+        //info2.lv_table = info->pinfo->lv_table;
+        info2.lv_table = init_block_vtable(NULL, FALSE);
         info2.in_clang = info->pinfo->in_clang;
 
         sNodeBlock* node_block = ALLOC sNodeBlock_alloc();
@@ -4614,8 +4626,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         sFunction* come_function = gComeFunction;
         gComeFunction = fun;
 
-        BOOL no_free_objects = FALSE;
-        if(!compile_block(node_block, info, no_free_objects)) {
+        if(!compile_block(node_block, info)) {
             return FALSE;
         }
 
@@ -4837,6 +4848,10 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         current_block = info->current_block; //LLVMGetLastBasicBlock(gFunction);
     }
 
+    BOOL in_lambda_function = info->in_lambda_function;
+    info->in_lambda_function = lambda;
+    info->lambda_sline = info->sline;
+
     sNodeBlock* function_node_block = info->function_node_block;
     info->function_node_block = node_block;
 
@@ -4948,7 +4963,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     sFunction* come_function = gComeFunction;
     gComeFunction = fun;
 
-    if(gNCDebug && !info->in_generics_function && !empty_function) {
+    if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !empty_function) {
         int sline = gNodes[node].mLine;
         createDebugFunctionInfo(sline, fun_name, fun, llvm_fun, gFName, info);
     }
@@ -4963,7 +4978,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(type_);
 
-        if(gNCDebug && !info->in_generics_function && !info->in_inline_function) {
+        if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function) {
             setCurrentDebugLocation(info->sline, info);
         }
 
@@ -4976,16 +4991,12 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         var->mConstant = FALSE;
     }
 
-    info->in_lambda_function = lambda;
-    info->lambda_sline = info->sline;
-
-    BOOL no_free_objects = FALSE;
-    if(!compile_block(node_block, info, no_free_objects)) {
+    if(!compile_block(node_block, info)) {
         info->function_node_block = function_node_block;
         return FALSE;
     }
 
-    if(gNCDebug && !info->in_generics_function && !empty_function) {
+    if(gNCDebug && !info->in_generics_function && !empty_function &&info->in_inline_function && info->in_lambda_function) {
         finishDebugFunctionInfo();
     }
 
@@ -5054,6 +5065,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     xstrncpy(gFunctionName, fun_name_before, VAR_NAME_MAX);
     info->function_node_block = function_node_block;
     gComeFunction = come_function;
+    info->in_lambda_function = in_lambda_function;
 
     if(lambda) {
         llvm_change_block(current_block, info);
@@ -5523,8 +5535,7 @@ static BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
     BOOL last_expression_is_return_before = info->last_expression_is_return;
     info->last_expression_is_return = FALSE;
 
-    BOOL no_free_objects = FALSE;
-    if(!compile_block(if_block, info, no_free_objects)) {
+    if(!compile_block(if_block, info)) {
         return FALSE;
     }
 
@@ -5596,8 +5607,7 @@ static BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
             BOOL last_expression_is_return_before = info->last_expression_is_return;
             info->last_expression_is_return = FALSE;
 
-            BOOL no_free_objects = FALSE;
-            if(!compile_block(elif_node_block, info, no_free_objects)) 
+            if(!compile_block(elif_node_block, info))
             {
                 return FALSE;
             }
@@ -5616,8 +5626,7 @@ static BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
         BOOL last_expression_is_return_before = info->last_expression_is_return;
         info->last_expression_is_return = FALSE;
 
-        BOOL no_free_objects = FALSE;
-        if(!compile_block(else_node_block, info, no_free_objects))
+        if(!compile_block(else_node_block, info))
         {
             return FALSE;
         }
@@ -6015,6 +6024,64 @@ static BOOL compile_borrow(unsigned int node, sCompileInfo* info)
     node_type->mHeap = FALSE;
 
     remove_object_from_right_values(llvm_value.value, info);
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = node_type;
+
+    return TRUE;
+}
+
+unsigned int sNodeTree_create_nomove(unsigned int object_node, sParserInfo* info)
+{
+    unsigned node = alloc_node();
+
+    gNodes[node].mNodeType = kNodeTypeNoMove;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    gNodes[node].mLeft = object_node;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    return node;
+}
+
+static BOOL compile_nomove(unsigned int node, sCompileInfo* info)
+{
+    unsigned int left_node = gNodes[node].mLeft;
+
+    if(left_node == 0) {
+        compile_err_msg(info, "require nomove target object");
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+
+        return TRUE;
+    }
+
+    if(!compile(left_node, info)) {
+        return FALSE;
+    }
+
+    LVALUE llvm_value = *get_value_from_stack(-1);
+    dec_stack_ptr(1, info);
+
+    sNodeType* node_type = clone_node_type(info->type);
+
+    if(is_right_values(llvm_value.value, info)) {
+        llvm_value.type->mHeap = TRUE;
+        node_type->mHeap = TRUE;
+        remove_object_from_right_values(llvm_value.value, info);
+    }
+    else {
+        if(llvm_value.var) {
+            llvm_value.var = NULL;
+            node_type->mHeap = FALSE;
+            llvm_value.type->mHeap = FALSE;
+        }
+    }
 
     push_value_to_stack_ptr(&llvm_value, info);
 
@@ -6621,6 +6688,8 @@ static BOOL compile_load_field(unsigned int node, sCompileInfo* info)
         info->type = clone_node_type(field_type);
     }
 
+    info->type->mHeap = FALSE;
+
     return TRUE;
 }
 
@@ -6729,8 +6798,7 @@ static BOOL compile_while_expression(unsigned int node, sCompileInfo* info)
     sNodeBlock* current_node_block = info->current_node_block;
     info->current_node_block = while_node_block;
 
-    BOOL no_free_objects = FALSE;
-    if(!compile_block(while_node_block, info, no_free_objects)) {
+    if(!compile_block(while_node_block, info)) {
         return FALSE;
     }
 
@@ -6818,8 +6886,7 @@ static BOOL compile_do_while_expression(unsigned int node, sCompileInfo* info)
     sNodeBlock* current_node_block = info->current_node_block;
     info->current_node_block = while_node_block;
 
-    BOOL no_free_objects = FALSE;
-    if(!compile_block(while_node_block, info, no_free_objects)) {
+    if(!compile_block(while_node_block, info)) {
         return FALSE;
     }
 
@@ -7252,7 +7319,7 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     sNodeBlock* for_block = gNodes[node].uValue.sFor.mForNodeBlock;
 
     sVarTable* lv_table_before = info->pinfo->lv_table;
-    info->pinfo->lv_table = for_block->mLVTable;
+    info->pinfo->lv_table = for_block->mLVTable->mParent;
 
     /// compile expression ///
     unsigned int expression_node = gNodes[node].uValue.sFor.mExpressionNode;
@@ -7346,9 +7413,7 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     info->current_node_block = for_block;
 
     /// block of for expression ///
-
-    BOOL no_free_objects = TRUE;
-    if(!compile_block(for_block, info, no_free_objects))
+    if(!compile_block(for_block, info))
     {
         info->num_loop--;
         info->pinfo->lv_table = lv_table_before;
@@ -7381,7 +7446,6 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     info->num_loop--;
 
     free_objects(info->pinfo->lv_table, info);
-
     info->pinfo->lv_table = lv_table_before;
 
     info->type = create_node_type_with_class_name("void");
@@ -8044,6 +8108,8 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
         compile_err_msg(info, "come lang supports under 3 dimention array");
         return FALSE;
     }
+
+    info->type->mHeap = FALSE;
 
     return TRUE;
 }
@@ -9116,7 +9182,7 @@ static BOOL compile_nodes(unsigned int node, sCompileInfo* info)
         xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
         info->sline = gNodes[node].mLine;
 
-        if(gNCDebug && !info->in_generics_function && !info->in_inline_function) {
+        if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function) {
             setCurrentDebugLocation(info->sline, info);
         }
 
@@ -9438,8 +9504,7 @@ BOOL compile_normal_block(unsigned int node, sCompileInfo* info)
 {
     struct sNodeBlockStruct* node_block = gNodes[node].uValue.sNormalBlock.mNodeBlock;
 
-    BOOL no_free_objects = FALSE;
-    if(!compile_block(node_block, info, no_free_objects)) {
+    if(!compile_block(node_block, info)) {
         return FALSE;
     }
 
@@ -12228,6 +12293,13 @@ BOOL compile(unsigned int node, sCompileInfo* info)
 
         case kNodeTypeBorrow:
             if(!compile_borrow(node, info))
+            {
+                return FALSE;
+            }
+            break;
+
+        case kNodeTypeNoMove:
+            if(!compile_nomove(node, info))
             {
                 return FALSE;
             }

@@ -98,6 +98,8 @@ int main()
 
     
     foreach(it, lx.sublist(1,3)) {
+        int a = 1;
+        var str = string("AAA");
         printf("%d\n", it);
     }
 

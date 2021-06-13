@@ -4230,6 +4230,9 @@ static BOOL parse_for(unsigned int* node, sParserInfo* info)
 
     expect_next_character_with_one_forward("{", info);
 
+    sVarTable* old_vtable2 = info->lv_table;
+    info->lv_table = init_block_vtable(old_vtable2, FALSE);
+
     sNodeBlock* for_node_block = ALLOC sNodeBlock_alloc();
     if(!parse_block(for_node_block, FALSE, FALSE, info)) 
     {
@@ -4268,6 +4271,18 @@ static BOOL parse_borrow(unsigned int* node, sParserInfo* info)
     };
 
     *node = sNodeTree_create_borrow(object_node, info);
+
+    return TRUE;
+}
+
+static BOOL parse_nomove(unsigned int* node, sParserInfo* info)
+{
+    unsigned int object_node;
+    if(!expression(&object_node, FALSE, info)) {
+        return FALSE;
+    };
+
+    *node = sNodeTree_create_nomove(object_node, info);
 
     return TRUE;
 }
@@ -5789,6 +5804,11 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         }
         else if(strcmp(buf, "borrow") == 0) {
             if(!parse_borrow(node, info)) {
+                return FALSE;
+            }
+        }
+        else if(strcmp(buf, "nomove") == 0) {
+            if(!parse_nomove(node, info)) {
                 return FALSE;
             }
         }

@@ -1,13 +1,17 @@
+#include <stdlib.h>
+
+char*% fun()
+{
+    return new char[128];
+}
 
 
 int main(int argc, char** argv)
 {
-    int a = 0;
-    int* line = &a;
+    var a = new char[128];
+    var b = nomove a;
 
-    if(line) {
-int c = 1;
-    }
+    var c = nomove fun();
 
     return 0;
 }

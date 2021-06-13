@@ -7,18 +7,16 @@
 
 typedef char*% string;
 
-/*
 // for assembler debug
 static void p(char* msg)
 {
-    puts(msg)
+    fprintf(stderr, msg)
 }
-*/
 
 // for printf debug
 static void ncfree(void* mem)
 {
-//printf("free %p\n", mem);
+//fprintf(stderr, "free %p\n", mem);
     free(mem);
 }
 
@@ -26,7 +24,7 @@ static void* nccalloc(size_t nmemb, size_t size)
 {
     void* result = calloc(nmemb, size);
 
-//printf("calloc %p\n", result);
+//fprintf(stderr, "calloc %p\n", result);
 
     return result;
 }
@@ -369,8 +367,8 @@ impl vector<T>
     }
 }
 
-#define foreach(o1, o2) for(var _obj = clone (o2), var o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 
+#define foreach(o1, o2) for(var _obj = nomove (o2), var o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 
 /// list ///
 struct list_item<T>
