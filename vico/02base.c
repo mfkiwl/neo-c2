@@ -1,3 +1,6 @@
+#include "common.h"
+
+#include <wchar.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ncurses.h>
@@ -6,10 +9,6 @@
 #include <locale.h>
 #include <wctype.h>
 
-#define __USE_XOPEN
-#include <wchar.h>
-
-#include "common.h"
 
 ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 2
 {

@@ -32,18 +32,28 @@ void ViWin_view(ViWin* self, Vi* nvi) version 3
 }
 
 void ViWin_insertText(ViWin* self, wstring text) {
+/*
     if(self.texts.length() == 0) {
         self.texts.push_back(clone text);
         self.cursorX += text.length();
     }
     else {
+*/
+FILE* f = fopen("AAA", "a");
+fprintf(f, "1\n");
         var old_line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
-        var new_line = wstring(xsprintf("%ls%ls%ls", old_line.substring(0, self.cursorX), text, old_line.substring(self.cursorX, -1)));
+fprintf(f, "2\n");
+        //var new_line = wstring(xsprintf("%ls", old_line.substring(self.cursorX, -1)));
+fprintf(f, "3\n");
+        var new_line = borrow wstring("AAA");
+        //var new_line = wstring(xsprintf("%ls%ls%ls", old_line.substring(0, self.cursorX), text, old_line.substring(self.cursorX, -1)));
 
         self.texts.replace(self.scroll+self.cursorY, new_line);
-        self.cursorX += text.length();
-    }
+fprintf(f, "4\n");
+        //self.cursorX += text.length();
+fclose(f);
+//    }
 }
 
 void ViWin_enterNewLine(ViWin* self)
@@ -333,29 +343,29 @@ void Vi_exitFromInsertMode(Vi* self)
 
 Vi*% Vi_initialize(Vi*% self) version 3
 {
-    inherit(borrow self);
+    var result = inherit(self);
 
-    self.mode = kEditMode;
+    result.mode = kEditMode;
 
-    self.events.replace('i', lambda(Vi* self, int key) 
+    result.events.replace('i', lambda(Vi* self, int key) 
     {
         self.enterInsertMode();
     });
-    self.events.replace('I', lambda(Vi* self, int key) 
+    result.events.replace('I', lambda(Vi* self, int key) 
     {
         if(self.activeWin.texts.length() != 0) {
             self.activeWin.moveAtHead();
         }
         self.enterInsertMode();
     });
-    self.events.replace('a', lambda(Vi* self, int key) 
+    result.events.replace('a', lambda(Vi* self, int key) 
     {
         self.enterInsertMode();
         if(self.activeWin.texts.length() != 0) {
             self.activeWin.cursorX++;
         }
     });
-    self.events.replace('A', lambda(Vi* self, int key) 
+    result.events.replace('A', lambda(Vi* self, int key) 
     {
         if(self.activeWin.texts.length() != 0) {
             self.activeWin.moveAtTail();
@@ -365,7 +375,7 @@ Vi*% Vi_initialize(Vi*% self) version 3
             self.activeWin.cursorX++;
         }
     });
-    self.events.replace('o', lambda(Vi* self, int key) 
+    result.events.replace('o', lambda(Vi* self, int key) 
     {
         self.enterInsertMode();
         if(self.activeWin.texts.length() != 0) {
@@ -373,7 +383,7 @@ Vi*% Vi_initialize(Vi*% self) version 3
         }
     });
 
-    return self;
+    return result;
 }
 
 int Vi_main_loop(Vi* self) version 3

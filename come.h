@@ -323,6 +323,8 @@ impl vector<T>
 
     bool replace(vector<T>* self, int index, T value) 
     {
+        managed value;
+
         if(index < 0) {
             index += self.len;
         }
