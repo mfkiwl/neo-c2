@@ -1,17 +1,8 @@
-#include <stdlib.h>
-
-char*% fun()
-{
-    return new char[128];
-}
-
+#include <llvm-c/Core.h>
 
 int main(int argc, char** argv)
 {
-    var a = new char[128];
-    var b = nomove a;
-
-    var c = nomove fun();
+    printf("%d\n", LLVM_VERSION_MAJOR);
 
     return 0;
 }
