@@ -338,7 +338,12 @@ void init_nodes(char* sname)
         const char* sdk = "";
         int sdk_len = 0;
 
+
+#if LLVM_VERSION_MAJOR >= 11
         LLVMMetadataRef compile_unit = LLVMDIBuilderCreateCompileUnit(gDIBuilder, LLVMDWARFSourceLanguageC, file, procedure, procedure_len, is_optimized, flags, flags_len, runtime_ver, split_name,  split_name_len, LLVMDWARFEmissionFull, dwold, split_debugginginling, debug_info_for_profiling, sys_root, sys_root_len, sdk, sdk_len);
+#else
+        LLVMMetadataRef compile_unit = LLVMDIBuilderCreateCompileUnit(gDIBuilder, LLVMDWARFSourceLanguageC, file, procedure, procedure_len, is_optimized, flags, flags_len, runtime_ver, split_name,  split_name_len, LLVMDWARFEmissionFull, dwold, split_debugginginling, debug_info_for_profiling);
+#endif
 
         char include_path[PATH_MAX];
 
@@ -3440,8 +3445,18 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
             LLVMValueRef values[element_node_type->mArrayNum[0]];
 
             int i;
-            for(i=0; i<element_node_type->mArrayNum[0]; i++) {
-                values[i] = LLVMConstInt(llvm_element_type, 0, FALSE);
+            LLVMValueRef zero_value;
+            if(element_node_type->mPointerNum > 0)
+            {
+                zero_value = LLVMConstNull(llvm_element_type);
+            }
+            else {
+                zero_value = LLVMConstInt(llvm_element_type, 0, FALSE);
+            }
+
+            for(i=0; i<element_node_type->mArrayNum[0]; i++) 
+            {
+                values[i] = zero_value;
             }
             
             LLVMValueRef value2 = LLVMConstArray(llvm_element_type, values, element_node_type->mArrayNum[0]);
@@ -3456,8 +3471,16 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
             LLVMValueRef values[element_node_type->mArrayNum[0]*element_node_type->mArrayNum[1]];
 
             int i;
+            LLVMValueRef zero_value;
+            if(element_node_type->mPointerNum > 0)
+            {
+                zero_value = LLVMConstNull(llvm_element_type);
+            }
+            else {
+                zero_value = LLVMConstInt(llvm_element_type, 0, FALSE);
+            }
             for(i=0; i<element_node_type->mArrayNum[0]*element_node_type->mArrayNum[1]; i++) {
-                values[i] = LLVMConstInt(llvm_element_type, 0, FALSE);
+                values[i] = zero_value;
             }
             
             LLVMValueRef value2 = LLVMConstArray(llvm_element_type, values, element_node_type->mArrayNum[0]*element_node_type->mArrayNum[1]);
@@ -3472,8 +3495,16 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
             LLVMValueRef values[element_node_type->mArrayNum[0]*element_node_type->mArrayNum[1]*element_node_type->mArrayNum[2]];
 
             int i;
+            LLVMValueRef zero_value;
+            if(element_node_type->mPointerNum > 0)
+            {
+                zero_value = LLVMConstNull(llvm_element_type);
+            }
+            else {
+                zero_value = LLVMConstInt(llvm_element_type, 0, FALSE);
+            }
             for(i=0; i<element_node_type->mArrayNum[0]*element_node_type->mArrayNum[1]*element_node_type->mArrayNum[2]; i++) {
-                values[i] = LLVMConstInt(llvm_element_type, 0, FALSE);
+                values[i] = zero_value;
             }
             
             LLVMValueRef value2 = LLVMConstArray(llvm_element_type, values, element_node_type->mArrayNum[0]*element_node_type->mArrayNum[1]*element_node_type->mArrayNum[2]);
@@ -5866,7 +5897,11 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
 
     LLVMValueRef object_num;
     if(left_node == 0) {
+#ifdef __32BIT_CPU__
+        LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
+#else
         LLVMTypeRef llvm_type = create_llvm_type_with_class_name("long");
+#endif
         object_num = LLVMConstInt(llvm_type, 1, FALSE);
     }
     else {
@@ -5874,7 +5909,11 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
             return FALSE;
         }
 
+#ifdef __32BIT_CPU__
+        sNodeType* left_type = create_node_type_with_class_name("int");
+#else
         sNodeType* left_type = create_node_type_with_class_name("long");
+#endif
 
         LVALUE llvm_value = *get_value_from_stack(-1);
         dec_stack_ptr(1, info);
@@ -5926,7 +5965,11 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
 
         uint64_t alloc_size = get_size_from_node_type(node_type2);
 
+#ifdef __32BIT_CPU__
+        LLVMTypeRef long_type = create_llvm_type_with_class_name("int");
+#else
         LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
+#endif
         llvm_params[1] = LLVMConstInt(long_type, alloc_size, FALSE);
 
         LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
@@ -11874,6 +11917,8 @@ BOOL compile(unsigned int node, sCompileInfo* info)
     if(node == 0) {
         return TRUE;
     }
+
+printf("%d\n", gNodes[node].mNodeType);
 
     switch(gNodes[node].mNodeType) {
         case kNodeTypeFunction:
