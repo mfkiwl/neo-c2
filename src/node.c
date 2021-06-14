@@ -11918,8 +11918,6 @@ BOOL compile(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
-printf("%d\n", gNodes[node].mNodeType);
-
     switch(gNodes[node].mNodeType) {
         case kNodeTypeFunction:
             if(!compile_function(node, info)) {
