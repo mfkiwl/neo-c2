@@ -275,27 +275,27 @@ void ViWin_input(ViWin* self, Vi* nvi) version 3
     }
 }
 
-void ViWin_pushUndo(ViWin* self) 
+void ViWin_pushUndo(ViWin* self) version 1
 {
     /// implemented by the after layer
 }
 
-void ViWin_writedFlagOn(ViWin* self) 
+void ViWin_writedFlagOn(ViWin* self) version 1
 {
     /// implemented by the after layer
 }
 
-void ViWin_completion(ViWin* self, Vi* nvi) 
+void ViWin_completion(ViWin* self, Vi* nvi) version 1
 {
     /// implemented by the after layer
 }
 
-void ViWin_clearInputedKey(ViWin* self) 
+void ViWin_clearInputedKey(ViWin* self) version 1
 {
     /// implemented by the after layer
 }
 
-void ViWin_saveInputedKey(ViWin* self) 
+void ViWin_saveInputedKey(ViWin* self) version 1
 {
     /// implemented by the after layer
 }
@@ -305,7 +305,7 @@ void ViWin_backwardWord(ViWin* self) version 1
     /// implemented by the after layer
 }
 
-void Vi_enterInsertMode(Vi* self) 
+void Vi_enterInsertMode(Vi* self) version 1
 {
     self.mode = kInsertMode;
     self.activeWin.writedFlagOn();

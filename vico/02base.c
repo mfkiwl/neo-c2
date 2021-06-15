@@ -317,7 +317,7 @@ void ViWin_moveTop(ViWin* self)
 }
 
 /// implemented after layer
-void ViWin_restoreVisualMode(ViWin* self, Vi* nvi) 
+void ViWin_restoreVisualMode(ViWin* self, Vi* nvi) version 1
 {
 }
 
@@ -366,7 +366,7 @@ void ViWin_moveBottom(ViWin* self)
     self.centeringCursor();
 }
 
-void ViWin_openFile(ViWin* self, char* file_name, int line_num) 
+void ViWin_openFile(ViWin* self, char* file_name, int line_num) version 1
 {
     /// implemented by the after layer
 }
@@ -586,21 +586,21 @@ int Vi_main_loop(Vi* self) version 2
     0
 }
 
-void Vi_openFile(Vi* self, char* file_name, int line_num)
+void Vi_openFile(Vi* self, char* file_name, int line_num) version 1
 {
     /// implemented by the after layer
 }
 
-void Vi_repositionWindows(Vi* self) 
+void Vi_repositionWindows(Vi* self)  version 1
 {
     /// implemented by the after layer
 }
 
-void Vi_repositionFiler(Vi* self) 
+void Vi_repositionFiler(Vi* self)  version 1
 {
     /// implemented by the after layer
 }
-void Vi_enterSearchMode(Vi* self, bool regex_search, bool search_reverse)
+void Vi_enterSearchMode(Vi* self, bool regex_search, bool search_reverse) version 1
 {
     /// implemented by the after layer
 }

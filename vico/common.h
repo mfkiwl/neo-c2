@@ -53,6 +53,13 @@ struct ViWin
 
     tuple3<int,int,int>*% returnPoint;
     list<tuple3<int, int, int>*%>*% returnPointStack;
+
+    /// layer 5 ///
+    list<list<wstring>*%>%* undo;
+    list<int>%* undoScroll;
+    list<int>%* undoCursorX;
+    list<int>%* undoCursorY;
+    int undoIndex;
 };
 
 struct Vi 
@@ -178,3 +185,18 @@ void ViWin_forwardWord(ViWin* self);
 override void ViWin_backwardWord(ViWin* self);
 
 override Vi*% Vi_initialize(Vi*% self);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 5word.h
+///////////////////////////////////////////////////////////////////////////////
+override ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
+override void ViWin_finalize(ViWin* self);
+
+override void ViWin_pushUndo(ViWin* self);
+
+void ViWin_undo(ViWin* self);
+void ViWin_redo(ViWin* self);
+
+override Vi*% Vi_initialize(Vi*% self);
+
+override void Vi_enterInsertMode(Vi* self);
