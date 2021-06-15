@@ -95,13 +95,13 @@ void ViWin_statusBarView(ViWin* self, Vi* nvi)
 
 void ViWin_view(ViWin* self, Vi* nvi) version 2
 {
-    //werase(self.win);
+    werase(self.win);
 
     self.textsView(nvi);
 
     self.statusBarView(nvi);
 
-    //wrefresh(self.win);
+    wrefresh(self.win);
 }
 
 int ViWin_getKey(ViWin* self, bool head) 

@@ -10,7 +10,7 @@
 
 void ViWin_insertModeView(ViWin* self, Vi* nvi)
 {
-    //werase(self.win);
+    werase(self.win);
 
     self.textsView(nvi);
 
@@ -18,7 +18,7 @@ void ViWin_insertModeView(ViWin* self, Vi* nvi)
     mvwprintw(self.win, self.height-1, 0, "INSERT MODE x %d y %d scroll %d", self.cursorX, self.scroll+self.cursorY, self.scroll);
     wattroff(self.win, A_REVERSE);
 
-    //wrefresh(self.win);
+    wrefresh(self.win);
 }
 
 void ViWin_view(ViWin* self, Vi* nvi) version 3
@@ -32,28 +32,18 @@ void ViWin_view(ViWin* self, Vi* nvi) version 3
 }
 
 void ViWin_insertText(ViWin* self, wstring text) {
-/*
     if(self.texts.length() == 0) {
         self.texts.push_back(clone text);
         self.cursorX += text.length();
     }
     else {
-*/
-FILE* f = fopen("AAA", "a");
-fprintf(f, "1\n");
         var old_line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
-fprintf(f, "2\n");
-        //var new_line = wstring(xsprintf("%ls", old_line.substring(self.cursorX, -1)));
-fprintf(f, "3\n");
-        var new_line = borrow wstring("AAA");
-        //var new_line = wstring(xsprintf("%ls%ls%ls", old_line.substring(0, self.cursorX), text, old_line.substring(self.cursorX, -1)));
+        var new_line = borrow wstring(xsprintf("%ls%ls%ls", old_line.substring(0, self.cursorX), text, old_line.substring(self.cursorX, -1)));
 
         self.texts.replace(self.scroll+self.cursorY, new_line);
-fprintf(f, "4\n");
-        //self.cursorX += text.length();
-fclose(f);
-//    }
+        self.cursorX += text.length();
+    }
 }
 
 void ViWin_enterNewLine(ViWin* self)
@@ -79,8 +69,8 @@ void ViWin_enterNewLine(ViWin* self)
         wcsncat(head_new_line, wstring(" "), num_spaces+1);
     }
 
-    var new_line1 = old_line.substring(0, self.cursorX);
-    var new_line2 = wstring(xsprintf("%ls%ls", head_new_line, old_line.substring(self.cursorX, -1)));
+    var new_line1 = borrow old_line.substring(0, self.cursorX);
+    var new_line2 = borrow wstring(xsprintf("%ls%ls", head_new_line, old_line.substring(self.cursorX, -1)));
 
     self.texts.replace(self.scroll+self.cursorY, new_line1);
     self.texts.insert(self.scroll+self.cursorY+1, new_line2);
@@ -104,7 +94,7 @@ void ViWin_enterNewLine2(ViWin* self)
         }
     }
 
-    var new_line = new wchar_t[num_spaces+1];
+    var new_line = borrow new wchar_t[num_spaces+1];
 
     wcsncpy(new_line, wstring(""), num_spaces+1);
 
@@ -310,7 +300,7 @@ void ViWin_saveInputedKey(ViWin* self)
     /// implemented by the after layer
 }
 
-void ViWin_backwardWord(ViWin* self) 
+void ViWin_backwardWord(ViWin* self) version 1
 {
     /// implemented by the after layer
 }

@@ -5,6 +5,7 @@ int main()
     xassert("xaasert test", true);
 
     xassert("xsprintf test", strcmp(xsprintf("AAA"), "AAA") == 0);
+    xassert("xsprintf test", strcmp(xsprintf("%d%d", 1, 1), "11") == 0);
 
     xassert("string test", strcmp(string("AAA"), "AAA") == 0);
 

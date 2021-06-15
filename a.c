@@ -1,8 +1,10 @@
-#include <llvm-c/Core.h>
+#include <come.h>
 
 int main(int argc, char** argv)
 {
-    printf("%d\n", LLVM_VERSION_MAJOR);
+    var a = xsprintf("%d %d\n", 1, 1);
+
+    puts(a);
 
     return 0;
 }

@@ -82,7 +82,7 @@ inline string string(char* str)
     return dummy_heap result;
 }
 
-inline string xsprintf(char* msg, ...)
+static string xsprintf(char* msg, ...)
 {
     va_list args;
     va_start(args, msg);

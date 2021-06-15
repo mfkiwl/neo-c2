@@ -254,7 +254,7 @@ dummy_heapは普通のポインタに%を付与します。
 便利なstring関数としては以下があります。
 
 ```
-inline string xsprintf(char* msg, ...)
+static string xsprintf(char* msg, ...)
 {
     va_list args;
     va_start(args, msg);

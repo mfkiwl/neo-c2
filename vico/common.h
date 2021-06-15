@@ -170,3 +170,11 @@ void Vi_enterInsertMode(Vi* self);
 void Vi_enterInsertMode2(Vi* self);
 void Vi_exitFromInsertMode(Vi* self);
 override int Vi_main_loop(Vi* self);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 4word.h
+///////////////////////////////////////////////////////////////////////////////
+void ViWin_forwardWord(ViWin* self);
+override void ViWin_backwardWord(ViWin* self);
+
+override Vi*% Vi_initialize(Vi*% self);

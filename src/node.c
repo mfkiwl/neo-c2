@@ -923,6 +923,9 @@ void arrange_stack(sCompileInfo* info, int top)
     }
     if(info->stack_num < top) {
         fprintf(stderr, "%s %d: unexpected stack value. The stack num is %d. top is %d\n", info->sname, info->sline, info->stack_num, top);
+        int a = 0;
+        int b = 1;
+        int c = b/a;
         exit(2);
     }
 }
@@ -7394,6 +7397,8 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     info->pinfo->lv_table = for_block->mLVTable->mParent;
 
     /// compile expression ///
+    int stack_num_before = info->stack_num;
+
     unsigned int expression_node = gNodes[node].uValue.sFor.mExpressionNode;
 
     if(!compile(expression_node, info)) {
@@ -7401,7 +7406,7 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    arrange_stack(info, 0);
+    arrange_stack(info, stack_num_before);
 
     /// compile expression ///
     LLVMBasicBlockRef loop_top_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "loop_top_block");
@@ -7412,6 +7417,7 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     llvm_change_block(loop_top_block, info);
 
     unsigned int expression_node2 = gNodes[node].uValue.sFor.mExpressionNode2;
+    stack_num_before = info->stack_num;
 
     if(!compile(expression_node2, info)) {
         info->pinfo->lv_table = lv_table_before;
@@ -7422,6 +7428,8 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
     LVALUE conditional_value = *get_value_from_stack(-1);
     dec_stack_ptr(1, info);
+
+    arrange_stack(info, stack_num_before);
 
     sNodeType* bool_type = create_node_type_with_class_name("bool");
 
@@ -7499,6 +7507,7 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
     BOOL last_expression_is_return_before = info->last_expression_is_return;
     info->last_expression_is_return = FALSE;
+    stack_num_before = info->stack_num;
 
     if(!compile(expression_node3, info)) {
         info->pinfo->lv_table = lv_table_before;
@@ -7510,7 +7519,7 @@ static BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
         LLVMBuildBr(gBuilder, loop_top_block);
     }
 
-    arrange_stack(info, 0);
+    arrange_stack(info, stack_num_before);
 
     info->last_expression_is_return = last_expression_is_return_before;
 
