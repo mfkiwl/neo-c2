@@ -51,6 +51,38 @@ int xgetmaxy()
     }
 }
 
+string xbasename(char* path)
+{
+    char* p = path + strlen(path);
+    
+    while(p >= path) {
+        if(*p == '/') {
+            break;
+        }
+        else {
+            p--;
+        }
+    }
+    
+    if(p < path) {
+        return string(path);
+    }
+    else {
+        return string(p+1);  
+    }
+}
+
+string xrealpath(char* path)
+{
+    char* result = realpath(path, null);
+
+    string result2 = string(result);
+
+    free(result);
+
+    return result2;
+}
+
 wstring wstring(char* str)
 {
     int len = strlen(str);
@@ -217,14 +249,12 @@ int main(int argc, char** argv)
 
     var vi = new Vi.initialize();
     
-/*
     if(num_file_names > 0) {
         vi.openFile(file_names[0], line_num);
     }
     else {
         vi.openFile(null, -1);
     }
-*/
     
     return vi.main_loop();
 }

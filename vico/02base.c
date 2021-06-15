@@ -81,7 +81,7 @@ void ViWin_textsView(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_statusBarView(ViWin* self, Vi* nvi)
+void ViWin_statusBarView(ViWin* self, Vi* nvi) version 1
 {
     int maxy = getmaxy(self.win);
     int maxx = getmaxx(self.win);
@@ -546,7 +546,7 @@ void Vi_finalize(Vi* self) version 2
     inherit(self);
 }
 
-void Vi_exitFromApp(Vi* self) 
+void Vi_exitFromApp(Vi* self) version 1
 {
     self.appEnd = true;
 }

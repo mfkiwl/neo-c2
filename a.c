@@ -1,10 +1,18 @@
 #include <come.h>
 
+struct Data
+{
+    char array[128];
+};
+
 int main(int argc, char** argv)
 {
-    var a = xsprintf("%d %d\n", 1, 1);
+    Data data;
 
-    puts(a);
+    data.array[0] = 'A';
+    data.array[1] = '\0';
+
+    puts(data.array);
 
     return 0;
 }

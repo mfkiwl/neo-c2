@@ -579,6 +579,18 @@ impl vector<T>
         return false;
     }
 
+    int find(vector<T>* self, T& item, int default_value) {
+        int it2 = 0;
+        foreach(it, self) {
+            if(it.equals(item)) {
+                return it2;
+            }
+            it2++;
+        }
+
+        return default_value;
+    }
+
     int length(vector<T>* self)
     {
         return self.len;
@@ -984,6 +996,18 @@ impl list <T>
             it = it.next;
             i++;
         }
+    }
+
+    int find(list<T>* self, T& item, int default_value) {
+        int it2 = 0;
+        foreach(it, self) {
+            if(it.equals(item)) {
+                return it2;
+            }
+            it2++;
+        }
+
+        return default_value;
     }
 
     list<T>*% sublist(list<T>* self, int begin, int tail) {

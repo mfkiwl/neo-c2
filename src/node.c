@@ -6664,25 +6664,50 @@ static BOOL compile_load_field(unsigned int node, sCompileInfo* info)
         sNodeType* field_type = clone_node_type(left_type->mClass->mFields[field_index]);
 
         field_index = 0;
+
+        LVALUE llvm_value;
         
         LLVMValueRef field_address;
-        if(left_type->mPointerNum == 0) {
+        if(field_type->mArrayDimentionNum > 0) {
+            if(left_type->mPointerNum == 0) {
+                field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
+            }
+            else {
+                field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
+            }
+            llvm_value.value = field_address;
+            field_type->mPointerNum++;
+            field_type->mArrayDimentionNum--;
+            
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(field_type);
+
+            llvm_value.value = LLVMBuildCast(gBuilder, LLVMBitCast, field_address, llvm_type, "cast");
+        }
+        else if(left_type->mPointerNum == 0) {
             field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
+            
+            sNodeType* field_type2 = clone_node_type(field_type);
+
+            field_type2->mPointerNum++;
+
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(field_type2);
+
+            field_address = LLVMBuildCast(gBuilder, LLVMBitCast, field_address, llvm_type, "icast");
+            llvm_value.value = LLVMBuildLoad(gBuilder, field_address, var_name);
         }
         else {
             field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
+            
+            sNodeType* field_type2 = clone_node_type(field_type);
+
+            field_type2->mPointerNum++;
+
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(field_type2);
+
+            field_address = LLVMBuildCast(gBuilder, LLVMBitCast, field_address, llvm_type, "icast");
+            llvm_value.value = LLVMBuildLoad(gBuilder, field_address, var_name);
         }
-        
-        sNodeType* field_type2 = clone_node_type(field_type);
 
-        field_type2->mPointerNum++;
-
-        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(field_type2);
-
-        field_address = LLVMBuildCast(gBuilder, LLVMBitCast, field_address, llvm_type, "icast");
-
-        LVALUE llvm_value;
-        llvm_value.value = LLVMBuildLoad(gBuilder, field_address, var_name);
         llvm_value.type = clone_node_type(field_type);
         llvm_value.address = field_address;
         llvm_value.var = NULL;
@@ -6741,16 +6766,32 @@ static BOOL compile_load_field(unsigned int node, sCompileInfo* info)
             }
         }
 
+        LVALUE llvm_value;
         LLVMValueRef field_address;
-        if(left_type->mPointerNum == 0) {
+        if(field_type->mArrayDimentionNum > 0) {
+            if(left_type->mPointerNum == 0) {
+                field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
+            }
+            else {
+                field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
+            }
+            llvm_value.value = field_address;
+            field_type->mPointerNum++;
+            field_type->mArrayDimentionNum--;
+
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(field_type);
+
+            llvm_value.value = LLVMBuildCast(gBuilder, LLVMBitCast, field_address, llvm_type, "cast");
+        }
+        else if(left_type->mPointerNum == 0) {
             field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
+            llvm_value.value = LLVMBuildLoad(gBuilder, field_address, var_name);
         }
         else {
             field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
+            llvm_value.value = LLVMBuildLoad(gBuilder, field_address, var_name);
         }
 
-        LVALUE llvm_value;
-        llvm_value.value = LLVMBuildLoad(gBuilder, field_address, var_name);
         llvm_value.type = clone_node_type(field_type);
         llvm_value.address = field_address;
         llvm_value.var = NULL;

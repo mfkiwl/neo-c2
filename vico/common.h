@@ -4,6 +4,7 @@
 #include <ncurses.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <limits.h>
 #include "config.h"
 
 typedef wchar_t*% wstring;
@@ -24,6 +25,9 @@ bool xiswblank(wchar_t c);
 
 int xgetmaxx();
 int xgetmaxy();
+
+string xbasename(char* path);
+string xrealpath(char* path);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 01init.h
@@ -60,6 +64,10 @@ struct ViWin
     list<int>%* undoCursorX;
     list<int>%* undoCursorY;
     int undoIndex;
+
+    /// layer 6 ///
+    char fileName[PATH_MAX];
+    bool writed;
 };
 
 struct Vi 
@@ -74,6 +82,9 @@ struct Vi
 
     /// layer 3 ///
     int mode;
+
+    /// layer 6 ///
+    int toggleWin;
 };
 
 extern Vi* gApp;
@@ -149,6 +160,7 @@ void Vi_view(Vi* self);
 void Vi_clearView(Vi* self);
 void Vi_exitFromApp(Vi* self);
 void Vi_enterSearchMode(Vi* self, bool regex_search, bool search_reverse);
+void Vi_repositionWindows(Vi* self);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 03insert_mode.h
@@ -200,3 +212,24 @@ void ViWin_redo(ViWin* self);
 override Vi*% Vi_initialize(Vi*% self);
 
 override void Vi_enterInsertMode(Vi* self);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 6file.h
+///////////////////////////////////////////////////////////////////////////////
+override ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
+override void ViWin_statusBarView(ViWin* self, Vi* nvi);
+override void ViWin_openFile(ViWin* self, char* file_name, int line_num);
+void ViWin_writeFile(ViWin* self);
+override void ViWin_writedFlagOn(ViWin* self);
+bool ViWin_saveDotToFile(ViWin* self, Vi* nvi);
+
+override Vi*% Vi_initialize(Vi*% self);
+void Vi_saveLastOpenFile(Vi* self, char* file_name);
+string Vi_readLastOpenFile(Vi* self);
+override void Vi_repositionWindows(Vi* self);
+override void Vi_openFile(Vi* self, char* file_name, int line_num);
+void Vi_openNewFile(Vi* self, char* file_name);
+void Vi_closeActiveWin(Vi* self);
+
+override void Vi_exitFromApp(Vi* self);
+

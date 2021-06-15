@@ -94,7 +94,7 @@ void ViWin_undo(ViWin* self)
     }
 }
 
-Vi*% Vi_initialize(Vi*% self) 
+Vi*% Vi_initialize(Vi*% self) version 5
 {
     var result = inherit(self);
 
