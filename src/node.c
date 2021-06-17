@@ -1124,8 +1124,9 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
     {
         result_type = LLVMInt8TypeInContext(gContext);
     }
+    else
 #endif
-    else if(klass->mFlags & CLASS_FLAGS_ENUM) 
+    if(klass->mFlags & CLASS_FLAGS_ENUM) 
     {
         result_type = LLVMInt32TypeInContext(gContext);
     }
