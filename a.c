@@ -1,18 +1,21 @@
-#include <come.h>
+#include <stdarg.h>
+#include <stdio.h>
 
-struct Data
+void aaa(const char* msg, ...)
 {
-    char array[128];
-};
+    char msg2[1024];
+
+    va_list args;
+    va_start(args, msg);
+    vsnprintf(msg2, 1024, msg, args);
+    va_end(args);
+
+puts(msg2);
+}
 
 int main(int argc, char** argv)
 {
-    Data data;
-
-    data.array[0] = 'A';
-    data.array[1] = '\0';
-
-    puts(data.array);
+    aaa("%s %d", "AAA", 1 + 1);
 
     return 0;
 }

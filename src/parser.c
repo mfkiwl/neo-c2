@@ -4456,19 +4456,48 @@ static BOOL parse_typedef(unsigned int* node, sParserInfo* info)
 
     sNodeType* node_type2 = clone_node_type(node_type);
 
+    int num_nodes = 0;
+    unsigned int nodes[NODES_MAX];
+    memset(nodes, 0, sizeof(unsigned int)*NODES_MAX);
+
     if(buf[0] == '\0') {
-        if(!parse_variable_name(buf, VAR_NAME_MAX, info, node_type2, FALSE, FALSE))
-        {
-            return FALSE;
+        while(1) {
+            if(!parse_variable_name(buf, VAR_NAME_MAX, info, node_type2, FALSE, FALSE))
+            {
+                return FALSE;
+            }
+
+            if(*info->p == ',') {
+                info->p++;
+                skip_spaces_and_lf(info);
+
+                *node = sNodeTree_create_typedef(buf, node_type2, info);
+                nodes[num_nodes++] = *node;
+
+                if(num_nodes >= NODES_MAX) {
+                    fprintf(stderr, "overflow define variable max");
+                    return FALSE;
+                }
+            }
+            else {
+                *node = sNodeTree_create_typedef(buf, node_type2, info);
+                nodes[num_nodes++] = *node;
+
+                if(num_nodes >= NODES_MAX) {
+                    fprintf(stderr, "overflow define variable max");
+                    return FALSE;
+                }
+                break;
+            }
         }
     }
+
+    *node = sNodeTree_create_nodes(nodes, num_nodes, info);
 
     if(!parse_typedef_attribute(info))
     {
         return FALSE;
     };
-
-    *node = sNodeTree_create_typedef(buf, node_type2, info);
 
     return TRUE;
 }

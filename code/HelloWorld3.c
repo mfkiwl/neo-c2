@@ -4,6 +4,8 @@ int main()
 {
     xassert("xaasert test", true);
 
+    var a = xsprintf("AAA");
+
     xassert("xsprintf test", strcmp(xsprintf("AAA"), "AAA") == 0);
     xassert("xsprintf test", strcmp(xsprintf("%d%d", 1, 1), "11") == 0);
 

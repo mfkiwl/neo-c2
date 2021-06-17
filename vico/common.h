@@ -5,6 +5,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <limits.h>
+#include <wchar.h>
 #include "config.h"
 
 typedef wchar_t*% wstring;

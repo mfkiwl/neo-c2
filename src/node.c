@@ -372,7 +372,7 @@ void init_nodes(char* sname)
     }
 
     /// va_list ///
-#ifdef __X86_64_CPU__
+#if defined(__X86_64_CPU__ )
     LLVMTypeRef field_types[STRUCT_FIELD_MAX];
 
     field_types[0] = create_llvm_type_with_class_name("int");
@@ -1119,7 +1119,13 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
 
     sCLClass* klass = node_type->mClass;
 
-    if(klass->mFlags & CLASS_FLAGS_ENUM) 
+#ifdef __ISH__
+    if(type_identify_with_class_name(node_type, "__va_list"))
+    {
+        result_type = LLVMInt8TypeInContext(gContext);
+    }
+#endif
+    else if(klass->mFlags & CLASS_FLAGS_ENUM) 
     {
         result_type = LLVMInt32TypeInContext(gContext);
     }
@@ -1237,7 +1243,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = create_node_type_with_class_name("char*");
     }
-    else if((type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) && type_identify_with_class_name(*right_type, "char*"))
+    else if((type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list") || type_identify_with_class_name(left_type, "__va_list")) && type_identify_with_class_name(*right_type, "char*"))
     {
         if(rvalue) {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
@@ -1248,6 +1254,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = create_node_type_with_class_name("va_list");
     }
+/*
     else if((type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) && type_identify_with_class_name(*right_type, "char*"))
     {
         if(rvalue) {
@@ -1259,6 +1266,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
         *right_type = create_node_type_with_class_name("__builtin_va_list");
     }
+*/
     /// go ///
     else if((left_type->mPointerNum-1 == (*right_type)->mPointerNum) && (*right_type)->mArrayDimentionNum == 1) 
     {
@@ -1449,7 +1457,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
 
 BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sParserInfo* info)
 {
-    //info->no_output_err_msg = TRUE;
+    info->no_output_err_msg = TRUE;
     sCompileInfo cinfo;
 
     memset(&cinfo, 0, sizeof(sCompileInfo));
@@ -1458,7 +1466,7 @@ BOOL get_const_value_from_node(int* array_size, unsigned int array_size_node, sP
     if(!compile(array_size_node, &cinfo)) {
         return FALSE;
     }
-    //info->no_output_err_msg = FALSE;
+    info->no_output_err_msg = FALSE;
 
     sNodeType* node_type = cinfo.type;
 
@@ -3423,7 +3431,7 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
 
     LLVMTypeRef llvm_type = create_llvm_type_from_node_type(var_type);
 
-#ifdef __X86_64_CPU__
+#if defined(__X86_64_CPU__ )
     if(type_identify_with_class_name(var_type, "__builtin_va_list") || type_identify_with_class_name(var_type, "va_list")) {
         llvm_type = LLVMArrayType(llvm_type, 1);
     }
@@ -3683,7 +3691,7 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         else if(global) {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-#ifdef __X86_64_CPU__
+#if defined(__X86_64_CPU__ )
             if(type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) {
                 llvm_type = LLVMArrayType(llvm_type, 1);
             }
@@ -3739,7 +3747,7 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         else {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-#ifdef __X86_64_CPU__
+#if defined(__X86_64_CPU__ )
             if(type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) {
                 llvm_type = LLVMArrayType(llvm_type, 1);
             }
@@ -3766,7 +3774,7 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
     else {
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-#ifdef __X86_64_CPU__
+#if defined(__X86_64_CPU__ )
         if(type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) {
             llvm_type = LLVMArrayType(llvm_type, 1);
         }
@@ -4434,6 +4442,13 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
                     return FALSE;
                 }
             }
+
+#ifdef __ISH__
+if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_with_class_name(param_types[i], "__va_list"))
+{
+    param.value = LLVMBuildLoad(gBuilder, param.value, "va_list_load");
+}
+#endif
 
             if(auto_cast_posibility(fun_param_type, param_types[i])) {
                 if(!cast_right_type_to_left_type(fun_param_type, &param_types[i], &param, info))
@@ -5457,8 +5472,9 @@ static BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
         llvm_value.value = var_address;
     }
     else {
-        if(type_identify_with_class_name(var_type, "__builtin_va_list") || type_identify_with_class_name(var_type, "va_list")) {
-#ifdef __X86_64_CPU__
+        if(type_identify_with_class_name(var_type, "__builtin_va_list") || type_identify_with_class_name(var_type, "va_list") || type_identify_with_class_name(var_type, "__va_list")) 
+        {
+#if defined(__X86_64_CPU__ )
 
             LLVMValueRef indices[2];
 
