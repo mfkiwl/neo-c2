@@ -172,6 +172,7 @@ int main()
     var a = nomove fun();
     return 0;
 }
+```
 
 aはmainの終了時にfreeされます。
 
