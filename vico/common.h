@@ -17,8 +17,10 @@ wstring int_printable(wchar_t* str);
 int int_length(wchar_t* str);
 wchar_t* int_delete(wchar_t* str, int head, int tail);
 int int_index(wchar_t* str, wchar_t* search_str, int default_value);
+int int_rindex(wchar_t* str, wchar_t* search_str, int default_value);
 string int_to_string(wchar_t* wstr);
 wstring char_to_wstring(char* str);
+wstring int_reverse(whar_t* str);
 
 /// main.c ///
 bool xiswalpha(wchar_t c);
@@ -104,6 +106,11 @@ struct Vi
     /// layer 7 ///
     list<wstring>*% yank;
     int yankKind;
+
+    /// layer 9 ///
+    wchar_t searchString[128];
+    bool searchReverse;
+    bool regexSearch;
 };
 
 extern Vi* gApp;
@@ -288,4 +295,28 @@ override Vi*% Vi_initialize(Vi*% self);
 void Vi_enterVisualMode(Vi* self);
 void Vi_reenterVisualMode(Vi* self);
 void Vi_exitFromVisualMode(Vi* self);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 9visual.h
+///////////////////////////////////////////////////////////////////////////////
+enum eMode { kSearchMode = kVisualMode + 1 };
+
+void ViWin_saveSearchString(Vi* self, char* file_name);
+void ViWin_readSearchString(Vi* self, char* file_name);
+
+void ViWin_searchModeView(ViWin* self, Vi* nvi);
+override void ViWin_view(ViWin* self, Vi* nvi);
+
+void ViWin_inputSearchlMode(ViWin* self, Vi* nvi);
+override void ViWin_input(ViWin* self, Vi* nvi);
+
+override Vi*% Vi_initialize(Vi*% self);
+override void Vi_finalize(Vi* self);
+
+override void Vi_enterSearchMode(Vi* self, bool regex_search, bool search_reverse);
+void Vi_exitFromSearchMode(Vi* self);
+
+enum eRepeatForwardNextCharacter {
+    kRFNCNone, kRFNC1, kRFNC2
+};
 

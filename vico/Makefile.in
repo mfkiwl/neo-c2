@@ -30,8 +30,8 @@ DESTDIR=@DESTDIR@
 ##########################################
 all: vico
 
-vico: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c 03insert_mode.o 03insert_mode.c 04word.c 04word.o 05undo.c 05undo.o 06file.o 07yank.o 08visual.o
-	$(CC) -o vico main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o 07yank.o 08visual.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
+vico: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c 03insert_mode.o 03insert_mode.c 04word.c 04word.o 05undo.c 05undo.o 06file.o 07yank.o 08visual.o 09search.o
+	$(CC) -o vico main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o 07yank.o 08visual.o 09search.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
 
 main.o: configure Makefile config.h main.c common.h
 	come main.c $(CFLAGS) $(NCFLAGS)
@@ -69,6 +69,10 @@ main.o: configure Makefile config.h main.c common.h
 	come 08visual.c $(CFLAGS) $(NCFLAGS)
 	$(CC) -c -o 08visual.o 08visual.c.ll
 
+09search.o: configure Makefile config.h 09search.c common.h
+	come 09search.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 09search.o 09search.c.ll
+
 #########################################
 # install
 #########################################
@@ -103,5 +107,5 @@ distclean: clean
 
 test:
 	rm -f valgrind.txt
-	valgrind --log-file=valgrind.txt --leak-check=full --show-leak-kinds=all ./wi a.c
+	valgrind ./vico a.txt 2> aaa
 

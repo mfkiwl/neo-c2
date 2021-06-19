@@ -221,6 +221,23 @@ int int_index(wchar_t* str, wchar_t* search_str, int default_value)
     return head - str;
 }
 
+int int_rindex(wchar_t* str, wchar_t* search_str, int default_value)
+{
+    int len = wcslen(search_str);
+
+    wchar_t* p = str + wcslen(str) - len;
+
+    while(p >= str) {
+        if(wcscmp(p, search_str) == 0) {
+            return (p - str);
+        }
+
+        p--;
+    }
+
+    return default_value;
+}
+
 string int_to_string(wchar_t* wstr)
 {
     int len = MB_LEN_MAX*(wcslen(wstr)+1);
@@ -231,6 +248,20 @@ string int_to_string(wchar_t* wstr)
     {
         strncpy(result, "", len);
     }
+
+    return result;
+}
+
+wstring int_reverse(whar_t* str) 
+{
+    int len = wcslen(str);
+    wstring result = new wchar_t[len + 1];
+
+    for(int i=0; i<len; i++) {
+        result[i] = str[len-i-1];
+    }
+
+    result[len] = '\0';
 
     return result;
 }
