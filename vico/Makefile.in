@@ -30,8 +30,8 @@ DESTDIR=@DESTDIR@
 ##########################################
 all: vico
 
-vico: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c 03insert_mode.o 03insert_mode.c 04word.c 04word.o 05undo.c 05undo.o 06file.o
-	$(CC) -o vico main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
+vico: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c 03insert_mode.o 03insert_mode.c 04word.c 04word.o 05undo.c 05undo.o 06file.o 07yank.o 08visual.o
+	$(CC) -o vico main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o 07yank.o 08visual.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
 
 main.o: configure Makefile config.h main.c common.h
 	come main.c $(CFLAGS) $(NCFLAGS)
@@ -60,6 +60,14 @@ main.o: configure Makefile config.h main.c common.h
 06file.o: configure Makefile config.h 06file.c common.h
 	come 06file.c $(CFLAGS) $(NCFLAGS)
 	$(CC) -c -o 06file.o 06file.c.ll
+
+07yank.o: configure Makefile config.h 07yank.c common.h
+	come 07yank.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 07yank.o 07yank.c.ll
+
+08visual.o: configure Makefile config.h 08visual.c common.h
+	come 08visual.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 08visual.o 08visual.c.ll
 
 #########################################
 # install

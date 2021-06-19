@@ -1431,3 +1431,103 @@ impl tuple4 <T, T2, T3, T4>
         return true;
     }
 }
+
+struct buffer {
+    char* buf;
+    int len;
+    int size;
+};
+
+static buffer*% buffer_initialize(buffer*% self) 
+{
+    self.size = 128;
+    self.buf = calloc(1, self.size);
+    self.buf[0] = '\0'
+    self.len = 0;
+
+    return self;
+}
+
+static void buffer_finalize(buffer* self)
+{
+    free(self.buf);
+}
+
+static int buffer_length(buffer* self) 
+{
+    return self.len;
+}
+
+static void buffer_append(buffer* self, char* mem, size_t size)
+{
+    if(self.len + size + 1 + 1 >= self.size) {
+        int new_size = (self.size + size + 1) * 2;
+        self.buf = realloc(self.buf, new_size);
+        self.size = new_size;
+    }
+
+    memcpy(self.buf + self.len, mem, size);
+    self.len += size;
+
+    self.buf[self.len] = '\0';
+}
+
+static void buffer_append_char(buffer* self, char c)
+{
+    if(self.len + 1 + 1 + 1 >= self.size) {
+        int new_size = (self.size + 10 + 1) * 2;
+        self.buf = realloc(self.buf, new_size);
+        self.size = new_size;
+    }
+
+    self.buf[self.len] = c;
+    self.len++;
+
+    self.buf[self.len] = '\0';
+}
+
+static void buffer_append_str(buffer* self, char* str)
+{
+    self.append(str, strlen(str));
+}
+
+static void buffer_append_nullterminated_str(buffer* self, char* str)
+{
+    self.append(str, strlen(str));
+    self.append_char('\0');
+}
+
+static string buffer_to_string(buffer* self)
+{
+    return (string(self.buf));
+}
+
+static void buffer_append_int(buffer* self, int value) 
+{
+    self.append((char*)&value, sizeof(int));
+}
+
+static void buffer_append_long(buffer* self, long value) 
+{
+    self.append((char*)&value, sizeof(long));
+}
+
+static void buffer_append_short(buffer* self, short value) 
+{
+    self.append((char*)&value, sizeof(short));
+}
+
+static void buffer_alignment(buffer* self) 
+{
+    int len = self.len;
+    len = (len + 3) & ~3;
+
+    for(int i=self.len; i<len; i++) {
+        self.append_char('\0');
+    }
+}
+
+static int buffer_compare(buffer* left, buffer* right) 
+{
+    return strcmp(left.buf, right.buf);
+}

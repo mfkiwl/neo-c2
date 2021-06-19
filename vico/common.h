@@ -17,6 +17,8 @@ wstring int_printable(wchar_t* str);
 int int_length(wchar_t* str);
 wchar_t* int_delete(wchar_t* str, int head, int tail);
 int int_index(wchar_t* str, wchar_t* search_str, int default_value);
+string int_to_string(wchar_t* wstr);
+wstring char_to_wstring(char* str);
 
 /// main.c ///
 bool xiswalpha(wchar_t c);
@@ -69,6 +71,18 @@ struct ViWin
     /// layer 6 ///
     char fileName[PATH_MAX];
     bool writed;
+
+    /// layer 8 ///
+    int visualModeHead;
+    int visualModeHeadX;
+    
+    int visualModeHeadHorizonScroll;
+    int visualModeHeadHorizonX;
+    int visualModeHeadHorizonY;
+
+    int visualModeHeadBefore;
+    int visualModeTailCursorYBefore;
+    int visualModeTailScrollBefore;
 };
 
 struct Vi 
@@ -86,6 +100,10 @@ struct Vi
 
     /// layer 6 ///
     int toggleWin;
+
+    /// layer 7 ///
+    list<wstring>*% yank;
+    int yankKind;
 };
 
 extern Vi* gApp;
@@ -218,6 +236,7 @@ override void Vi_enterInsertMode(Vi* self);
 /// 6file.h
 ///////////////////////////////////////////////////////////////////////////////
 override ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
+
 override void ViWin_statusBarView(ViWin* self, Vi* nvi);
 override void ViWin_openFile(ViWin* self, char* file_name, int line_num);
 void ViWin_writeFile(ViWin* self);
@@ -225,6 +244,7 @@ override void ViWin_writedFlagOn(ViWin* self);
 bool ViWin_saveDotToFile(ViWin* self, Vi* nvi);
 
 override Vi*% Vi_initialize(Vi*% self);
+
 void Vi_saveLastOpenFile(Vi* self, char* file_name);
 string Vi_readLastOpenFile(Vi* self);
 override void Vi_repositionWindows(Vi* self);
@@ -233,4 +253,39 @@ void Vi_openNewFile(Vi* self, char* file_name);
 void Vi_closeActiveWin(Vi* self);
 
 override void Vi_exitFromApp(Vi* self);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 7yank.h
+///////////////////////////////////////////////////////////////////////////////
+void ViWin_deleteLines(ViWin* self, int head, int tail, Vi* nvi);
+void ViWin_deleteOneLine(ViWin* self, Vi* nvi);
+bool ViWin_saveYankToFile(ViWin* self, Vi* nvi);
+bool ViWin_loadYankFromFile(ViWin* self, Vi* nvi);
+
+enum { kYankKindLine, kYankKindNoLine };
+
+override Vi*% Vi_initialize(Vi*% self);
+override void Vi_finalize(Vi* self);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 8visual.h
+///////////////////////////////////////////////////////////////////////////////
+enum { kYankKindLine, kYankKindNoLine };
+enum eMode { kVisualMode = kInsertMode + 1 };
+
+override ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
+
+void ViWin_visualModeView(ViWin* self, Vi* nvi);
+override void ViWin_view(ViWin* self, Vi* nvi);
+void ViWin_inputVisualMode(ViWin* self, Vi* nvi);
+override void ViWin_input(ViWin* self, Vi* nvi);
+override void ViWin_restoreVisualMode(ViWin* self, Vi* nvi);
+void ViWin_makeInputedKeyGVIndent(ViWin* self, Vi* nvi);
+void ViWin_makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi);
+void ViWin_gotoBraceEnd(ViWin* self, Vi* nvi);
+
+override Vi*% Vi_initialize(Vi*% self);
+void Vi_enterVisualMode(Vi* self);
+void Vi_reenterVisualMode(Vi* self);
+void Vi_exitFromVisualMode(Vi* self);
 

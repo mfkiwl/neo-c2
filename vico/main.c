@@ -221,6 +221,25 @@ int int_index(wchar_t* str, wchar_t* search_str, int default_value)
     return head - str;
 }
 
+string int_to_string(wchar_t* wstr)
+{
+    int len = MB_LEN_MAX*(wcslen(wstr)+1);
+
+    string result = new char[len];
+
+    if(wcstombs(result, wstr, len) < 0) 
+    {
+        strncpy(result, "", len);
+    }
+
+    return result;
+}
+
+wstring char_to_wstring(char* str)
+{
+    return wstring(str);
+}
+
 int main(int argc, char** argv)
 {
     int line_num = -1;

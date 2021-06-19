@@ -114,5 +114,12 @@ int main()
 
     printf("%d\n", *v3.item(0, null));
 
+    buffer*% b1 = new buffer.initialize();
+
+    b1.append_str("ABC");
+    b1.append_str("DEF");
+
+    xassert("buffer test", strcmp(b1.to_string(), "ABCDEF") == 0);
+
     return 0;
 }
