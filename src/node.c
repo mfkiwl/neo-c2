@@ -1925,7 +1925,9 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
         info->last_expression_is_return = last_expression_is_return;
     }
 
-    free_objects(info->pinfo->lv_table, info);
+    if(!info->last_expression_is_return) {
+        free_objects(info->pinfo->lv_table, info);
+    }
 
     info->pinfo->sline = sline_before;
 
@@ -3546,6 +3548,18 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
             }
 
             LVALUE llvm_value = *get_value_from_stack(-1);
+
+            sNodeType* left_type = create_node_type_with_class_name("long");
+
+            if(!cast_right_type_to_left_type(left_type, &llvm_value.type, &llvm_value, info))
+            {
+                compile_err_msg(info, "Cast failed");
+                info->err_num++;
+
+                info->type = create_node_type_with_class_name("int"); // dummy
+
+                return TRUE;
+            }
             dec_stack_ptr(1, info);
 
             LLVMValueRef len_value = llvm_value.value;
@@ -4381,13 +4395,6 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
         xstrncpy(struct_name, CLASS_NAME(param_types[0]->mClass), VAR_NAME_MAX);
 
-/*
-        int i;
-        for(i=0; i<param_types[0]->mPointerNum; i++) {
-            xstrncat(struct_name, "p", VAR_NAME_MAX);
-        }
-*/
-
         char method_name[VAR_NAME_MAX];
         snprintf(method_name, VAR_NAME_MAX, "%s_%s", struct_name, fun_name);
 
@@ -4462,11 +4469,29 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
                     return TRUE;
                 }
             }
+
+            if(strcmp(fun_name, "llvm.va_start") != 0 && strcmp(fun_name, "llvm.va_end") != 0) {
+                if(!substitution_posibility(fun_param_type, param_types[i], info)) {
+                    compile_err_msg(info, "function(%s) param type error %d", fun_name, i);
+                    show_node_type(fun_param_type);
+                    show_node_type(param_types[i]);
+                    info->err_num++;
+                    return TRUE;
+                }
+            }
         }
 
         llvm_params[i] = param.value;
     }
 
+    /// param type check ///
+    if(!fun->mVarArgs && strcmp(fun_name, "llvm.va_start") != 0 && strcmp(fun_name, "llvm.va_end") != 0) {
+        if(fun->mNumParams != num_params) {
+            compile_err_msg(info, "function(%s) param number error. fun param number %d, calling %d", fun_name, fun->mNumParams, num_params);
+            info->err_num++;
+            return TRUE;
+        }
+    }
 
     /// std move //
     for(i=0; i<fun->mNumParams; i++) {
@@ -5469,7 +5494,7 @@ static BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
     else if(global) {
         llvm_value.value = LLVMBuildLoad(gBuilder, var_address, var_name);
     }
-    else if(var_type->mArrayDimentionNum >= 1) {
+    else if(var_type->mArrayDimentionNum >= 1 || var_type->mDynamicArrayNum != 0) {
         llvm_value.value = var_address;
     }
     else {

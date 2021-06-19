@@ -1,21 +1,15 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-void aaa(const char* msg, ...)
-{
-    char msg2[1024];
-
-    va_list args;
-    va_start(args, msg);
-    vsnprintf(msg2, 1024, msg, args);
-    va_end(args);
-
-puts(msg2);
-}
-
 int main(int argc, char** argv)
 {
-    aaa("%s %d", "AAA", 1 + 1);
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    ovec_value[0] = 1;
+    printf("%d\n", ovec_value[0]);
 
     return 0;
 }

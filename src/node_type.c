@@ -434,10 +434,6 @@ BOOL substitution_posibility(sNodeType* left_type, sNodeType* right_type, sCompi
     if(type_identify_with_class_name(left_type, "any")) {
         return TRUE;
     }
-    else if(info->no_output && left_class->mFlags & CLASS_FLAGS_METHOD_GENERICS)
-    {
-        return TRUE;
-    }
     else if(left_type->mPointerNum == 0 && type_identify_with_class_name(left_type, "void")) 
     {
         return FALSE;
@@ -473,50 +469,15 @@ BOOL substitution_posibility(sNodeType* left_type, sNodeType* right_type, sCompi
     else if(type_identify(left_type, right_type)) {
         if((left_type->mPointerNum-1 == right_type->mPointerNum) && right_type->mArrayDimentionNum == 1)
         {
-            if(left_type->mHeap) 
-            {
-                if(right_type->mDummyHeap) {
-                    return TRUE;
-                }
-
-                if(right_type->mHeap)
-                {
-                    return TRUE;
-                }
-            }
-            else {
-                return TRUE;
-            }
+            return TRUE;
         }
         else if(left_type->mPointerNum == right_type->mPointerNum) 
         {
-            if(left_type->mHeap) {
-                if(right_type->mDummyHeap) {
-                    return TRUE;
-                }
-                if(right_type->mHeap)
-                {
-                    return TRUE;
-                }
-            }
-            else {
-                return TRUE;
-            }
+            return TRUE;
         }
         else if(left_type->mPointerNum == right_type->mPointerNum+1 && right_type->mArrayDimentionNum == -1)
         {
-            if(left_type->mHeap) {
-                if(right_type->mHeap)
-                {
-                    return TRUE;
-                }
-                if(right_type->mDummyHeap) {
-                    return TRUE;
-                }
-            }
-            else {
-                return TRUE;
-            }
+            return TRUE;
         }
     }
 

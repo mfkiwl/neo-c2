@@ -551,7 +551,7 @@ void ViWin_restoreVisualMode(ViWin* self, Vi* nvi) version 2
     }
 }
 
-void ViWin_gotoBraceEnd(ViWin* self, Vi* nvi) 
+void ViWin_gotoBraceEnd(ViWin* self, Vi* nvi) version 1
 {
     /// implemeted after layer
 }

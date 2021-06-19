@@ -388,8 +388,9 @@ void ViWin_saveInputedKeyOnTheMovingCursor(ViWin* self)
     /// inpelemeted after layer
 }
 
-void ViWin_joinLines2(ViWin* self) 
+void ViWin_joinLines2(ViWin* self)  version 1
 {
+    /// implemented after layer
 }
 
 

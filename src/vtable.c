@@ -493,7 +493,7 @@ static void free_block_variables(sVarTable* table, LLVMValueRef ret_value, sComp
                             }
                         }
 
-                        p->mLLVMValue = NULL;
+                        //p->mLLVMValue = NULL;
                     }
                 }
             }

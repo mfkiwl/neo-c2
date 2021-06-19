@@ -1,9 +1,9 @@
-    ABC
-    DEF
-asdafas     GHI
-idd    ABC
-    DEF
-    ABC
-    DEF
-    ABC
-    DEF
+dafasdf aaa dddd
+DEF
+GHI
+
+int main()
+{
+    aaa
+    bbb
+}

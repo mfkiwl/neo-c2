@@ -6,9 +6,30 @@
 #include <unistd.h>
 #include <limits.h>
 #include <wchar.h>
+#include <pcre.h>
 #include "config.h"
 
 typedef wchar_t*% wstring;
+
+struct regex_struct {
+    char str[128];
+    pcre* regex;
+
+    bool ignore_case;
+    bool multiline;
+    bool global;
+    bool extended;
+    bool dotall;
+    bool anchored;
+    bool dollar_endonly;
+    bool ungreedy;
+
+    int options;
+
+    pcre* re;
+};
+
+regex_struct*% regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy);
 
 /// wstring ///
 wstring wstring(char* str);
@@ -21,6 +42,9 @@ int int_rindex(wchar_t* str, wchar_t* search_str, int default_value);
 string int_to_string(wchar_t* wstr);
 wstring char_to_wstring(char* str);
 wstring int_reverse(whar_t* str);
+bool char_match(char* self, regex_struct* reg, list<string>?* group_strings);
+int char_index(char* str, char* search_str, int default_value);
+int char_rindex(char* str, char* search_str, int default_value);
 
 /// main.c ///
 bool xiswalpha(wchar_t c);
@@ -85,6 +109,10 @@ struct ViWin
     int visualModeHeadBefore;
     int visualModeTailCursorYBefore;
     int visualModeTailScrollBefore;
+
+    /// layer 10 ///
+    int mRepeatFowardNextCharacterKind;
+    wchar_t mRepeatFowardNextCharacter;
 };
 
 struct Vi 
@@ -264,7 +292,6 @@ override void Vi_exitFromApp(Vi* self);
 ///////////////////////////////////////////////////////////////////////////////
 /// 7yank.h
 ///////////////////////////////////////////////////////////////////////////////
-void ViWin_deleteLines(ViWin* self, int head, int tail, Vi* nvi);
 void ViWin_deleteOneLine(ViWin* self, Vi* nvi);
 bool ViWin_saveYankToFile(ViWin* self, Vi* nvi);
 bool ViWin_loadYankFromFile(ViWin* self, Vi* nvi);
@@ -319,4 +346,21 @@ void Vi_exitFromSearchMode(Vi* self);
 enum eRepeatForwardNextCharacter {
     kRFNCNone, kRFNC1, kRFNC2
 };
+
+///////////////////////////////////////////////////////////////////////////////
+/// 10edit.h
+///////////////////////////////////////////////////////////////////////////////
+override ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
+override void ViWin_deleteOneLine(ViWin* self, Vi* nvi);
+override void ViWin_joinLines2(ViWin* self);
+void ViWin_deleteUntilTail(ViWin* self);
+
+override Vi*% Vi_initialize(Vi*% self);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 11move.h
+///////////////////////////////////////////////////////////////////////////////
+override void ViWin_gotoBraceEnd(ViWin* self, Vi* nvi);
+
+override Vi*% Vi_initialize(Vi*% self);
 

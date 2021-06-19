@@ -271,6 +271,118 @@ wstring char_to_wstring(char* str)
     return wstring(str);
 }
 
+regex_struct*% regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy)
+{
+    var result = new regex_struct;
+
+    const char* err;
+    int erro_ofs;
+
+    int options = PCRE_UTF8 | (ignore_case ? PCRE_CASELESS:0) | (multiline ? PCRE_MULTILINE : 0) | (extended ? PCRE_EXTENDED :0) | (dotall ? PCRE_DOTALL :0) | (dollar_endonly ? PCRE_DOLLAR_ENDONLY:0) | (ungreedy ? PCRE_UNGREEDY:0);
+
+    strncpy(result.str, str, 128);
+
+    result.ignore_case = ignore_case;
+    result.multiline = multiline;
+    result.global = global;
+    result.extended = extended;
+    result.dotall = dotall;
+    result.anchored = anchored;
+    result.dollar_endonly = dollar_endonly;
+    result.ungreedy;
+    result.options = options;
+
+    result.re = pcre_compile(str, options, &err, &erro_ofs, NULL);
+
+    if(result.re == NULL) {
+        return NULL;
+    }
+
+    return result;
+}
+
+bool char_match(char* self, regex_struct* reg, list<string>?* group_strings)
+{
+    int offset = 0;
+
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result == 1 || (group_strings == null && regex_result > 0)) 
+        {
+            return true;
+        }
+        /// group strings ///
+        else if(regex_result > 1) {
+            group_strings.reset();
+            for(int i = 1; i<regex_result; i++) {
+                var match_string = borrow self.substring(start[i], end[i]);
+                group_strings.push_back(match_string);
+            }
+
+            return true;
+        }
+        else
+        /// no match ///
+        {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+int char_index(char* str, char* search_str, int default_value)
+{
+    char* head = strstr(str, search_str);
+
+    if(head == null) {
+        return default_value;
+    }
+
+    return head - str;
+}
+
+int char_rindex(char* str, char* search_str, int default_value)
+{
+    int len = strlen(search_str);
+    char* p = str + strlen(str) - len;
+
+    while(p >= str) {
+        if(strncmp(p, search_str, len) == 0) {
+            return p - str;
+        }
+
+        p--;
+    }
+
+    return default_value;
+}
+
 int main(int argc, char** argv)
 {
     int line_num = -1;
