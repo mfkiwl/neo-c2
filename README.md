@@ -616,6 +616,21 @@ impl vector<T>
     bool end(vector<T>* self) {
         return self.it >= self.len;
     }
+
+    list<T>*% to_list(vector<T>* self) {
+        var result = new vector<T>.initialize();
+        
+        foreach(it, self) {
+            if(isheap(T)) {
+                result.push_back(clone it);
+            }
+            else {
+                result.push_back(dummy_heap it);
+            }
+        }
+        
+        return result;
+    }
 }
 
 #define foreach(o1, o2) for(var _obj = nomove (o2), var o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
@@ -1187,6 +1202,34 @@ impl list <T>
     list<T>*% sort(list<T>* self, int (*compare)(T&,T&)) {
         return self.merge_sort(compare);
     }
+
+    list<T>*% uniq(list<T>* self) {
+        list<T>*% result = new list<T>.initialize();
+
+        if(self.length() > 0) {
+            T& item_before = self.item(0, null);
+
+            if(isheap(T)) {
+                result.push_back(clone item_before);
+            }
+            else {
+                result.push_back(dummy_heap item_before);
+            }
+
+            foearch(it, self.sublist(1,-1)) {
+                if(!it.equals(item_before)) {
+                    if(isheap(T)) {
+                        result.push_back(clone it);
+                    }
+                    else {
+                        result.push_back(dummy_heap it);
+                    }
+                }
+
+                item_before = it;
+            }
+        }
+
 
     bool equals(list<T>* left, list<T>* right)
     {
@@ -1800,6 +1843,20 @@ l.push_back(str);
 
 としてもいいでしょう。borrowはヒープの%マークを消します。strは単なるchar*として扱われます。
 どちらの場合もvar lがfreeされるときにstrは一緒にfreeされます。
+
+もう一つの方法としては変数テーブルの変数をcloneすることです。２つのヒープが生成されるため、一つは変数テーブルでfreeされて、もう一つはCollectionの中でfreeされます。
+
+```
+var l = new list<string>.initialize();
+
+var str = string("ABC");
+
+l.push_back(clone str);
+```
+
+これが一番簡単かもしれません。
+
+
 
 6. lambda
 

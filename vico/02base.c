@@ -104,7 +104,7 @@ void ViWin_view(ViWin* self, Vi* nvi) version 2
     wrefresh(self.win);
 }
 
-int ViWin_getKey(ViWin* self, bool head) 
+int ViWin_getKey(ViWin* self, bool head) version 1
 {
     return wgetch(self.win);        
 }
@@ -383,7 +383,7 @@ void ViWin_saveReturnPoint(ViWin* self)
     self.returnPointStack.push_back(clone return_point);
 }
 
-void ViWin_saveInputedKeyOnTheMovingCursor(ViWin* self) 
+void ViWin_saveInputedKeyOnTheMovingCursor(ViWin* self) version 1
 {
     /// inpelemeted after layer
 }
@@ -597,10 +597,6 @@ void Vi_repositionWindows(Vi* self)  version 1
     /// implemented by the after layer
 }
 
-void Vi_repositionFiler(Vi* self)  version 1
-{
-    /// implemented by the after layer
-}
 void Vi_enterSearchMode(Vi* self, bool regex_search, bool search_reverse) version 1
 {
     /// implemented by the after layer

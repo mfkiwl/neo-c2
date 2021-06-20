@@ -1,9 +1,12 @@
 dafasdf aaa dddd
 DEF
 GHI
+ `a   aaa
 
-int main()
-{
+ccc
+
+aaaaaaaaaaaac
     aaa
     bbb
+    ccc
 }

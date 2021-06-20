@@ -30,8 +30,8 @@ DESTDIR=@DESTDIR@
 ##########################################
 all: vico
 
-vico: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c 03insert_mode.o 03insert_mode.c 04word.c 04word.o 05undo.c 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o
-	$(CC) -o vico main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
+vico: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c 03insert_mode.o 03insert_mode.c 04word.c 04word.o 05undo.c 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o
+	$(CC) -o vico main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
 
 main.o: configure Makefile config.h main.c common.h
 	come main.c $(CFLAGS) $(NCFLAGS)
@@ -80,6 +80,34 @@ main.o: configure Makefile config.h main.c common.h
 11move.o: configure Makefile config.h 11move.c common.h
 	come 11move.c $(CFLAGS) $(NCFLAGS)
 	$(CC) -c -o 11move.o 11move.c.ll
+
+12command.o: configure Makefile config.h 12command.c common.h
+	come 12command.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 12command.o 12command.c.ll
+
+13completion.o: configure Makefile config.h 13completion.c common.h
+	come 13completion.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 13completion.o 13completion.c.ll
+
+14dot.o: configure Makefile config.h 14dot.c common.h
+	come 14dot.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 14dot.o 14dot.c.ll
+
+16mark.o: configure Makefile config.h 16mark.c common.h
+	come 16mark.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 16mark.o 16mark.c.ll
+
+17hvisual.o: configure Makefile config.h 17hvisual.c common.h
+	come 17hvisual.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 17hvisual.o 17hvisual.c.ll
+
+18vvisual.o: configure Makefile config.h 18vvisual.c common.h
+	come 18vvisual.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 18vvisual.o 18vvisual.c.ll
+
+19rewrite_mode.o: configure Makefile config.h 19rewrite_mode.c common.h
+	come 19rewrite_mode.c $(CFLAGS) $(NCFLAGS)
+	$(CC) -c -o 19rewrite_mode.o 19rewrite_mode.c.ll
 
 #########################################
 # install

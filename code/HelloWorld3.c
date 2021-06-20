@@ -1,5 +1,23 @@
 #include <come.h>
 
+static bool int_equals(int left, int right) 
+{
+    return left == right;
+}
+
+static int int_compare(int left, int right) 
+{
+    if(left < right) {
+        return -1;
+    }
+    else if(left > right) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
 int main()
 {
     xassert("xaasert test", true);

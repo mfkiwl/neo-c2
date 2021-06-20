@@ -61,8 +61,17 @@ void ViWin_search(ViWin* self, Vi* nvi)
             int x;
             
             if(nvi.regexSearch) {
-                x = it.index(nvi.searchString, -1);
-                //x = it.to_string("").index_regex(nvi.searchString.to_string("").to_regex(), -1);
+                bool ignore_case = false;
+                bool multiline = false;
+                bool global = false;
+                bool extended = false;
+                bool dotall = false;
+                bool anchored = false;
+                bool dollar_endonly = false;
+                bool ungreedy = false;
+
+                regex_struct*% reg = regex(nvi.searchString.to_string(), ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
+                x = it.to_string().index_regex(reg, -1);
             }
             else {
                 x = it.index(nvi.searchString, -1);
@@ -109,7 +118,17 @@ void ViWin_searchReverse(ViWin* self, Vi* nvi)
         foreach(it, self.texts.sublist(0, self.scroll+self.cursorY).reverse()) {
             int x;
             if(nvi.regexSearch) {
-            //    x = it.to_string("").rindex_regex(nvi.searchString.to_string("").to_regex(), -1);
+                bool ignore_case = false;
+                bool multiline = false;
+                bool global = false;
+                bool extended = false;
+                bool dotall = false;
+                bool anchored = false;
+                bool dollar_endonly = false;
+                bool ungreedy = false;
+
+                regex_struct*% reg = regex(nvi.searchString.to_string(), ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
+                x = it.to_string().index_regex(reg, -1);
             }
             else {
                 x = it.rindex(nvi.searchString, -1);

@@ -45,6 +45,11 @@ wstring int_reverse(whar_t* str);
 bool char_match(char* self, regex_struct* reg, list<string>?* group_strings);
 int char_index(char* str, char* search_str, int default_value);
 int char_rindex(char* str, char* search_str, int default_value);
+string char_sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings);
+list<string>*% char_scan(char* self, regex_struct* reg);
+string char_multiply(char* str, int n);
+wstring int_multiply(wchar_t* str, int n);
+int char_index_regex(char* self, regex_struct* reg, int default_value);
 
 /// main.c ///
 bool xiswalpha(wchar_t c);
@@ -113,6 +118,42 @@ struct ViWin
     /// layer 10 ///
     int mRepeatFowardNextCharacterKind;
     wchar_t mRepeatFowardNextCharacter;
+
+    /// layer 12 ///
+    char commandString[128];
+
+    /// layer 14 ///
+    vector<int>*% inputedKeys;
+    vector<int>*% savedInputedKeys;
+    bool autoInput;
+    int digitInput;
+    int autoInputIndex;
+    bool pressedDot;
+
+    map<int, vector<vector<int>*%>*%>*% macro;
+    int recordingMacroKey;
+    vector<vector<int>*%>*% recordingMacro;
+    vector<vector<int>*%>*% runningMacro;
+    int runningMacroIndex1;
+    int runningMacroIndex2;
+
+    /// layer 16 ///
+    map<wchar_t, tuple3<int,int, int>*%>*% mark;
+
+    /// layer 17 ///
+    int visualModeHorizonHeadScroll;
+    int visualModeHorizonHeadX;
+    int visualModeHorizonHeadY;
+
+    /// layer 18 ///
+    int visualModeVerticalHeadX;
+    int visualModeVerticalHeadY;
+    int visualModeVerticalLen;
+    
+    int visualModeVerticalStartY;
+    int visualModeVerticalStartScroll;
+    int visualModeVerticalStartX;
+    bool visualModeVerticalInserting;
 };
 
 struct Vi 
@@ -191,7 +232,6 @@ void ViWin_keyG(ViWin* self,Vi* nvi);
 void ViWin_moveBottom(ViWin* self);
 
 void ViWin_repositionWindows(Vi* self);
-void ViWin_repositionFiler(Vi* self);
 void ViWin_centeringCursor(ViWin* self);
 
 void ViWin_saveReturnPoint(ViWin* self);
@@ -364,3 +404,79 @@ override void ViWin_gotoBraceEnd(ViWin* self, Vi* nvi);
 
 override Vi*% Vi_initialize(Vi*% self);
 
+///////////////////////////////////////////////////////////////////////////////
+/// 12command.h
+///////////////////////////////////////////////////////////////////////////////
+enum eMode { kCommandMode = kSearchMode + 1 };
+
+override void ViWin_view(ViWin* self, Vi* nvi);
+override void ViWin_input(ViWin* self, Vi* nvi);
+
+void Vi_enterComandMode(Vi* nvi);
+void Vi_exitFromComandMode(Vi* self);
+override Vi*% Vi_initialize(Vi*% self);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 13completion.h
+///////////////////////////////////////////////////////////////////////////////
+override void ViWin_completion(ViWin* self, Vi* nvi);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 14dot.h
+///////////////////////////////////////////////////////////////////////////////
+override ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
+override void ViWin_finalize(ViWin* self);
+
+override bool ViWin_saveDotToFile(ViWin* self, Vi* nvi);
+bool ViWin_loadDotFromFile(ViWin* self, Vi* nvi);
+
+override int ViWin_getKey(ViWin* self, bool head);
+override void ViWin_clearInputedKey(ViWin* self);
+override void ViWin_saveInputedKey(ViWin* self);
+override void ViWin_makeInputedKeyGVIndent(ViWin* self, Vi* nvi);
+override void ViWin_makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi);
+override void ViWin_saveInputedKeyOnTheMovingCursor(ViWin* self);
+
+override Vi*% Vi_initialize(Vi*% self);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 16mark.h
+///////////////////////////////////////////////////////////////////////////////
+override ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
+override void ViWin_finalize(ViWin* self);
+
+override Vi*% Vi_initialize(Vi*% self);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 17hvisual.h
+///////////////////////////////////////////////////////////////////////////////
+enum eMode { kHorizonVisualMode = kCommandMode + 1 };
+
+override ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
+override void ViWin_view(ViWin* self, Vi* nvi);
+override void ViWin_input(ViWin* self, Vi* nvi);
+
+override Vi*% Vi_initialize(Vi*% self);
+
+///////////////////////////////////////////////////////////////////////////////
+/// 18vvisual.h
+///////////////////////////////////////////////////////////////////////////////
+enum eMode { kVerticalVisualMode = kHorizonVisualMode +1 };
+
+override ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi);
+
+override void ViWin_view(ViWin* self, Vi* nvi);
+override void ViWin_input(ViWin* self, Vi* nvi);
+
+override Vi*% Vi_initialize(Vi*% self);
+
+enum eMode { kRewriteMode = kVerticalVisualMode + 1 };
+
+///////////////////////////////////////////////////////////////////////////////
+/// 19rewrite_mode.h
+///////////////////////////////////////////////////////////////////////////////
+override void ViWin_view(ViWin* self, Vi* nvi);
+override void ViWin_input(ViWin* self, Vi* nvi);
+
+override Vi*% Vi_initialize(Vi*% self);
+override int Vi_main_loop(Vi* self);

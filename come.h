@@ -162,24 +162,6 @@ static int int_get_hash_key(int value)
     return value;
 }
 
-static bool int_equals(int left, int right) 
-{
-    return left == right;
-}
-
-static int int_compare(int left, int right) 
-{
-    if(left < right) {
-        return -1;
-    }
-    else if(left > right) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
-
 /// char methods ///
 static int char_get_hash_key(char* value)
 {
@@ -243,7 +225,7 @@ impl vector<T>
         if(isheap(T)) {
             for(int i=0; i<self.len; i++) 
             {
-                result.items[i] = clone self.items[i];
+                result.items[i] = borrow clone self.items[i];
             }
         }
         else {
@@ -927,6 +909,36 @@ impl list <T>
         return self.merge_sort(compare);
     }
 
+    list<T>*% uniq(list<T>* self) {
+        list<T>*% result = new list<T>.initialize();
+
+        if(self.length() > 0) {
+            T& item_before = self.item(0, null);
+
+            if(isheap(T)) {
+                result.push_back(clone item_before);
+            }
+            else {
+                result.push_back(dummy_heap item_before);
+            }
+
+            foreach(it, self.sublist(1,-1)) {
+                if(!it.equals(item_before)) {
+                    if(isheap(T)) {
+                        result.push_back(clone it);
+                    }
+                    else {
+                        result.push_back(dummy_heap it);
+                    }
+                }
+
+                item_before = it;
+            }
+        }
+
+        return result;
+    }
+
     bool equals(list<T>* left, list<T>* right)
     {
         if(left.len != right.len) {
@@ -972,6 +984,24 @@ impl list <T>
 
     bool end(list<T>* self) {
         return self.it == null;
+    }
+}
+
+impl vector<T> 
+{
+    list<T>*% to_list(vector<T>* self) {
+        var result = new list<T>.initialize();
+        
+        foreach(it, self) {
+            if(isheap(T)) {
+                result.push_back(clone it);
+            }
+            else {
+                result.push_back(dummy_heap it);
+            }
+        }
+        
+        return result;
     }
 }
 
@@ -1059,7 +1089,6 @@ impl map <T, T2>
 
         return default_value;
     }
-
 
     void rehash(map<T,T2>* self) {
         int size = self.size * 3;

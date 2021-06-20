@@ -170,6 +170,37 @@ wstring int_printable(wchar_t* str)
     return result;
 }
 
+string char_multiply(char* str, int n)
+{
+    int len = strlen(str) * n + 1;
+
+    char*% result = new char[len];
+
+    result[0] = '\0';
+
+    for(int i=0; i<n; i++) {
+        strcat(result, str);
+    }
+
+    return result;
+}
+
+wstring int_multiply(wchar_t* str, int n)
+{
+    int len = wcslen(str) * n + 1;
+
+    wchar_t*% result = new wchar_t[len];
+
+    result[0] = '\0';
+
+    for(int i=0; i<n; i++) {
+        wcscat(result, str);
+    }
+
+    return result;
+}
+
+
 int int_length(wchar_t* str)
 {
     return wcslen(str);
@@ -356,6 +387,169 @@ bool char_match(char* self, regex_struct* reg, list<string>?* group_strings)
     return false;
 }
 
+string char_sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings)
+{
+    int offset = 0;
+
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+
+    var result = new buffer.initialize();
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result == 1 || (group_strings == null && regex_result > 0)) 
+        {
+            string str = self.substring(offset, start[0]);
+
+            result.append_str(str);
+            result.append_str(replace);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+
+            if(!reg.global) {
+                string str = self.substring(offset, -1);
+                result.append_str(str);
+                break;
+            }
+        }
+        /// group strings ///
+        else if(regex_result > 1) {
+            string str = self.substring(offset, start[0]);
+            result.append_str(str);
+            result.append_str(replace);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+
+            if(!reg.global) {
+                group_strings.reset();
+            }
+
+            for(int i = 1; i<regex_result; i++) {
+                var match_string = borrow self.substring(start[i], end[i]);
+                group_strings.push_back(match_string);
+            }
+
+            if(!reg.global) {
+                string str = self.substring(offset, -1);
+                result.append_str(str);
+                break;
+            }
+        }
+        else
+        /// no match ///
+        {
+            string str = self.substring(offset, -1);
+            result.append_str(str);
+            break;
+        }
+    }
+
+    return result.to_string();
+}
+
+list<string>*% char_scan(char* self, regex_struct* reg)
+{
+    var result = new list<string>.initialize();
+
+    int offset = 0;
+
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result == 1)
+        {
+            var str = borrow self.substring(start[0], end[0]);
+            result.push_back(str);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+        }
+        /// group strings ///
+        else if(regex_result > 1) {
+            var str = borrow self.substring(start[0], end[0]);
+            result.push_back(str);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+
+            for(int i= 1; i<regex_result; i++) {
+                var match_string = borrow self.substring(start[i], end[i]);
+                result.push_back(match_string);
+            }
+        }
+        else
+        /// no match ///
+        {
+            break;
+        }
+    }
+
+    return result;
+}
+
 int char_index(char* str, char* search_str, int default_value)
 {
     char* head = strstr(str, search_str);
@@ -381,6 +575,52 @@ int char_rindex(char* str, char* search_str, int default_value)
     }
 
     return default_value;
+}
+
+int char_index_regex(char* self, regex_struct* reg, int default_value)
+{
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    int result = default_value;
+    
+    int offset = 0;
+
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result == 1 || regex_result > 0) 
+        {
+            result = start[0];
+            break;
+        }
+        /// no match ///
+        {
+            break;
+        }
+    }
+
+    return result;
 }
 
 int main(int argc, char** argv)

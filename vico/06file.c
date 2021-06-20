@@ -197,7 +197,7 @@ void ViWin_writedFlagOn(ViWin* self) version 2
     self.writed = true;
 }
 
-bool ViWin_saveDotToFile(ViWin* self, Vi* nvi)
+bool ViWin_saveDotToFile(ViWin* self, Vi* nvi) version 1
 {
     /// implementad after layer
 }

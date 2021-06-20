@@ -401,12 +401,12 @@ void ViWin_deleteOnVisualMode(ViWin* self, Vi* nvi)
     
 }
 
-void ViWin_makeInputedKeyGVIndent(ViWin* self, Vi* nvi) 
+void ViWin_makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 1
 {
     /// implemented after layer
 }
 
-void ViWin_makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) 
+void ViWin_makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 1
 {
     /// implemented after layer
 }
