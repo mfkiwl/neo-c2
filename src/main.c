@@ -39,17 +39,17 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     char cmd[1024];
 #ifdef __DARWIN__
     if(cflags) {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp %s -U__GNUC__ -C %s > %s", cflags, fname, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I . %s -U__GNUC__ -C %s > %s", cflags, fname, fname2);
     }
     else {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clang-cpp -U__GNUC__ -C %s > %s", fname, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clang-cpp -I . -U__GNUC__ -C %s > %s", fname, fname2);
     }
 #else
     if(cflags) {
-        snprintf(cmd, 1024, "cpp %s -U__GNUC__ -C %s > %s", cflags, fname, fname2);
+        snprintf(cmd, 1024, "cpp -I . %s -U__GNUC__ -C %s > %s", cflags, fname, fname2);
     }
     else {
-        snprintf(cmd, 1024, "cpp -U__GNUC__ -C %s > %s", fname, fname2);
+        snprintf(cmd, 1024, "cpp -I . -U__GNUC__ -C %s > %s", fname, fname2);
     }
 #endif
 
@@ -58,9 +58,9 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     if(rc != 0) {
         char cmd[1024];
         if(cflags) {
-            snprintf(cmd, 1024, "cpp %s -C %s > %s", cflags, fname, fname2);
+            snprintf(cmd, 1024, "cpp -I . %s -C %s > %s", cflags, fname, fname2);
         } else {
-            snprintf(cmd, 1024, "cpp -C %s > %s", fname, fname2);
+            snprintf(cmd, 1024, "cpp -I . -C %s > %s", fname, fname2);
         }
 
         puts(cmd);

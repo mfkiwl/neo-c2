@@ -3283,6 +3283,7 @@ static BOOL compile_logical_denial(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
     sNodeType* left_type = clone_node_type(info->type);
+    sNodeType* left_type2 = clone_node_type(info->type);
 
     LVALUE lvalue = *get_value_from_stack(-1);
 
@@ -3328,9 +3329,19 @@ static BOOL compile_logical_denial(unsigned int node, sCompileInfo* info)
     llvm_value.load_field = FALSE;
 
     dec_stack_ptr(1, info);
+
+    if(!cast_right_type_to_left_type(left_type2, &bool_type, &llvm_value, info))
+    {
+        compile_err_msg(info, "Cast failed");
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+
+        return TRUE;
+    }
     push_value_to_stack_ptr(&llvm_value, info);
 
-    info->type = create_node_type_with_class_name("bool");
+    info->type = clone_node_type(left_type2);
 
     return TRUE;
 }

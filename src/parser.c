@@ -4491,6 +4491,15 @@ static BOOL parse_typedef(unsigned int* node, sParserInfo* info)
             }
         }
     }
+    else {
+        *node = sNodeTree_create_typedef(buf, node_type2, info);
+        nodes[num_nodes++] = *node;
+
+        if(num_nodes >= NODES_MAX) {
+            fprintf(stderr, "overflow define variable max");
+            return FALSE;
+        }
+    }
 
     *node = sNodeTree_create_nodes(nodes, num_nodes, info);
 

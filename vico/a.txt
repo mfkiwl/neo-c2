@@ -1,12 +1,3 @@
-dafasdf aaa dddd
+ABC
 DEF
 GHI
- `a   aaa
-
-ccc
-
-aaaaaaaaaaaac
-    aaa
-    bbb
-    ccc
-}

@@ -29,18 +29,40 @@ OBJS=@OBJS@
 #########################################
 # main
 #########################################
-all: come #libcome.a
+all: come self-host
 
 come: config.h src/main.o $(OBJS)
 	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
 	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
 
-#libcome.a: come.c come-string.c come-string2.c come-wstring.c
-#	PWD=`pwd` ./come -c come.c 
-#	PWD=`pwd` ./come -c come-string.c
-#	PWD=`pwd` ./come -c come-string2.c
-#	PWD=`pwd` ./come -c come-wstring.c
-#	ar r libcome.a come.o come-string.o come-string2.o come-wstring.o 
+self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c
+	./come src/parser.c
+	$(CC) -o src/parser.o src/parser.c.ll
+	./come src/alignment.c
+	$(CC) -o src/alignment.o src/alignment.c.ll
+	./come src/buffer.c
+	$(CC) -o src/buffer.o src/buffer.c.ll
+	./come src/xfunc.c
+	$(CC) -o src/xfunc.o src/xfunc.c.ll
+	./come src/node.c
+	$(CC) -o src/node.o src/node.c.ll
+	./come src/vtable.c
+	$(CC) -o src/vtable.o src/vtable.c.ll
+	./come src/node_type.c
+	$(CC) -o src/node_type.o src/node_type.c.ll
+	./come src/klass.c
+	$(CC) -o src/klass.o src/klass.c.ll
+	./come src/constant.c
+	$(CC) -o src/constant.o src/constant.c.ll
+	./come src/node_block.c
+	$(CC) -o src/node_block.o src/node_block.c.ll
+	./come src/typedef.c
+	$(CC) -o src/typedef.o src/typedef.c.ll
+	./come src/compiler.c
+	$(CC) -o src/compiler.o src/compiler.c.ll
+	./come src/main.c
+	$(CC) -o src/main.o src/main.c.ll
+	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
 
 #########################################
 # Object files
@@ -74,7 +96,7 @@ permission:
 # clean
 #########################################
 clean:
-	rm -fR come src/*.o code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 *.i *.ll a.out
+	rm -fR come src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 *.i *.ll a.out
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache 
