@@ -8047,7 +8047,7 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
 
         sNodeType* node_type = clone_node_type(element_type);
         node_type->mPointerNum -= num_dimention;
-        node_type->mPointerNum++;
+        node_type->mPointerNum+=2;
 
         if(node_type->mPointerNum == 0) {
             LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
@@ -8085,7 +8085,7 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
         }
     }
     else if(left_type->mArrayDimentionNum == 1 || left_type->mDynamicArrayNum != 0) {
-        sNodeType* element_type = clone_node_type(element_type);
+        sNodeType* element_type = clone_node_type(var_type);
 
         element_type->mArrayDimentionNum = 0;
         element_type->mDynamicArrayNum = 0;
@@ -8137,7 +8137,7 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
 
         sNodeType* node_type = clone_node_type(element_type);
         node_type->mPointerNum -= num_dimention;
-        node_type->mPointerNum++;
+        node_type->mPointerNum+=2;
 
         if(node_type->mPointerNum == 0) {
             LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
@@ -8206,7 +8206,7 @@ static BOOL compile_load_element(unsigned int node, sCompileInfo* info)
 
         sNodeType* node_type = clone_node_type(element_type);
         node_type->mPointerNum -= num_dimention;
-        node_type->mPointerNum++;
+        node_type->mPointerNum+=2;
 
         if(node_type->mPointerNum == 0) {
             LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");

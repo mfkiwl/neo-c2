@@ -32,8 +32,8 @@ OBJS=@OBJS@
 all: come #self-host
 
 come: config.h src/main.o $(OBJS)
-#	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
-#	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
+	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
+	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
 
 self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c
 #	./come src/parser.c $(CFLAGS)
