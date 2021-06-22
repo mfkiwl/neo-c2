@@ -37,44 +37,45 @@ come: config.h src/main.o $(OBJS)
 
 self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c
 #	./come src/parser.c $(CFLAGS)
-#	$(CC) -c -o src/parser.o src/parser.c.ll $(CFLAGS)
+#	$(CC) -c -o src/parser.c.o src/parser.c.ll
+
 #	./come src/alignment.c $(CFLAGS)
-#	$(CC) -c -o src/alignment.o src/alignment.c.ll $(CFLAGS)
+#	$(CC) -c -o src/alignment.c.o src/alignment.c.ll
 #
 #	./come src/buffer.c $(CFLAGS)
-#	$(CC) -c -o src/buffer.o src/buffer.c.ll $(CFLAGS)
+#	$(CC) -c -o src/buffer.c.o src/buffer.c.ll
 #
 #	./come src/xfunc.c $(CFLAGS)
-#	$(CC) -c -o src/xfunc.o src/xfunc.c.ll $(CFLAGS)
+#	$(CC) -c -o src/xfunc.c.o src/xfunc.c.ll
 
-	./come src/node.c $(CFLAGS)
-	$(CC) -c -o src/node.o src/node.c.ll
+#	./come src/node.c $(CFLAGS)
+#	$(CC) -c -o src/node.c.o src/node.c.ll
 
 #	./come src/vtable.c $(CFLAGS)
-#	$(CC) -c -o src/vtable.o src/vtable.c.ll $(CFLAGS)
+#	$(CC) -c -o src/vtable.c.o src/vtable.c.ll
 #
 #	./come src/node_type.c $(CFLAGS)
-#	$(CC) -c -o src/node_type.o src/node_type.c.ll $(CFLAGS)
-#
+#	$(CC) -c -o src/node_type.c.o src/node_type.c.ll
+
 #	./come src/klass.c $(CFLAGS)
-#	$(CC) -c -o src/klass.o src/klass.c.ll $(CFLAGS)
+#	$(CC) -c -o src/klass.c.o src/klass.c.ll
 #
 #	./come src/constant.c $(CFLAGS)
-#	$(CC) -c -o src/constant.o src/constant.c.ll $(CFLAGS)
+#	$(CC) -c -o src/constant.c.o src/constant.c.ll
 #
 #	./come src/node_block.c $(CFLAGS)
-#	$(CC) -c -o src/node_block.o src/node_block.c.ll $(CFLAGS)
+#	$(CC) -c -o src/node_block.c.o src/node_block.c.ll
 #
 #	./come src/typedef.c $(CFLAGS)
-#	$(CC) -c -o src/typedef.o src/typedef.c.ll $(CFLAGS)
+#	$(CC) -c -o src/typedef.c.o src/typedef.c.ll
 #
 #	./come src/compiler.c $(CFLAGS)
-#	$(CC) -c -o src/compiler.o src/compiler.c.ll $(CFLAGS)
+#	$(CC) -c -o src/compiler.c.o src/compiler.c.ll
 #
 #	./come src/main.c $(CFLAGS)
-#	$(CC) -c -o src/main.o src/main.c.ll $(CFLAGS)
+#	$(CC) -c -o src/main.c.o src/main.c.ll
 #
-#	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
+#	$(CXX) -o come src/main.c.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/node.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o $(CXXFLAGS)
 
 #########################################
 # Object files
