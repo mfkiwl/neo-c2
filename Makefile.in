@@ -48,7 +48,7 @@ self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/
 #	$(CC) -c -o src/xfunc.o src/xfunc.c.ll $(CFLAGS)
 
 	./come src/node.c $(CFLAGS)
-	$(CC) -c -o src/node.o src/node.c.ll $(CFLAGS)
+	$(CC) -c -o src/node.o src/node.c.ll
 
 #	./come src/vtable.c $(CFLAGS)
 #	$(CC) -c -o src/vtable.o src/vtable.c.ll $(CFLAGS)
@@ -108,7 +108,7 @@ permission:
 # clean
 #########################################
 clean:
-	rm -fR come src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 *.i *.ll a.out
+	rm -fR come src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 *.i *.ll a.out src/*.c.o
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache 

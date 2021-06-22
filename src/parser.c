@@ -2710,7 +2710,7 @@ static BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* nam
             if(info->mBlockLevel == 0) {
                 *node = sNodeTree_create_define_variable(name, extern_, info);
 
-                *node = sNodeTree_create_array_with_initialization(name, num_initialize_array_value, initialize_array_values, *node, info);
+                *node = sNodeTree_create_array_initializer(name, num_initialize_array_value, initialize_array_values, *node, info);
             }
             else {
                 unsigned int nodes[INIT_ARRAY_MAX+128];

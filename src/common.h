@@ -849,7 +849,7 @@ unsigned int sNodeTree_create_alignof_expression(unsigned int lnode, sParserInfo
 unsigned int sNodeTree_create_nodes(unsigned int* nodes, int num_nodes, sParserInfo* info);
 BOOL is_function_name(char* name);
 unsigned int sNodeTree_create_load_function(char* fun_name, sParserInfo* info);
-unsigned int sNodeTree_create_array_with_initialization(char* name, int num_initialize_array_value, unsigned int* initialize_array_value, unsigned int left_node, sParserInfo* info);
+unsigned int sNodeTree_create_array_initializer(char* name, int num_initialize_array_value, unsigned int* initialize_array_value, unsigned int left_node, sParserInfo* info);
 unsigned int sNodeTree_create_normal_block(MANAGED struct sNodeBlockStruct* node_block, sParserInfo* info);
 unsigned int sNodeTree_create_struct_with_initialization(char* name, int num_initialize_array_value, unsigned int* initialize_array_value, unsigned int left_node, sParserInfo* info);
 unsigned int sNodeTree_switch_expression(unsigned int expression_node, int num_switch_expression, MANAGED unsigned int* switch_expression, sParserInfo* info);

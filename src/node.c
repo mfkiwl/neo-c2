@@ -8534,6 +8534,9 @@ BOOL compile_store_element(unsigned int node, sCompileInfo* info)
         LLVMValueRef element_address = lvalue2;
         for(i=0; i<num_dimention; i++) {
             element_address = LLVMBuildGEP(gBuilder, element_address, &mvalue[i].value,  1, "element_address");
+            if(i != num_dimention-1) {
+                element_address = LLVMBuildLoad(gBuilder, element_address, "element_address");
+            }
         }
 
         LLVMBuildStore(gBuilder, rvalue.value, element_address);
@@ -9427,7 +9430,7 @@ static BOOL compile_load_function(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-unsigned int sNodeTree_create_array_with_initialization(char* name, int num_initialize_array_value, unsigned int* initialize_array_value, unsigned int left_node, sParserInfo* info)
+unsigned int sNodeTree_create_array_initializer(char* name, int num_initialize_array_value, unsigned int* initialize_array_value, unsigned int left_node, sParserInfo* info)
 {
     unsigned int node = alloc_node();
 
@@ -9447,7 +9450,7 @@ unsigned int sNodeTree_create_array_with_initialization(char* name, int num_init
     return node;
 }
 
-BOOL compile_array_with_initialization(unsigned int node, sCompileInfo* info)
+BOOL compile_array_initializer(unsigned int node, sCompileInfo* info)
 {
     char* var_name = gNodes[node].uValue.sArrayWithInitialization.mVarName;
     int num_initialize_array_value = gNodes[node].uValue.sArrayWithInitialization.mNumInitializeArrayValue;
@@ -12401,7 +12404,7 @@ BOOL compile(unsigned int node, sCompileInfo* info)
             break;
 
         case kNodeTypeArrayWithInitialization:
-            if(!compile_array_with_initialization(node, info))
+            if(!compile_array_initializer(node, info))
             {
                 return FALSE;
             }
