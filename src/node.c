@@ -1331,7 +1331,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
             {
                 LLVMTypeRef llvm_type = create_llvm_type_with_class_name("long");
 
-                if(left_type->mUnsigned) {
+                if((*right_type)->mUnsigned) {
                     rvalue->value = LLVMBuildCast(gBuilder, LLVMZExt, rvalue->value, llvm_type, "icastC");
                 }
                 else {
@@ -1350,7 +1350,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
             if((type_identify_with_class_name(*right_type, "char") || type_identify_with_class_name(*right_type, "bool")) && (*right_type)->mPointerNum == 0) {
                 LLVMTypeRef llvm_type = create_llvm_type_with_class_name("short");
 
-                if(left_type->mUnsigned) {
+                if((*right_type)->mUnsigned) {
                     rvalue->value = LLVMBuildCast(gBuilder, LLVMZExt, rvalue->value, llvm_type, "icastE");
                 }
                 else {
@@ -1384,7 +1384,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
             if(type_identify_with_class_name(*right_type, "bool") && (*right_type)->mPointerNum == 0) {
                 LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char");
 
-                if(left_type->mUnsigned) {
+                if((*right_type)->mUnsigned) {
                     rvalue->value = LLVMBuildCast(gBuilder, LLVMZExt, rvalue->value, llvm_type, "icastH");
                 }
                 else {
@@ -1419,7 +1419,7 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
             {
                 LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
 
-                if(left_type->mUnsigned) {
+                if((*right_type)->mUnsigned) {
                     rvalue->value = LLVMBuildCast(gBuilder, LLVMZExt, rvalue->value, llvm_type, "icastK");
                 }
                 else {
@@ -3453,13 +3453,25 @@ static BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
 #endif
 
     if(extern_) {
-        LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
+        LLVMValueRef global = LLVMGetNamedGlobal(gModule, var_name);
+        if(global == NULL) {
+            LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
 
-        LLVMSetExternallyInitialized(alloca_value, TRUE);
+            LLVMSetExternallyInitialized(alloca_value, TRUE);
 
-        var->mLLVMValue = alloca_value;
+            var->mLLVMValue = alloca_value;
+        }
+        else {
+            var->mLLVMValue = global;
+        }
     }
     else if(global) {
+        LLVMValueRef global = LLVMGetNamedGlobal(gModule, var_name);
+
+        if(global) {
+            LLVMDeleteGlobal(global);
+        }
+
         LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
 
         if(var_type->mArrayDimentionNum == 1) {
@@ -3716,6 +3728,12 @@ static BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
             }
         }
         else if(global) {
+            LLVMValueRef global = LLVMGetNamedGlobal(gModule, var_name);
+
+            if(global) {
+                LLVMDeleteGlobal(global);
+            }
+
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
 #if defined(__X86_64_CPU__ )
@@ -4422,6 +4440,49 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
     if(method) {
         xstrncpy(param_names[0], fun->mParamNames[0], VAR_NAME_MAX);
+
+        LVALUE param = lvalue_params[0];
+
+        if(fun->mParamTypes[0]) {
+            sNodeType* fun_param_type = clone_node_type(fun->mParamTypes[0]);
+
+            if(is_typeof_type(fun_param_type))
+            {
+                if(!solve_typeof(&fun_param_type, info)) 
+                {
+                    compile_err_msg(info, "Can't solve typeof types");
+                    show_node_type(fun_param_type);
+                    info->err_num++;
+                    return TRUE;
+                }
+            }
+
+            if(generics_type) {
+                if(!solve_generics(&fun_param_type, generics_type))
+                {
+                    compile_err_msg(info, "Can't solve generics types(3)");
+                    show_node_type(fun_param_type);
+                    show_node_type(generics_type);
+                    info->err_num++;
+
+                    return FALSE;
+                }
+            }
+
+            if(auto_cast_posibility(fun_param_type, param_types[0])) {
+                if(!cast_right_type_to_left_type(fun_param_type, &param_types[0], &param, info))
+                {
+                    compile_err_msg(info, "Cast failed");
+                    info->err_num++;
+
+                    info->type = create_node_type_with_class_name("int"); // dummy
+
+                    return TRUE;
+                }
+            }
+        }
+
+        llvm_params[0] = param.value;
     }
 
     for(i=method?1:0; i<num_params; i++) {
@@ -6726,13 +6787,7 @@ static BOOL compile_load_field(unsigned int node, sCompileInfo* info)
             else {
                 field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
             }
-            llvm_value.value = field_address;
-            field_type->mPointerNum++;
-            field_type->mArrayDimentionNum--;
-            
-            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(field_type);
-
-            llvm_value.value = LLVMBuildCast(gBuilder, LLVMBitCast, field_address, llvm_type, "castAF");
+            llvm_value.value = field_address; 
         }
         else if(left_type->mPointerNum == 0) {
             field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");
@@ -6826,14 +6881,7 @@ static BOOL compile_load_field(unsigned int node, sCompileInfo* info)
             else {
                 field_address = LLVMBuildStructGEP(gBuilder, lvalue.value, field_index, "field");
             }
-            llvm_value.value = field_address;
-
-            field_type->mPointerNum += field_type->mArrayDimentionNum;
-            field_type->mArrayDimentionNum = 0;
-
-            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(field_type);
-
-            llvm_value.value = LLVMBuildCast(gBuilder, LLVMBitCast, field_address, llvm_type, "castAG");
+            llvm_value.value = field_address; 
         }
         else if(left_type->mPointerNum == 0) {
             field_address = LLVMBuildStructGEP(gBuilder, lvalue.address, field_index, "field");

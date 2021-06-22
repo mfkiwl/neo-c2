@@ -142,7 +142,28 @@ int main(int argc, char** argv)
         }
         else if(argv[i][0] == '-' && argv[i][1] == 'D') 
         {
-            xstrncat(macro_definition, argv[i], max_c_include_path);
+            char dquort_argv[256];
+
+            char* p = dquort_argv;
+            char* p2 = argv[i];
+            while(*p2) {
+                if(*p2 == '"') {
+                    *p++ = '\\';
+                    *p++ = '"';
+                    p2++;
+                }
+                else if(*p2 == '\'') {
+                    *p++ = '\\';
+                    *p++ = '\'';
+                    p2++;
+                }
+                else {
+                    *p++ = *p2++;
+                }
+            }
+            *p++ = '\0';
+
+            xstrncat(macro_definition, dquort_argv, max_c_include_path);
             xstrncat(macro_definition, " ", max_c_include_path);
             i++;
         }

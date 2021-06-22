@@ -8,8 +8,8 @@
 #define TRUE 1
 #define FALSE 0
 
-extern char* xstrncpy(char* des, char* src, int size);
-extern char* xstrncat(char* des, char* str, int size);
+extern char* xstrncpy(char* des, char* src, size_t size);
+extern char* xstrncat(char* des, char* str, size_t size);
 ALLOC extern void* xmalloc(size_t size);
 ALLOC extern char* xstrdup(char* str);
 ALLOC extern void* xrealloc(void* ptr, size_t size);
