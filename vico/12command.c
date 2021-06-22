@@ -40,9 +40,9 @@ string ViWin_selector(ViWin* self, list<string>* lines)
 
         ### view ###
         for(int y=0; y<maxy && y < maxy2; y++) {
-            var it = lines.item(scrolltop+y, null);
+            auto it = lines.item(scrolltop+y, null);
 
-            var line = it.substring(0, maxx-1);
+            auto line = it.substring(0, maxx-1);
 
             if(cursor == y) {
                 attron(A_REVERSE);
@@ -56,7 +56,7 @@ string ViWin_selector(ViWin* self, list<string>* lines)
         refresh();
 
         ### input ###
-        var key = getch();
+        auto key = getch();
 
         switch(key) {
             case KEY_UP:
@@ -143,7 +143,7 @@ void ViWin_fileCompetion(ViWin* self, Vi* nvi)
         }
     }
     
-    var word = string(p);
+    auto word = string(p);
 
     string dir_name = null;
     if(word[strlen(word)-1] == '/') {
@@ -160,7 +160,7 @@ void ViWin_fileCompetion(ViWin* self, Vi* nvi)
         }
     }
 
-    var words = new list<string>.initialize();
+    auto words = new list<string>.initialize();
 
     if(dir_name.equals("./")) {
         char* cwd = getenv("PWD");
@@ -188,7 +188,7 @@ void ViWin_fileCompetion(ViWin* self, Vi* nvi)
             stat(path, &stat_);
             
             if(S_ISDIR(stat_.st_mode)) {
-                var item = borrow xsprintf("%s/", entry->d_name);
+                auto item = borrow xsprintf("%s/", entry->d_name);
                 words.push_back(item);
             }
             else {
@@ -224,7 +224,7 @@ void ViWin_fileCompetion(ViWin* self, Vi* nvi)
             stat(path, &stat_);
             
             if(S_ISDIR(stat_.st_mode)) {
-                var item = borrow xsprintf("%s%s/", dir_name, entry->d_name);
+                auto item = borrow xsprintf("%s%s/", dir_name, entry->d_name);
                 words.push_back(item);
             }
             else {
@@ -260,7 +260,7 @@ void ViWin_fileCompetion(ViWin* self, Vi* nvi)
             stat(path, &stat_);
             
             if(S_ISDIR(stat_.st_mode)) {
-                var item = borrow xsprintf("%s%s/", dir_name, entry->d_name);
+                auto item = borrow xsprintf("%s%s/", dir_name, entry->d_name);
                 words.push_back(item);
             }
             else {
@@ -271,23 +271,23 @@ void ViWin_fileCompetion(ViWin* self, Vi* nvi)
         closedir(dir);
     }
     
-    var words2 = new vector<string>.initialize();
+    auto words2 = new vector<string>.initialize();
     
     foreach(it, words) {
         if(strcmp(word, "") == 0 || strstr(it, word) == it) {
             words2.push_back(clone it);
         }
     }
-    var words3 = words2.to_list().sort(lambda(char* left, char* right):int { return strcmp(left, right);} );
+    auto words3 = words2.to_list().sort(int lambda(char* left, char* right) { return strcmp(left, right);} );
     
-    var file_name = self.selector(words3).substring(strlen(word), -1);
+    auto file_name = self.selector(words3).substring(strlen(word), -1);
     
     strncat(nvi.commandString, file_name, 128);
 }
 
 void ViWin_commandModeInput(ViWin* self, Vi* nvi) 
 {
-    var key = self.getKey(false);
+    auto key = self.getKey(false);
 
     char a[128];
     snprintf(a, 128, "%c", key);
@@ -357,10 +357,10 @@ void ViWin_subAllTextsFromCommandMode(ViWin* self, Vi* nvi)
 
     regex_struct*% reg = regex("%s\/\(.+\)\/\(.*\)\/*?", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
 
-    var command = string(nvi.commandString).scan(reg);
+    auto command = string(nvi.commandString).scan(reg);
 
-    var str = command.item(1, null);
-    var replace = command.item(2, null);
+    auto str = command.item(1, null);
+    auto replace = command.item(2, null);
     
     if(str != null && replace != null) {
         self.pushUndo();
@@ -377,7 +377,7 @@ void ViWin_subAllTextsFromCommandMode(ViWin* self, Vi* nvi)
 
             regex_struct*% reg = regex(str, ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
 
-            var new_line = borrow it.to_string().sub(reg, replace, null).to_wstring();
+            auto new_line = borrow it.to_string().sub(reg, replace, null).to_wstring();
             
             self.texts.replace(it2, new_line);
 
@@ -406,7 +406,7 @@ void Vi_exitFromComandMode(Vi* self)
 
         regex_struct*% reg = regex("sp \(.+\)", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
 
-        var file_name = clone string(self.commandString).scan(reg).item(1, null);
+        auto file_name = clone string(self.commandString).scan(reg).item(1, null);
 
         if(file_name != null) {
             self.openNewFile(file_name);
@@ -446,11 +446,11 @@ void Vi_exitFromComandMode(Vi* self)
 
 Vi*% Vi_initialize(Vi*% self) version 12
 {
-    var result = inherit(self);
+    auto result = inherit(self);
 
     strncpy(result.commandString, "", 128);
 
-    result.events.replace(':', lambda(Vi* self, int key) {
+    result.events.replace(':', void lambda(Vi* self, int key) {
         self.enterComandMode();
     });
 

@@ -36,9 +36,9 @@ wstring&? ViWin_selector2(ViWin* self, list<wstring>* lines)
 
         ### view ###
         for(int y=0; y<maxy && y < maxy2; y++) {
-            var it = lines.item(scrolltop+y, null);
+            auto it = lines.item(scrolltop+y, null);
 
-            var line = it.substring(0, maxx-1);
+            auto line = it.substring(0, maxx-1);
 
             if(cursor == y) {
                 attron(A_REVERSE);
@@ -52,7 +52,7 @@ wstring&? ViWin_selector2(ViWin* self, list<wstring>* lines)
         refresh();
 
         ### input ###
-        var key = getch();
+        auto key = getch();
 
         switch(key) {
             case KEY_UP:
@@ -126,7 +126,7 @@ wstring&? ViWin_selector2(ViWin* self, list<wstring>* lines)
 
 void ViWin_completion(ViWin* self, Vi* nvi) version 2
 {
-    var line = self.texts.item(self.scroll+self.cursorY, null);
+    auto line = self.texts.item(self.scroll+self.cursorY, null);
 
     wchar_t* p = line + self.cursorX;
     p--;
@@ -144,12 +144,12 @@ void ViWin_completion(ViWin* self, Vi* nvi) version 2
     
     int len = (line + self.cursorX - p);
 
-    var word = line.substring(self.cursorX-len, self.cursorX);
+    auto word = line.substring(self.cursorX-len, self.cursorX);
 
-    var candidates = new list<wstring>.initialize();
+    auto candidates = new list<wstring>.initialize();
 
     foreach(it, self.texts) {
-        var li = it.to_string().scan(regex("[a-zA-Z0-9_]+", false, false, false, false, false, false, false, false));
+        auto li = it.to_string().scan(regex("[a-zA-Z0-9_]+", false, false, false, false, false, false, false, false));
 
         foreach(it2, li) {
             if(it2.index(word.to_string(), -1) != -1)
@@ -159,10 +159,10 @@ void ViWin_completion(ViWin* self, Vi* nvi) version 2
         }
     }
 
-    var candidates2 = candidates.sort(lambda(wchar_t* left, wchar_t* right):int { return wcscmp(left, right); }).uniq();
+    auto candidates2 = candidates.sort(int lambda(wchar_t* left, wchar_t* right) { return wcscmp(left, right); }).uniq();
 
-    var candidate = self.selector2(candidates2);
+    auto candidate = self.selector2(candidates2);
 
-    var append = candidate.substring(len, -1);
+    auto append = candidate.substring(len, -1);
     self.insertText(append);
 }

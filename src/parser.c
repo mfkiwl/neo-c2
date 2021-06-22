@@ -1296,7 +1296,7 @@ static void create_lambda_name(char* lambda_name, size_t size_lambda_name, char*
     xstrncat(lambda_name, buf, size_lambda_name);
 }
 
-static BOOL parse_lambda(unsigned int* node, sParserInfo* info)
+static BOOL parse_lambda(unsigned int* node, sNodeType* result_type, sParserInfo* info)
 {
     expect_next_character_with_one_forward("(", info);
 
@@ -1310,19 +1310,6 @@ static BOOL parse_lambda(unsigned int* node, sParserInfo* info)
     if(!parse_params(params, &num_params, info, 0, &var_arg))
     {
         return FALSE;
-    }
-
-    sNodeType* result_type = NULL;
-    if(*info->p == ':') {
-        info->p++;
-        skip_spaces_and_lf(info);
-
-        if(!parse_type(&result_type, info, NULL, FALSE, FALSE)) {
-            return FALSE;
-        }
-    }
-    else {
-        result_type = create_node_type_with_class_name("void");
     }
 
     sNodeBlock* node_block = ALLOC sNodeBlock_alloc();
@@ -1413,7 +1400,7 @@ static BOOL parse_enum(unsigned int* node, char* name, int name_size, BOOL* term
             if(terminated == NULL) {
                 if(!get_const_value_from_node(&value, node2, info)) {
                     fprintf(stderr, "%s %d: can't create const value(x)\n", info->sname, info->sline);
-                    return FALSE;
+                    exit(1);
                 }
             }
         }
@@ -2467,7 +2454,10 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
         (*result_type)->mTypePointerNum = parser_pointer_num;
     }
 
-    if(((*info->p == '(' && *(info->p+1) == '*') || (*info->p == '(' && *(info->p+1) == '^')) && func_pointer_name) {
+    if(parse_cmp(info->p, "lambda") == 0 && func_pointer_name) {
+        xstrncpy(func_pointer_name, "lambda", VAR_NAME_MAX);
+    }
+    else if(((*info->p == '(' && *(info->p+1) == '*') || (*info->p == '(' && *(info->p+1) == '^')) && func_pointer_name) {
         info->p += 2;
         skip_spaces_and_lf(info);
 
@@ -5732,11 +5722,6 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                 return FALSE;
             }
         }
-        else if(strcmp(buf, "lambda") == 0) {
-            if(!parse_lambda(node, info)) {
-                return FALSE;
-            }
-        }
         else if(strcmp(buf, "struct") == 0 && *info->p != '{' && define_struct) {
             char struct_name[VAR_NAME_MAX];
 
@@ -5830,7 +5815,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                 return FALSE;
             }
         }
-        else if(strcmp(buf, "var") == 0) {
+        else if(strcmp(buf, "auto") == 0) {
             if(!parse_var(node, info, FALSE)) {
                 return FALSE;
             }
@@ -6306,7 +6291,14 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                 return FALSE;
             }
 
-            if(name[0] != '\0') {
+            if(strcmp(name, "lambda") == 0) {
+                char buf[VAR_NAME_MAX];
+                (void)parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE);
+                if(!parse_lambda(node, result_type, info)) {
+                    return FALSE;
+                }
+            }
+            else if(name[0] != '\0') {
                 BOOL extern_ = FALSE;
                 if(!parse_variable(node, result_type, name, extern_, info, FALSE)) 
                 {

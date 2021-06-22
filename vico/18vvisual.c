@@ -9,7 +9,7 @@
 
 ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 10
 {
-    var result = inherit(self, y, x, width, height, vi);
+    auto result = inherit(self, y, x, width, height, vi);
     
     result.visualModeVerticalHeadX = 0;
 
@@ -26,7 +26,7 @@ void ViWin_verticalVisualModeView(ViWin* self, Vi* nvi)
     int it2 = 0;
     foreach(it, self.texts.sublist(self.scroll, self.scroll+maxy-1))
     {
-        var line = it.substring(0, maxx-1);
+        auto line = it.substring(0, maxx-1);
 
         if((it2 >= (self.visualModeVerticalHeadY-self.scroll) 
             && it2 <= self.cursorY)
@@ -34,12 +34,12 @@ void ViWin_verticalVisualModeView(ViWin* self, Vi* nvi)
                 (self.visualModeVerticalHeadY-self.scroll) 
             && it2 >= self.cursorY)) 
         {
-            var line1 = it.substring(0
+            auto line1 = it.substring(0
                         , self.visualModeVerticalHeadX);
             mvwprintw(self.win, it2, 0, "%ls", line1);
             
             wattron(self.win, A_REVERSE);
-            var line2 = it.substring(
+            auto line2 = it.substring(
                     self.visualModeVerticalHeadX
                     , self.visualModeVerticalHeadX
                       + self.visualModeVerticalLen);
@@ -48,7 +48,7 @@ void ViWin_verticalVisualModeView(ViWin* self, Vi* nvi)
                             , "%ls", line2);
             wattroff(self.win, A_REVERSE);
             
-            var line3 = it.substring(
+            auto line3 = it.substring(
                     self.visualModeVerticalHeadX
                         +self.visualModeVerticalLen
                     , -1);
@@ -97,7 +97,7 @@ void ViWin_deleteOnVerticalVisualMode(ViWin* self, Vi* nvi)
     }
     
     for(int i=head; i<=tail; i++) {
-        var it = self.texts.item(i, null);
+        auto it = self.texts.item(i, null);
         
         it.delete(self.visualModeVerticalHeadX
             , self.visualModeVerticalHeadX 
@@ -124,7 +124,7 @@ void ViWin_deleteLinesOnVerticalVisualMode(ViWin* self, Vi* nvi)
     }
     
     for(int i=head; i<=tail; i++) {
-        var it = self.texts.item(i, null);
+        auto it = self.texts.item(i, null);
         
         it.delete(0, -1);
     }
@@ -149,7 +149,7 @@ void ViWin_changeCaseVerticalVisualMode(ViWin* self, Vi* nvi)
     }
     
     for(int i=head; i<=tail; i++) {
-        var line = self.texts.item(i, null);
+        auto line = self.texts.item(i, null);
         
         
         wstring head_line = line.substring(0, self.visualModeVerticalHeadX);
@@ -198,13 +198,13 @@ void ViWin_rewriteOnVerticalVisualMode(ViWin* self, Vi* nvi)
     wchar_t key = self.getKey(false);
     
     for(int i=head; i<=tail; i++) {
-        var it = self.texts.item(i, null);
+        auto it = self.texts.item(i, null);
         
-        var head_new_line = it.substring(0, self.visualModeVerticalHeadX);
-        var middle_new_line = xsprintf("%lc", key).multiply(self.visualModeVerticalLen).to_wstring();
-        var tail_new_line = it.substring(self.visualModeVerticalHeadX+self.visualModeVerticalLen, -1);
+        auto head_new_line = it.substring(0, self.visualModeVerticalHeadX);
+        auto middle_new_line = xsprintf("%lc", key).multiply(self.visualModeVerticalLen).to_wstring();
+        auto tail_new_line = it.substring(self.visualModeVerticalHeadX+self.visualModeVerticalLen, -1);
         
-        var new_line = xsprintf("%ls%ls%ls", head_new_line, middle_new_line, tail_new_line).to_wstring();
+        auto new_line = xsprintf("%ls%ls%ls", head_new_line, middle_new_line, tail_new_line).to_wstring();
         
         self.texts.replace(i, clone new_line);
     }
@@ -217,7 +217,7 @@ void ViWin_rewriteOnVerticalVisualMode(ViWin* self, Vi* nvi)
 
 void ViWin_insertOnVerticalVisualMode(ViWin* self, Vi* nvi) 
 {
-    var key = self.getKey(false);
+    auto key = self.getKey(false);
     
     if(key == 3 || key == 27) {
         self.visualModeVerticalInserting = false;
@@ -241,9 +241,9 @@ void ViWin_insertOnVerticalVisualMode(ViWin* self, Vi* nvi)
         
         if(self.visualModeVerticalHeadX > 0) {
             for(int i=head; i<=tail; i++) {
-                var it = self.texts.item(i, null);
+                auto it = self.texts.item(i, null);
                 
-                var new_line = xsprintf("%ls%ls"
+                auto new_line = xsprintf("%ls%ls"
                         , it.substring(0, self.visualModeVerticalHeadX-1)
                         , it.substring(self.visualModeVerticalHeadX, -1)).to_wstring();
                 
@@ -268,9 +268,9 @@ void ViWin_insertOnVerticalVisualMode(ViWin* self, Vi* nvi)
         }
         
         for(int i=head; i<=tail; i++) {
-            var it = self.texts.item(i, null);
+            auto it = self.texts.item(i, null);
             
-            var new_line = xsprintf("%ls%lc%ls"
+            auto new_line = xsprintf("%ls%lc%ls"
                     ,it.substring(0, self.visualModeVerticalHeadX)
                     , key
                     , it.substring(self.visualModeVerticalHeadX, -1)).to_wstring();
@@ -288,7 +288,7 @@ void ViWin_inputVerticalVisualMode(ViWin* self, Vi* nvi)
         self.insertOnVerticalVisualMode(nvi);
     }
     else {
-        var key = self.getKey(false);
+        auto key = self.getKey(false);
     
         switch(key) {
             case 'l':
@@ -419,9 +419,9 @@ void Vi_enterVerticalVisualMode(Vi* self)
 
 Vi*% Vi_initialize(Vi*% self) version 16
 {
-    var result = inherit(self);
+    auto result = inherit(self);
 
-    result.events.replace('V'-'A'+1, lambda(Vi* self, int key) 
+    result.events.replace('V'-'A'+1, void lambda(Vi* self, int key) 
     {
         self.enterVerticalVisualMode();
         self.activeWin.saveInputedKey();

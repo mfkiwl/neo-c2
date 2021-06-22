@@ -37,9 +37,9 @@ void ViWin_insertText(ViWin* self, wstring text) {
         self.cursorX += text.length();
     }
     else {
-        var old_line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+        auto old_line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
-        var new_line = borrow wstring(xsprintf("%ls%ls%ls", old_line.substring(0, self.cursorX), text, old_line.substring(self.cursorX, -1)));
+        auto new_line = borrow wstring(xsprintf("%ls%ls%ls", old_line.substring(0, self.cursorX), text, old_line.substring(self.cursorX, -1)));
 
         self.texts.replace(self.scroll+self.cursorY, new_line);
         self.cursorX += text.length();
@@ -48,7 +48,7 @@ void ViWin_insertText(ViWin* self, wstring text) {
 
 void ViWin_enterNewLine(ViWin* self)
 {
-    var old_line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+    auto old_line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
     int num_spaces = 0;
     for(int i=0; i<old_line.length(); i++)
@@ -61,7 +61,7 @@ void ViWin_enterNewLine(ViWin* self)
         }
     }
 
-    var head_new_line = new wchar_t[num_spaces+1];
+    auto head_new_line = new wchar_t[num_spaces+1];
 
     wcsncpy(head_new_line, wstring(""), num_spaces+1);
 
@@ -69,8 +69,8 @@ void ViWin_enterNewLine(ViWin* self)
         wcsncat(head_new_line, wstring(" "), num_spaces+1);
     }
 
-    var new_line1 = borrow old_line.substring(0, self.cursorX);
-    var new_line2 = borrow wstring(xsprintf("%ls%ls", head_new_line, old_line.substring(self.cursorX, -1)));
+    auto new_line1 = borrow old_line.substring(0, self.cursorX);
+    auto new_line2 = borrow wstring(xsprintf("%ls%ls", head_new_line, old_line.substring(self.cursorX, -1)));
 
     self.texts.replace(self.scroll+self.cursorY, new_line1);
     self.texts.insert(self.scroll+self.cursorY+1, new_line2);
@@ -82,7 +82,7 @@ void ViWin_enterNewLine(ViWin* self)
 
 void ViWin_enterNewLine2(ViWin* self)
 {
-    var line = self.texts.item(self.scroll+self.cursorY, null);
+    auto line = self.texts.item(self.scroll+self.cursorY, null);
     int num_spaces = 0;
     for(int i=0; i<line.length(); i++)
     {
@@ -94,7 +94,7 @@ void ViWin_enterNewLine2(ViWin* self)
         }
     }
 
-    var new_line = borrow new wchar_t[num_spaces+1];
+    auto new_line = borrow new wchar_t[num_spaces+1];
 
     wcsncpy(new_line, wstring(""), num_spaces+1);
 
@@ -111,7 +111,7 @@ void ViWin_enterNewLine2(ViWin* self)
 
 void ViWin_backSpace(ViWin* self) 
 {
-    var line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+    auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
     if(line.length() > 0 && self.cursorX > 0) {
         line.delete(self.cursorX-1, self.cursorX);
@@ -123,7 +123,7 @@ void ViWin_backIndent(ViWin* self)
 {
     self.pushUndo();
 
-    var line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+    auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
     if(line.length() >= 4) {
         if(line.index(wstring("    "), -1) == 0) {
@@ -149,7 +149,7 @@ void ViWin_blinkBraceEnd(ViWin* self, wchar_t head, wchar_t tail, Vi* nvi)
 
 void ViWin_inputInsertMode(ViWin* self, Vi* nvi)
 {
-    var key = self.getKey(false);
+    auto key = self.getKey(false);
     
     if(key == 3 || key == 27) {
         nvi.exitFromInsertMode();
@@ -164,7 +164,7 @@ void ViWin_inputInsertMode(ViWin* self, Vi* nvi)
         self.backSpace();
     }
     else if(key == 9) {
-        var str = self.texts.item(self.scroll+self.cursorY, null).substring(0, self.cursorX);
+        auto str = self.texts.item(self.scroll+self.cursorY, null).substring(0, self.cursorX);
         bool all_space = true;
         for(int i=0; i<str.length(); i++) {
             if(str[i] != ' ' && str[i] != '\t') {
@@ -179,7 +179,7 @@ void ViWin_inputInsertMode(ViWin* self, Vi* nvi)
         }
     }
     else if(key > 127) {
-        var size = ((key & 0x80) >> 7) + ((key & 0x40) >> 6) + ((key & 0x20) >> 5) + ((key & 0x10) >> 4);
+        auto size = ((key & 0x80) >> 7) + ((key & 0x40) >> 6) + ((key & 0x20) >> 5) + ((key & 0x10) >> 4);
 
         char keys[MB_LEN_MAX];
 
@@ -229,7 +229,7 @@ void ViWin_inputInsertMode(ViWin* self, Vi* nvi)
         self.backwardWord();
         
         if(cursor_y == self.cursorY) {
-            var line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+            auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
             line.delete(self.cursorX, cursor_x+1);
          
             self.texts.replace(self.scroll+self.cursorY, clone line);
@@ -238,7 +238,7 @@ void ViWin_inputInsertMode(ViWin* self, Vi* nvi)
         }
         else {
             self.cursorY = cursor_y;
-            var line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+            auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
             
             line.delete(0, cursor_x+1);
             
@@ -249,7 +249,7 @@ void ViWin_inputInsertMode(ViWin* self, Vi* nvi)
         }
     }
     else if(key == 'V'-'A'+1) {
-        var key2 = self.getKey(false);
+        auto key2 = self.getKey(false);
         
         char str[2];
         
@@ -333,29 +333,29 @@ void Vi_exitFromInsertMode(Vi* self)
 
 Vi*% Vi_initialize(Vi*% self) version 3
 {
-    var result = inherit(self);
+    auto result = inherit(self);
 
     result.mode = kEditMode;
 
-    result.events.replace('i', lambda(Vi* self, int key) 
+    result.events.replace('i', void lambda(Vi* self, int key) 
     {
         self.enterInsertMode();
     });
-    result.events.replace('I', lambda(Vi* self, int key) 
+    result.events.replace('I', void lambda(Vi* self, int key) 
     {
         if(self.activeWin.texts.length() != 0) {
             self.activeWin.moveAtHead();
         }
         self.enterInsertMode();
     });
-    result.events.replace('a', lambda(Vi* self, int key) 
+    result.events.replace('a', void lambda(Vi* self, int key) 
     {
         self.enterInsertMode();
         if(self.activeWin.texts.length() != 0) {
             self.activeWin.cursorX++;
         }
     });
-    result.events.replace('A', lambda(Vi* self, int key) 
+    result.events.replace('A', void lambda(Vi* self, int key) 
     {
         if(self.activeWin.texts.length() != 0) {
             self.activeWin.moveAtTail();
@@ -365,7 +365,7 @@ Vi*% Vi_initialize(Vi*% self) version 3
             self.activeWin.cursorX++;
         }
     });
-    result.events.replace('o', lambda(Vi* self, int key) 
+    result.events.replace('o', void lambda(Vi* self, int key) 
     {
         self.enterInsertMode();
         if(self.activeWin.texts.length() != 0) {

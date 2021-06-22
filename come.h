@@ -102,7 +102,7 @@ static string xsprintf(char* msg, ...)
 static string char_reverse(char* str) 
 {
     int len = strlen(str);
-    string result = new char[len + 1];
+    char*% result = new char[len + 1];
 
     for(int i=0; i<len; i++) {
         result[i] = str[len-i-1];
@@ -254,8 +254,8 @@ impl vector<T>
         managed item;
 
         if(self.len == self.size) {
-            var new_size = self.size * 2;
-            var items = self.items;
+            auto new_size = self.size * 2;
+            auto items = self.items;
 
             self.items = nccalloc(1, sizeof(T)*new_size);
 
@@ -364,7 +364,7 @@ impl vector<T>
 }
 
 
-#define foreach(o1, o2) for(var _obj = nomove (o2), var o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
+#define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 
 /// list ///
 struct list_item<T>
@@ -400,13 +400,13 @@ impl list <T>
             if(isheap(T)) {
                 delete it.item;
             }
-            var prev_it = it;
+            auto prev_it = it;
             it = it.next;
             delete prev_it;
         }
     }
     list<T>*% clone(list<T>* self) {
-        var result = new list<T>.initialize();
+        auto result = new list<T>.initialize();
 
         list_item<T>* it = self.head;
         while(it != null) {
@@ -472,7 +472,7 @@ impl list <T>
         }
 
         list_item<T>* it = self.head;
-        var i = 0;
+        auto i = 0;
         while(it != null) {
             if(position == i) {
                 return it.item;
@@ -513,7 +513,7 @@ impl list <T>
             self.len++;
         }
         else if(self.len == 1) {
-            var litem = borrow new list_item<T>;
+            auto litem = borrow new list_item<T>;
 
             litem.prev = self.head;
             litem.next = self.tail;
@@ -526,7 +526,7 @@ impl list <T>
         }
         else {
             list_item<T>* it = self.head;
-            var i = 0;
+            auto i = 0;
             while(it != null) {
                 if(position == i) {
                     list_item<T>* litem = borrow new list_item<T>;
@@ -553,7 +553,7 @@ impl list <T>
             if(isheap(T)) {
                 delete it.item;
             }
-            var prev_it = it;
+            auto prev_it = it;
             it = it.next;
             delete prev_it;
         }
@@ -597,7 +597,7 @@ impl list <T>
         }
         else if(head == 0) {
             list_item<T>* it = self.head;
-            var i = 0;
+            auto i = 0;
             while(it != null) {
                 if(i < tail) {
                     if(isheap(T)) {
@@ -625,7 +625,7 @@ impl list <T>
         }
         else if(tail == self.len) {
             list_item<T>* it = self.head;
-            var i = 0;
+            auto i = 0;
             while(it != null) {
                 if(i == head) {
                     self.tail = it.prev;
@@ -658,7 +658,7 @@ impl list <T>
             list_item<T>* tail_it = null;
 
 
-            var i = 0;
+            auto i = 0;
             while(it != null) {
                 if(i == head) {
                     head_prev_it = it.prev;
@@ -705,7 +705,7 @@ impl list <T>
         }
 
         list_item<T>* it = self.head;
-        var i = 0;
+        auto i = 0;
         while(it != null) {
             if(position == i) {
                 if(isheap(T)) {
@@ -752,7 +752,7 @@ impl list <T>
         }
 
         list_item<T>* it = self.head;
-        var i = 0;
+        auto i = 0;
         while(it != null) {
             if(i >= begin && i < tail) {
                 if(isheap(T)) {
@@ -787,7 +787,7 @@ impl list <T>
     }
 
     list<T>*% merge_list(list<T>* left, list<T>* right, int (*compare)(T&,T&)) {
-        var result = new list<T>.initialize();
+        auto result = new list<T>.initialize();
 
         list_item<T>*? it = left.head;
         list_item<T>*? it2= right.head;
@@ -866,8 +866,8 @@ impl list <T>
             return clone self;
         }
 
-        var list1 = new list<T>.initialize();
-        var list2 = new list<T>.initialize();
+        auto list1 = new list<T>.initialize();
+        auto list2 = new list<T>.initialize();
 
         list_item<T>* it = self.head;
 
@@ -990,7 +990,7 @@ impl list <T>
 impl vector<T> 
 {
     list<T>*% to_list(vector<T>* self) {
-        var result = new list<T>.initialize();
+        auto result = new list<T>.initialize();
         
         foreach(it, self) {
             if(isheap(T)) {
@@ -1098,7 +1098,7 @@ impl map <T, T2>
 
         int len = 0;
 
-        for(var it = self.begin(); !self.end(); it = self.next()) {
+        for(auto it = self.begin(); !self.end(); it = self.next()) {
             T2& it2 = self.at(it, null);
             int hash = it.get_hash_key() % size;
             int n = hash;
@@ -1192,10 +1192,10 @@ impl map <T, T2>
 
     map<T, T2>*% clone(map<T, T2>* self)
     {
-        var result = new map<T,T2>.initialize();
+        auto result = new map<T,T2>.initialize();
 
-        for(var it = self.begin(); !self.end(); it = self.next()) {
-            var it2 = self.at(it, null);
+        for(auto it = self.begin(); !self.end(); it = self.next()) {
+            auto it2 = self.at(it, null);
 
             if(isheap(T)) {
                 if(isheap(T2)) {

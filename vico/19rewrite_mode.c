@@ -34,9 +34,9 @@ void ViWin_insertText2(ViWin* self, wstring text)
         self.cursorX += text.length();
     }
     else {
-        var old_line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+        auto old_line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
-        var new_line = xsprintf("%ls%ls%ls"
+        auto new_line = xsprintf("%ls%ls%ls"
                 ,old_line.substring(0, self.cursorX)
                 , text
                 ,old_line.substring(self.cursorX+text.length(), -1)).to_wstring();
@@ -48,7 +48,7 @@ void ViWin_insertText2(ViWin* self, wstring text)
 
 void ViWin_inputRewritetMode(ViWin* self, Vi* nvi)
 {
-    var key = self.getKey(false);
+    auto key = self.getKey(false);
     
     if(key == 3 || key == 27) {
         nvi.exitFromInsertMode();
@@ -63,7 +63,7 @@ void ViWin_inputRewritetMode(ViWin* self, Vi* nvi)
         self.backSpace();
     }
     else if(key == 9) {
-        var str = self.texts.item(self.scroll+self.cursorY, null).substring(0, self.cursorX);
+        auto str = self.texts.item(self.scroll+self.cursorY, null).substring(0, self.cursorX);
 
         bool ignore_case = false;
         bool multiline = false;
@@ -83,7 +83,7 @@ void ViWin_inputRewritetMode(ViWin* self, Vi* nvi)
         }
     }
     else if(key > 127) {
-        var size = ((key & 0x80) >> 7) + ((key & 0x40) >> 6) + ((key & 0x20) >> 5) + ((key & 0x10) >> 4);
+        auto size = ((key & 0x80) >> 7) + ((key & 0x40) >> 6) + ((key & 0x20) >> 5) + ((key & 0x10) >> 4);
 
         char keys[MB_LEN_MAX];
 
@@ -133,7 +133,7 @@ void ViWin_inputRewritetMode(ViWin* self, Vi* nvi)
         self.backwardWord();
         
         if(cursor_y == self.cursorY) {
-            var line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+            auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
             line.delete(self.cursorX, cursor_x+1);
          
             self.texts.replace(self.scroll+self.cursorY, clone line);
@@ -142,7 +142,7 @@ void ViWin_inputRewritetMode(ViWin* self, Vi* nvi)
         }
         else {
             self.cursorY = cursor_y;
-            var line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+            auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
             
             line.delete(0, cursor_x+1);
             
@@ -153,7 +153,7 @@ void ViWin_inputRewritetMode(ViWin* self, Vi* nvi)
         }
     }
     else if(key == 'V'-'A'+1) {
-        var key2 = self.getKey(false);
+        auto key2 = self.getKey(false);
         
         char str[2];
         
@@ -192,11 +192,11 @@ void Vi_exitFromRewiteMode(Vi* self)
 
 Vi*% Vi_initialize(Vi*% self) version 17
 {
-    var result = inherit(self);
+    auto result = inherit(self);
 
     result.mode = kEditMode;
 
-    result.events.replace('R', lambda(Vi* self, int key) 
+    result.events.replace('R', void lambda(Vi* self, int key) 
     {
         self.activeWin.pushUndo();
         self.enterRewriteMode();

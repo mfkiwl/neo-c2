@@ -9,7 +9,7 @@
 
 ViWin*% ViWin_initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 9
 {
-    var result = inherit(self, y, x, width, height, vi);
+    auto result = inherit(self, y, x, width, height, vi);
     
     result.visualModeHorizonHeadX = 0;
     result.visualModeHorizonHeadY = 0;
@@ -32,7 +32,7 @@ void ViWin_horizonVisualModeView(ViWin* self, Vi* nvi)
         int it2 = 0;
         foreach(it, self.texts.sublist(self.scroll, self.scroll+maxy-1))
         {
-            var line = it.substring(0, maxx-1);
+            auto line = it.substring(0, maxx-1);
     
             int y = it2 + self.scroll;
             
@@ -43,14 +43,14 @@ void ViWin_horizonVisualModeView(ViWin* self, Vi* nvi)
                 {
                     if(self.cursorX < self.visualModeHorizonHeadX)
                     {
-                        var x = 0;
+                        auto x = 0;
                         
-                        var line1 = line.substring(0, self.cursorX);
+                        auto line1 = line.substring(0, self.cursorX);
                         mvwprintw(self.win, it2, x, "%ls", line1);
                         
                         x += line1.length();
                         
-                        var line2 = line.substring(self.cursorX
+                        auto line2 = line.substring(self.cursorX
                                 , self.visualModeHorizonHeadX+1);
                         wattron(self.win, A_REVERSE);
                         mvwprintw(self.win, it2, x, "%ls", line2);
@@ -58,20 +58,20 @@ void ViWin_horizonVisualModeView(ViWin* self, Vi* nvi)
                         
                         x += line2.length();
                         
-                        var line3 = line.substring(
+                        auto line3 = line.substring(
                                 self.visualModeHorizonHeadX+1, -1);
                         mvwprintw(self.win, it2, x, "%ls", line3);
                     }
                     else {
-                        var x = 0;
+                        auto x = 0;
                         
-                        var line1 = line.substring(0
+                        auto line1 = line.substring(0
                                 , self.visualModeHorizonHeadX);
                         mvwprintw(self.win, it2, x, "%ls", line1);
                         
                         x += line1.length();
                         
-                        var line2 = line.substring(
+                        auto line2 = line.substring(
                                 self.visualModeHorizonHeadX
                                 , self.cursorX+1);
                         wattron(self.win, A_REVERSE);
@@ -80,21 +80,21 @@ void ViWin_horizonVisualModeView(ViWin* self, Vi* nvi)
                         
                         x += line2.length();
                         
-                        var line3 = line.substring(
+                        auto line3 = line.substring(
                                     self.cursorX+1, -1);
                         mvwprintw(self.win, it2, x, "%ls", line3);
                     }
                 }
                 else {
-                    var x = 0;
+                    auto x = 0;
                     
-                    var line1 = line.substring(0
+                    auto line1 = line.substring(0
                             , self.visualModeHorizonHeadX);
                     mvwprintw(self.win, it2, x, "%ls", line1);
                     
                     x += line1.length();
                     
-                    var line2 = line.substring(
+                    auto line2 = line.substring(
                             self.visualModeHorizonHeadX
                             , -1);
                     wattron(self.win, A_REVERSE);
@@ -104,16 +104,16 @@ void ViWin_horizonVisualModeView(ViWin* self, Vi* nvi)
             }
             else if(y == (self.cursorY + self.scroll))
             {
-                var x = 0;
+                auto x = 0;
                 
-                var line1 = line.substring(0, self.cursorX+1);
+                auto line1 = line.substring(0, self.cursorX+1);
                 wattron(self.win, A_REVERSE);
                 mvwprintw(self.win, it2, x, "%ls", line1);
                 wattroff(self.win, A_REVERSE);
                 
                 x += line1.length();
                 
-                var line2 = line.substring(self.cursorX+1
+                auto line2 = line.substring(self.cursorX+1
                         , -1);
                 mvwprintw(self.win, it2, x, "%ls", line2);
             }
@@ -136,16 +136,16 @@ void ViWin_horizonVisualModeView(ViWin* self, Vi* nvi)
         int it2 = 0;
         foreach(it, self.texts.sublist(self.scroll, self.scroll+maxy-1))
         {
-            var line = it.substring(0, maxx-1);
+            auto line = it.substring(0, maxx-1);
     
             int y = it2 + self.scroll;
             
             if(y == self.visualModeHorizonHeadY
                         + self.visualModeHorizonHeadScroll)  
             {
-                var x = 0;
+                auto x = 0;
                 
-                var line1 = line.substring(0
+                auto line1 = line.substring(0
                         , self.visualModeHorizonHeadX+1);
                 wattron(self.win, A_REVERSE);
                 mvwprintw(self.win, it2, x, "%ls", line1);
@@ -153,21 +153,21 @@ void ViWin_horizonVisualModeView(ViWin* self, Vi* nvi)
                 
                 x += line1.length();
                 
-                var line2 = line.substring(
+                auto line2 = line.substring(
                         self.visualModeHorizonHeadX+1
                         , -1);
                 mvwprintw(self.win, it2, x, "%ls", line2);
             }
             else if(y == (self.cursorY + self.scroll))
             {
-                var x = 0;
+                auto x = 0;
                 
-                var line1 = line.substring(0, self.cursorX+1);
+                auto line1 = line.substring(0, self.cursorX+1);
                 mvwprintw(self.win, it2, x, "%ls", line1);
                 
                 x += line1.length();
                 
-                var line2 = line.substring(self.cursorX+1
+                auto line2 = line.substring(self.cursorX+1
                         , -1);
                 wattron(self.win, A_REVERSE);
                 mvwprintw(self.win, it2, x, "%ls", line2);
@@ -216,14 +216,14 @@ void ViWin_yankOnHorizonVisualMode(ViWin* self, Vi* nvi)
     
     if(y < hv_y) {
         nvi.yank.reset();
-        var first_line = self.texts.item(y, null).substring(self.cursorX, -1);
+        auto first_line = self.texts.item(y, null).substring(self.cursorX, -1);
         
         nvi.yank.push_back(clone first_line);
         
         foreach(it, self.texts.sublist(y+1, hv_y)) {
             nvi.yank.push_back(clone it);
         }
-        var last_line = self.texts.item(hv_y, null).substring(0, self.visualModeHorizonHeadX+1);
+        auto last_line = self.texts.item(hv_y, null).substring(0, self.visualModeHorizonHeadX+1);
         
         nvi.yank.push_back(clone last_line);
         
@@ -237,12 +237,12 @@ void ViWin_yankOnHorizonVisualMode(ViWin* self, Vi* nvi)
         int tail = self.cursorX;
         
         if(head < tail) {
-            var line = self.texts.item(y, null).substring(head, tail+1);
+            auto line = self.texts.item(y, null).substring(head, tail+1);
 
             nvi.yank.push_back(clone line);
         }
         else {
-            var line = self.texts.item(y, null).substring(tail, head+1);
+            auto line = self.texts.item(y, null).substring(tail, head+1);
             
             nvi.yank.push_back(clone line);
         }
@@ -252,14 +252,14 @@ void ViWin_yankOnHorizonVisualMode(ViWin* self, Vi* nvi)
     }
     else {
         nvi.yank.reset();
-        var first_line = self.texts.item(hv_y, null).substring(self.visualModeHorizonHeadX, -1);
+        auto first_line = self.texts.item(hv_y, null).substring(self.visualModeHorizonHeadX, -1);
         
         nvi.yank.push_back(clone first_line);
         
         foreach(it, self.texts.sublist(hv_y+1, y)) {
             nvi.yank.push_back(clone it);
         }
-        var last_line = self.texts.item(y, null).substring(0, self.cursorX+1);
+        auto last_line = self.texts.item(y, null).substring(0, self.cursorX+1);
         
         nvi.yank.push_back(clone last_line);
         nvi.yankKind = kYankKindNoLine;
@@ -278,7 +278,7 @@ void ViWin_deleteOnHorizonVisualMode(ViWin* self, Vi* nvi)
     if(y < hv_y) {
         self.texts.item(y, null).delete(self.cursorX, -1);
         self.texts.item(hv_y, null).delete(0, self.visualModeHorizonHeadX+1);
-        var new_line = xsprintf("%ls%ls", self.texts.item(y, null), self.texts.item(hv_y, null)).to_wstring();
+        auto new_line = xsprintf("%ls%ls", self.texts.item(y, null), self.texts.item(hv_y, null)).to_wstring();
         self.texts.replace(y, clone new_line);
 
         self.texts.delete(y+1, hv_y+1);
@@ -289,10 +289,10 @@ void ViWin_deleteOnHorizonVisualMode(ViWin* self, Vi* nvi)
         int tail = self.cursorX;
         
         if(head < tail) {
-            var line = self.texts.item(y, null).delete(head, tail+1);
+            auto line = self.texts.item(y, null).delete(head, tail+1);
         }
         else {
-            var line = self.texts.item(y, null).delete(tail, head+1);
+            auto line = self.texts.item(y, null).delete(tail, head+1);
         }
 
         self.cursorX = self.visualModeHorizonHeadX;
@@ -304,7 +304,7 @@ void ViWin_deleteOnHorizonVisualMode(ViWin* self, Vi* nvi)
         self.texts.item(hv_y, null).delete(self.visualModeHorizonHeadX, -1);
         self.texts.item(y, null).delete(0, self.cursorX+1);
 
-        var new_line = xsprintf("%ls%ls", self.texts.item(hv_y, null), self.texts.item(y, null)).to_wstring();
+        auto new_line = xsprintf("%ls%ls", self.texts.item(hv_y, null), self.texts.item(y, null)).to_wstring();
         self.texts.replace(hv_y, clone new_line);
 
         self.texts.delete(hv_y+1, y+1);
@@ -333,9 +333,9 @@ void ViWin_changeCaseHorizonVisualMode(ViWin* self, Vi* nvi)
     }
               
     if(y < hv_y) {
-        var first_line = self.texts.item(y, null);
-        var head_first_line = first_line.substring(0, x);
-        var tail_first_line = first_line.substring(x, -1);
+        auto first_line = self.texts.item(y, null);
+        auto head_first_line = first_line.substring(0, x);
+        auto tail_first_line = first_line.substring(x, -1);
         for(int i=0; i<tail_first_line.length(); i++) {
             wchar_t c = tail_first_line[i];
             
@@ -349,13 +349,13 @@ void ViWin_changeCaseHorizonVisualMode(ViWin* self, Vi* nvi)
             }
         }
         
-        var new_line = xsprintf("%ls%ls", head_first_line, tail_first_line).to_wstring();
+        auto new_line = xsprintf("%ls%ls", head_first_line, tail_first_line).to_wstring();
         
         self.texts.replace(y, clone new_line);
         
         int it2 = 0;
         foreach(it, self.texts.sublist(y+1, hv_y)) {
-            var new_line = clone it;
+            auto new_line = clone it;
             
             for(int i=0; i<new_line.length(); i++) {
                 wchar_t c = new_line[i];
@@ -373,9 +373,9 @@ void ViWin_changeCaseHorizonVisualMode(ViWin* self, Vi* nvi)
             self.texts.replace(y+1+it2, clone new_line);
             it2++;
         }
-        var last_line = self.texts.item(hv_y, null);
+        auto last_line = self.texts.item(hv_y, null);
         
-        var head_last_line = last_line.substring(0,hv_x+1);
+        auto head_last_line = last_line.substring(0,hv_x+1);
         for(int i=0; i<head_last_line.length(); i++) {
             wchar_t c = head_last_line[i]; 
             
@@ -388,9 +388,9 @@ void ViWin_changeCaseHorizonVisualMode(ViWin* self, Vi* nvi)
                 head_last_line[i] = c2;
             }
         }
-        var tail_last_line = last_line.substring(hv_x+1, -1);
+        auto tail_last_line = last_line.substring(hv_x+1, -1);
         
-        var new_last_line = xsprintf("%ls%ls", head_last_line, tail_last_line).to_wstring();
+        auto new_last_line = xsprintf("%ls%ls", head_last_line, tail_last_line).to_wstring();
         
         self.texts.replace(hv_y, clone new_last_line);
     }
@@ -405,9 +405,9 @@ void ViWin_changeCaseHorizonVisualMode(ViWin* self, Vi* nvi)
         
         tail++;
         
-        var line = self.texts.item(y, null);
-        var head_line = line.substring(0, head);
-        var middle_line = line.substring(head, tail);
+        auto line = self.texts.item(y, null);
+        auto head_line = line.substring(0, head);
+        auto middle_line = line.substring(head, tail);
         for(int i=0; i<middle_line.length(); i++) {
             wchar_t c = middle_line[i];
             
@@ -420,8 +420,8 @@ void ViWin_changeCaseHorizonVisualMode(ViWin* self, Vi* nvi)
                 middle_line[i] = c2;
             }
         }
-        var tail_line = line.substring(tail, -1);
-        var new_line = xsprintf("%ls%ls%ls", head_line, middle_line, tail_line).to_wstring();
+        auto tail_line = line.substring(tail, -1);
+        auto new_line = xsprintf("%ls%ls%ls", head_line, middle_line, tail_line).to_wstring();
         
         self.texts.replace(y, clone new_line);
     }
@@ -447,27 +447,27 @@ void ViWin_rewriteOnHorizonVisualMode(ViWin* self, Vi* nvi)
     wchar_t key = self.getKey(false);
     
     if(y < hv_y) {
-        var first_line = self.texts.item(y, null);
-        var head_first_line = first_line.substring(0, x);
-        var tail_first_line = xsprintf("%lc", key).multiply(first_line.length() - x).to_wstring();
+        auto first_line = self.texts.item(y, null);
+        auto head_first_line = first_line.substring(0, x);
+        auto tail_first_line = xsprintf("%lc", key).multiply(first_line.length() - x).to_wstring();
         
-        var new_line = xsprintf("%ls%ls", head_first_line, tail_first_line).to_wstring();
+        auto new_line = xsprintf("%ls%ls", head_first_line, tail_first_line).to_wstring();
         
         self.texts.replace(y, clone new_line);
         
         int it2 = 0;
         foreach(it, self.texts.sublist(y+1, hv_y)) {
-            var new_line = xsprintf("%lc", key).multiply(it.length()).to_wstring();
+            auto new_line = xsprintf("%lc", key).multiply(it.length()).to_wstring();
             
             self.texts.replace(y+1+it2, clone new_line);
             it2++;
         }
-        var last_line = self.texts.item(hv_y, null);
+        auto last_line = self.texts.item(hv_y, null);
         
-        var head_last_line = xsprintf("%lc", key).multiply(hv_x+1).to_wstring();
-        var tail_last_line = last_line.substring(hv_x+1, -1);
+        auto head_last_line = xsprintf("%lc", key).multiply(hv_x+1).to_wstring();
+        auto tail_last_line = last_line.substring(hv_x+1, -1);
         
-        var new_last_line = xsprintf("%ls%ls", head_last_line, tail_last_line).to_wstring();
+        auto new_last_line = xsprintf("%ls%ls", head_last_line, tail_last_line).to_wstring();
         
         self.texts.replace(hv_y, clone new_last_line);
     }
@@ -482,11 +482,11 @@ void ViWin_rewriteOnHorizonVisualMode(ViWin* self, Vi* nvi)
         
         tail++;
         
-        var line = self.texts.item(y, null);
-        var head_line = line.substring(0, head);
-        var middle_line = xsprintf("%lc", key).multiply(tail-head).to_wstring();
-        var tail_line = line.substring(tail, -1);
-        var new_line = xsprintf("%ls%ls%ls", head_line, middle_line, tail_line).to_wstring();
+        auto line = self.texts.item(y, null);
+        auto head_line = line.substring(0, head);
+        auto middle_line = xsprintf("%lc", key).multiply(tail-head).to_wstring();
+        auto tail_line = line.substring(tail, -1);
+        auto new_line = xsprintf("%ls%ls%ls", head_line, middle_line, tail_line).to_wstring();
         
         self.texts.replace(y, clone new_line);
     }
@@ -494,7 +494,7 @@ void ViWin_rewriteOnHorizonVisualMode(ViWin* self, Vi* nvi)
 
 void ViWin_inputHorizonVisualMode(ViWin* self, Vi* nvi)
 {
-    var key = self.getKey(false);
+    auto key = self.getKey(false);
 
     switch(key) {
         case 'l':
@@ -618,9 +618,9 @@ void Vi_enterHorizonVisualMode(Vi* self)
 
 Vi*% Vi_initialize(Vi*% self)  version 15
 {
-    var result = inherit(self);
+    auto result = inherit(self);
 
-    result.events.replace('v', lambda(Vi* self, int key) 
+    result.events.replace('v', void lambda(Vi* self, int key) 
     {
         self.enterHorizonVisualMode();
         self.activeWin.saveInputedKey();

@@ -9,7 +9,7 @@
 
 ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi)  version 5
 {
-    var result = inherit(self, y, x, width, height, vi);
+    auto result = inherit(self, y, x, width, height, vi);
 
     result.visualModeHead = 0;
 
@@ -30,7 +30,7 @@ void ViWin_visualModeView(ViWin* self, Vi* nvi)
     int it2 = 0;
     foreach(it, self.texts.sublist(self.scroll, self.scroll+maxy-1))
     {
-        var line = it.substring(0, maxx-1);
+        auto line = it.substring(0, maxx-1);
 
         if(it2 >= (self.visualModeHead-self.scroll) 
             && it2 <= self.cursorY) 
@@ -106,7 +106,7 @@ void ViWin_indentVisualMode(ViWin* self, Vi* nvi)
     
     int it2 = 0;
     foreach(it, self.texts.sublist(head, tail+1)) {
-        var new_line = borrow xsprintf("%ls%ls"
+        auto new_line = borrow xsprintf("%ls%ls"
                     , wstring("    ")
                     , it).to_wstring();
 
@@ -132,7 +132,7 @@ void ViWin_backIndentVisualMode(ViWin* self, Vi* nvi)
 
     int it2 = 0;
     foreach(it, self.texts.sublist(head, tail+1)) {
-        var new_line = borrow clone it;
+        auto new_line = borrow clone it;
 
         if(new_line.index(wstring("    "), -1) == 0) {
             for(int i=0; i<4; i++) {
@@ -163,7 +163,7 @@ void ViWin_changeCaseVisualMode(ViWin* self, Vi* nvi)
 
     int it2 = 0;
     foreach(it, self.texts.sublist(head, tail+1)) {
-        var new_line = borrow clone it;
+        auto new_line = borrow clone it;
         
         for(int i=0; i<new_line.length(); i++) {
             wchar_t c = new_line[i];
@@ -207,7 +207,7 @@ void ViWin_joinVisualMode(ViWin* self, Vi* nvi)
 
     len++;
 
-    var new_line = borrow new wchar_t[len];
+    auto new_line = borrow new wchar_t[len];
 
     new_line[0] = 0;
 
@@ -287,9 +287,9 @@ void ViWin_equalVisualMode(ViWin* self, Vi* nvi)
                 break;
             }
         }
-        var new_line = it.substring(i, -1);
+        auto new_line = it.substring(i, -1);
 
-        var head_str = new buffer.initialize();
+        auto head_str = new buffer.initialize();
         int indent2 = indent;
         if(brace_begin) {
             indent2--;
@@ -298,7 +298,7 @@ void ViWin_equalVisualMode(ViWin* self, Vi* nvi)
             head_str.append_str("    ");
         }
         
-        var new_line2 = borrow xsprintf("%ls%ls"
+        auto new_line2 = borrow xsprintf("%ls%ls"
                     , head_str.to_string().to_wstring()
                     , new_line).to_wstring();
         
@@ -324,7 +324,7 @@ void ViWin_rewriteVisualMode(ViWin* self, Vi* nvi)
 {
     self.pushUndo();
     
-    var key = self.getKey(false);
+    auto key = self.getKey(false);
 
     int head = self.visualModeHead;
     int tail = self.scroll+self.cursorY;
@@ -343,13 +343,13 @@ void ViWin_rewriteVisualMode(ViWin* self, Vi* nvi)
         
         wchar_t c = key;
 
-        var buf = new buffer.initialize();
+        auto buf = new buffer.initialize();
 
         for(int i=0; i<len; i++) {
             buf.append_str(xsprintf("%lc", c));
         }
 
-        var new_line = borrow buf.to_string().to_wstring();
+        auto new_line = borrow buf.to_string().to_wstring();
 
         self.texts.replace(it2+head, new_line);
         it2++;
@@ -413,7 +413,7 @@ void ViWin_makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 1
 
 void ViWin_inputVisualMode(ViWin* self, Vi* nvi)
 {
-    var key = self.getKey(false);
+    auto key = self.getKey(false);
 
     switch(key) {
         case KEY_RIGHT:
@@ -558,9 +558,9 @@ void ViWin_gotoBraceEnd(ViWin* self, Vi* nvi) version 1
 
 Vi*% Vi_initialize(Vi*% self) version 8
 {
-    var result = inherit(self);
+    auto result = inherit(self);
 
-    result.events.replace('V', lambda(Vi* self, int key) 
+    result.events.replace('V', void lambda(Vi* self, int key) 
     {
         self.enterVisualMode();
         self.activeWin.saveInputedKey();

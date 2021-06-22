@@ -23,7 +23,7 @@ bool xiswdigit(wchar_t c)
 
 int xgetmaxx()
 {
-    var ws = new winsize;
+    auto ws = new winsize;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, ws);
     
     int result = ws.ws_col;
@@ -38,7 +38,7 @@ int xgetmaxx()
 
 int xgetmaxy()
 {
-    var ws = new winsize;
+    auto ws = new winsize;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, ws);
     
     int result = ws.ws_row;
@@ -304,7 +304,7 @@ wstring char_to_wstring(char* str)
 
 regex_struct*% regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy)
 {
-    var result = new regex_struct;
+    auto result = new regex_struct;
 
     const char* err;
     int erro_ofs;
@@ -371,7 +371,7 @@ bool char_match(char* self, regex_struct* reg, list<string>?* group_strings)
         else if(regex_result > 1) {
             group_strings.reset();
             for(int i = 1; i<regex_result; i++) {
-                var match_string = borrow self.substring(start[i], end[i]);
+                auto match_string = borrow self.substring(start[i], end[i]);
                 group_strings.push_back(match_string);
             }
 
@@ -404,7 +404,7 @@ string char_sub(char* self, regex_struct* reg, char* replace, list<string>?* gro
 
     pcre* re = reg.re;
 
-    var result = new buffer.initialize();
+    auto result = new buffer.initialize();
 
     while(true) {
         int options = PCRE_NEWLINE_LF;
@@ -457,7 +457,7 @@ string char_sub(char* self, regex_struct* reg, char* replace, list<string>?* gro
             }
 
             for(int i = 1; i<regex_result; i++) {
-                var match_string = borrow self.substring(start[i], end[i]);
+                auto match_string = borrow self.substring(start[i], end[i]);
                 group_strings.push_back(match_string);
             }
 
@@ -481,7 +481,7 @@ string char_sub(char* self, regex_struct* reg, char* replace, list<string>?* gro
 
 list<string>*% char_scan(char* self, regex_struct* reg)
 {
-    var result = new list<string>.initialize();
+    auto result = new list<string>.initialize();
 
     int offset = 0;
 
@@ -513,7 +513,7 @@ list<string>*% char_scan(char* self, regex_struct* reg)
         /// match and no group strings ///
         if(regex_result == 1)
         {
-            var str = borrow self.substring(start[0], end[0]);
+            auto str = borrow self.substring(start[0], end[0]);
             result.push_back(str);
 
             if(offset == end[0]) {
@@ -525,7 +525,7 @@ list<string>*% char_scan(char* self, regex_struct* reg)
         }
         /// group strings ///
         else if(regex_result > 1) {
-            var str = borrow self.substring(start[0], end[0]);
+            auto str = borrow self.substring(start[0], end[0]);
             result.push_back(str);
 
             if(offset == end[0]) {
@@ -536,7 +536,7 @@ list<string>*% char_scan(char* self, regex_struct* reg)
             }
 
             for(int i= 1; i<regex_result; i++) {
-                var match_string = borrow self.substring(start[i], end[i]);
+                auto match_string = borrow self.substring(start[i], end[i]);
                 result.push_back(match_string);
             }
         }
@@ -649,7 +649,7 @@ int main(int argc, char** argv)
         }
     }
 
-    var vi = new Vi.initialize();
+    auto vi = new Vi.initialize();
     
     if(num_file_names > 0) {
         vi.openFile(file_names[0], line_num);

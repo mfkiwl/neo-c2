@@ -9,7 +9,7 @@
 
 void ViWin_forwardWord(ViWin* self) 
 {
-    var line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+    auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
     wchar_t* p = line + self.cursorX;
 
@@ -205,7 +205,7 @@ void ViWin_forwardWord(ViWin* self)
 
 void ViWin_forwardWord2(ViWin* self) 
 {
-    var line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+    auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
     wchar_t* p = line + self.cursorX;
 
@@ -369,7 +369,7 @@ void ViWin_forwardWord2(ViWin* self)
 
 void ViWin_backwardWord(ViWin* self) version 2
 {
-    var line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+    auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
     wchar_t* p = line + self.cursorX;
 
@@ -581,9 +581,9 @@ void ViWin_backwardWord(ViWin* self) version 2
 
 Vi*% Vi_initialize(Vi*% self) version 4
 {
-    var result = inherit(self);
+    auto result = inherit(self);
 
-    result.events.replace('w', lambda(Vi* self, int key) 
+    result.events.replace('w', void lambda(Vi* self, int key) 
     {
         if(self.activeWin.digitInput > 0) {
             for(int i=0; i<self.activeWin.digitInput+1; i++) {
@@ -597,7 +597,7 @@ Vi*% Vi_initialize(Vi*% self) version 4
         
         self.activeWin.saveInputedKeyOnTheMovingCursor();
     });
-    result.events.replace('e', lambda(Vi* self, int key) 
+    result.events.replace('e', void lambda(Vi* self, int key) 
     {
         if(self.activeWin.digitInput > 0) {
             for(int i=0; i<self.activeWin.digitInput+1; i++) {
@@ -611,7 +611,7 @@ Vi*% Vi_initialize(Vi*% self) version 4
         
         self.activeWin.saveInputedKeyOnTheMovingCursor();
     });
-    result.events.replace('b', lambda(Vi* self, int key) 
+    result.events.replace('b', void lambda(Vi* self, int key) 
     {
         if(self.activeWin.digitInput > 0) {
             for(int i=0; i<self.activeWin.digitInput+1; i++) {

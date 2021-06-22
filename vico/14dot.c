@@ -59,7 +59,7 @@ void mreset_tty()
 
 ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 7
 {
-    var result = inherit(self, y, x, width, height, vi);
+    auto result = inherit(self, y, x, width, height, vi);
 
     result.inputedKeys = borrow new vector<int>.initialize();
     result.autoInput = false;
@@ -156,7 +156,7 @@ int ViWin_getKey(ViWin* self, bool head) version 2
             self.runningMacroIndex2 = 0;
         }
         else {
-            var inputed_key_vec = self.runningMacro.item(self.runningMacroIndex1, null);
+            auto inputed_key_vec = self.runningMacro.item(self.runningMacroIndex1, null);
             
             if(self.runningMacroIndex2 < inputed_key_vec.length())
             {
@@ -330,7 +330,7 @@ void ViWin_recordMacro(ViWin* self)
         self.recordingMacro = borrow new vector<vector<int>*%>.initialize();
     }
     else {
-        var macro_ = borrow clone self.recordingMacro;
+        auto macro_ = borrow clone self.recordingMacro;
         self.macro.insert(self.recordingMacroKey, macro_);
         
         self.recordingMacroKey = -1;
@@ -342,7 +342,7 @@ void ViWin_runMacro(ViWin* self)
 {
     int key = self.getKey(false);
     
-    var macro_ = self.macro.at(key, null);
+    auto macro_ = self.macro.at(key, null);
     
     if(macro_) {
         self.runningMacro = borrow clone macro_;
@@ -353,19 +353,19 @@ void ViWin_runMacro(ViWin* self)
 
 Vi*% Vi_initialize(Vi*% self) version 13
 {
-    var result = inherit(self);
+    auto result = inherit(self);
     
-    result.events.replace('.', lambda(Vi* self, int key) 
+    result.events.replace('.', void lambda(Vi* self, int key) 
     {
         self.activeWin.autoInput = true;
         self.activeWin.pressedDot = true;
     });
 
-    result.events.replace('q', lambda(Vi* self, int key) 
+    result.events.replace('q', void lambda(Vi* self, int key) 
     {
         self.activeWin.recordMacro();
     });
-    result.events.replace('@', lambda(Vi* self, int key) 
+    result.events.replace('@', void lambda(Vi* self, int key) 
     {
         self.activeWin.runMacro();
     });

@@ -13,7 +13,7 @@ int main()
 {
     puts(xsprintf("%d", 1+1));
 
-    var v = new vector<char*>.initialize();
+    auto v = new vector<char*>.initialize();
 
     v.push_back("AAA");
     v.push_back("BBB");
@@ -23,19 +23,19 @@ int main()
         puts(it);
     }
 
-    var m = new map<char*,int>.initialize();
+    auto m = new map<char*,int>.initialize();
 
     m.insert("AAA", 1);
     m.insert("BBB", 2);
     m.insert("CCC", 3);
 
     foreach(key, m) {
-        var item = m.at(key, -1);
+        auto item = m.at(key, -1);
 
         printf("%s %d\n", key, item);
     }
 
-    var str = string("ABC");
+    auto str = string("ABC");
 
     puts(str.substring(0,1));
 
@@ -117,11 +117,11 @@ puts(str);
 ```
 
 char* strとするとnew char[123]の結果は右辺値と判断されて代入される前にfreeされるので注意してください。
-char*%と書くのがめんどくさい場合はvarを使ってください。右辺値の型が型推論されて宣言されます。
+char*%と書くのがめんどくさい場合はautoを使ってください。右辺値の型が型推論されて宣言されます。
 
 
 ```
-var str = new char[123];
+auto str = new char[123];
 
 strncpy(str, "ABC", 123);
 
@@ -145,16 +145,16 @@ borrowをつけると右辺値の自動freeの対象から外されて、右辺�
 型名に%をつけた変数同士の代入は所有権の移動が起こります。
 
 ```
-    var a = new char[128];
-    var b = a;
+    auto a = new char[128];
+    auto b = a;
 ```
 
-freeされるのはbです。aはvar b以降使えなくなります。これを防ぐにはnomoveを使ってください。
+freeされるのはbです。aはauto b以降使えなくなります。これを防ぐにはnomoveを使ってください。
 
 
 ```
-    var a = new char[128];
-    var b = nomove a;
+    auto a = new char[128];
+    auto b = nomove a;
 ```
 
 freeされるのはaです。
@@ -169,7 +169,7 @@ char* fun()
 
 int main()
 {
-    var a = nomove fun();
+    auto a = nomove fun();
     return 0;
 }
 ```
@@ -373,7 +373,7 @@ void sData_finalize(sData* self)
 
 int main(int argc, char** argv)
 {
-    var d = new sData.initialize();
+    auto d = new sData.initialize();
 
     printf("%s %s\n", d.value1, d.value2);
 
@@ -402,11 +402,11 @@ sData*% sData_initialize(sData*% self)
 
 int main(int argc, char** argv)
 {
-    var d = new sData.initialize();
+    auto d = new sData.initialize();
 
     printf("%d %d\n", d.value1, d.value2);
 
-    var e = clone d;
+    auto e = clone d;
 
     printf("%d %d\n", e.value2, e.value2);
 
@@ -435,7 +435,7 @@ sData*% sData_initialize(sData*% self)
 
 sData*% sData_clone(sData* self)
 {
-    var result = new sData;
+    auto result = new sData;
 
     result.value1 = clone self.value1;
     result.value2 = clone self.value2;
@@ -451,11 +451,11 @@ void sData_finalize(sData* self)
 
 int main(int argc, char** argv)
 {
-    var d = new sData.initialize();
+    auto d = new sData.initialize();
 
     printf("%s %s\n", d.value1, d.value2);
 
-    var e = clone d;
+    auto e = clone d;
 
     printf("%s %s\n", e.value1, e.value2);
 
@@ -511,8 +511,8 @@ impl vector<T>
         managed item;
 
         if(self.len == self.size) {
-            var new_size = self.size * 2;
-            var items = self.items;
+            auto new_size = self.size * 2;
+            auto items = self.items;
 
             self.items = calloc(1, sizeof(T)*new_size);
 
@@ -618,7 +618,7 @@ impl vector<T>
     }
 
     list<T>*% to_list(vector<T>* self) {
-        var result = new vector<T>.initialize();
+        auto result = new vector<T>.initialize();
         
         foreach(it, self) {
             if(isheap(T)) {
@@ -633,7 +633,7 @@ impl vector<T>
     }
 }
 
-#define foreach(o1, o2) for(var _obj = nomove (o2), var o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
+#define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 ```
 
 型名の&はジェネリクスの型名から%を消すものです。Tに%がついていてもポインタとして処理されます。managedは%がつけられた変数から%を取り除きます。
@@ -641,7 +641,7 @@ impl vector<T>
 使い方は以下です。
 
 ```
-var v = new vector<int>.initialize();
+auto v = new vector<int>.initialize();
 
 v.push_back(1);
 v.push_back(2);
@@ -694,13 +694,13 @@ impl list <T>
             if(isheap(T)) {
                 delete it.item;
             }
-            var prev_it = it;
+            auto prev_it = it;
             it = it.next;
             delete prev_it;
         }
     }
     list<T>*% clone(list<T>* self) {
-        var result = new list<T>.initialize();
+        auto result = new list<T>.initialize();
 
         list_item<T>* it = self.head;
         while(it != null) {
@@ -766,7 +766,7 @@ impl list <T>
         }
 
         list_item<T>* it = self.head;
-        var i = 0;
+        auto i = 0;
         while(it != null) {
             if(position == i) {
                 return it.item;
@@ -807,7 +807,7 @@ impl list <T>
             self.len++;
         }
         else if(self.len == 1) {
-            var litem = borrow new list_item<T>;
+            auto litem = borrow new list_item<T>;
 
             litem.prev = self.head;
             litem.next = self.tail;
@@ -820,7 +820,7 @@ impl list <T>
         }
         else {
             list_item<T>* it = self.head;
-            var i = 0;
+            auto i = 0;
             while(it != null) {
                 if(position == i) {
                     list_item<T>* litem = borrow new list_item<T>;
@@ -847,7 +847,7 @@ impl list <T>
             if(isheap(T)) {
                 delete it.item;
             }
-            var prev_it = it;
+            auto prev_it = it;
             it = it.next;
             delete prev_it;
         }
@@ -891,7 +891,7 @@ impl list <T>
         }
         else if(head == 0) {
             list_item<T>* it = self.head;
-            var i = 0;
+            auto i = 0;
             while(it != null) {
                 if(i < tail) {
                     if(isheap(T)) {
@@ -919,7 +919,7 @@ impl list <T>
         }
         else if(tail == self.len) {
             list_item<T>* it = self.head;
-            var i = 0;
+            auto i = 0;
             while(it != null) {
                 if(i == head) {
                     self.tail = it.prev;
@@ -952,7 +952,7 @@ impl list <T>
             list_item<T>* tail_it = null;
 
 
-            var i = 0;
+            auto i = 0;
             while(it != null) {
                 if(i == head) {
                     head_prev_it = it.prev;
@@ -999,7 +999,7 @@ impl list <T>
         }
 
         list_item<T>* it = self.head;
-        var i = 0;
+        auto i = 0;
         while(it != null) {
             if(position == i) {
                 if(isheap(T)) {
@@ -1046,7 +1046,7 @@ impl list <T>
         }
 
         list_item<T>* it = self.head;
-        var i = 0;
+        auto i = 0;
         while(it != null) {
             if(i >= begin && i < tail) {
                 if(isheap(T)) {
@@ -1081,7 +1081,7 @@ impl list <T>
     }
 
     list<T>*% merge_list(list<T>* left, list<T>* right, int (*compare)(T&,T&)) {
-        var result = new list<T>.initialize();
+        auto result = new list<T>.initialize();
 
         list_item<T>*? it = left.head;
         list_item<T>*? it2= right.head;
@@ -1160,8 +1160,8 @@ impl list <T>
             return clone self;
         }
 
-        var list1 = new list<T>.initialize();
-        var list2 = new list<T>.initialize();
+        auto list1 = new list<T>.initialize();
+        auto list2 = new list<T>.initialize();
 
         list_item<T>* it = self.head;
 
@@ -1284,7 +1284,7 @@ impl list <T>
 使い方はvectorとほぼ同じです。
 
 ```
-var l = new list<int>.initialize();
+auto l = new list<int>.initialize();
 
 l.push_back(1);
 l.push_back(2);
@@ -1318,13 +1318,13 @@ int int_compare(int left, int right) {
 
 int main(int argc, char** argv)
 {
-    var l = new list<int>.initialize();
+    auto l = new list<int>.initialize();
 
     l.push_back(7);
     l.push_back(1);
     l.push_back(2);
 
-    var l2 = l.sort(int_compare);
+    auto l2 = l.sort(int_compare);
 
     if(l2.item(0, -1) == 1 && l2.item(1, -1) == 2 && l2.item(2, -1) == 7) {
         puts("OK");
@@ -1523,10 +1523,10 @@ impl map <T, T2>
 
     map<T, T2>*% clone(map<T, T2>* self)
     {
-        var result = new map<T,T2>.initialize();
+        auto result = new map<T,T2>.initialize();
 
         foreach(it, self) {
-            var it2 = self.at(it, NULL);
+            auto it2 = self.at(it, NULL);
 
             if(isheap(T)) {
                 if(isheap(T2)) {
@@ -1620,7 +1620,7 @@ impl map <T, T2>
 使い方は
 
 ```
-var m = new map<char*, int>.initialize();
+auto m = new map<char*, int>.initialize();
 
 m.insert("AAA", 1);
 m.insert("BBB", 2);
@@ -1820,9 +1820,9 @@ Collectionに追加された要素は全てコレクション側でメモリの�
 
 
 ```
-var l = new list<string>.initialzie();
+auto l = new list<string>.initialzie();
 
-var str = string("ABC");
+auto str = string("ABC");
 
 managed str;
 
@@ -1834,22 +1834,22 @@ managed strとされるとstrは変数テーブルで管理されるヒープで
 もしくは
 
 ```
-var l = new list<tring>.initialize();
+auto l = new list<tring>.initialize();
 
-var str = borrow string("ABC");
+auto str = borrow string("ABC");
 
 l.push_back(str);
 ```
 
 としてもいいでしょう。borrowはヒープの%マークを消します。strは単なるchar*として扱われます。
-どちらの場合もvar lがfreeされるときにstrは一緒にfreeされます。
+どちらの場合もauto lがfreeされるときにstrは一緒にfreeされます。
 
 もう一つの方法としては変数テーブルの変数をcloneすることです。２つのヒープが生成されるため、一つは変数テーブルでfreeされて、もう一つはCollectionの中でfreeされます。
 
 ```
-var l = new list<string>.initialize();
+auto l = new list<string>.initialize();
 
-var str = string("ABC");
+auto str = string("ABC");
 
 l.push_back(clone str);
 ```
@@ -1861,7 +1861,7 @@ l.push_back(clone str);
 6. lambda
 
 ```
-var fun = lambda(int x, int y):int { return x + y; }
+auto fun = int lambda(int x, int y) { return x + y; }
 
 if(fun(1, 2) == 3) {
     puts("OK");
@@ -1871,9 +1871,9 @@ if(fun(1, 2) == 3) {
 lambdaは親のスタックの変数にはアクセスできません。
 
 ```
-var a = 1;
+auto a = 1;
 
-var fun = lambda(int x, int y):int { return x + y + a; }
+auto fun = lambda(int x, int y):int { return x + y + a; }
 ```
 
 上記のコードはコンパイルエラーとなります。

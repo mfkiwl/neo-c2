@@ -6,7 +6,7 @@
 
 ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 4
 {
-    var result = inherit(self, y, x, width, height, vi);
+    auto result = inherit(self, y, x, width, height, vi);
 
     strncpy(result.fileName, "a.txt", PATH_MAX);
 
@@ -39,7 +39,7 @@ void ViWin_saveCursorPosition(ViWin* self, char* file_name)
     
     (void)mkdir(file_name2, 0755);
     
-    var bname = xbasename(file_name);  
+    auto bname = xbasename(file_name);  
 
     snprintf(file_name2, PATH_MAX, "%s/.wi/%s.pos", home, bname);
     
@@ -66,7 +66,7 @@ void ViWin_readCursorPosition(ViWin* self, char* file_name)
     
     char file_name2[PATH_MAX];
     
-    var bname = xbasename(file_name); 
+    auto bname = xbasename(file_name); 
     snprintf(file_name2, PATH_MAX, "%s/.wi/%s.pos", home, bname);
     
     FILE* f = fopen(file_name2, "r");
@@ -209,7 +209,7 @@ void Vi_openNewFile(Vi* self, char* file_name)
 
     int height = maxy / (self.wins.length() + 1);
 
-    var win = borrow new ViWin.initialize(0,0, maxx-1, height, self);
+    auto win = borrow new ViWin.initialize(0,0, maxx-1, height, self);
     
     win.openFile(file_name, -1);
 
@@ -275,11 +275,11 @@ void Vi_prevWin(Vi* self) {
 
 Vi*% Vi_initialize(Vi*% self) version 6
 {
-    var result = inherit(self);
+    auto result = inherit(self);
 
-    result.events.replace('W'-'A'+1, lambda(Vi* self, int key) 
+    result.events.replace('W'-'A'+1, void lambda(Vi* self, int key) 
     {
-        var key2 = self.activeWin.getKey(false);
+        auto key2 = self.activeWin.getKey(false);
 
         switch(key2) {
             case 'W'-'A'+1:
@@ -312,7 +312,7 @@ void Vi_repositionWindows(Vi* self) version 2
         it.y = height * it2;
 
         delwin(it.win);
-        var win = newwin(it.height, it.width, it.y, it.x);
+        auto win = newwin(it.height, it.width, it.y, it.x);
         keypad(win, true);
         it.win = win;
 
@@ -386,16 +386,16 @@ string Vi_readLastOpenFile(Vi* self)
 void Vi_openFile(Vi* self, char* file_name, int line_num) version 2
 {
     if(file_name == null) {
-        var file_name = self.readLastOpenFile();
+        auto file_name = self.readLastOpenFile();
         
         if(access(file_name, R_OK) == 0) {
             int active_pos = self.wins.find(self.activeWin, -1);
             self.wins.delete(active_pos, active_pos+1);
     
-            var maxx = xgetmaxx();
-            var maxy = xgetmaxy();
+            auto maxx = xgetmaxx();
+            auto maxy = xgetmaxy();
             
-            var win = borrow new ViWin.initialize(0,0, maxx-1, maxy, self);
+            auto win = borrow new ViWin.initialize(0,0, maxx-1, maxy, self);
     
             self.activeWin = win;
             self.wins.push_back(win);
@@ -410,10 +410,10 @@ void Vi_openFile(Vi* self, char* file_name, int line_num) version 2
             int active_pos = self.wins.find(self.activeWin, -1);
             self.wins.delete(active_pos, active_pos+1);
     
-            var maxx = xgetmaxx();
-            var maxy = xgetmaxy();
+            auto maxx = xgetmaxx();
+            auto maxy = xgetmaxy();
             
-            var win = borrow new ViWin.initialize(0,0, maxx-1, maxy, self);
+            auto win = borrow new ViWin.initialize(0,0, maxx-1, maxy, self);
     
             self.activeWin = win;
             self.wins.push_back(win);

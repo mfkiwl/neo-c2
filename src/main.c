@@ -19,7 +19,7 @@ static void compiler_final(char* sname)
     parser_final();
 }
 
-static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BOOL neo_c_header)
+static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BOOL neo_c_header, char* macro_definition)
 {
     if(access(fname, F_OK) != 0) {
         fprintf(stderr, "%s doesn't exist\n", fname);
@@ -39,17 +39,17 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     char cmd[1024];
 #ifdef __DARWIN__
     if(cflags) {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I . %s -U__GNUC__ -C %s > %s", cflags, fname, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I . %s -U__GNUC__ -C %s %s > %s", cflags, fname, macro_definition, fname2);
     }
     else {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clang-cpp -I . -U__GNUC__ -C %s > %s", fname, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clang-cpp -I . -U__GNUC__ -C %s %s > %s", fname, macro_definition, fname2);
     }
 #else
     if(cflags) {
-        snprintf(cmd, 1024, "cpp -I . %s -U__GNUC__ -C %s > %s", cflags, fname, fname2);
+        snprintf(cmd, 1024, "cpp -I . %s -U__GNUC__ -C %s %s > %s", cflags, fname, macro_definition, fname2);
     }
     else {
-        snprintf(cmd, 1024, "cpp -I . -U__GNUC__ -C %s > %s", fname, fname2);
+        snprintf(cmd, 1024, "cpp -I . -U__GNUC__ -C %s %s > %s", fname, macro_definition, fname2);
     }
 #endif
 
@@ -58,9 +58,9 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     if(rc != 0) {
         char cmd[1024];
         if(cflags) {
-            snprintf(cmd, 1024, "cpp -I . %s -C %s > %s", cflags, fname, fname2);
+            snprintf(cmd, 1024, "cpp -I . %s -C %s %s > %s", cflags, fname, macro_definition, fname2);
         } else {
-            snprintf(cmd, 1024, "cpp -I . -C %s > %s", fname, fname2);
+            snprintf(cmd, 1024, "cpp -I . -C %s %s > %s", fname, macro_definition, fname2);
         }
 
         puts(cmd);
@@ -112,6 +112,9 @@ int main(int argc, char** argv)
     const int max_c_include_path = 1024*2*2*2;
     char c_include_path[max_c_include_path];
     snprintf(c_include_path, max_c_include_path, "%s/include/", PREFIX);
+    char macro_definition[max_c_include_path];
+
+    macro_definition[0] = '\0';
 
     int i;
     for(i=1; i<argc; i++) {
@@ -137,6 +140,12 @@ int main(int argc, char** argv)
                 i++;
             }
         }
+        else if(argv[i][0] == '-' && argv[i][1] == 'D') 
+        {
+            xstrncat(macro_definition, argv[i], max_c_include_path);
+            xstrncat(macro_definition, " ", max_c_include_path);
+            i++;
+        }
         else if(*argv[i] != '-' && sname[0] == '\0') {
             xstrncpy(sname, argv[i], PATH_MAX);
         }
@@ -151,7 +160,7 @@ int main(int argc, char** argv)
     gModuleVarTable = init_var_table();
 
     BOOL optimize = TRUE;
-    if(!compiler(sname, optimize, gModuleVarTable, FALSE))
+    if(!compiler(sname, optimize, gModuleVarTable, FALSE, macro_definition))
     {
         fprintf(stderr, "come can't compile(2) %s\n", sname);
         compiler_final(sname);

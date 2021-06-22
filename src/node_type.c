@@ -471,6 +471,10 @@ BOOL substitution_posibility(sNodeType* left_type, sNodeType* right_type, sCompi
         {
             return TRUE;
         }
+        else if((left_type->mPointerNum-1 == right_type->mPointerNum) && right_type->mDynamicArrayNum != 0)
+        {
+            return TRUE;
+        }
         else if(left_type->mPointerNum == right_type->mPointerNum) 
         {
             return TRUE;

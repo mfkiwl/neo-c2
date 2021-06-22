@@ -14,7 +14,7 @@ void ViWin_toggleBraceForward(ViWin* self, wchar_t head, wchar_t tail)
 
     int nest = 0;
 
-    var line = self.texts.item(cursor_y, null);
+    auto line = self.texts.item(cursor_y, null);
 
     wchar_t* p = line + self.cursorX+1;
 
@@ -86,7 +86,7 @@ void ViWin_toggleBraceBack(ViWin* self, wchar_t head, wchar_t tail)
 
     int nest = 0;
 
-    var line = self.texts.item(cursor_y, null);
+    auto line = self.texts.item(cursor_y, null);
 
     wchar_t* p = line + self.cursorX-1;
 
@@ -222,9 +222,9 @@ void ViWin_toggleCommentBackward(ViWin* self)
 
 void ViWin_gotoBraceEnd(ViWin* self, Vi* nvi) version 2
 {
-    var line = self.texts.item(self.scroll+self.cursorY, null);
+    auto line = self.texts.item(self.scroll+self.cursorY, null);
 
-    var c = line[self.cursorX];
+    auto c = line[self.cursorX];
     wchar_t c1 = 0;
     wchar_t c2 = 0;
     if(self.cursorX - 1 >= 0) {
@@ -349,15 +349,15 @@ void ViWin_gotoFunctionBottom(ViWin* self, Vi* nvi)
 
 Vi*% Vi_initialize(Vi*% self) version 11
 {
-    var result = inherit(self);
+    auto result = inherit(self);
 
-    result.events.replace('%', lambda(Vi* self, int key) {
+    result.events.replace('%', void lambda(Vi* self, int key) {
         self.activeWin.gotoBraceEnd(self);
         self.activeWin.saveInputedKeyOnTheMovingCursor();
     });
 
-    result.events.replace('[', lambda(Vi* self, int key) {
-        var key2 = self.activeWin.getKey(false);
+    result.events.replace('[', void lambda(Vi* self, int key) {
+        auto key2 = self.activeWin.getKey(false);
 
         switch(key2) {
             case '[':
@@ -368,8 +368,8 @@ Vi*% Vi_initialize(Vi*% self) version 11
         }
     });
 
-    result.events.replace(']', lambda(Vi* self, int key) {
-        var key2 = self.activeWin.getKey(false);
+    result.events.replace(']', void lambda(Vi* self, int key) {
+        auto key2 = self.activeWin.getKey(false);
 
         switch(key2) {
             case ']':

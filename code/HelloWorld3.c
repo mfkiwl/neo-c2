@@ -22,7 +22,7 @@ int main()
 {
     xassert("xaasert test", true);
 
-    var a = xsprintf("AAA");
+    auto a = xsprintf("AAA");
 
     xassert("xsprintf test", strcmp(xsprintf("AAA"), "AAA") == 0);
     xassert("xsprintf test", strcmp(xsprintf("%d%d", 1, 1), "11") == 0);
@@ -111,7 +111,7 @@ int main()
 
     xassert("tuple test", t.v1 == 123 && t.v2 == "ABC");
 
-    var lx = new list<int>.initialize();
+    auto lx = new list<int>.initialize();
 
     lx.push_back(1);
     lx.push_back(2);
@@ -120,7 +120,7 @@ int main()
     
     foreach(it, lx.sublist(1,3)) {
         int a = 1;
-        var str = string("AAA");
+        auto str = string("AAA");
         printf("%d\n", it);
     }
 

@@ -45,7 +45,7 @@ void ViWin_search(ViWin* self, Vi* nvi)
         return;
     }
     
-    var cursor_line = self.texts.item(self.scroll+self.cursorY, null);
+    auto cursor_line = self.texts.item(self.scroll+self.cursorY, null);
 
     int x = cursor_line.substring(self.cursorX+1, -1).index(nvi.searchString, -1);
 
@@ -97,7 +97,7 @@ void ViWin_searchReverse(ViWin* self, Vi* nvi)
         return;
     }
     
-    var cursor_line = self.texts.item(self.scroll+self.cursorY, null);
+    auto cursor_line = self.texts.item(self.scroll+self.cursorY, null);
 
     int x;
     if(self.cursorX < nvi.searchString.length())
@@ -150,7 +150,7 @@ void ViWin_searchReverse(ViWin* self, Vi* nvi)
 
 void ViWin_searchWordOnCursor(ViWin* self, Vi* nvi)
 {
-    var line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+    auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
     if(self.cursorX < line.length()) {
         int cursor_x_before = self.cursorX;
@@ -185,7 +185,7 @@ void ViWin_searchWordOnCursor(ViWin* self, Vi* nvi)
             }
         }
 
-        var search_word = line.substring(word_head, self.cursorX);
+        auto search_word = line.substring(word_head, self.cursorX);
         wcsncpy(nvi.searchString, search_word, 128);
         
         self.cursorX = cursor_x_before;
@@ -197,7 +197,7 @@ void ViWin_searchWordOnCursor(ViWin* self, Vi* nvi)
 
 void ViWin_searchWordOnCursorReverse(ViWin* self, Vi* nvi)
 {
-    var line = self.texts.item(self.scroll+self.cursorY, wstring(""));
+    auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
     if(self.cursorX < line.length()) {
         int cursor_x_before = self.cursorX;
@@ -232,7 +232,7 @@ void ViWin_searchWordOnCursorReverse(ViWin* self, Vi* nvi)
             }
         }
 
-        var search_word = line.substring(word_head, self.cursorX);
+        auto search_word = line.substring(word_head, self.cursorX);
         wcsncpy(nvi.searchString, search_word, 128);
         
         self.cursorX = cursor_x_before;
@@ -243,7 +243,7 @@ void ViWin_searchWordOnCursorReverse(ViWin* self, Vi* nvi)
 
 void ViWin_inputSearchlMode(ViWin* self, Vi* nvi)
 {
-    var key = self.getKey(false);
+    auto key = self.getKey(false);
     
     switch(key) {
         case 27:
@@ -386,23 +386,23 @@ void Vi_exitFromSearchMode(Vi* self)
 
 Vi*% Vi_initialize(Vi*% self) version 9
 {
-    var result = inherit(self);
+    auto result = inherit(self);
     
     result.readSearchString("searchString.vico");
 
-    result.events.replace('/', lambda(Vi* self, int key) 
+    result.events.replace('/', void lambda(Vi* self, int key) 
     {
         self.enterSearchMode(false, false);
         self.activeWin.saveInputedKey();
     });
 
-    result.events.replace('?', lambda(Vi* self, int key) 
+    result.events.replace('?', void lambda(Vi* self, int key) 
     {
         self.enterSearchMode(false, true);
         self.activeWin.saveInputedKey();
     });
 
-    result.events.replace('n', lambda(Vi* self, int key) 
+    result.events.replace('n', void lambda(Vi* self, int key) 
     {
         if(self.searchReverse) {
             self.activeWin.searchReverse(self);
@@ -413,7 +413,7 @@ Vi*% Vi_initialize(Vi*% self) version 9
         self.activeWin.saveInputedKeyOnTheMovingCursor();
         self.activeWin.saveInputedKey();
     });
-    result.events.replace('N', lambda(Vi* self, int key) 
+    result.events.replace('N', void lambda(Vi* self, int key) 
     {
         if(self.searchReverse) {
             self.activeWin.search(self);
@@ -424,12 +424,12 @@ Vi*% Vi_initialize(Vi*% self) version 9
         self.activeWin.saveInputedKeyOnTheMovingCursor();
         self.activeWin.saveInputedKey();
     });
-    result.events.replace('*', lambda(Vi* self, int key) 
+    result.events.replace('*', void lambda(Vi* self, int key) 
     {
         self.activeWin.searchWordOnCursor(self);
         self.activeWin.saveInputedKeyOnTheMovingCursor();
     });
-    result.events.replace('#', lambda(Vi* self, int key) 
+    result.events.replace('#', void lambda(Vi* self, int key) 
     {
         self.activeWin.searchWordOnCursorReverse(self);
         self.activeWin.saveInputedKeyOnTheMovingCursor();

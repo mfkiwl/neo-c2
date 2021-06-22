@@ -76,12 +76,12 @@ void ViWin_pasteAfterCursor(ViWin* self, Vi* nvi)
     else {
         self.pushUndo();
 
-        var line = self.texts.item(self.scroll+self.cursorY, null);
+        auto line = self.texts.item(self.scroll+self.cursorY, null);
         
         if(nvi.yank.length() == 1) {
-            var yank_first_line = nvi.yank.item(0, null);
+            auto yank_first_line = nvi.yank.item(0, null);
 
-            var new_line = borrow xsprintf("%ls%ls%ls"
+            auto new_line = borrow xsprintf("%ls%ls%ls"
                             , line.substring(0, self.cursorX+1)
                             , yank_first_line
                             , line.substring(self.cursorX+1, -1)).to_wstring();
@@ -89,30 +89,30 @@ void ViWin_pasteAfterCursor(ViWin* self, Vi* nvi)
             self.texts.replace(self.scroll+self.cursorY, new_line);
         }
         else if(nvi.yank.length() == 2) {
-            var yank_first_line = nvi.yank.item(0, null);
+            auto yank_first_line = nvi.yank.item(0, null);
     
-            var new_line = borrow xsprintf("%ls%ls"
+            auto new_line = borrow xsprintf("%ls%ls"
                                 , line.substring(0, self.cursorX+1)
                                 , yank_first_line).to_wstring();
 
-            var after_line = line.substring(self.cursorX+1, -1);
+            auto after_line = line.substring(self.cursorX+1, -1);
     
             self.texts.replace(self.scroll+self.cursorY, new_line);
             
-            var yank_last_line = nvi.yank.item(-1, null);
+            auto yank_last_line = nvi.yank.item(-1, null);
             
-            var new_line2 = borrow xsprintf("%ls%ls"
+            auto new_line2 = borrow xsprintf("%ls%ls"
                                 , yank_last_line
                                 , after_line).to_wstring();
             self.texts.insert(self.scroll+self.cursorY+1, new_line2);
         }
         else if(nvi.yank.length() > 2) {
-            var yank_first_line = nvi.yank.item(0, null);
+            auto yank_first_line = nvi.yank.item(0, null);
     
-            var new_line = borrow xsprintf("%ls%ls"
+            auto new_line = borrow xsprintf("%ls%ls"
                                     , line.substring(0, self.cursorX+1)
                                     , yank_first_line).to_wstring();
-            var after_line = line.substring(self.cursorX+1, -1);
+            auto after_line = line.substring(self.cursorX+1, -1);
     
             self.texts.replace(self.scroll+self.cursorY, new_line);
 
@@ -122,9 +122,9 @@ void ViWin_pasteAfterCursor(ViWin* self, Vi* nvi)
                 it2++;
             }
             
-            var yank_last_line = nvi.yank.item(-1, null);
+            auto yank_last_line = nvi.yank.item(-1, null);
             
-            var new_line2 = borrow xsprintf("%ls%ls"
+            auto new_line2 = borrow xsprintf("%ls%ls"
                                         , yank_last_line
                                         , after_line).to_wstring();
             self.texts.insert(self.scroll+self.cursorY+nvi.yank.length()-1, new_line2);
@@ -146,12 +146,12 @@ void ViWin_pasteBeforeCursor(ViWin* self, Vi* nvi)
     else {
         self.pushUndo();
 
-        var line = self.texts.item(self.scroll+self.cursorY, null);
+        auto line = self.texts.item(self.scroll+self.cursorY, null);
         
         if(nvi.yank.length() == 1) {
-            var yank_first_line = nvi.yank.item(0, null);
+            auto yank_first_line = nvi.yank.item(0, null);
 
-            var new_line = borrow xsprintf("%ls%ls%ls"
+            auto new_line = borrow xsprintf("%ls%ls%ls"
                                 , line.substring(0, self.cursorX)
                                 , yank_first_line
                                 , line.substring(self.cursorX, -1)).to_wstring();
@@ -159,30 +159,30 @@ void ViWin_pasteBeforeCursor(ViWin* self, Vi* nvi)
             self.texts.replace(self.scroll+self.cursorY, new_line);
         }
         else if(nvi.yank.length() == 2) {
-            var yank_first_line = nvi.yank.item(0, null);
+            auto yank_first_line = nvi.yank.item(0, null);
     
-            var new_line = borrow xsprintf("%ls%ls"
+            auto new_line = borrow xsprintf("%ls%ls"
                                 , line.substring(0, self.cursorX) 
                                 , yank_first_line).to_wstring();
 
-            var after_line = line.substring(self.cursorX, -1);
+            auto after_line = line.substring(self.cursorX, -1);
     
             self.texts.replace(self.scroll+self.cursorY, new_line);
             
-            var yank_last_line = nvi.yank.item(-1, null);
+            auto yank_last_line = nvi.yank.item(-1, null);
             
-            var new_line2 = borrow xsprintf("%ls%ls"
+            auto new_line2 = borrow xsprintf("%ls%ls"
                                 , yank_last_line
                                 , after_line).to_wstring();
             self.texts.insert(self.scroll+self.cursorY+1, new_line2);
         }
         else if(nvi.yank.length() > 2) {
-            var yank_first_line = nvi.yank.item(0, null);
+            auto yank_first_line = nvi.yank.item(0, null);
     
-            var new_line = borrow xsprintf("%ls%ls"
+            auto new_line = borrow xsprintf("%ls%ls"
                                 , line.substring(0, self.cursorX) 
                                 , yank_first_line).to_wstring();
-            var after_line = line.substring(self.cursorX, -1);
+            auto after_line = line.substring(self.cursorX, -1);
     
             self.texts.replace(self.scroll+self.cursorY, new_line);
             int it2 = 0;
@@ -191,9 +191,9 @@ void ViWin_pasteBeforeCursor(ViWin* self, Vi* nvi)
                 it2++;
             }
             
-            var yank_last_line = nvi.yank.item(-1, null);
+            auto yank_last_line = nvi.yank.item(-1, null);
             
-            var new_line2 = borrow xsprintf("%ls%ls"
+            auto new_line2 = borrow xsprintf("%ls%ls"
                                         ,yank_last_line
                                         , after_line).to_wstring();
             self.texts.insert(self.scroll+self.cursorY+nvi.yank.length()-1, new_line2);
@@ -203,19 +203,19 @@ void ViWin_pasteBeforeCursor(ViWin* self, Vi* nvi)
 
 Vi*% Vi_initialize(Vi*% self) version 7
 {
-    var result = inherit(self);
+    auto result = inherit(self);
 
     result.yank = borrow new list<wstring>.initialize();
 
     result.yankKind = 0;
 
-    result.events.replace('p', lambda(Vi* self, int key) 
+    result.events.replace('p', void lambda(Vi* self, int key) 
     {
         self.activeWin.pasteAfterCursor(self);
         self.activeWin.saveInputedKeyOnTheMovingCursor();
     });
 
-    result.events.replace('P', lambda(Vi* self, int key) 
+    result.events.replace('P', void lambda(Vi* self, int key) 
     {
         self.activeWin.pasteBeforeCursor(self);
         self.activeWin.saveInputedKeyOnTheMovingCursor();

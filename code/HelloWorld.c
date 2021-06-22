@@ -418,7 +418,7 @@ int main()
 
     int a = 1 + 1;
 
-    xassert("var test", a == 2);
+    xassert("auto test", a == 2);
 
     xassert("long test", 1L + 1L == 2L);
 
@@ -811,7 +811,7 @@ test_label:
 
     xassert("pointer test", bbibibibibib[0] == 123);
 
-    var lam = lambda(int x, int y):int { return x + y };
+    auto lam = int lambda(int x, int y) { return x + y };
 
     xassert("lambda test", lam(1, 2) == 3);
 

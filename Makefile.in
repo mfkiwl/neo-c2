@@ -29,40 +29,52 @@ OBJS=@OBJS@
 #########################################
 # main
 #########################################
-all: come self-host
+all: come #self-host
 
 come: config.h src/main.o $(OBJS)
-	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
-	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
+#	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
+#	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
 
 self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c
-	./come src/parser.c
-	$(CC) -o src/parser.o src/parser.c.ll
-	./come src/alignment.c
-	$(CC) -o src/alignment.o src/alignment.c.ll
-	./come src/buffer.c
-	$(CC) -o src/buffer.o src/buffer.c.ll
-	./come src/xfunc.c
-	$(CC) -o src/xfunc.o src/xfunc.c.ll
-	./come src/node.c
-	$(CC) -o src/node.o src/node.c.ll
-	./come src/vtable.c
-	$(CC) -o src/vtable.o src/vtable.c.ll
-	./come src/node_type.c
-	$(CC) -o src/node_type.o src/node_type.c.ll
-	./come src/klass.c
-	$(CC) -o src/klass.o src/klass.c.ll
-	./come src/constant.c
-	$(CC) -o src/constant.o src/constant.c.ll
-	./come src/node_block.c
-	$(CC) -o src/node_block.o src/node_block.c.ll
-	./come src/typedef.c
-	$(CC) -o src/typedef.o src/typedef.c.ll
-	./come src/compiler.c
-	$(CC) -o src/compiler.o src/compiler.c.ll
-	./come src/main.c
-	$(CC) -o src/main.o src/main.c.ll
-	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
+#	./come src/parser.c $(CFLAGS)
+#	$(CC) -c -o src/parser.o src/parser.c.ll $(CFLAGS)
+#	./come src/alignment.c $(CFLAGS)
+#	$(CC) -c -o src/alignment.o src/alignment.c.ll $(CFLAGS)
+#
+#	./come src/buffer.c $(CFLAGS)
+#	$(CC) -c -o src/buffer.o src/buffer.c.ll $(CFLAGS)
+#
+#	./come src/xfunc.c $(CFLAGS)
+#	$(CC) -c -o src/xfunc.o src/xfunc.c.ll $(CFLAGS)
+
+	./come src/node.c $(CFLAGS)
+	$(CC) -c -o src/node.o src/node.c.ll $(CFLAGS)
+
+#	./come src/vtable.c $(CFLAGS)
+#	$(CC) -c -o src/vtable.o src/vtable.c.ll $(CFLAGS)
+#
+#	./come src/node_type.c $(CFLAGS)
+#	$(CC) -c -o src/node_type.o src/node_type.c.ll $(CFLAGS)
+#
+#	./come src/klass.c $(CFLAGS)
+#	$(CC) -c -o src/klass.o src/klass.c.ll $(CFLAGS)
+#
+#	./come src/constant.c $(CFLAGS)
+#	$(CC) -c -o src/constant.o src/constant.c.ll $(CFLAGS)
+#
+#	./come src/node_block.c $(CFLAGS)
+#	$(CC) -c -o src/node_block.o src/node_block.c.ll $(CFLAGS)
+#
+#	./come src/typedef.c $(CFLAGS)
+#	$(CC) -c -o src/typedef.o src/typedef.c.ll $(CFLAGS)
+#
+#	./come src/compiler.c $(CFLAGS)
+#	$(CC) -c -o src/compiler.o src/compiler.c.ll $(CFLAGS)
+#
+#	./come src/main.c $(CFLAGS)
+#	$(CC) -c -o src/main.o src/main.c.ll $(CFLAGS)
+#
+#	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
 
 #########################################
 # Object files
