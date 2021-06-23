@@ -1,33 +1,30 @@
 #include <string.h>
 #include <stdio.h>
 
-struct sFunctionStruct {
-    char mParamNames[128][128];
+char* xstrncpy(char* des, char* src, size_t size)
+{
+    char* result;
+
+    result = strncpy(des, src, size-1);
+    des[size-1] = 0;
+
+    return result;
+}
+
+#define PATH_MAX 128
+
+struct sParserInfoStruct
+{
+    char sname[PATH_MAX];
 };
 
-void add_function_to_table(char** param_names)
-{
-    struct sFunctionStruct fun;
-
-    fun.mParamNames[0][0] = 'a';
-    fun.mParamNames[0][1] = '\0';
-
-    puts(fun.mParamNames[0]);
-}
+typedef struct sParserInfoStruct sParserInfo;
 
 int main(int argc, char** argv)
 {
-    char* param_names2[128];
+    sParserInfo info;
 
-    param_names2[0] = "AAA";
-    param_names2[1] = "BBB";
-    param_names2[2] = "CCC";
-
-    puts(param_names2[0]);
-    puts(param_names2[1]);
-    puts(param_names2[2]);
-
-    add_function_to_table(param_names2);
+    xstrncpy(info.sname, fname, PATH_MAX);
 
     return 0;
 }
