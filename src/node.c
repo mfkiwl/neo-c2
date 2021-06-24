@@ -1567,8 +1567,8 @@ uint64_t get_size_from_node_type(sNodeType* node_type);
 uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type)
 {
     uint64_t result = 0;
-    uint64_t space = 0;
-    sNodeType* field_type_before = NULL;
+    int space = 0;
+    int alignment = 0;
     int i;
     for(i=0; i<klass->mNumFields; i++) {
         sNodeType* field_type = clone_node_type(klass->mFields[i]);
@@ -1578,310 +1578,69 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type)
             exit(1);
         }
 
-        uint64_t size = get_size_from_node_type(field_type);
+        sNodeType* element_type = clone_node_type(field_type);
+        element_type->mArrayDimentionNum = 0;
+
+        int element_size = get_size_from_node_type(element_type);
 
         uint64_t result_before = result;
+        int size = get_size_from_node_type(field_type);
 
-        if(type_identify_with_class_name(field_type, "char") && field_type->mPointerNum == 0) {
-            if(field_type_before && type_identify_with_class_name(field_type_before, "char") && field_type_before->mPointerNum == 0)
-            {
-                if(space > 0) {
-                    space --;
-                }
-                else {
+        if(size <= space) {
+            space -= size;
+        }
+        else {
+            space = 0;
+
+            if(alignment == size) {
+                result += size;
+            }
+            else if(alignment < element_size) {
+                if(element_size == 1) {
                     result += size;
                 }
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "short") && field_type_before->mPointerNum == 0)
-            {
-                if(space > 0) {
-                    space--;
+                else if(element_size == 2) {
+                    result = (result + 1) & ~1;
+                    result += size;
+                }
+                else if(element_size == 4) {
+                    result = (result + 3) & ~3;
+                    result += size;
+                }
+                else if(element_size == 8) {
+                    result = (result + 7) & ~7;
+                    result += size;
                 }
                 else {
+                    result = (result + alignment-1) & ~(alignment-1);
+                    result += size;
+                }
+
+                alignment = element_size;
+            }
+            else {
+                if(alignment == 1) {
+                    result += size;
+                }
+                else if(alignment == 2) {
                     result += size;
                     result = (result + 1) & ~1;
-
-                    space = result_before - result - size;
                 }
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "int") && field_type_before->mPointerNum == 0)
-            {
-                if(space > 0) {
-                    space--;
+                else if(alignment == 4) {
+                    result += size;
+                    result = (result + 3) & ~3;
+                }
+                else if(alignment == 8) {
+                    result += size;
+                    result = (result + 7) & ~7;
                 }
                 else {
                     result += size;
-                    result = (result + 3) & ~3;
-
-                    space = result - result_before - size;
                 }
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "long") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "float") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 3) & ~3;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "double") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && field_type_before->mPointerNum > 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else 
-            {
-                result += size;
-                result = (result + 2) & ~2;
-            }
-        }
-        else if(type_identify_with_class_name(field_type, "short") && field_type->mPointerNum == 0) {
-            if(field_type_before && type_identify_with_class_name(field_type_before, "char") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 1) & ~1;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "short") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "int") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 3) & ~3;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "long") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "float") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 3) & ~3;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "double") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && field_type_before->mPointerNum > 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else {
-                result = (result + 1) & ~1;
-                result += size;
-            }
-        }
-        else if(type_identify_with_class_name(field_type, "int") && field_type->mPointerNum == 0) {
-            if(field_type_before && type_identify_with_class_name(field_type_before, "char") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 3) & ~3;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "short") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 3) & ~3;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "int") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "long") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "float") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "double") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && field_type_before->mPointerNum > 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else {
-                result = (result + 1) & ~1;
-                result += size;
-            }
-        }
-        else if(type_identify_with_class_name(field_type, "long") && field_type->mPointerNum == 0) {
-            if(field_type_before && type_identify_with_class_name(field_type_before, "char") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 7) & ~7;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "short") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 7) & ~7;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "int") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 7) & ~7;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "long") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "float") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "double") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-            }
-            else if(field_type_before && field_type_before->mPointerNum > 0)
-            {
-                result += size;
-            }
-            else {
-                result = (result + 7) & ~7;
-                result += size;
-            }
-        }
-        else if(type_identify_with_class_name(field_type, "float") && field_type->mPointerNum == 0) {
-            if(field_type_before && type_identify_with_class_name(field_type_before, "char") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 3) & ~3;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "short") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 3) & ~3;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "int") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "long") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "float") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "double") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && field_type_before->mPointerNum > 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else {
-                result = (result + 1) & ~1;
-                result += size;
-            }
-        }
-        else if(type_identify_with_class_name(field_type, "double") && field_type->mPointerNum == 0) {
-            if(field_type_before && type_identify_with_class_name(field_type_before, "char") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 1) & ~1;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "short") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 2) & ~2;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "int") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 3) & ~3;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "long") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "float") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 3) & ~3;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "double") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-            }
-            else if(field_type_before && field_type_before->mPointerNum > 0)
-            {
-                result += size;
-            }
-            else {
-                result = (result + 1) & ~1;
-                result += size;
-            }
-        }
-        else if(field_type->mPointerNum > 0) {
-            if(field_type_before && type_identify_with_class_name(field_type_before, "char") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 1) & ~1;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "short") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 2) & ~2;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "int") && field_type_before->mPointerNum == 0)
-            {
-                result = (result + 3) & ~3;
-                result += size;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "long") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 7) & ~7;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "float") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-                result = (result + 3) & ~3;
-            }
-            else if(field_type_before && type_identify_with_class_name(field_type_before, "double") && field_type_before->mPointerNum == 0)
-            {
-                result += size;
-            }
-            else if(field_type_before && field_type_before->mPointerNum > 0)
-            {
-                result += size;
-            }
-            else {
-                result = (result + 1) & ~1;
-                result += size;
-            }
-        }
 
-puts(CLASS_NAME(klass));
-printf("result %lu\n", result);
-
-        field_type_before = clone_node_type(field_type);
+                space = result - result_before - size;
+            }
+        }
     }
 
     return result;
