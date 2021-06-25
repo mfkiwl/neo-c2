@@ -1579,7 +1579,7 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
 
         sNodeType* element_type = clone_node_type(field_type);
         element_type->mArrayDimentionNum = 0;
-
+        
         int element_size = get_size_from_node_type(element_type, alignment);
 
         uint64_t result_before = result;
@@ -1588,16 +1588,22 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
         BOOL struct_ = field_type->mClass->mFlags & CLASS_FLAGS_STRUCT;
         BOOL union_ = field_type->mClass->mFlags & CLASS_FLAGS_UNION;
 
+printf("%s element_size %d size %d alignment %d\n", CLASS_NAME(klass), element_size, size, *alignment);
+
         if(size <= space) {
+puts("1");
             space -= size;
         }
         else {
+puts("2");
             space = 0;
 
             if(*alignment == size) {
+puts("3");
                 result += size;
             }
             else if(*alignment < element_size) {
+puts("4");
                 if(element_size == 1) {
                     result += size;
                 }
@@ -1618,7 +1624,8 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
                     result += size;
                 }
 
-                if(!struct_ && !union_) {
+                if((!struct_ && !union_) || element_type->mPointerNum > 0) {
+puts("8");
                     *alignment = element_size;
                 }
             }
@@ -1646,8 +1653,6 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
             }
         }
     }
-
-printf("result %lu %s\n", result, CLASS_NAME(klass));
 
     return result;
 }
@@ -1706,8 +1711,9 @@ uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment)
     if(node_type2->mSizeNum > 0) {
         result = node_type2->mSizeNum;
 
-        if(node_type2->mArrayDimentionNum == 1) {
-            result *= node_type2->mArrayNum[0];
+        int i;
+        for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+            result *= node_type2->mArrayNum[i];
         }
     }
     else if(node_type2->mPointerNum > 0) {
@@ -1717,8 +1723,9 @@ uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment)
         result = 8;
 #endif
 
-        if(node_type2->mArrayDimentionNum == 1) {
-            result *= node_type2->mArrayNum[0];
+        int i;
+        for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+            result *= node_type2->mArrayNum[i];
         }
     }
     else {
@@ -1728,64 +1735,73 @@ uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment)
         if(node_type->mPointerNum == 0 && (node_type->mClass->mFlags & CLASS_FLAGS_STRUCT)) {
             result = get_struct_size(node_type->mClass, node_type, alignment);
 
-            if(node_type->mArrayDimentionNum == 1) {
-                result *= node_type->mArrayNum[0];
+            int i;
+            for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+                result *= node_type2->mArrayNum[i];
             }
         }
         else if(node_type->mPointerNum == 0 && (node_type->mClass->mFlags & CLASS_FLAGS_UNION)) {
             result = get_union_size(node_type->mClass, node_type, alignment);
 
-            if(node_type->mArrayDimentionNum == 1) {
-                result *= node_type->mArrayNum[0];
+            int i;
+            for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+                result *= node_type2->mArrayNum[i];
             }
         }
         else if(type_identify_with_class_name(node_type, "int")){
             result = 4;
 
-            if(node_type->mArrayDimentionNum == 1) {
-                result *= node_type->mArrayNum[0];
+            int i;
+            for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+                result *= node_type2->mArrayNum[i];
             }
         }
         else if(type_identify_with_class_name(node_type, "long")){
             result = 8;
 
-            if(node_type->mArrayDimentionNum == 1) {
-                result *= node_type->mArrayNum[0];
+            int i;
+            for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+                result *= node_type2->mArrayNum[i];
             }
         }
         else if(type_identify_with_class_name(node_type, "short")){
             result = 2;
 
-            if(node_type->mArrayDimentionNum == 1) {
-                result *= node_type->mArrayNum[0];
+            int i;
+            for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+                result *= node_type2->mArrayNum[i];
             }
         }
         else if(type_identify_with_class_name(node_type, "char")){
             result = 1;
 
-            if(node_type->mArrayDimentionNum == 1) {
-                result *= node_type->mArrayNum[0];
+            int i;
+            for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+                result *= node_type2->mArrayNum[i];
             }
         }
         else if(type_identify_with_class_name(node_type, "bool")){
             result = 1;
 
-            if(node_type->mArrayDimentionNum == 1) {
-                result *= node_type->mArrayNum[0];
+            int i;
+            for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+                result *= node_type2->mArrayNum[i];
             }
         }
         else if(type_identify_with_class_name(node_type, "float")){
             result = 4;
 
-            if(node_type->mArrayDimentionNum == 1) {
-                result *= node_type->mArrayNum[0];
+            int i;
+            for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+                result *= node_type2->mArrayNum[i];
             }
         }
         else if(type_identify_with_class_name(node_type, "double")){
             result = 8;
 
-            if(node_type->mArrayDimentionNum == 1) {
-                result *= node_type->mArrayNum[0];
+            int i;
+            for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+                result *= node_type2->mArrayNum[i];
             }
         }
     }
