@@ -1562,13 +1562,12 @@ BOOL create_llvm_struct_type(char* struct_name, sNodeType* node_type, sNodeType*
     return TRUE;
 }
 
-uint64_t get_size_from_node_type(sNodeType* node_type);
+uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment);
 
-uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type)
+uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignment)
 {
     uint64_t result = 0;
     int space = 0;
-    int alignment = 0;
     int i;
     for(i=0; i<klass->mNumFields; i++) {
         sNodeType* field_type = clone_node_type(klass->mFields[i]);
@@ -1581,10 +1580,13 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type)
         sNodeType* element_type = clone_node_type(field_type);
         element_type->mArrayDimentionNum = 0;
 
-        int element_size = get_size_from_node_type(element_type);
+        int element_size = get_size_from_node_type(element_type, alignment);
 
         uint64_t result_before = result;
-        int size = get_size_from_node_type(field_type);
+        int size = get_size_from_node_type(field_type, alignment);
+
+        BOOL struct_ = field_type->mClass->mFlags & CLASS_FLAGS_STRUCT;
+        BOOL union_ = field_type->mClass->mFlags & CLASS_FLAGS_UNION;
 
         if(size <= space) {
             space -= size;
@@ -1592,10 +1594,10 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type)
         else {
             space = 0;
 
-            if(alignment == size) {
+            if(*alignment == size) {
                 result += size;
             }
-            else if(alignment < element_size) {
+            else if(*alignment < element_size) {
                 if(element_size == 1) {
                     result += size;
                 }
@@ -1612,25 +1614,27 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type)
                     result += size;
                 }
                 else {
-                    result = (result + alignment-1) & ~(alignment-1);
+                    result = (result + *alignment-1) & ~(*alignment-1);
                     result += size;
                 }
 
-                alignment = element_size;
+                if(!struct_ && !union_) {
+                    *alignment = element_size;
+                }
             }
             else {
-                if(alignment == 1) {
+                if(*alignment == 1) {
                     result += size;
                 }
-                else if(alignment == 2) {
+                else if(*alignment == 2) {
                     result += size;
                     result = (result + 1) & ~1;
                 }
-                else if(alignment == 4) {
+                else if(*alignment == 4) {
                     result += size;
                     result = (result + 3) & ~3;
                 }
-                else if(alignment == 8) {
+                else if(*alignment == 8) {
                     result += size;
                     result = (result + 7) & ~7;
                 }
@@ -1643,10 +1647,12 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type)
         }
     }
 
+printf("result %lu %s\n", result, CLASS_NAME(klass));
+
     return result;
 }
 
-uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type)
+uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, int* alignment)
 {
     uint64_t result = 0;
     int i;
@@ -1659,7 +1665,24 @@ uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type)
         }
 
 
-        uint64_t size = get_size_from_node_type(field_type);
+        uint64_t size = get_size_from_node_type(field_type, alignment);
+
+        sNodeType* element_type = clone_node_type(field_type);
+        element_type->mArrayDimentionNum = 0;
+
+        BOOL struct_ = field_type->mClass->mFlags & CLASS_FLAGS_STRUCT;
+
+        BOOL union_ = field_type->mClass->mFlags & CLASS_FLAGS_UNION;
+
+        int element_size = get_size_from_node_type(element_type, alignment);
+
+        if(*alignment == size) {
+        }
+        else if(*alignment < element_size) {
+            if(!struct_ && !union_) {
+                *alignment = element_size;
+            }
+        }
 
         if(result < size) {
             result = size;
@@ -1669,7 +1692,7 @@ uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type)
     return result;
 }
 
-uint64_t get_size_from_node_type(sNodeType* node_type)
+uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment)
 {
     uint64_t result = 0;
     sNodeType* node_type2 = clone_node_type(node_type);
@@ -1703,14 +1726,14 @@ uint64_t get_size_from_node_type(sNodeType* node_type)
         }
 
         if(node_type->mPointerNum == 0 && (node_type->mClass->mFlags & CLASS_FLAGS_STRUCT)) {
-            result = get_struct_size(node_type->mClass, node_type);
+            result = get_struct_size(node_type->mClass, node_type, alignment);
 
             if(node_type->mArrayDimentionNum == 1) {
                 result *= node_type->mArrayNum[0];
             }
         }
         else if(node_type->mPointerNum == 0 && (node_type->mClass->mFlags & CLASS_FLAGS_UNION)) {
-            result = get_union_size(node_type->mClass, node_type);
+            result = get_union_size(node_type->mClass, node_type, alignment);
 
             if(node_type->mArrayDimentionNum == 1) {
                 result *= node_type->mArrayNum[0];
@@ -1791,7 +1814,8 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
                 return FALSE;
             }
 
-            uint64_t size = get_size_from_node_type(field);
+            int alignment = 0;
+            uint64_t size = get_size_from_node_type(field, &alignment);
 
             if(size > max_size) {
                 field_types[0] = create_llvm_type_from_node_type(field);
@@ -1839,7 +1863,8 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
                 }
 
 
-                uint64_t size = get_size_from_node_type(field);
+                int alignment = 0;
+                uint64_t size = get_size_from_node_type(field, &alignment);
 
                 if(size > max_size) {
                     field_types[0] = create_llvm_type_from_node_type(field);
@@ -2379,7 +2404,8 @@ static BOOL compile_add(unsigned int node, sCompileInfo* info)
         sNodeType* left_type3 = clone_node_type(left_type);
         left_type3->mPointerNum--;
 
-        uint64_t alloc_size = get_size_from_node_type(left_type3);
+        int alignment = 0;
+        uint64_t alloc_size = get_size_from_node_type(left_type3, &alignment);
 
         LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -2426,7 +2452,8 @@ static BOOL compile_add(unsigned int node, sCompileInfo* info)
         sNodeType* left_type3 = clone_node_type(left_type);
         left_type3->mPointerNum--;
 
-        uint64_t alloc_size = get_size_from_node_type(left_type3);
+        int alignment = 0;
+        uint64_t alloc_size = get_size_from_node_type(left_type3, &alignment);
 
         LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -2560,7 +2587,8 @@ static BOOL compile_sub(unsigned int node, sCompileInfo* info)
         sNodeType* left_type3 = clone_node_type(left_type);
         left_type3->mPointerNum--;
 
-        uint64_t alloc_size = get_size_from_node_type(left_type3);
+        int alignment = 0;
+        uint64_t alloc_size = get_size_from_node_type(left_type3, &alignment);
 
         LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -2628,7 +2656,8 @@ static BOOL compile_sub(unsigned int node, sCompileInfo* info)
         element_type->mPointerNum = 0;
         element_type->mArrayDimentionNum = 0;
 
-        uint64_t element_size = get_size_from_node_type(element_type);
+        int alignment = 0;
+        uint64_t element_size = get_size_from_node_type(element_type, &alignment);
 
         LLVMValueRef elemet_size_value = LLVMConstInt(long_type, element_size, FALSE);
 
@@ -2671,7 +2700,8 @@ static BOOL compile_sub(unsigned int node, sCompileInfo* info)
         sNodeType* left_type3 = clone_node_type(left_type);
         left_type3->mPointerNum--;
 
-        uint64_t alloc_size = get_size_from_node_type(left_type3);
+        int alignment = 0;
+        uint64_t alloc_size = get_size_from_node_type(left_type3, &alignment);
 
         LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -6122,7 +6152,8 @@ static BOOL compile_object(unsigned int node, sCompileInfo* info)
 
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type2);
 
-        uint64_t alloc_size = get_size_from_node_type(node_type2);
+        int alignment = 0;
+        uint64_t alloc_size = get_size_from_node_type(node_type2, &alignment);
 
 #ifdef __32BIT_CPU__
         LLVMTypeRef long_type = create_llvm_type_with_class_name("int");
@@ -9206,7 +9237,8 @@ static BOOL compile_sizeof(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    uint64_t alloc_size = get_size_from_node_type(node_type2);
+    int alignment = 0;
+    uint64_t alloc_size = get_size_from_node_type(node_type2, &alignment);
 
     LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
     LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
@@ -9271,7 +9303,8 @@ BOOL compile_sizeof_expression(unsigned int node, sCompileInfo* info)
 
     dec_stack_ptr(1, info);
 
-    uint64_t alloc_size = get_size_from_node_type(node_type);
+    int alignment = 0;
+    uint64_t alloc_size = get_size_from_node_type(node_type, &alignment);
 
     LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
     LLVMValueRef value = LLVMConstInt(long_type, alloc_size, FALSE);
@@ -10865,7 +10898,8 @@ static BOOL compile_plus_plus(unsigned int node, sCompileInfo* info)
                 }
             }
 
-            uint64_t alloc_size = get_size_from_node_type(left_type);
+            int alignment = 0;
+            uint64_t alloc_size = get_size_from_node_type(left_type, &alignment);
 
             LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -10992,7 +11026,8 @@ static BOOL compile_minus_minus(unsigned int node, sCompileInfo* info)
                 }
             }
 
-            uint64_t alloc_size = get_size_from_node_type(left_type);
+            int alignment = 0;
+            uint64_t alloc_size = get_size_from_node_type(left_type, &alignment);
 
             LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -11119,7 +11154,8 @@ static BOOL compile_equal_plus(unsigned int node, sCompileInfo* info)
                 }
             }
 
-            uint64_t alloc_size = get_size_from_node_type(left_type);
+            int alignment = 0;
+            uint64_t alloc_size = get_size_from_node_type(left_type, &alignment);
 
             LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -11245,7 +11281,8 @@ static BOOL compile_equal_minus(unsigned int node, sCompileInfo* info)
                 }
             }
 
-            uint64_t alloc_size = get_size_from_node_type(left_type);
+            int alignment = 0;
+            uint64_t alloc_size = get_size_from_node_type(left_type, &alignment);
 
             LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 

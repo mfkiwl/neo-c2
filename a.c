@@ -1,29 +1,24 @@
-
 #include <stdio.h>
 
 struct sA
 {
-    int a;
-    short b;
-    char d;
-    int e;
+    char a;
+    long b[3];
+    char c;
 };
 
-/*
-struct sA
+struct sB
 {
-    int a[30];
-    char b;
-    int c[3];
-    double d[3];
-    float h[3];
+    struct sA a;
+    char c;
+    int b;
 };
-*/
 
 int main()
 {
     puts("RIGHT");
     printf("sA %lu\n", sizeof(struct sA));
+    printf("sB %lu\n", sizeof(struct sB));
     return 0;
 }
 
