@@ -1,4 +1,3 @@
-/*
 #include <string.h>
 #include <stdio.h>
 #include <limits.h>
@@ -36,7 +35,6 @@
 typedef long long int clint64;
 
 struct sNodeTypeStruct;
-
 struct sConstStruct
 {
     char* mConst;
@@ -48,3 +46,162 @@ typedef struct sConstStruct sConst;
 
 struct sCLClassStruct {
     clint64 mFlags;
+
+    sConst mConst;
+
+    int mClassNameOffset;
+
+    int mGenericsNum;
+    int mMethodGenericsNum;
+    
+    unsigned int mFieldNameOffsets[STRUCT_FIELD_MAX];
+    struct sNodeTypeStruct* mFields[STRUCT_FIELD_MAX];
+    int mNumFields;
+
+    void* mUndefinedStructType;
+
+    int mVersion;
+};
+
+typedef struct sCLClassStruct sCLClass;
+
+struct sNodeTypeStruct {
+    sCLClass* mClass;
+
+    struct sNodeTypeStruct* mGenericsTypes[GENERICS_TYPES_MAX];
+    int mNumGenericsTypes;
+
+    int mArrayNum[ARRAY_DIMENTION_MAX];
+    int mArrayDimentionNum;
+    BOOL mNullable;
+    BOOL mUnsigned;
+    int mPointerNum;
+    BOOL mConstant;
+    BOOL mRegister;
+    BOOL mVolatile;
+    BOOL mStatic;
+    BOOL mOverride;
+    BOOL mUniq;
+    int mSizeNum;
+
+    struct sNodeTypeStruct* mParamTypes[PARAMS_MAX];
+    struct sNodeTypeStruct* mResultType;
+    BOOL mVarArgs;
+    int mNumParams;
+
+    BOOL mHeap;
+    BOOL mDummyHeap;
+    BOOL mNoHeap;
+
+    unsigned int mDynamicArrayNum;
+
+    int mArrayInitializeNum;
+
+    unsigned int mTypeOfExpression;
+
+    int mFinalizeGenericsFunNum;
+
+    int mNumFields;
+
+    char mTypeName[VAR_NAME_MAX];
+    int mTypePointerNum;
+};
+
+typedef struct sNodeTypeStruct sNodeType;
+
+struct sBufStruct {
+    char* mBuf;
+    int mSize;
+    int mLen;
+};
+
+typedef struct sBufStruct sBuf;
+
+struct sVarStruct {
+    char mName[VAR_NAME_MAX];
+    int mIndex;
+    sNodeType* mType;
+
+    int mBlockLevel;
+
+    BOOL mReadOnly;
+    BOOL mConstant;
+    LLVMValueRef mLLVMValue;
+
+    BOOL mGlobal;
+};
+
+typedef struct sVarStruct sVar;
+
+struct sVarTableStruct {
+    int mID;
+    sVar mLocalVariables[LOCAL_VARIABLE_MAX];  // open address hash
+    int mVarNum;
+    int mMaxBlockVarNum;
+
+    int mBlockLevel;
+
+    struct sVarTableStruct* mParent;            // make linked list
+    struct sVarTableStruct* mNext;              // for free var table
+};
+
+typedef struct sVarTableStruct sVarTable;
+
+struct sParserInfoStruct
+{
+    sBuf mConst;
+
+    char* p;
+    char sname[PATH_MAX];
+    char* source;
+    char* module_name;
+    int sline;
+    int err_num;
+    int parse_phase;
+    int sline_top;
+    sVarTable* lv_table;
+    int mNumGenerics;
+    char* mGenericsTypeNames[GENERICS_TYPES_MAX];
+
+    int mNumMethodGenerics;
+    char* mMethodGenericsTypeNames[GENERICS_TYPES_MAX];
+
+    sNodeType* mMethodGenericsTypes[GENERICS_TYPES_MAX];
+    int mNumMethodGenericsTypes;
+
+    sNodeType* mGenericsType;
+
+    int mBlockLevel;
+
+    int switch_nest;
+    BOOL first_case;
+    BOOL case_after_return;
+
+    BOOL change_sline;
+
+    BOOL in_clang;
+
+    char fun_name[VAR_NAME_MAX];
+
+    char parse_struct_name[VAR_NAME_MAX];
+    char impl_struct_name[VAR_NAME_MAX];
+
+    int mFunVersion;
+    int mImplVersion;
+
+    BOOL parse_block;
+
+    BOOL in_case;
+    BOOL in_struct;
+    BOOL in_conditional_operator;
+
+    BOOL no_comma_operator;
+
+    BOOL no_output_err_msg;
+};
+
+int main()
+{
+    printf("%lu\n", sizeof(struct sParserInfoStruct));
+    return 0;
+}
