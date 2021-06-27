@@ -1588,22 +1588,21 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
         BOOL struct_ = field_type->mClass->mFlags & CLASS_FLAGS_STRUCT;
         BOOL union_ = field_type->mClass->mFlags & CLASS_FLAGS_UNION;
 
-printf("%s element_size %d size %d alignment %d\n", CLASS_NAME(klass), element_size, size, *alignment);
+        if(element_size < space && space > 0 && size > space) {
+            size -= space;
+            space = 0;
+        }
 
         if(size <= space) {
-puts("1");
             space -= size;
         }
         else {
-puts("2");
             space = 0;
 
             if(*alignment == size) {
-puts("3");
                 result += size;
             }
             else if(*alignment < element_size) {
-puts("4");
                 if(element_size == 1) {
                     result += size;
                 }
@@ -1624,8 +1623,34 @@ puts("4");
                     result += size;
                 }
 
-                if((!struct_ && !union_) || element_type->mPointerNum > 0) {
-puts("8");
+                if(struct_ || union_) {
+                    if(element_type->mPointerNum > 0) {
+                        *alignment = 8;
+                    }
+/*
+                    if(field_type->mArrayDimentionNum > 0) {
+                        *alignment = element_size;
+                    }
+                    else if(field_type->mPointerNum > 0) {
+                        *alignment = 4;
+                    }
+                    if(element_type->mPointerNum > 0) {
+                        *alignment = element_size;
+                    }
+                    else {
+                        *alignment = element_size;
+                    }
+*/
+                }
+                else if(element_type->mPointerNum > 0) {
+                    if(type_identify_with_class_name(element_type, "void")) {
+                        *alignment = 4;
+                    }
+                    else {
+                        *alignment = element_size;
+                    }
+                }
+                else {
                     *alignment = element_size;
                 }
             }
@@ -1668,7 +1693,6 @@ uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, int* alignmen
             fprintf(stderr, "can't solve generics types");
             exit(1);
         }
-
 
         uint64_t size = get_size_from_node_type(field_type, alignment);
 
@@ -1877,7 +1901,6 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
                     compile_err_msg(info, "can't solve generics types");
                     return FALSE;
                 }
-
 
                 int alignment = 0;
                 uint64_t size = get_size_from_node_type(field, &alignment);
@@ -6598,6 +6621,7 @@ static BOOL compile_store_field(unsigned int node, sCompileInfo* info)
         int i;
         for(i=0; i<klass->mNumFields; i++) {
             sNodeType* field_type = klass->mFields[i];
+
             char* field_name = CONS_str(&klass->mConst, klass->mFieldNameOffsets[i]);
 
             int parent_field_index = -1;
