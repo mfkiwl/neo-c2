@@ -4,7 +4,9 @@ come together!
 
 C extension compiler language. Some compatibility for C language.
 
-version 0.9.9
+This language is self-hosted.
+
+version 1.0.0
 
 #include <come.h>
 
@@ -43,6 +45,14 @@ int main()
 }
 ```
 
+1. It is compatible with C language to some extent. The C preprocessor also works.
+
+2. It has its own heap system. It has an automatic free of the temporarily generated heap (rvalue) and an automatic free of the heap assigned to the variable.
+
+3. It has Generics, inline function, debug info (-g option), and lambda.
+
+4. The library is written in come.h and you don't need to link any library. The library is minimal and keeps learning costs down. It has a collection library> and a string library.
+
 1. C言語とある程度互換性があります。Cプリプロセッサーも動きます。
 
 2. 独自のヒープシステムを備えます。一時的に生成されたヒープ（右辺値）の自動freeと変数に代入されたヒープの自動freeを備えます。
@@ -67,7 +77,10 @@ or
 bash all_build.sh
 ```
 
+1. Language specifications
 1. 言語仕様
+
+It is almost the same as C language. Since it is not POSIX compliant, it is not compatible with C language in every detail, but I think that anyone who can use C language can use it immediately. If you don't use the heap system and do #include <come.h>, you can just use it as a C compiler.
 
 C言語とほぼ一緒です。POSIX準拠じゃないため、あまり細部までC言語とは互換性がありませんが、C言語を使える人ならすぐ使えると思います。
 ヒープシステムを使わずに#include <come.h>をしなければ、単なるCコンパイラとして使えます。
@@ -89,10 +102,15 @@ int main()
 HELLO WORLD
 ```
 
+The compilation result is output to the source file name.ll. The output of the C preprocessor is saved in the source file name .i. The library does not need to be linked. It can be used like a normal C compiler. Of course, you can freely use the library in C language. If you add the -g option, debug information will also be output. 
+
 コンパイル結果はソースファイル名.llに出力されます。ソースファイル名.iにCプリプロセッサの出力が保存されます。ライブラリは何もリンクする必要がありません。
 通常のCコンパイラと同じように使えます。もちろんライブラリもC言語のものを自由に使えます。-gオプションをつけるとデバッグ情報も出力されます。
 
+3. Heap System
 3. ヒープシステム
+
+The cost of learning the library is low, but the heap system will take some time to learn. Basically, use valgrind to check if a memory leak is occurring. You can also find out illegal memory access by using valgrind. You can also use the -g option to find out the location of memory leaks in the source code and unauthorized memory access in the source code. The basic rule is that rvalues (temporary heap generation that is not assigned to variables) are automatically freed.
 
 ライブラリの学習コストは低いですが、ヒープシステムは学習するのに少し時間がかかるでしょう。基本的にメモリーリークが起こっているかの確認はvalgrindを使ってください。
 また不正なメモリアクセスもvalgrindを使えば分かるでしょう。-gオプションを使うとソースコードでのメモリーリークや不正なメモリアクセスのソースコードでの位置も分かります。
@@ -102,6 +120,9 @@ HELLO WORLD
 ```
 puts(xsprintf("1 + 1 == %d\n", 1 + 1));
 ```
+
+xsprintf uses the heap to generate memory, but since it is an rvalue, it is automatically freed after puts. It is the timing when the rvalue is freed, but after one sentence is executed. I don't expect code that makes heavy use of method chains like Ruby, but even if method chains are used, method chains can be performed because the memory of the rvalue heap exists until the execution of one sentence is completed. Probably. The next rule is that the function that creates the heap assigned to the variable with% and the memory such as new will be freed after the block escapes.
+
 xsprintfはヒープを使ったメモリが生成されますが、右辺値なので、puts後に自動的にfreeされます。右辺値がfreeされるタイミングですが、1文が実行された後です。
 あまり、Rubyのようにメソッドチェインを多用するコードは想定していませんが
 メソッドチェインしても１文の実行が終わるまで右辺値のヒープのメモリは存在しているためメソッドチェインを行うことも可能でしょう。
@@ -116,9 +137,10 @@ strncpy(str, "AAA", 123);
 puts(str);
 ```
 
+Note that if char * str is used, the result of new char [123] will be judged as an rvalue and will be freed before being assigned. If you find it awkward to write char *%, use auto. The rvalue type is type inferred and declared.
+
 char* strとするとnew char[123]の結果は右辺値と判断されて代入される前にfreeされるので注意してください。
 char*%と書くのがめんどくさい場合はautoを使ってください。右辺値の型が型推論されて宣言されます。
-
 
 ```
 auto str = new char[123];
@@ -127,6 +149,8 @@ strncpy(str, "ABC", 123);
 
 puts(str);
 ```
+
+If you want to manage the memory yourself, add borrow to declare heap memory that is not an rvalue, and then assign it to a pointer without%.
 
 自分でメモリを管理したい場合はborrowをつけて右辺値じゃないヒープメモリと宣言してから%をつけないポインタに代入してください。
 
@@ -140,6 +164,8 @@ puts(str);
 delete str;
 ```
 
+If you add borrow, it will be excluded from the target of automatic free of rvalue, and automatic free of rvalue will not be done. Assignment between variables with% added to the type name causes a transfer of ownership.
+
 borrowをつけると右辺値の自動freeの対象から外されて、右辺値の自動freeがされないようになります。
 
 型名に%をつけた変数同士の代入は所有権の移動が起こります。
@@ -149,13 +175,16 @@ borrowをつけると右辺値の自動freeの対象から外されて、右辺�
     auto b = a;
 ```
 
-freeされるのはbです。aはauto b以降使えなくなります。これを防ぐにはnomoveを使ってください。
+It is b that is freed. a cannot be used after auto b. Use no move to prevent this.
 
+freeされるのはbです。aはauto b以降使えなくなります。これを防ぐにはnomoveを使ってください。
 
 ```
     auto a = new char[128];
     auto b = nomove a;
 ```
+
+It is a that is freed. When nomove is used for the rvalue, the rvalue is not automatically freed at the end of the line, but is freed when the variable disappears.
 
 freeされるのはaです。
 
@@ -173,6 +202,8 @@ int main()
     return 0;
 }
 ```
+
+a is freed at the end of main. Next is the case of a function. If% is attached to the argument of the function, the management of heap memory shifts to the function side. On the other hand, if you do not add%, you will simply refer to the memory.
 
 aはmainの終了時にfreeされます。
 
@@ -196,6 +227,8 @@ int main()
 }
 ```
 
+In this case, str is freed before the return of the main function. You can still use str after calling fun.
+
 この場合はmain関数のreturnの前にstrがfreeされます。funの呼び出し後もstrは使えます。
 
 ```
@@ -215,6 +248,9 @@ int main()
     return 0;
 }
 ```
+
+In this case, str is freed in fun. You cannot use str after calling fun. The same rule applies when a heap is temporarily created with a function argument.
+
 この場合はfunの中でstrがfreeされます。funを呼び出した後はstrは使えません。
 
 関数の引数で一時的にヒープを生成した場合も同様のルールとなります。
@@ -231,6 +267,8 @@ int main()
     fun(string("AAA"));
 }
 ```
+
+string is a function that returns a char *% type string. In this case, the return value (rvalue) of string is freed after calling fun. string is defined as follows.
 
 stringはchar*%型の文字列を返す関数です。この場合はfunの呼び出し後にstringの戻り値(右辺値)がfreeされます。
 
@@ -253,6 +291,8 @@ inline string string(char* str)
 dummy_heapは普通のポインタに%を付与します。
 
 便利なstring関数としては以下があります。
+
+dummy_heap gives% to ordinary pointers. Some useful string functions are:
 
 ```
 static string xsprintf(char* msg, ...)
@@ -332,6 +372,8 @@ static string char_substring(char* str, int head, int tail)
 
 使い方は
 
+Usage is bellow:
+
 ```
 if(strcmp(xsprintf("%d", 2), "2") == 0) {
     puts("OK");
@@ -344,6 +386,8 @@ if(strcmp("ABC".substring(0,1), "A") == 0) {
     puts("OK");
 }
 ```
+
+It will be. It is called when "object type name_method name" is called as an OOP-like function. In other words, "ABC" .reverse () is the same as calling char_reverse ("ABC"). Another important point is that the memory allocated in the heap is called finalizer according to the type name.
 
 となります。OOP的な機能として"オブジェクトの型名_メソッド名"がメソッドコールした場合は呼ばれます。
 つまり、"ABC".reverse()はchar_reverse("ABC")を呼び出したことと同じことです。
@@ -381,6 +425,8 @@ int main(int argc, char** argv)
 }
 ```
 
+If you keep the heap in the struct, it will not be automatically freed. Be sure to define finalizer and use delete to free up memory. The other heap-related function is clone. clone copies the memory allocated in the heap as it is.
+
 structの中にヒープを保持する場合、自動的にはfreeされません。必ずfinalizerを定義してdeleteを使い、メモリを開放してください。
 
 後一つヒープ関連である機能は、cloneです。cloneはヒープに確保されたメモリを内容をそのままにコピーします。
@@ -413,6 +459,8 @@ int main(int argc, char** argv)
     return 0;
 }
 ```
+
+e also holds the same value as d. However, this feature only copies the pointer if you hold the heap in a shallow copy. If you delete the pointer, you will get a segmentation fault if you clone it. To prevent this, implement a method called clone.
 
 eもdと同じ値を保持しています。ただし、この機能は浅いコピーでヒープを保持していた場合ポインタがコピーされるだけです。
 もしそのポインタをdeleteしてしまうとcloneした場合segmentation faultが起こるでしょう。
@@ -463,10 +511,13 @@ int main(int argc, char** argv)
 }
 ```
 
+This should work fine.
+
 これで不具合なく動くはずです。
 
-
 4. Generics
+
+Generics is a code generation method. I have implemented it, but basically I am making it for the collection library of the basic library. We do not recommend using Generics for your own application code. This is because the code becomes complicated. If you want to make your own library, you can use it. The vector is defined as follows.
 
 Genericsはコード生成方式です。実装してますが、基本的に基本ライブラリのコレクションライブラリ用に作っています。
 自作のアプリケーションコードにGenericsを使うことはお勧めしません。コードが複雑になるためです。
@@ -636,6 +687,8 @@ impl vector<T>
 #define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 ```
 
+The & in the type name removes% from the generic type name. Even if T has a%, it is treated as a pointer. managed removes% from variables with%. The usage is as follows.
+
 型名の&はジェネリクスの型名から%を消すものです。Tに%がついていてもポインタとして処理されます。managedは%がつけられた変数から%を取り除きます。
 
 使い方は以下です。
@@ -655,6 +708,8 @@ foreach(it , v) {
     printf("%d\n", it);
 }
 ```
+
+-1 of item is the default value. If index is out of range, the default value is returned. foreach is a macro that accesses all elements. list is below. 
 
 itemの-1はデフォルト値でもしindexが範囲外ならデフォルト値を返します。foreachは全ての要素にアクセスするマクロです。
 
@@ -1281,6 +1336,8 @@ impl list <T>
 }
 ```
 
+Usage is almost the same as vector.
+
 使い方はvectorとほぼ同じです。
 
 ```
@@ -1298,6 +1355,8 @@ foreach(it, l) {
     printf("%d\n", it);
 }
 ```
+
+The difference from vector is that there is an insert for element insertion. insert is fast. Instead, item is slow. (Random access). foreach will not be too slow. Use sort as follows. 
 
 vectorと違う点は要素の挿入のinsertがある点です。insertは高速です。その代わりitemは遅いです。（ランダムアクセス)。foreachはそれほど遅くないでしょう。
 
@@ -1331,6 +1390,8 @@ int main(int argc, char** argv)
     }
 }
 ```
+
+The map is below.
 
 mapは以下です。
 
@@ -1619,6 +1680,8 @@ impl map <T, T2>
 
 使い方は
 
+Usage is bellow:
+
 ```
 auto m = new map<char*, int>.initialize();
 
@@ -1630,6 +1693,8 @@ if(m.length() == 3 && m.at("AAA", -1) == 1 && m.at("BBB", -1) == 2 && m.at("CCC"
     puts("OK");
 }
 ```
+
+It will be. There is also a tuple. It is defined as follows.
 
 となります。
 
@@ -1812,12 +1877,13 @@ impl tuple4 <T, T2, T3, T4>
     }
 }
 ```
-
+5. Collection and heap system
 5. Collectionとヒープシステム
+
+All the elements added to the Collection are also released from memory and cloned on the collection side. When adding elements, do not add the heap managed by the variable table. This is because the heap managed by the variable table becomes double free because automatic free occurs when it exits the block and free also occurs on the collection side. For example:
 
 Collectionに追加された要素は全てコレクション側でメモリの解放やcloneなども行われます。要素を追加する場合は変数テーブルで管理されたヒープを追加しないようにしてください。
 変数テーブルで管理されたヒープはブロックから出たときに自動freeが起こりコレクション側でもfreeが起こるので、2重freeとなるためです。例えば以下のようにします。
-
 
 ```
 auto l = new list<string>.initialzie();
@@ -1828,6 +1894,8 @@ managed str;
 
 l.push_back(str)
 ```
+
+When it is managed str, str is no longer a heap managed by the variable table. The% mark disappears from the variable type. str is just char *. Or
 
 managed strとされるとstrは変数テーブルで管理されるヒープでなくなります。変数の型に%マークがなくなります。strは単なるchar*となります。
 
@@ -1841,6 +1909,8 @@ auto str = borrow string("ABC");
 l.push_back(str);
 ```
 
+You can also do it. borrow removes the% mark on the heap. str is treated as just char *. In both cases str is freed when auto l is freed. Another way is to clone the variables in the variable table. Since two heaps are created, one is freed in the variable table and the other is freed in the Collection.
+
 としてもいいでしょう。borrowはヒープの%マークを消します。strは単なるchar*として扱われます。
 どちらの場合もauto lがfreeされるときにstrは一緒にfreeされます。
 
@@ -1853,6 +1923,8 @@ auto str = string("ABC");
 
 l.push_back(clone str);
 ```
+
+This may be the easiest.
 
 これが一番簡単かもしれません。
 
@@ -1868,6 +1940,8 @@ if(fun(1, 2) == 3) {
 }
 ```
 
+lambdas don't have access to variables in the parent stack.
+
 lambdaは親のスタックの変数にはアクセスできません。
 
 ```
@@ -1876,10 +1950,14 @@ auto a = 1;
 auto fun = lambda(int x, int y):int { return x + y + a; }
 ```
 
+The above code will result in a compilation error.
+
 上記のコードはコンパイルエラーとなります。
 
 
 7. buffer
+
+The definition is as follows.
 
 定義は以下です。
 
@@ -1986,6 +2064,8 @@ static int buffer_compare(buffer* left, buffer* right)
 ```
 
 使い方は以下です。
+
+Usage is bellow:
 
 ```
 buffer*% b1 = new buffer.initialize();

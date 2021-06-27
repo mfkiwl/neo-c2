@@ -29,53 +29,53 @@ OBJS=@OBJS@
 #########################################
 # main
 #########################################
-all: come #self-host
+all: come self-host
 
 come: config.h src/main.o $(OBJS)
 	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
 	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
 
 self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c
-	./come src/parser.c $(CFLAGS) -g
-	$(CC) -c -o src/parser.c.o src/parser.c.ll -fPIC -g
+	./come src/parser.c $(CFLAGS) 
+	$(CC) -c -o src/parser.c.o src/parser.c.ll -fPIC
 
-	./come src/alignment.c $(CFLAGS) -g
-	$(CC) -c -o src/alignment.c.o src/alignment.c.ll -fPIC -g
+	./come src/alignment.c $(CFLAGS)
+	$(CC) -c -o src/alignment.c.o src/alignment.c.ll -fPIC
 
-	./come src/buffer.c $(CFLAGS) -g
-	$(CC) -c -o src/buffer.c.o src/buffer.c.ll -fPIC -g
+	./come src/buffer.c $(CFLAGS)
+	$(CC) -c -o src/buffer.c.o src/buffer.c.ll -fPIC
 
-	./come src/xfunc.c $(CFLAGS) -g
-	$(CC) -c -o src/xfunc.c.o src/xfunc.c.ll -fPIC -g
+	./come src/xfunc.c $(CFLAGS)
+	$(CC) -c -o src/xfunc.c.o src/xfunc.c.ll -fPIC
 
-	./come src/node.c $(CFLAGS) -g
-	$(CC) -c -o src/node.c.o src/node.c.ll -fPIC -g
+	./come src/node.c $(CFLAGS)
+	$(CC) -c -o src/node.c.o src/node.c.ll -fPIC
 
-	./come src/vtable.c $(CFLAGS) -g
-	$(CC) -c -o src/vtable.c.o src/vtable.c.ll -fPIC -g
+	./come src/vtable.c $(CFLAGS)
+	$(CC) -c -o src/vtable.c.o src/vtable.c.ll -fPIC
 
-	./come src/node_type.c $(CFLAGS) -g
-	$(CC) -c -o src/node_type.c.o src/node_type.c.ll -fPIC -g
+	./come src/node_type.c $(CFLAGS)
+	$(CC) -c -o src/node_type.c.o src/node_type.c.ll -fPIC
 
-	./come src/klass.c $(CFLAGS) -g
-	$(CC) -c -o src/klass.c.o src/klass.c.ll -fPIC -g
+	./come src/klass.c $(CFLAGS)
+	$(CC) -c -o src/klass.c.o src/klass.c.ll -fPIC
 
-	./come src/constant.c $(CFLAGS) -g
-	$(CC) -c -o src/constant.c.o src/constant.c.ll -fPIC -g
+	./come src/constant.c $(CFLAGS)
+	$(CC) -c -o src/constant.c.o src/constant.c.ll -fPIC
 
-	./come src/node_block.c $(CFLAGS) -g
-	$(CC) -c -o src/node_block.c.o src/node_block.c.ll -fPIC -g
+	./come src/node_block.c $(CFLAGS)
+	$(CC) -c -o src/node_block.c.o src/node_block.c.ll -fPIC
 
-	./come src/typedef.c $(CFLAGS) -g
-	$(CC) -c -o src/typedef.c.o src/typedef.c.ll -fPIC -g
+	./come src/typedef.c $(CFLAGS)
+	$(CC) -c -o src/typedef.c.o src/typedef.c.ll -fPIC
 
-	./come src/compiler.c $(CFLAGS) -g
-	$(CC) -c -o src/compiler.c.o src/compiler.c.ll -fPIC -g
+	./come src/compiler.c $(CFLAGS)
+	$(CC) -c -o src/compiler.c.o src/compiler.c.ll -fPIC
 
-	./come src/main.c $(CFLAGS) -g
-	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC -g
+	./come src/main.c $(CFLAGS)
+	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC
 
-	$(CXX) -o come src/main.c.o src/node.c.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o $(CXXFLAGS) -fPIC -g
+	$(CXX) -o come src/main.c.o src/node.c.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o $(CXXFLAGS) -fPIC
 
 #########################################
 # Object files

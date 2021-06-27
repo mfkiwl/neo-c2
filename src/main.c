@@ -39,17 +39,21 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     char cmd[1024];
 #ifdef __DARWIN__
     if(cflags) {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I . %s -U__GNUC__ -C %s %s > %s", cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I . %s -U__GNUC__ %s %s > %s", cflags, fname, macro_definition, fname2);
+        //snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I . %s -U__GNUC__ -C %s %s > %s", cflags, fname, macro_definition, fname2);
     }
     else {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clang-cpp -I . -U__GNUC__ -C %s %s > %s", fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clang-cpp -I . -U__GNUC__ %s %s > %s", fname, macro_definition, fname2);
+        //snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clang-cpp -I . -U__GNUC__ -C %s %s > %s", fname, macro_definition, fname2);
     }
 #else
     if(cflags) {
-        snprintf(cmd, 1024, "cpp -I . %s -U__GNUC__ -C %s %s > %s", cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "cpp -I . %s -U__GNUC__ %s %s > %s", cflags, fname, macro_definition, fname2);
+        //snprintf(cmd, 1024, "cpp -I . %s -U__GNUC__ -C %s %s > %s", cflags, fname, macro_definition, fname2);
     }
     else {
-        snprintf(cmd, 1024, "cpp -I . -U__GNUC__ -C %s %s > %s", fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "cpp -I . -U__GNUC__ %s %s > %s", fname, macro_definition, fname2);
+        //snprintf(cmd, 1024, "cpp -I . -U__GNUC__ -C %s %s > %s", fname, macro_definition, fname2);
     }
 #endif
 
@@ -77,6 +81,7 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
         return FALSE;
     }
 
+/*
     sBuf source2;
     sBuf_init(&source2);
 
@@ -85,21 +90,22 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
         free(source2.mBuf);
         return FALSE;
     }
+*/
 
-    if(!compile_source(fname, source2.mBuf, optimize, module_var_table)) 
+    if(!compile_source(fname, source.mBuf, optimize, module_var_table)) 
     {
         free(source.mBuf);
-        free(source2.mBuf);
+//        free(source2.mBuf);
         return FALSE;
     }
 
     free(source.mBuf);
-    free(source2.mBuf);
+//k    free(source2.mBuf);
 
     return TRUE;
 }
 
-char* gVersion = "0.9.9";
+char* gVersion = "1.0.0";
 BOOL gNCDebug = FALSE;
 char gFName[PATH_MAX];
 sVarTable* gModuleVarTable;

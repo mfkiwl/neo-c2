@@ -3,6 +3,7 @@
 #include <wchar.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 
 //////////////////////////////////////////////////
 // resizable buf

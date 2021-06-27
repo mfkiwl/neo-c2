@@ -347,7 +347,14 @@ void init_nodes(char* sname)
 
         char include_path[PATH_MAX];
 
+puts(cwd);
+puts(gFName);
         snprintf(include_path, PATH_MAX, "%s/%s", cwd, gFName);
+        /*
+        xstrncpy(include_path, cwd, PATH_MAX);
+        xstrncat(include_path, "/", PATH_MAX);
+        xstrncat(include_path, gFName, PATH_MAX);
+        */
 
         LLVMMetadataRef module = LLVMDIBuilderCreateModule(gDIBuilder, compile_unit,
                               procedure, procedure_len,
@@ -4663,6 +4670,28 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
                     show_node_type(param_types[i]);
                     info->err_num++;
                     return TRUE;
+                }
+            }
+        }
+        else {
+            if(fun->mVarArgs) {
+                if(param_types[i]->mArrayDimentionNum == 1) {
+                    sNodeType* fun_param_type = clone_node_type(param_types[i]);
+
+                    fun_param_type->mArrayDimentionNum = 0;
+                    fun_param_type->mPointerNum++;
+
+                    if(auto_cast_posibility(fun_param_type, param_types[i])) {
+                        if(!cast_right_type_to_left_type(fun_param_type, &param_types[i], &param, info))
+                        {
+                            compile_err_msg(info, "Cast failed");
+                            info->err_num++;
+
+                            info->type = create_node_type_with_class_name("int"); // dummy
+
+                            return TRUE;
+                        }
+                    }
                 }
             }
         }
