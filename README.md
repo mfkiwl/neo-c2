@@ -8,9 +8,9 @@ This language is self-hosted.
 
 version 1.0.0
 
+```
 #include <come.h>
 
-```
 int main() 
 {
     puts(xsprintf("%d", 1+1));
@@ -53,6 +53,8 @@ int main()
 
 4. The library is written in come.h and you don't need to link any library. The library is minimal and keeps learning costs down. It has a collection library> and a string library.
 
+5. It has a mixin-layers system. You can implement your application in layers. Each layer is complete and useful for debugging and porting. A vi clone called vico is implemented as an editor implemented in mixin-layers. Please refer to it because it is in a directory called vico.
+
 1. C言語とある程度互換性があります。Cプリプロセッサーも動きます。
 
 2. 独自のヒープシステムを備えます。一時的に生成されたヒープ（右辺値）の自動freeと変数に代入されたヒープの自動freeを備えます。
@@ -60,6 +62,8 @@ int main()
 3. Generics, inline function, debug info(-g option), lambdaを備えます。
 
 4. ライブラリはcome.hに書かれてあり、何もライブラリをリンクする必要はありません。ライブラリは最小限となっており学習コストを抑えています。コレクションライブラリと文字列ライブラリを備えます。
+
+5. mixin-layersシステムを備えます。アプリケーションをレイヤーを重ねるように実装できます。各レイヤーは完結しており、デバッグや移植作業でも有効です。mixin-layersで実装されたエディッタとしてvicoというviクローンを実装しています。vicoというディレクトリの中に入っているので参考にしてください。
 
 ```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
@@ -71,6 +75,7 @@ cd comelang
 ./configure --with-optimize
 make
 sudo make install
+make test
 
 or 
 
@@ -78,7 +83,6 @@ bash all_build.sh
 ```
 
 1. Language specifications
-1. 言語仕様
 
 It is almost the same as C language. Since it is not POSIX compliant, it is not compatible with C language in every detail, but I think that anyone who can use C language can use it immediately. If you don't use the heap system and do #include <come.h>, you can just use it as a C compiler.
 
@@ -108,7 +112,6 @@ The compilation result is output to the source file name.ll. The output of the C
 通常のCコンパイラと同じように使えます。もちろんライブラリもC言語のものを自由に使えます。-gオプションをつけるとデバッグ情報も出力されます。
 
 3. Heap System
-3. ヒープシステム
 
 The cost of learning the library is low, but the heap system will take some time to learn. Basically, use valgrind to check if a memory leak is occurring. You can also find out illegal memory access by using valgrind. You can also use the -g option to find out the location of memory leaks in the source code and unauthorized memory access in the source code. The basic rule is that rvalues (temporary heap generation that is not assigned to variables) are automatically freed.
 
@@ -1878,7 +1881,6 @@ impl tuple4 <T, T2, T3, T4>
 }
 ```
 5. Collection and heap system
-5. Collectionとヒープシステム
 
 All the elements added to the Collection are also released from memory and cloned on the collection side. When adding elements, do not add the heap managed by the variable table. This is because the heap managed by the variable table becomes double free because automatic free occurs when it exits the block and free also occurs on the collection side. For example:
 
@@ -1927,8 +1929,6 @@ l.push_back(clone str);
 This may be the easiest.
 
 これが一番簡単かもしれません。
-
-
 
 6. lambda
 
@@ -2077,4 +2077,48 @@ if(strcmp(b1.to_string(), "ABCDEF") == 0) {
     puts("OK");
 }
 ```
+
+7. mixin-layers system
+
+mixin-layersとはレイヤーを重ねるようにアプリケーションを作るプログラミング技法で、仕組み的には関数の上書きを許して、上書きされた関数を上書きした関数から呼び出せるというものです。
+
+Mixin-layers is a programming technique that creates an application so that layers are layered. The mechanism is to allow overwriting of a function and call the overwritten function from the overwritten function.
+
+```
+#include <stdio.h>
+
+int fun(char* str);
+override int fun(char* str);
+override int fun(char* str);
+
+int fun(char* str) version 1
+{
+    puts(str);
+    return 1;
+}
+
+int fun(char* str) version 2
+{
+    int n = inherit(str);
+
+    return n + 1;
+}
+
+int fun(char* str)
+{
+    int n = inherit(str);
+
+    return n + 1;
+}
+
+int main()
+{
+    if(fun("HELLO MIXIN-LAYERS") == 3) {
+        puts("OK");
+    }
+
+    return 0;
+}
+```
+
 
