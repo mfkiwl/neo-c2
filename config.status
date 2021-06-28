@@ -603,8 +603,8 @@ echo 'BEGIN {' >"$ac_tmp/subs1.awk" &&
 cat >>"$ac_tmp/subs1.awk" <<\_ACAWK &&
 S["LTLIBOBJS"]=""
 S["LIBOBJS"]=""
-S["OBJS"]="src/parser.o src/alignment.o src/buffer.o src/xfunc.o src/node.o src/node_function.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o s"\
-"rc/vtable.o src/node_type.o src/klass.o src/constant.o src/node_block.o src/typedef.o src/compiler.o"
+S["OBJS"]="src/parser.o src/alignment.o src/buffer.o src/xfunc.o src/node.o src/node_function.o src/node_compile.o src/node_loop.o src/node_op.o src/node_value"\
+".o src/node_var.o src/vtable.o src/node_type.o src/klass.o src/constant.o src/node_block.o src/typedef.o src/compiler.o"
 S["CXXFLAGS"]="-I/usr/lib/llvm-11/include -std=c++14   -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/l"\
 "ib/llvm-11/lib  -lLLVM-11   -O3 -I . -I src -DPREFIX=\"\\\"${DESTDIR}/\\\" -L/usr/local/lib\""
 S["CXX"]="g++"

@@ -66,6 +66,9 @@ self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/
 	./come src/node_var.c $(CFLAGS)
 	$(CC) -c -o src/node_var.c.o src/node_var.c.ll -fPIC
 
+	./come src/node_compile.c $(CFLAGS)
+	$(CC) -c -o src/node_compile.c.o src/node_compile.c.ll -fPIC
+
 	./come src/vtable.c $(CFLAGS)
 	$(CC) -c -o src/vtable.c.o src/vtable.c.ll -fPIC
 
@@ -90,7 +93,7 @@ self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/
 	./come src/main.c $(CFLAGS)
 	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC
 
-	$(CXX) -o come src/main.c.o src/node.c.o src/node_function.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o $(CXXFLAGS) -fPIC
+	$(CXX) -o come src/main.c.o src/node.c.o src/node_function.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o $(CXXFLAGS) -fPIC
 
 #########################################
 # Object files
