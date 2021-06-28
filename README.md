@@ -111,6 +111,25 @@ The compilation result is output to the source file name.ll. The output of the C
 コンパイル結果はソースファイル名.llに出力されます。ソースファイル名.iにCプリプロセッサの出力が保存されます。ライブラリは何もリンクする必要がありません。
 通常のCコンパイラと同じように使えます。もちろんライブラリもC言語のものを自由に使えます。-gオプションをつけるとデバッグ情報も出力されます。
 
+コンパイルするclangですがLLVM-10以上が必要でLLVM-7が標準のdebianではsudo apt-get install llvm-11-devしてください。その場合はllをコンパイルするclangはclang-11としてください。まあ、今のbusterでのDebianの話ですが。
+
+It is clang to compile, but LLVM-10 or higher is required, and LLVM-7 is standard debian, please do sudo apt-get install llvm-11-dev. In that case, clang to compile ll should be clang-11. Well, it's about Debian in the current buster.
+
+```
+> vim a.c
+#include <stdio.h>
+
+int main()
+{
+    puts("HELLO WORLD");
+    return 0;
+}
+> come a.c
+> clang-11 a.c.ll
+> ./a.out
+HELLO WORLD
+```
+
 3. Heap System
 
 The cost of learning the library is low, but the heap system will take some time to learn. Basically, use valgrind to check if a memory leak is occurring. You can also find out illegal memory access by using valgrind. You can also use the -g option to find out the location of memory leaks in the source code and unauthorized memory access in the source code. The basic rule is that rvalues (temporary heap generation that is not assigned to variables) are automatically freed.
