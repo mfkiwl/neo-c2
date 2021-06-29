@@ -796,6 +796,7 @@ struct sFunctionStruct {
     int mNumGenerics;
     BOOL mExtern;
     char* mGenericsTypeNames[GENERICS_TYPES_MAX];
+    char* mAsmFunName;
 };
 
 typedef struct sFunctionStruct sFunction;
@@ -1030,7 +1031,7 @@ BOOL compile_null(unsigned int node, sCompileInfo* info);
 void function_init();
 void function_final();
 
-BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_);
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name);
 sFunction* get_function_from_table(char* name);
 
 unsigned int sNodeTree_create_lambda_call(unsigned int lambda_node, unsigned int* params, int num_params, sParserInfo* info);

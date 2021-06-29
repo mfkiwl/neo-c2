@@ -13,6 +13,9 @@ void function_final()
     for(i=0; i<FUN_NUM_MAX; i++) {
         if(gFuncs[i].mName) {
             free(gFuncs[i].mName);
+            if(gFuncs[i].mAsmFunName) {
+                free(gFuncs[i].mAsmFunName);
+            }
 
             int j;
             for(j=0; j<gFuncs[i].mNumParams; j++) {
@@ -26,7 +29,7 @@ void function_final()
     }
 }
 
-BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_)
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name)
 {
     int hash_value = get_hash_key(name, FUN_NUM_MAX);
     sFunction* p = gFuncs + hash_value;
@@ -55,6 +58,13 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
                 p->mGenericsTypeNames[i] = strdup(generics_type_names[i]);
             }
 
+            if(asm_fun_name == NULL || strcmp(asm_fun_name, "") == 0) {
+                p->mAsmFunName = NULL;
+            }
+            else {
+                p->mAsmFunName = strdup(asm_fun_name);
+            }
+
             return TRUE;
         }
         else {
@@ -68,6 +78,10 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
 
                 for(i=0; i<p->mNumGenerics; i++) {
                     free(p->mGenericsTypeNames[i]);
+                }
+
+                if(p->mAsmFunName) {
+                    free(p->mAsmFunName);
                 }
 
                 p->mName = strdup(name);
@@ -89,6 +103,13 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
 
                 for(i=0; i<num_generics; i++) {
                     p->mGenericsTypeNames[i] = strdup(generics_type_names[i]);
+                }
+
+                if(asm_fun_name == NULL || strcmp(asm_fun_name, "") == 0) {
+                    p->mAsmFunName = NULL;
+                }
+                else {
+                    p->mAsmFunName = strdup(asm_fun_name);
                 }
 
                 return TRUE;

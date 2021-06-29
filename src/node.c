@@ -483,7 +483,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -522,7 +522,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -562,7 +562,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -601,7 +601,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
