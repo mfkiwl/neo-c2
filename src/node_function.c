@@ -1141,6 +1141,10 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     char asm_fun_name[VAR_NAME_MAX];
     xstrncpy(asm_fun_name, gNodes[node].uValue.sFunction.mAsmName, VAR_NAME_MAX);
 
+    if(strcmp(asm_fun_name, "") != 0) {
+        xstrncpy(fun_name, asm_fun_name, VAR_NAME_MAX);
+    }
+
     char simple_fun_name[VAR_NAME_MAX];
     xstrncpy(simple_fun_name, gNodes[node].uValue.sFunction.mSimpleName, VAR_NAME_MAX);
 
@@ -1261,6 +1265,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     xstrncpy(fun_name_before, gFunctionName, VAR_NAME_MAX);
 
     gFunction = llvm_fun;
+
     xstrncpy(gFunctionName, fun_name, VAR_NAME_MAX);
 
     LLVMBasicBlockRef entry = LLVMAppendBasicBlockInContext(gContext, llvm_fun, "entry");
