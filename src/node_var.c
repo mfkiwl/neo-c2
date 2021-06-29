@@ -1,5 +1,73 @@
 #include "common.h"
 
+sStruct gStructs[STRUCT_NUM_MAX];
+
+BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body)
+{
+    int hash_value = get_hash_key(name, STRUCT_NUM_MAX);
+    sStruct* p = gStructs + hash_value;
+
+    while(1) {
+        if(p->mName[0] == 0) {
+            xstrncpy(p->mName, name, VAR_NAME_MAX);
+
+            p->mNodeType = clone_node_type(node_type);
+            p->mLLVMType = llvm_type;
+            p->mUndefinedBody = undefined_body;
+
+            return TRUE;
+        }
+        else {
+            if(strcmp(p->mName, name) == 0) {
+                xstrncpy(p->mName, name, VAR_NAME_MAX);
+
+                p->mNodeType = clone_node_type(node_type);
+                p->mLLVMType = llvm_type;
+                p->mUndefinedBody = undefined_body;
+
+                return TRUE;
+            }
+            else {
+                p++;
+
+                if(p == gStructs + STRUCT_NUM_MAX) {
+                    p = gStructs;
+                }
+                else if(p == gStructs + hash_value) {
+                    return FALSE;
+                }
+            }
+        }
+    }
+
+    return TRUE;
+}
+
+sStruct* get_struct_from_table(char* name)
+{
+    int hash_value = get_hash_key(name, STRUCT_NUM_MAX);
+
+    sStruct* p = gStructs + hash_value;
+
+    while(1) {
+        if(p->mName[0] == 0) {
+            return NULL;
+        }
+        else if(strcmp((char*)p->mName, name) == 0) {
+            return p;
+        }
+
+        p++;
+
+        if(p == gStructs + STRUCT_NUM_MAX) {
+            p = gStructs;
+        }
+        else if(p == gStructs + hash_value) {
+            return NULL;
+        }
+    }
+}
+
 unsigned int sNodeTree_create_define_variable(char* var_name, BOOL extern_, sParserInfo* info)
 {
     unsigned node = alloc_node();

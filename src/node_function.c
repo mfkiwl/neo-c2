@@ -1,5 +1,105 @@
 #include "common.h"
 
+sFunction gFuncs[FUN_NUM_MAX];
+
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_)
+{
+    int hash_value = get_hash_key(name, FUN_NUM_MAX);
+    sFunction* p = gFuncs + hash_value;
+
+    while(1) {
+        if(p->mName[0] == 0) {
+            xstrncpy(p->mName, name, VAR_NAME_MAX);
+
+            p->mNumParams = num_params;
+
+            int i;
+            for(i=0; i<num_params; i++) {
+                xstrncpy(p->mParamNames[i], param_names[i], VAR_NAME_MAX);
+                p->mParamTypes[i] = param_types[i];
+            }
+
+            p->mResultType = result_type;
+            p->mLLVMFunction = llvm_fun;
+            p->mBlockText = block_text;
+            p->mGenericsFunction = generics_function;
+            p->mVarArgs = var_args;
+            p->mNumGenerics = num_generics;
+            p->mExtern = extern_;
+
+            for(i=0; i<num_generics; i++) {
+                xstrncpy(p->mGenericsTypeNames[i], generics_type_names[i], VAR_NAME_MAX);
+            }
+
+            return TRUE;
+        }
+        else {
+            if(strcmp(p->mName, name) == 0) {
+                xstrncpy(p->mName, name, VAR_NAME_MAX);
+
+                p->mNumParams = num_params;
+
+                int i;
+                for(i=0; i<num_params; i++) {
+                    xstrncpy(p->mParamNames[i], param_names[i], VAR_NAME_MAX);
+                    p->mParamTypes[i] = param_types[i];
+                }
+
+                p->mResultType = result_type;
+                p->mLLVMFunction = llvm_fun;
+                p->mBlockText = block_text;
+                p->mGenericsFunction = generics_function;
+                p->mVarArgs = var_args;
+                p->mNumGenerics = num_generics;
+                p->mExtern = extern_;
+
+                for(i=0; i<num_generics; i++) {
+                    xstrncpy(p->mGenericsTypeNames[i], generics_type_names[i], VAR_NAME_MAX);
+                }
+
+                return TRUE;
+            }
+            else {
+                p++;
+
+                if(p == gFuncs + FUN_NUM_MAX) {
+                    p = gFuncs;
+                }
+                else if(p == gFuncs + hash_value) {
+                    return FALSE;
+                }
+            }
+        }
+    }
+
+    return TRUE;
+}
+
+sFunction* get_function_from_table(char* name)
+{
+    int hash_value = get_hash_key(name, FUN_NUM_MAX);
+
+    sFunction* p = gFuncs + hash_value;
+
+    while(1) {
+        if(p->mName[0] == 0) {
+            return NULL;
+        }
+        else if(strcmp((char*)p->mName, name) == 0) {
+            return p;
+        }
+
+        p++;
+
+        if(p == gFuncs + FUN_NUM_MAX) {
+            p = gFuncs;
+        }
+        else if(p == gFuncs + hash_value) {
+            return NULL;
+        }
+    }
+}
+
 unsigned int sNodeTree_create_external_function(char* fun_name, char* asm_fname, sParserParam* params, int num_params, BOOL var_arg, sNodeType* result_type, char* struct_name, BOOL operator_fun, int version, sParserInfo* info)
 {
     unsigned int node = alloc_node();

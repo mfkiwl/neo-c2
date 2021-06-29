@@ -825,9 +825,6 @@ struct sStructStruct {
 
 typedef struct sStructStruct sStruct;
 
-BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body);
-sStruct* get_struct_from_table(char* name);
-
 struct sLabelStruct {
     char mName[VAR_NAME_MAX];
     LLVMBasicBlockRef mBlock;
@@ -835,8 +832,6 @@ struct sLabelStruct {
 
 typedef struct sLabelStruct sLabel;
 
-BOOL add_label_to_table(char* name, LLVMBasicBlockRef block);
-LLVMBasicBlockRef get_label_from_table(char* name);
 
 void create_generics_struct_name(char* struct_name, size_t size, sNodeType* struct_type);
 LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type);
@@ -850,8 +845,6 @@ uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment);
 BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL undefined_body, sCompileInfo* info);
 void compile_err_msg(sCompileInfo* info, const char* msg, ...);
 BOOL compile_block(sNodeBlock* block, sCompileInfo* info);
-BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_);
-sFunction* get_function_from_table(char* name);
 
 struct sGenericsStructTypeStruct
 {
@@ -935,6 +928,9 @@ BOOL compile_or(unsigned int node, sCompileInfo* info);
 //////////////////////////////
 /// node_var.c ///
 //////////////////////////////
+BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body);
+sStruct* get_struct_from_table(char* name);
+
 unsigned int sNodeTree_create_stack_object(sNodeType* node_type, unsigned int object_num, char* sname, int sline, sParserInfo* info);
 unsigned int sNodeTree_create_dereffernce(unsigned int left_node, sParserInfo* info);
 unsigned int sNodeTree_create_reffernce(unsigned int left_node, sParserInfo* info);
@@ -1031,6 +1027,9 @@ BOOL compile_null(unsigned int node, sCompileInfo* info);
 //////////////////////////////
 /// node_function.c///
 //////////////////////////////
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_);
+sFunction* get_function_from_table(char* name);
+
 unsigned int sNodeTree_create_lambda_call(unsigned int lambda_node, unsigned int* params, int num_params, sParserInfo* info);
 unsigned int sNodeTree_create_external_function(char* fun_name, char* asm_fname, sParserParam* params, int num_params, BOOL var_arg, sNodeType* result_type, char* struct_name, BOOL operator_fun, int version, sParserInfo* info);
 
@@ -1055,6 +1054,9 @@ BOOL compile_lambda_call(unsigned int node, sCompileInfo* info);
 //////////////////////////////
 /// node_loop ///
 //////////////////////////////
+BOOL add_label_to_table(char* name, LLVMBasicBlockRef block);
+LLVMBasicBlockRef get_label_from_table(char* name);
+
 unsigned int sNodeTree_create_conditional(unsigned int conditional, unsigned int value1, unsigned int value2, sParserInfo* info);
 unsigned int sNodeTree_create_comma(unsigned int left_node, unsigned int right_node, sParserInfo* info);
 unsigned int sNodeTree_create_return(unsigned int left, sParserInfo* info);

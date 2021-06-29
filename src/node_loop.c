@@ -1,5 +1,70 @@
 #include "common.h"
 
+sLabel gLabels[LABEL_MAX];
+
+BOOL add_label_to_table(char* name, LLVMBasicBlockRef block)
+{
+    int hash_value = get_hash_key(name, LABEL_MAX);
+    sLabel* p = gLabels + hash_value;
+
+    while(1) {
+        if(p->mName[0] == 0) {
+            xstrncpy(p->mName, name, VAR_NAME_MAX);
+
+            p->mBlock = block;
+
+            return TRUE;
+        }
+        else {
+            if(strcmp(p->mName, name) == 0) {
+                xstrncpy(p->mName, name, VAR_NAME_MAX);
+
+                p->mBlock = block;
+
+                return TRUE;
+            }
+            else {
+                p++;
+
+                if(p == gLabels + LABEL_MAX) {
+                    p = gLabels;
+                }
+                else if(p == gLabels + hash_value) {
+                    return FALSE;
+                }
+            }
+        }
+    }
+
+    return TRUE;
+}
+
+LLVMBasicBlockRef get_label_from_table(char* name)
+{
+    int hash_value = get_hash_key(name, LABEL_MAX);
+
+    sLabel* p = gLabels + hash_value;
+
+    while(1) {
+        if(p->mName[0] == 0) {
+            return NULL;
+        }
+        else if(strcmp((char*)p->mName, name) == 0) {
+            return p->mBlock;
+        }
+
+        p++;
+
+        if(p == gLabels + LABEL_MAX) {
+            p = gLabels;
+        }
+        else if(p == gLabels + hash_value) {
+            return NULL;
+        }
+    }
+}
+
+
 unsigned int sNodeTree_if_expression(unsigned int expression_node, MANAGED struct sNodeBlockStruct* if_node_block, unsigned int* elif_expression_nodes, MANAGED struct sNodeBlockStruct** elif_node_blocks, int elif_num, MANAGED struct sNodeBlockStruct* else_node_block, sParserInfo* info, char* sname, int sline)
 {
     unsigned node = alloc_node();
