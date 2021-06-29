@@ -4086,7 +4086,7 @@ LIBS="$LIBS"
 
 
 
-OBJS="src/parser.o src/alignment.o src/buffer.o src/xfunc.o src/node.o src/node_function.o src/node_compile.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/vtable.o src/node_type.o src/klass.o src/constant.o src/node_block.o src/typedef.o src/compiler.o"
+OBJS="src/parser.o src/alignment.o src/buffer.o src/xfunc.o src/node.o src/node_function.o src/node_function2.o src/node_compile.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/vtable.o src/node_type.o src/klass.o src/constant.o src/node_block.o src/typedef.o src/compiler.o"
 
 for ac_func in lchmod
 do :

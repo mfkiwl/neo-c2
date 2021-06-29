@@ -325,8 +325,6 @@ void init_nodes(char* sname)
 
         char include_path[PATH_MAX];
 
-puts(cwd);
-puts(gFName);
         snprintf(include_path, PATH_MAX, "%s/%s", cwd, gFName);
         /*
         xstrncpy(include_path, cwd, PATH_MAX);

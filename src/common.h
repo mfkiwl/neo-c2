@@ -784,9 +784,9 @@ void show_node(unsigned int node);
 BOOL compile(unsigned int node, sCompileInfo* info);
 
 struct sFunctionStruct {
-    char mName[VAR_NAME_MAX];
+    char* mName;
     int mNumParams;
-    char mParamNames[PARAMS_MAX][VAR_NAME_MAX];
+    char* mParamNames[PARAMS_MAX];
     sNodeType* mParamTypes[PARAMS_MAX];
     sNodeType* mResultType;
     LLVMValueRef mLLVMFunction;
@@ -795,7 +795,7 @@ struct sFunctionStruct {
     BOOL mVarArgs;
     int mNumGenerics;
     BOOL mExtern;
-    char mGenericsTypeNames[GENERICS_TYPES_MAX][VAR_NAME_MAX];
+    char* mGenericsTypeNames[GENERICS_TYPES_MAX];
 };
 
 typedef struct sFunctionStruct sFunction;
@@ -1027,6 +1027,9 @@ BOOL compile_null(unsigned int node, sCompileInfo* info);
 //////////////////////////////
 /// node_function.c///
 //////////////////////////////
+void function_init();
+void function_final();
+
 BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_);
 sFunction* get_function_from_table(char* name);
 
