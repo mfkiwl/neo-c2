@@ -135,11 +135,21 @@ BOOL compile_external_function(unsigned int node, sCompileInfo* info)
                 return FALSE;
             }
 
-            llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+            if(strcmp(asm_fun_name, "") == 0) {
+                llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+            }
+            else {
+                llvm_fun = LLVMAddFunction(gModule, asm_fun_name, function_type);
+            }
         }
     }
     else {
-        llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+        if(strcmp(asm_fun_name, "") == 0) {
+            llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+        }
+        else {
+            llvm_fun = LLVMAddFunction(gModule, asm_fun_name, function_type);
+        }
 
         char* block_text = NULL;
 
@@ -1141,10 +1151,6 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     char asm_fun_name[VAR_NAME_MAX];
     xstrncpy(asm_fun_name, gNodes[node].uValue.sFunction.mAsmName, VAR_NAME_MAX);
 
-    if(strcmp(asm_fun_name, "") != 0) {
-        xstrncpy(fun_name, asm_fun_name, VAR_NAME_MAX);
-    }
-
     char simple_fun_name[VAR_NAME_MAX];
     xstrncpy(simple_fun_name, gNodes[node].uValue.sFunction.mSimpleName, VAR_NAME_MAX);
 
@@ -1253,7 +1259,12 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
 
     if(llvm_fun == NULL) {
-        llvm_fun = LLVMAddFunction(gModule, fun_name, llvm_fun_type);
+        if(strcmp(asm_fun_name, "") == 0) {
+            llvm_fun = LLVMAddFunction(gModule, fun_name, llvm_fun_type);
+        }
+        else {
+            llvm_fun = LLVMAddFunction(gModule, asm_fun_name, llvm_fun_type);
+        }
     }
 
     if(static_) {
