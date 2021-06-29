@@ -691,7 +691,7 @@ impl vector<T>
     }
 
     list<T>*% to_list(vector<T>* self) {
-        auto result = new vector<T>.initialize();
+        auto result = new list<T>.initialize();
         
         foreach(it, self) {
             if(isheap(T)) {
