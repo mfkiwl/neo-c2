@@ -1966,7 +1966,7 @@ lambdaは親のスタックの変数にはアクセスできません。
 ```
 auto a = 1;
 
-auto fun = lambda(int x, int y):int { return x + y + a; }
+auto fun = int lambda(int x, int y) { return x + y + a; }
 ```
 
 The above code will result in a compilation error.
