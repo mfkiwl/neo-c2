@@ -14,7 +14,7 @@ bool ViWin_saveYankToFile(ViWin* self, Vi* nvi)
         return false;
     }
 
-    string path = xsprintf("%s/.wi/yank.txt", home);
+    string path = xsprintf("%s/.vico/yank.txt", home);
     FILE* f = fopen(path, "w");
 
     if(f == null) {
@@ -38,7 +38,7 @@ bool ViWin_loadYankFromFile(ViWin* self, Vi* nvi)
         return false;
     }
 
-    string path = xsprintf("%s/.wi/yank.txt", home);
+    string path = xsprintf("%s/.vico/yank.txt", home);
     FILE* f = fopen(path, "r");
 
     if(f == null) {

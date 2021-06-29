@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.0.1
+version 1.0.2
 
 ```
 #include <come.h>

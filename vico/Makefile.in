@@ -114,6 +114,7 @@ main.o: configure Makefile config.h main.c common.h
 #########################################
 install:
 	mkdir -p "$(DESTDIR)/bin"
+	mkdir -p ~/.vico/backup
 	$(INSTALL) -m 755 ./vico "$(DESTDIR)/bin"
 
 #########################################

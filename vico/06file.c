@@ -41,7 +41,7 @@ void ViWin_saveCursorPosition(ViWin* self, char* file_name)
     
     auto bname = xbasename(file_name);  
 
-    snprintf(file_name2, PATH_MAX, "%s/.wi/%s.pos", home, bname);
+    snprintf(file_name2, PATH_MAX, "%s/.vico/%s.pos", home, bname);
     
     FILE* f = fopen(file_name2, "w");
 
@@ -67,7 +67,7 @@ void ViWin_readCursorPosition(ViWin* self, char* file_name)
     char file_name2[PATH_MAX];
     
     auto bname = xbasename(file_name); 
-    snprintf(file_name2, PATH_MAX, "%s/.wi/%s.pos", home, bname);
+    snprintf(file_name2, PATH_MAX, "%s/.vico/%s.pos", home, bname);
     
     FILE* f = fopen(file_name2, "r");
 
@@ -166,13 +166,13 @@ void ViWin_writeFile(ViWin* self)
     
     (void)mkdir(path, 0755);
     
-    snprintf(path, PATH_MAX, "%s/.wi/backup", home);
+    snprintf(path, PATH_MAX, "%s/.vico/backup", home);
     
     (void)mkdir(path, 0755);
     
     char cmd[BUFSIZ];
     
-    snprintf(cmd, BUFSIZ, "cp %s %s/.wi/backup", self.fileName, home);
+    snprintf(cmd, BUFSIZ, "cp %s %s/.vico/backup", self.fileName, home);
     
     (void)system(cmd);
     
@@ -360,7 +360,7 @@ string Vi_readLastOpenFile(Vi* self)
     
     char file_name2[PATH_MAX];
     
-    snprintf(file_name2, PATH_MAX, "%s/.wi/last_open_file", home);
+    snprintf(file_name2, PATH_MAX, "%s/.vico/last_open_file", home);
     
     FILE* f = fopen(file_name2, "r");
 
