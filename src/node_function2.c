@@ -9,7 +9,6 @@ void function_init()
 
 void function_final()
 {
-puts("function_final");
     int i;
     for(i=0; i<FUN_NUM_MAX; i++) {
         if(gFuncs[i].mName) {
