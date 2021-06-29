@@ -1218,6 +1218,35 @@ impl map <T, T2>
         return result;
     }
 
+    bool find(map<T, T2>* self, T& key) {
+        int hash = ((T)key).get_hash_key() % self.size;
+        int it = hash;
+
+        while(true) {
+            if(self.item_existance[it])
+            {
+                if(self.keys[it].equals(key))
+                {
+                    return true;
+                }
+
+                it++;
+
+                if(it >= self.size) {
+                    it = 0;
+                }
+                else if(it == hash) {
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
     bool equals(map<T, T2>* left, map<T, T2>* right)
     {
         if(left.len != right.len) {
@@ -1225,7 +1254,9 @@ impl map <T, T2>
         }
 
         bool result = true;
-        left.each {
+        foreach(it, left) {
+            auto it2 = left.at(it, null);
+
             if(right.find(it)) {
                 T2& default_value;
                 T2 item = right.at(it, default_value);

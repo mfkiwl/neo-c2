@@ -3,6 +3,9 @@ operators
 
     struct with initialization
 
+
+map<char*, int> bug
+
 ---- implemented ----
 debug info
 inline

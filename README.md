@@ -1503,7 +1503,6 @@ impl map <T, T2>
         return default_value;
     }
 
-
     void rehash(map<T,T2>* self) {
         int size = self.size * 3;
         T&* keys = borrow new T[size];
@@ -1512,8 +1511,8 @@ impl map <T, T2>
 
         int len = 0;
 
-        foreach(it, self) {
-            T2& it2 = self.at(it, NULL);
+        for(auto it = self.begin(); !self.end(); it = self.next()) {
+            T2& it2 = self.at(it, null);
             int hash = it.get_hash_key() % size;
             int n = hash;
 
@@ -1533,7 +1532,7 @@ impl map <T, T2>
                 else {
                     item_existance[n] = true;
                     keys[n] = it;
-                    items[n] = self.at(it, NULL);
+                    items[n] = self.at(it, null);
 
                     len++;
                     break;
@@ -1608,8 +1607,8 @@ impl map <T, T2>
     {
         auto result = new map<T,T2>.initialize();
 
-        foreach(it, self) {
-            auto it2 = self.at(it, NULL);
+        for(auto it = self.begin(); !self.end(); it = self.next()) {
+            auto it2 = self.at(it, null);
 
             if(isheap(T)) {
                 if(isheap(T2)) {
@@ -1632,6 +1631,35 @@ impl map <T, T2>
         return result;
     }
 
+    bool find(map<T, T2>* self, T& key) {
+        int hash = ((T)key).get_hash_key() % self.size;
+        int it = hash;
+
+        while(true) {
+            if(self.item_existance[it])
+            {
+                if(self.keys[it].equals(key))
+                {
+                    return true;
+                }
+
+                it++;
+
+                if(it >= self.size) {
+                    it = 0;
+                }
+                else if(it == hash) {
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
     bool equals(map<T, T2>* left, map<T, T2>* right)
     {
         if(left.len != right.len) {
@@ -1639,7 +1667,9 @@ impl map <T, T2>
         }
 
         bool result = true;
-        left.each {
+        foreach(it, left) {
+            auto it2 = left.at(it, null);
+
             if(right.find(it)) {
                 T2& default_value;
                 T2 item = right.at(it, default_value);
@@ -1705,11 +1735,11 @@ impl map <T, T2>
 Usage is bellow:
 
 ```
-auto m = new map<char*, int>.initialize();
+auto m = new map<string, int>.initialize();
 
-m.insert("AAA", 1);
-m.insert("BBB", 2);
-m.insert("CCC", 3);
+m.insert(string("AAA"), 1);
+m.insert(string("BBB"), 2);
+m.insert(string("CCC"), 3);
 
 if(m.length() == 3 && m.at("AAA", -1) == 1 && m.at("BBB", -1) == 2 && m.at("CCC", -1) == 3) {
     puts("OK");
