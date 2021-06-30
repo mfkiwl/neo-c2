@@ -139,17 +139,18 @@ int main()
 
     xassert("buffer test", strcmp(b1.to_string(), "ABCDEF") == 0);
 
-    map<string,int>*% m1 = new map<string, int>.initialize();
+    auto m1 = new map<char*, int>.initialize();
 
-    m1.insert(string("AAA"), 1);
-    m1.insert(string("BBB"), 2);
+    m1.insert("AAA", 1);
 
-    map<string,int>*% m2 = new map<string, int>.initialize();
+    auto m2 = new map<char*, int>.initialize();
 
-    m2.insert(string("AAA"), 1);
-    m2.insert(string("BBB"), 2);
+    m2.insert("AAA", 1);
 
-    xassert("map test", m1.equals(m2));
+    xassert("map test", m1.at("AAA", -1) == 1);
+    xassert("map test2", m2.at("AAA", -1) == 1);
+
+    xassert("map test3", m1.equals(m2));
 
     return 0;
 }

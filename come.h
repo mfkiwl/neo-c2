@@ -1195,7 +1195,8 @@ impl map <T, T2>
         auto result = new map<T,T2>.initialize();
 
         for(auto it = self.begin(); !self.end(); it = self.next()) {
-            auto it2 = self.at(it, null);
+            T2& default_value;
+            auto it2 = self.at(it, default_value);
 
             if(isheap(T)) {
                 if(isheap(T2)) {
@@ -1255,11 +1256,11 @@ impl map <T, T2>
 
         bool result = true;
         foreach(it, left) {
-            auto it2 = left.at(it, null);
+            T2& it2 = left.at(it, null);
 
             if(right.find(it)) {
                 T2& default_value;
-                T2 item = right.at(it, default_value);
+                T2& item = right.at(it, default_value);
                 if(!it2.equals(item)) {
                     result = false;
                 }

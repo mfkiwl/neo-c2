@@ -198,6 +198,10 @@ void create_generics_fun_name(char* real_fun_name, int size_real_fun_name, char*
             xstrncat(real_fun_name, "p", size_real_fun_name);
         }
 
+        if(node_type->mHeap) {
+            xstrncat(real_fun_name, "h", size_real_fun_name);
+        }
+
         if(i != generics_type->mNumGenericsTypes-1) {
             xstrncat(real_fun_name, "_", size_real_fun_name);
         }
