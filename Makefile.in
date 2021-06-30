@@ -31,6 +31,8 @@ OBJS=@OBJS@
 #########################################
 all: come self-host
 
+no-self-host: come
+
 come: config.h src/main.o $(OBJS)
 	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
 	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)

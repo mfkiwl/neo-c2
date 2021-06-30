@@ -82,6 +82,44 @@ or
 bash all_build.sh
 ```
 
+Without self-host
+
+```
+sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
+
+git clone https://github.com/ab25cq/comelang
+
+cd comelang
+
+./configure --with-optimize
+make no-self-host
+sudo make install
+make test
+
+or 
+
+bash no_self_host.sh
+```
+
+Install to home directory
+
+```
+sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
+
+git clone https://github.com/ab25cq/comelang
+
+cd comelang
+
+./configure --with-optimize --prefix=$HOME
+make
+sudo make install
+make test
+
+or 
+
+bash home_build.sh
+```
+
 1. Language specifications
 
 It is almost the same as C language. Since it is not POSIX compliant, it is not compatible with C language in every detail, but I think that anyone who can use C language can use it immediately. If you don't use the heap system and do #include <come.h>, you can just use it as a C compiler.
