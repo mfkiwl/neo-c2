@@ -19,7 +19,7 @@ int main()
 
     v.push_back("AAA");
     v.push_back("BBB");
-    v.push_back("CCC")+
+    v.push_back("CCC");
 
     foreach(it, v) {
         puts(it);
