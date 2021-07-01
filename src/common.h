@@ -41,10 +41,10 @@
 #define TYPEDEF_MAX 2048
 #define MACRO_MAX 1024
 #define ARRAY_DIMENTION_MAX 5
-#define FUN_NUM_MAX 2048
+#define FUN_NUM_MAX 4096
 #define STRUCT_NUM_MAX 2046
 #define LABEL_MAX 512
-#define GENERICS_STRUCT_MAX 512
+#define GENERICS_STRUCT_MAX 64
 #define FUN_VERSION_MAX 512
 
 #define clint64 long long      // for 32 bit cpu
@@ -827,7 +827,7 @@ struct sStructStruct {
 typedef struct sStructStruct sStruct;
 
 struct sLabelStruct {
-    char mName[VAR_NAME_MAX];
+    char* mName;
     LLVMBasicBlockRef mBlock;
 };
 
@@ -1058,6 +1058,9 @@ BOOL compile_lambda_call(unsigned int node, sCompileInfo* info);
 //////////////////////////////
 /// node_loop ///
 //////////////////////////////
+void label_init();
+void label_final();
+
 BOOL add_label_to_table(char* name, LLVMBasicBlockRef block);
 LLVMBasicBlockRef get_label_from_table(char* name);
 

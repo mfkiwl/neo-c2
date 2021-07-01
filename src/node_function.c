@@ -87,6 +87,15 @@ BOOL compile_external_function(unsigned int node, sCompileInfo* info)
     LLVMTypeRef llvm_param_types[PARAMS_MAX];
 
     for(i=0; i<num_params; i++) {
+#ifdef __RASPBERRY_PI__
+        if(type_identify_with_class_name(param_types[i], "__builtin_va_list") || type_identify_with_class_name(param_types[i], "va_list")) {
+            llvm_param_types[i] = create_llvm_type_with_class_name("int");
+            llvm_param_types[i] = LLVMArrayType(llvm_param_types[i], 1);
+        }
+        else {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+#else
         if(type_identify_with_class_name(param_types[i], "__builtin_va_list") || type_identify_with_class_name(param_types[i], "va_list")) {
             llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
             llvm_param_types[i] = LLVMPointerType(llvm_param_types[i], 0);
@@ -94,6 +103,7 @@ BOOL compile_external_function(unsigned int node, sCompileInfo* info)
         else {
             llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
         }
+#endif
     }
 
     LLVMTypeRef llvm_result_type;
@@ -752,6 +762,34 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
         llvm_params[0] = param;
         num_params = 1;
     }
+#if defined(__RASPBERRY_PI__)
+    else {
+        int i;
+        for(i=0;i<num_params; i++) {
+            if(type_identify_with_class_name(param_types[i], "__builtin_va_list") || type_identify_with_class_name(param_types[i], "va_list")) {
+                LLVMValueRef indices[2];
+
+                LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
+
+                indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
+                indices[1] = LLVMConstInt(llvm_type, 0, FALSE);
+
+                llvm_params[i] = LLVMBuildGEP(gBuilder, llvm_params[i], indices, 2, "gep");
+
+                sNodeType* node_type = create_node_type_with_class_name("int");
+                node_type->mArrayDimentionNum = 1;
+                node_type->mArrayNum[0] = 1;
+
+                LLVMTypeRef llvm_type2 = create_llvm_type_from_node_type(node_type);
+
+                llvm_type2 = LLVMPointerType(llvm_type2, 0);
+
+                llvm_params[i] = LLVMBuildCast(gBuilder, LLVMBitCast, llvm_params[i], llvm_type2, "icastXXX");
+                llvm_params[i] = LLVMBuildLoad(gBuilder, llvm_params[i], "va_list");
+            }
+        }
+    }
+#endif
 
     sNodeType* result_type = clone_node_type(fun->mResultType);
 
@@ -1227,9 +1265,11 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
         llvm_param_types[i] = create_llvm_type_from_node_type(params[i].mType);
 
+//#ifndef __RASPBERRY_PI__
         if(type_identify_with_class_name(param_types[i], "__builtin_va_list") || type_identify_with_class_name(param_types[i], "va_list")) {
             llvm_param_types[i] = LLVMPointerType(llvm_param_types[i], 0);
         }
+//#endif
 
         xstrncpy(param_names[i], params[i].mName, VAR_NAME_MAX);
     }

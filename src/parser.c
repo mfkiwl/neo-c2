@@ -762,6 +762,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
     char* field_names[STRUCT_FIELD_MAX];
     sNodeType* fields[STRUCT_FIELD_MAX];
 
+    BOOL in_struct = info->in_struct;
     info->in_struct = TRUE;
 
     /// already get struct name ///
@@ -769,7 +770,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
         char buf[VAR_NAME_MAX];
 
         if(!parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE)) {
-            info->in_struct = FALSE;
+            info->in_struct = in_struct;
             return FALSE;
         }
 
@@ -782,7 +783,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
     if(*info->p == ';') {
         if(terminated) {
             *terminated = TRUE;
-            info->in_struct = FALSE;
+            info->in_struct = in_struct;
             return TRUE;
         }
 
@@ -802,14 +803,14 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
 
         xstrncpy(info->parse_struct_name, struct_name, VAR_NAME_MAX);
 
-        info->in_struct = FALSE;
+        info->in_struct = in_struct;
         return TRUE;
     }
 
     if(*info->p == '*') {
         if(terminated) {
             *terminated = FALSE;
-            info->in_struct = FALSE;
+            info->in_struct = in_struct;
             return TRUE;
         }
     }
@@ -817,7 +818,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
     if(isalpha(*info->p) || *info->p == '_') {
         if(terminated) {
             *terminated = FALSE;
-            info->in_struct = FALSE;
+            info->in_struct = in_struct;
             return TRUE;
         }
     }
@@ -878,25 +879,25 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
     while(TRUE) {
         if(*info->p == '#') {
             if(!parse_sharp(info)) {
-                info->in_struct = FALSE;
+                info->in_struct = in_struct;
                 return FALSE;
             }
         }
         char asm_fname[VAR_NAME_MAX];
         if(!parse_attribute(info, asm_fname)) {
-            info->in_struct = FALSE;
+            info->in_struct = in_struct;
             return FALSE;
         }
 
         sNodeType* field = NULL;
         char buf[VAR_NAME_MAX];
         if(!parse_type(&field, info, buf, FALSE, TRUE)) {
-            info->in_struct = FALSE;
+            info->in_struct = in_struct;
             return FALSE;
         }
 
         if(!parse_attribute(info, asm_fname)) {
-            info->in_struct = FALSE;
+            info->in_struct = in_struct;
             return FALSE;
         }
 
@@ -916,13 +917,13 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
         else if(buf[0] == '\0') {
             if(!parse_variable_name(buf, VAR_NAME_MAX, info, field, FALSE, FALSE))
             {
-                info->in_struct = FALSE;
+                info->in_struct = in_struct;
                 return FALSE;
             }
         }
 
         if(!parse_attribute(info, asm_fname)) {
-            info->in_struct = FALSE;
+            info->in_struct = in_struct;
             return FALSE;
         }
 
@@ -937,7 +938,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
             for(i=0; i<num_fields; i++) {
                 free(field_names[i]);
             }
-            info->in_struct = FALSE;
+            info->in_struct = in_struct;
             return FALSE;
         }
 
@@ -959,7 +960,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
                         for(i=0; i<num_fields; i++) {
                             free(field_names[i]);
                         }
-                        info->in_struct = FALSE;
+                        info->in_struct = in_struct;
                         return FALSE;
                     }
                 }
@@ -974,7 +975,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
                     for(i=0; i<num_fields; i++) {
                         free(field_names[i]);
                     }
-                    info->in_struct = FALSE;
+                    info->in_struct = in_struct;
                     return FALSE;
                 }
             }
@@ -985,7 +986,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
             for(i=0; i<num_fields; i++) {
                 free(field_names[i]);
             }
-            info->in_struct = FALSE;
+            info->in_struct = in_struct;
             return FALSE;
         }
 
@@ -1005,7 +1006,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
                 for(i=0; i<num_fields; i++) {
                     free(field_names[i]);
                 }
-                info->in_struct = FALSE;
+                info->in_struct = in_struct;
                 return FALSE;
             }
 
@@ -1025,7 +1026,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
 
         if(terminated) {
             *terminated = TRUE;
-            info->in_struct = FALSE;
+            info->in_struct = in_struct;
             return TRUE;
         }
     }
@@ -1047,13 +1048,13 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
 
     char asm_fname[VAR_NAME_MAX];
     if(!parse_attribute(info, asm_fname)) {
-        info->in_struct = FALSE;
+        info->in_struct = in_struct;
         return FALSE;
     }
 
     info->mNumGenerics = 0;
 
-    info->in_struct = FALSE;
+    info->in_struct = in_struct;
 
     return TRUE;
 }

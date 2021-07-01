@@ -71,6 +71,7 @@ then
     echo armv7l
 
     AC_DEFINE(__32BIT_CPU__, 1)
+    AC_DEFINE(__RASPBERRY_PI__, 1)
 elif test `uname -m` = aarch64
 then
     echo aarch64
@@ -182,6 +183,9 @@ CC=clang
 if which clang-11 2> /dev/null
 then
     CC=clang-11
+elif which clang-9 2> /dev/null
+then
+    CC=clang-9
 fi
 
 INSTALL="$(which install) -c"
@@ -251,7 +255,13 @@ then
     echo llvm-11 ok
     LLVM_VERSION=`llvm-config-11 --version | sed 's/\([[0-9]]*\)\.[[0-9]]*\.[[0-9]]*/\1/'`
     CFLAGS="$CFLAGS -DLLVM_VERSION=$LLVM_VERSION"
-
+elif which llvm-config-9 1> /dev/null 2>/dev/null
+then
+    CFLAGS=`llvm-config-9 --cflags | tr '\n' ' '`" $CFLAGS"
+    CXXFLAGS=`llvm-config-9 --cxxflags --ldflags --system-libs --libs all | tr '\n' ' '`" $CXXFLAGS"
+    echo llvm-9 ok
+    LLVM_VERSION=`llvm-config-9 --version | sed 's/\([[0-9]]*\)\.[[0-9]]*\.[[0-9]]*/\1/'`
+    CFLAGS="$CFLAGS -DLLVM_VERSION=$LLVM_VERSION"
 elif which llvm-config 1> /dev/null 2>/dev/null
 then
     CFLAGS=`llvm-config --cflags | tr '\n' ' '`" $CFLAGS"

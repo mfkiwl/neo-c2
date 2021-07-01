@@ -20,3 +20,4 @@
 #undef __X86_64_CPU__
 #undef __AARCH64_CPU__
 #undef __LLVM_VERSION__
+#undef __RASPBERRY_PI__

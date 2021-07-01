@@ -418,6 +418,34 @@ void init_nodes(char* sname)
         fprintf(stderr, "overflow struct number\n");
         exit(2);
     }
+#elif __RASPBERRY_PI__
+    LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+
+    field_types[0] = create_llvm_type_with_class_name("char*");
+
+    int num_fields = 1;
+
+    LLVMTypeRef struct_type = LLVMStructTypeInContext(gContext, field_types, num_fields, FALSE);
+
+    LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+
+    char* class_name = "__builtin_va_list";
+    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE);
+    sNodeType* node_type = create_node_type_with_class_pointer(va_list_struct);
+
+    if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+        fprintf(stderr, "overflow struct number\n");
+        exit(2);
+    }
+
+    class_name = "va_list";
+    va_list_struct = alloc_struct("va_list", FALSE);
+    node_type = create_node_type_with_class_pointer(va_list_struct);
+
+    if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+        fprintf(stderr, "overflow struct number\n");
+        exit(2);
+    }
 #else
     LLVMTypeRef field_types[STRUCT_FIELD_MAX];
 
@@ -730,41 +758,85 @@ LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
     LLVMMetadataRef result = NULL;
 
     if(node_type->mPointerNum > 0) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0);
+#else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0, 0);
+#endif
     }
     else if(node_type->mArrayDimentionNum > 0) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0);
+#else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0, 0);
+#endif
     }
     else if(type_identify_with_class_name(node_type, "int")) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "int", strlen("int"), 32, 0);
+#else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "int", strlen("int"), 32, 0, 0);
+#endif
     }
     else if(type_identify_with_class_name(node_type, "char")) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "char", strlen("char"), 8, 0);
+#else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "char", strlen("char"), 8, 0, 0);
+#endif
     }
     else if(type_identify_with_class_name(node_type, "short")) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "short", strlen("short"), 16, 0);
+#else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "short", strlen("short"), 16, 0, 0);
+#endif
     }
     else if(type_identify_with_class_name(node_type, "long")) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "long", strlen("long"), 64, 0);
+#else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "long", strlen("long"), 64, 0, 0);
+#endif
     }
     else if(type_identify_with_class_name(node_type, "float")) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 16, 0);
+#else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 16, 0, 0);
+#endif
     }
     else if(type_identify_with_class_name(node_type, "_Float16") || type_identify_with_class_name(node_type, "_Float16x")) 
     {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 16, 0);
+#else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 16, 0, 0);
+#endif
     }
     else if(type_identify_with_class_name(node_type, "_Float32") || type_identify_with_class_name(node_type, "_Float32x")) 
     {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 16, 0);
+#else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 16, 0, 0);
+#endif
     }
     else if(type_identify_with_class_name(node_type, "_Float64") || type_identify_with_class_name(node_type, "_Float64x")) 
     {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 64, 0);
+#else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 64, 0, 0);
+#endif
     }
     else if(type_identify_with_class_name(node_type, "_Float128") || type_identify_with_class_name(node_type, "_Float128x")) 
     {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 128, 0);
+#else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 128, 0, 0);
+#endif
     }
 
     return result;

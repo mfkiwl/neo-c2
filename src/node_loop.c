@@ -2,14 +2,29 @@
 
 sLabel gLabels[LABEL_MAX];
 
+void label_init()
+{
+    memset(gLabels, 0, sizeof(sLabel)*LABEL_MAX);
+}
+
+void label_final()
+{
+    int i;
+    for(i=0; i<LABEL_MAX; i++) {
+        if(gLabels[i].mName != NULL) {
+            free(gLabels[i].mName);
+        }
+    }
+}
+
 BOOL add_label_to_table(char* name, LLVMBasicBlockRef block)
 {
     int hash_value = get_hash_key(name, LABEL_MAX);
     sLabel* p = gLabels + hash_value;
 
     while(1) {
-        if(p->mName[0] == 0) {
-            xstrncpy(p->mName, name, VAR_NAME_MAX);
+        if(p->mName == NULL) {
+            p->mName = strdup(name);
 
             p->mBlock = block;
 
@@ -17,8 +32,6 @@ BOOL add_label_to_table(char* name, LLVMBasicBlockRef block)
         }
         else {
             if(strcmp(p->mName, name) == 0) {
-                xstrncpy(p->mName, name, VAR_NAME_MAX);
-
                 p->mBlock = block;
 
                 return TRUE;
@@ -46,7 +59,7 @@ LLVMBasicBlockRef get_label_from_table(char* name)
     sLabel* p = gLabels + hash_value;
 
     while(1) {
-        if(p->mName[0] == 0) {
+        if(p->mName == NULL) {
             return NULL;
         }
         else if(strcmp((char*)p->mName, name) == 0) {

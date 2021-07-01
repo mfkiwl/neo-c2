@@ -2,6 +2,7 @@
 
 static void compiler_init(char* sname)
 {
+    label_init();
     function_init();
     init_typedef();
     parser_init();
@@ -19,6 +20,7 @@ static void compiler_final(char* sname)
     free_node_types();
     parser_final();
     function_final();
+    label_final();
 }
 
 static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BOOL neo_c_header, char* macro_definition)
