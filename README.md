@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.0.3
+version 1.0.4
 
 ```
 #include <come.h>
@@ -65,6 +65,8 @@ int main()
 
 5. mixin-layersシステムを備えます。アプリケーションをレイヤーを重ねるように実装できます。各レイヤーは完結しており、デバッグや移植作業でも有効です。mixin-layersで実装されたエディッタとしてvicoというviクローンを実装しています。vicoというディレクトリの中に入っているので参考にしてください。
 
+For PC and WSL
+
 ```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
 
@@ -82,7 +84,7 @@ or
 bash all_build.sh
 ```
 
-Without self-host
+Without self-host. For raspberry pi OS and iSH(iPhone)
 
 ```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
@@ -101,7 +103,7 @@ or
 bash no_self_host.sh
 ```
 
-Install to home directory
+Install to home directory. For termux(android)
 
 ```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
