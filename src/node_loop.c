@@ -1039,7 +1039,7 @@ BOOL compile_return(unsigned int node, sCompileInfo* info)
 
         sNodeType* right_type = clone_node_type(info->type);
 
-        sNodeType* result_type = gComeFunction->mResultType;
+        sNodeType* result_type = gComeFunctionResultType;
 
         if(auto_cast_posibility(result_type, right_type))
         {

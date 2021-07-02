@@ -116,8 +116,6 @@ void free_right_value_objects(sCompileInfo* info)
     }
 }
 
-sFunction* gComeFunction;
-
 LLVMTypeRef create_llvm_type_with_class_name(char* class_name);
 sFunction* get_function_from_table(char* name);
 BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_name, sNodeType* generics_type, sCompileInfo* info);

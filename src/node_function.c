@@ -1,5 +1,7 @@
 #include "common.h"
 
+sNodeType* gComeFunctionResultType;
+
 unsigned int sNodeTree_create_external_function(char* fun_name, char* asm_fname, sParserParam* params, int num_params, BOOL var_arg, sNodeType* result_type, char* struct_name, BOOL operator_fun, int version, sParserInfo* info)
 {
     unsigned int node = alloc_node();
@@ -999,14 +1001,14 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
         struct sRightValueObject* right_value_objects = info->right_value_objects;
         info->right_value_objects = NULL;
 
-        sFunction* come_function = gComeFunction;
-        gComeFunction = fun;
+        sNodeType* come_function_result_type = gComeFunctionResultType;
+        gComeFunctionResultType = clone_node_type(fun->mResultType);
 
         if(!compile_block(node_block, info)) {
             return FALSE;
         }
 
-        gComeFunction = come_function;
+        gComeFunctionResultType = come_function_result_type;
 
         info->in_inline_function = in_inline_function;
 
@@ -1189,7 +1191,7 @@ unsigned int sNodeTree_create_function(char* fun_name, char* asm_fname, sParserP
 BOOL compile_function(unsigned int node, sCompileInfo* info)
 {
     /// get result type ///
-    sNodeType* result_type = gNodes[node].uValue.sFunction.mResultType;
+    sNodeType* result_type = clone_node_type(gNodes[node].uValue.sFunction.mResultType);
 
     char fun_name[VAR_NAME_MAX];
     xstrncpy(fun_name, gNodes[node].uValue.sFunction.mName, VAR_NAME_MAX);
@@ -1350,8 +1352,8 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
     sFunction* fun = get_function_from_table(fun_name);
 
-    sFunction* come_function = gComeFunction;
-    gComeFunction = fun;
+    sNodeType* come_function_result_type = gComeFunctionResultType;
+    gComeFunctionResultType = fun->mResultType;
 
     if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !empty_function) {
         int sline = gNodes[node].mLine;
@@ -1454,7 +1456,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     gFunction = function;
     xstrncpy(gFunctionName, fun_name_before, VAR_NAME_MAX);
     info->function_node_block = function_node_block;
-    gComeFunction = come_function;
+    gComeFunctionResultType = come_function_result_type;
     info->in_lambda_function = in_lambda_function;
 
     if(lambda_) {

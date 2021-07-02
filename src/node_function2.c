@@ -119,10 +119,10 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
             int i;
             for(i=0; i<num_params; i++) {
                 p->mParamNames[i] = strdup(param_names[i]);
-                p->mParamTypes[i] = param_types[i];
+                p->mParamTypes[i] = clone_node_type(param_types[i]);
             }
 
-            p->mResultType = result_type;
+            p->mResultType = clone_node_type(result_type);
             p->mLLVMFunction = llvm_fun;
             p->mBlockText = block_text;
             p->mGenericsFunction = generics_function;
@@ -168,10 +168,10 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
 
                 for(i=0; i<num_params; i++) {
                     p->mParamNames[i] = strdup(param_names[i]);
-                    p->mParamTypes[i] = param_types[i];
+                    p->mParamTypes[i] = clone_node_type(param_types[i]);
                 }
 
-                p->mResultType = result_type;
+                p->mResultType = clone_node_type(result_type);
                 p->mLLVMFunction = llvm_fun;
                 p->mBlockText = block_text;
                 p->mGenericsFunction = generics_function;

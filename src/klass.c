@@ -22,7 +22,7 @@ static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, B
 
 void class_init()
 {
-    gSizeClasses = 1024;
+    gSizeClasses = 4096*2;
     gClasses = calloc(1, sizeof(sCLClass)*gSizeClasses);
     gNumClasses = 0;
 

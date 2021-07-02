@@ -787,7 +787,7 @@ struct sFunctionStruct {
 
 typedef struct sFunctionStruct sFunction;
 
-extern sFunction* gComeFunction;
+extern sNodeType* gComeFunctionResultType;
 
 void setCurrentDebugLocation(int sline, sCompileInfo* info);
 void setNullCurrentDebugLocation(int sline, sCompileInfo* info);
