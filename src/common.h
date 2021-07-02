@@ -818,7 +818,7 @@ void arrange_stack(sCompileInfo* info, int top);
 LVALUE* get_value_from_stack(int offset);
 
 struct sStructStruct {
-    char mName[VAR_NAME_MAX];
+    char* mName;
     LLVMTypeRef mLLVMType;
     sNodeType* mNodeType;
     BOOL mUndefinedBody;
@@ -849,7 +849,7 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info);
 
 struct sGenericsStructTypeStruct
 {
-    char mName[VAR_NAME_MAX];
+    char* mName;
     sNodeType* mType;
 };
 
@@ -929,6 +929,9 @@ BOOL compile_or(unsigned int node, sCompileInfo* info);
 //////////////////////////////
 /// node_var.c ///
 //////////////////////////////
+void node_var_init();
+void node_var_final();
+
 BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body);
 sStruct* get_struct_from_table(char* name);
 
@@ -1028,8 +1031,8 @@ BOOL compile_null(unsigned int node, sCompileInfo* info);
 //////////////////////////////
 /// node_function.c///
 //////////////////////////////
-void function_init();
-void function_final();
+void node_function_init();
+void node_function_final();
 
 BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name);
 sFunction* get_function_from_table(char* name);
@@ -1058,8 +1061,8 @@ BOOL compile_lambda_call(unsigned int node, sCompileInfo* info);
 //////////////////////////////
 /// node_loop ///
 //////////////////////////////
-void label_init();
-void label_final();
+void node_loop_init();
+void node_loop_final();
 
 BOOL add_label_to_table(char* name, LLVMBasicBlockRef block);
 LLVMBasicBlockRef get_label_from_table(char* name);

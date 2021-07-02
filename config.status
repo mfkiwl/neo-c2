@@ -433,7 +433,7 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/home/pi/comelang'
+ac_pwd='/home/ab25cq/repo/comelang'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
 test -n "$AWK" || AWK=awk
@@ -605,13 +605,13 @@ S["LTLIBOBJS"]=""
 S["LIBOBJS"]=""
 S["OBJS"]="src/parser.o src/alignment.o src/buffer.o src/xfunc.o src/node.o src/node_function.o src/node_function2.o src/node_compile.o src/node_loop.o src/nod"\
 "e_op.o src/node_value.o src/node_var.o src/vtable.o src/node_type.o src/klass.o src/constant.o src/node_block.o src/typedef.o src/compiler.o"
-S["CXXFLAGS"]="-I/usr/lib/llvm-9/include -std=c++11   -fno-exceptions -D_GNU_SOURCE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS -D__STDC_FO"\
-"RMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/lib/llvm-9/lib  -lLLVM-9   -O3 -I . -I src -DPREFIX=\"\\\"${DESTDIR}/\\\" -L/usr/local/lib\""
+S["CXXFLAGS"]="-I/usr/lib/llvm-11/include -std=c++14   -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/l"\
+"ib/llvm-11/lib  -lLLVM-11   -O3 -I . -I src -DPREFIX=\"\\\"${DESTDIR}/\\\" -L/usr/local/lib\""
 S["CXX"]="g++"
 S["DESTDIR"]="/usr/local"
 S["OS"]="LINUX"
-S["EGREP"]="/usr/bin/grep -E"
-S["GREP"]="/usr/bin/grep"
+S["EGREP"]="/bin/grep -E"
+S["GREP"]="/bin/grep"
 S["CPP"]="gcc -E"
 S["INSTALL_DATA"]="${INSTALL} -m 644"
 S["INSTALL_SCRIPT"]="${INSTALL}"
@@ -621,9 +621,9 @@ S["EXEEXT"]=""
 S["ac_ct_CC"]="gcc"
 S["CPPFLAGS"]=""
 S["LDFLAGS"]=""
-S["CFLAGS"]="-I/usr/lib/llvm-9/include  -D_GNU_SOURCE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_M"\
-"ACROS  -Isrc/ -I. -DPREFIX=\"\\\"${DESTDIR}/\\\"\" -fPIC -I/usr/local/include -O3 -DLLVM_VERSION=9"
-S["CC"]="clang-9"
+S["CFLAGS"]="-I/usr/lib/llvm-11/include  -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -Isrc/ -I. -DPREFIX=\"\\\"${DESTDIR}/\\"\
+"\"\" -fPIC -I/usr/local/include -O3 -DLLVM_VERSION=11"
+S["CC"]="clang-11"
 S["target_alias"]=""
 S["host_alias"]=""
 S["build_alias"]=""
@@ -720,8 +720,8 @@ D["HAVE_STRINGS_H"]=" 1"
 D["HAVE_INTTYPES_H"]=" 1"
 D["HAVE_STDINT_H"]=" 1"
 D["HAVE_UNISTD_H"]=" 1"
-D["__32BIT_CPU__"]=" 1"
-D["__RASPBERRY_PI__"]=" 1"
+D["__X86_64_CPU__"]=" 1"
+D["__64BIT_CPU__"]=" 1"
 D["__LINUX__"]=" 1"
 D["HAVE_MATH_H"]=" 1"
 D["HAVE_ICONV_H"]=" 1"

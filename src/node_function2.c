@@ -1,16 +1,20 @@
 #include "common.h"
 
-sFunction gFuncs[FUN_NUM_MAX];
+sFunction* gFuncs;
+int gSizeFuncs;
+int gNumFuncs;
 
-void function_init()
+void node_function_init()
 {
-    memset(gFuncs, 0, sizeof(sFunction)*FUN_NUM_MAX);
+    gSizeFuncs = 1024;
+    gFuncs = calloc(1, sizeof(sFunction)*gSizeFuncs);
+    gNumFuncs = 0;
 }
 
-void function_final()
+void free_funcs()
 {
     int i;
-    for(i=0; i<FUN_NUM_MAX; i++) {
+    for(i=0; i<gSizeFuncs; i++) {
         if(gFuncs[i].mName) {
             free(gFuncs[i].mName);
             if(gFuncs[i].mAsmFunName) {
@@ -27,11 +31,83 @@ void function_final()
             }
         }
     }
+    free(gFuncs);
+}
+
+void node_function_final()
+{
+    free_funcs();
+}
+
+void rehash_funcs()
+{
+    int new_size_funcs = gSizeFuncs * 2;
+    sFunction* new_funcs = calloc(1, sizeof(sFunction)*new_size_funcs);
+
+    int i;
+    for(i=0; i<gSizeFuncs; i++) {
+        if(gFuncs[i].mName) {
+            int hash_value = get_hash_key(gFuncs[i].mName, new_size_funcs);
+
+            sFunction *p = new_funcs + hash_value;
+
+            while(1) {
+                if(p->mName == NULL) {
+                    p->mName = strdup(gFuncs[i].mName);
+
+                    p->mNumParams = gFuncs[i].mNumParams;
+
+                    int j;
+                    for(j=0; j<gFuncs[i].mNumParams; j++) {
+                        p->mParamNames[j] = strdup(gFuncs[i].mParamNames[j]);
+                        p->mParamTypes[j] = gFuncs[i].mParamTypes[j];
+                    }
+
+                    p->mResultType = gFuncs[i].mResultType;
+                    p->mLLVMFunction = gFuncs[i].mLLVMFunction;
+                    p->mBlockText = gFuncs[i].mBlockText;
+                    p->mGenericsFunction = gFuncs[i].mGenericsFunction;
+                    p->mVarArgs = gFuncs[i].mVarArgs;
+                    p->mNumGenerics = gFuncs[i].mNumGenerics;
+                    p->mExtern = gFuncs[i].mExtern;
+
+                    for(j=0; j<gFuncs[i].mNumGenerics; j++) {
+                        p->mGenericsTypeNames[j] = strdup(gFuncs[i].mGenericsTypeNames[j]);
+                    }
+
+                    if(p->mAsmFunName) {
+                        p->mAsmFunName = strdup(gFuncs[i].mAsmFunName);
+                    }
+                    break;
+                }
+                else {
+                    p++;
+
+                    if(p == new_funcs + new_size_funcs) {
+                        p = new_funcs;
+                    }
+                    else if(p == new_funcs + hash_value) {
+                        fprintf(stderr, "ovewflow rehash_funcs\n");
+                        exit(2);
+                    }
+                }
+            }
+        }
+    }
+
+    free_funcs();
+
+    gFuncs = new_funcs;
+    gSizeFuncs = new_size_funcs;
 }
 
 BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name)
 {
-    int hash_value = get_hash_key(name, FUN_NUM_MAX);
+    if(gNumFuncs >= gSizeFuncs/3) {
+        rehash_funcs();
+    }
+
+    int hash_value = get_hash_key(name, gSizeFuncs);
     sFunction* p = gFuncs + hash_value;
 
     while(1) {
@@ -64,6 +140,8 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
             else {
                 p->mAsmFunName = strdup(asm_fun_name);
             }
+
+            gNumFuncs++;
 
             return TRUE;
         }
@@ -117,7 +195,7 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
             else {
                 p++;
 
-                if(p == gFuncs + FUN_NUM_MAX) {
+                if(p == gFuncs + gSizeFuncs) {
                     p = gFuncs;
                 }
                 else if(p == gFuncs + hash_value) {
@@ -132,7 +210,7 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
 
 sFunction* get_function_from_table(char* name)
 {
-    int hash_value = get_hash_key(name, FUN_NUM_MAX);
+    int hash_value = get_hash_key(name, gSizeFuncs);
 
     sFunction* p = gFuncs + hash_value;
 
@@ -146,7 +224,7 @@ sFunction* get_function_from_table(char* name)
 
         p++;
 
-        if(p == gFuncs + FUN_NUM_MAX) {
+        if(p == gFuncs + gSizeFuncs) {
             p = gFuncs;
         }
         else if(p == gFuncs + hash_value) {

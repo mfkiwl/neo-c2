@@ -1,25 +1,79 @@
 #include "common.h"
 
-sLabel gLabels[LABEL_MAX];
+sLabel* gLabels;
+int gNumLabels;
+int gSizeLabels;
 
-void label_init()
+void node_loop_init()
 {
-    memset(gLabels, 0, sizeof(sLabel)*LABEL_MAX);
+    gSizeLabels = 128;
+    gNumLabels = 0;
+    gLabels = calloc(1, sizeof(sLabel)*gSizeLabels);
 }
 
-void label_final()
+void free_labels()
 {
     int i;
-    for(i=0; i<LABEL_MAX; i++) {
+    for(i=0; i<gSizeLabels; i++) {
         if(gLabels[i].mName != NULL) {
             free(gLabels[i].mName);
         }
     }
+
+    free(gLabels);
+}
+
+void node_loop_final()
+{
+    free_labels();
+}
+
+void rehash_labels()
+{
+    int new_size_labels = gSizeLabels * 2;
+    sLabel* new_labels = calloc(1, sizeof(sLabel)*new_size_labels);
+
+    int i;
+    for(i=0; i<gSizeLabels; i++) {
+        if(gLabels[i].mName) {
+            int hash_value = get_hash_key(gLabels[i].mName, new_size_labels);
+            sLabel* p = new_labels + hash_value;
+
+            while(1) {
+                if(p->mName == NULL) {
+                    p->mName = strdup(gLabels[i].mName);
+
+                    p->mBlock = gLabels[i].mBlock;
+                    break;
+                }
+                else {
+                    p++;
+
+                    if(p == new_labels + new_size_labels) {
+                        p = new_labels;
+                    }
+                    else if(p == new_labels + hash_value) {
+                        fprintf(stderr, "ovewflow rehash_labels\n");
+                        exit(1);
+                    }
+                }
+            }
+        }
+    }
+
+    free_labels();
+
+    gLabels = new_labels;
+    gSizeLabels = new_size_labels;
 }
 
 BOOL add_label_to_table(char* name, LLVMBasicBlockRef block)
 {
-    int hash_value = get_hash_key(name, LABEL_MAX);
+    if(gNumLabels >= gSizeLabels/3) {
+        rehash_labels();
+    }
+
+    int hash_value = get_hash_key(name, gSizeLabels);
     sLabel* p = gLabels + hash_value;
 
     while(1) {
@@ -39,7 +93,7 @@ BOOL add_label_to_table(char* name, LLVMBasicBlockRef block)
             else {
                 p++;
 
-                if(p == gLabels + LABEL_MAX) {
+                if(p == gLabels + gSizeLabels) {
                     p = gLabels;
                 }
                 else if(p == gLabels + hash_value) {
@@ -54,7 +108,7 @@ BOOL add_label_to_table(char* name, LLVMBasicBlockRef block)
 
 LLVMBasicBlockRef get_label_from_table(char* name)
 {
-    int hash_value = get_hash_key(name, LABEL_MAX);
+    int hash_value = get_hash_key(name, gSizeLabels);
 
     sLabel* p = gLabels + hash_value;
 
@@ -68,7 +122,7 @@ LLVMBasicBlockRef get_label_from_table(char* name)
 
         p++;
 
-        if(p == gLabels + LABEL_MAX) {
+        if(p == gLabels + gSizeLabels) {
             p = gLabels;
         }
         else if(p == gLabels + hash_value) {

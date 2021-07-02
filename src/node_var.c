@@ -1,26 +1,227 @@
 #include "common.h"
 
-sStruct gStructs[STRUCT_NUM_MAX];
+sGenericsStructType* gGenericsStructTypes;
+int gSizeGenericsStructTypes;
+int gNumGenericsStructTypes;
 
-BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body)
+sStruct* gStructs;
+int gSizeStructs;
+int gNumStructs;
+
+void free_generics_struct_types()
 {
-    int hash_value = get_hash_key(name, STRUCT_NUM_MAX);
-    sStruct* p = gStructs + hash_value;
+    int i;
+    for(i=0; i<gSizeGenericsStructTypes; i++) {
+        if(gGenericsStructTypes[i].mName) {
+            free(gGenericsStructTypes[i].mName);
+        }
+    }
+
+    free(gGenericsStructTypes);
+}
+
+void free_structs()
+{
+    int i;
+    for(i=0; i<gNumStructs; i++) {
+        if(gStructs[i].mName) {
+            free(gStructs[i].mName);
+        }
+    }
+
+    free(gStructs);
+}
+
+void node_var_init()
+{
+    gSizeGenericsStructTypes = 128;
+    gGenericsStructTypes = calloc(1, sizeof(sGenericsStructType)*gSizeGenericsStructTypes);
+    gNumGenericsStructTypes = 0;
+
+    gSizeStructs = 256;
+    gStructs = calloc(1, sizeof(sStruct)*gSizeStructs);
+    gNumStructs = 0;
+}
+
+void node_var_final()
+{
+    free_generics_struct_types();
+    free_structs();
+}
+
+void rehash_generics_struct_types()
+{
+    int new_size_generics_struct_types = gSizeGenericsStructTypes * 2;
+    sGenericsStructType* new_generics_struct_types = calloc(1, sizeof(sGenericsStructType)*new_size_generics_struct_types);
+
+    int i;
+    for(i=0; i<gSizeGenericsStructTypes; i++) {
+        if(gGenericsStructTypes[i].mName) {
+            int hash_value = get_hash_key(gGenericsStructTypes[i].mName, new_size_generics_struct_types);
+            sGenericsStructType* p = new_generics_struct_types + hash_value;
+
+            while(1) {
+                if(p->mName == NULL) {
+                    p->mName = strdup(gGenericsStructTypes[i].mName);
+
+                    p->mType = gGenericsStructTypes[i].mType;
+                    break;
+                }
+                else {
+                    p++;
+
+                    if(p == new_generics_struct_types + new_size_generics_struct_types) {
+                        p = new_generics_struct_types;
+                    }
+                    else if(p == new_generics_struct_types + hash_value) {
+                        fprintf(stderr, "rehash_generics_struct_types ovewflow\n");
+                        exit(1);
+                    }
+                }
+            }
+            
+        }
+    }
+
+    free_generics_struct_types();
+
+    gGenericsStructTypes = new_generics_struct_types;
+    gSizeGenericsStructTypes = new_size_generics_struct_types;
+}
+
+BOOL add_generics_struct_type_to_table(char* name, sNodeType* node_type)
+{
+    if(gNumGenericsStructTypes >= gSizeGenericsStructTypes/3) {
+        rehash_generics_struct_types();
+    }
+
+    int hash_value = get_hash_key(name, gSizeGenericsStructTypes);
+    sGenericsStructType* p = gGenericsStructTypes + hash_value;
 
     while(1) {
-        if(p->mName[0] == 0) {
-            xstrncpy(p->mName, name, VAR_NAME_MAX);
+        if(p->mName == NULL) {
+            p->mName = strdup(name);
 
-            p->mNodeType = clone_node_type(node_type);
-            p->mLLVMType = llvm_type;
-            p->mUndefinedBody = undefined_body;
+            p->mType = clone_node_type(node_type);
+
+            gNumGenericsStructTypes++;
 
             return TRUE;
         }
         else {
             if(strcmp(p->mName, name) == 0) {
-                xstrncpy(p->mName, name, VAR_NAME_MAX);
+                free(p->mName);
+                p->mName = strdup(name);
 
+                p->mType = clone_node_type(node_type);
+
+                return TRUE;
+            }
+            else {
+                p++;
+
+                if(p == gGenericsStructTypes + gSizeGenericsStructTypes) {
+                    p = gGenericsStructTypes;
+                }
+                else if(p == gGenericsStructTypes + hash_value) {
+                    return FALSE;
+                }
+            }
+        }
+    }
+
+    return TRUE;
+}
+
+sGenericsStructType* get_generics_struct_from_table(char* name)
+{
+    int hash_value = get_hash_key(name, gSizeGenericsStructTypes);
+
+    sGenericsStructType* p = gGenericsStructTypes + hash_value;
+
+    while(1) {
+        if(p->mName == NULL) {
+            return NULL;
+        }
+        else if(strcmp((char*)p->mName, name) == 0) {
+            return p;
+        }
+
+        p++;
+
+        if(p == gGenericsStructTypes + gSizeGenericsStructTypes) {
+            p = gGenericsStructTypes;
+        }
+        else if(p == gGenericsStructTypes + hash_value) {
+            return NULL;
+        }
+    }
+}
+
+void rehash_struct()
+{
+    int new_size_structs = gSizeStructs * 2;
+    sStruct* new_strucs = calloc(1, sizeof(sStruct)*new_size_structs);
+
+    int i;
+    for(i=0; i<gSizeStructs; i++) {
+        if(gStructs[i].mName) {
+            int hash_value = get_hash_key(gStructs[i].mName, new_size_structs);
+            sStruct* p = new_strucs + hash_value;
+
+            while(1) {
+                if(p->mName == NULL) {
+                    p->mName = strdup(gStructs[i].mName);
+
+                    p->mNodeType = gStructs[i].mNodeType;
+                    p->mLLVMType = gStructs[i].mLLVMType;
+                    p->mUndefinedBody = gStructs[i].mUndefinedBody;
+                    break;
+                }
+                else {
+                    p++;
+
+                    if(p == new_strucs + new_size_structs) {
+                        p = new_strucs;
+                    }
+                    else if(p == new_strucs + hash_value) {
+                        fprintf(stderr, "overflow rehash_struct\n");
+                        exit(2);
+                    }
+                }
+            }
+        }
+    }
+
+    free_structs();
+
+    gSizeStructs = new_size_structs;
+    gStructs = new_strucs;
+}
+
+BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body)
+{
+    if(gNumStructs >= gSizeStructs/3) {
+        rehash_struct();
+    }
+
+    int hash_value = get_hash_key(name, gSizeStructs);
+    sStruct* p = gStructs + hash_value;
+
+    while(1) {
+        if(p->mName == NULL) {
+            p->mName = strdup(name);
+
+            p->mNodeType = clone_node_type(node_type);
+            p->mLLVMType = llvm_type;
+            p->mUndefinedBody = undefined_body;
+
+            gNumStructs++;
+
+            return TRUE;
+        }
+        else {
+            if(strcmp(p->mName, name) == 0) {
                 p->mNodeType = clone_node_type(node_type);
                 p->mLLVMType = llvm_type;
                 p->mUndefinedBody = undefined_body;
@@ -30,7 +231,7 @@ BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type
             else {
                 p++;
 
-                if(p == gStructs + STRUCT_NUM_MAX) {
+                if(p == gStructs + gSizeStructs) {
                     p = gStructs;
                 }
                 else if(p == gStructs + hash_value) {
@@ -45,12 +246,12 @@ BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type
 
 sStruct* get_struct_from_table(char* name)
 {
-    int hash_value = get_hash_key(name, STRUCT_NUM_MAX);
+    int hash_value = get_hash_key(name, gSizeStructs);
 
     sStruct* p = gStructs + hash_value;
 
     while(1) {
-        if(p->mName[0] == 0) {
+        if(p->mName == NULL) {
             return NULL;
         }
         else if(strcmp((char*)p->mName, name) == 0) {
@@ -59,7 +260,7 @@ sStruct* get_struct_from_table(char* name)
 
         p++;
 
-        if(p == gStructs + STRUCT_NUM_MAX) {
+        if(p == gStructs + gSizeStructs) {
             p = gStructs;
         }
         else if(p == gStructs + hash_value) {
