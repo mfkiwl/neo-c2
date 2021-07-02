@@ -753,6 +753,9 @@ BOOL parse_sharp(sParserInfo* info)
 
 static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_name, BOOL anonymous, BOOL* terminated, BOOL definition_struct, sParserInfo* info) 
 {
+    BOOL inhibits_rehash_classes = gInhibitsRehashClasses;
+    gInhibitsRehashClasses = TRUE;
+
     char sname[PATH_MAX];
     xstrncpy(sname, info->sname, PATH_MAX);
 
@@ -1056,11 +1059,16 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
 
     info->in_struct = in_struct;
 
+    gInhibitsRehashClasses = inhibits_rehash_classes;
+
     return TRUE;
 }
 
 static BOOL parse_union(unsigned int* node, char* union_name, int size_union_name, BOOL* terminated, BOOL definition_struct, sParserInfo* info) 
 {
+    BOOL inhibits_rehash_classes = gInhibitsRehashClasses;
+    gInhibitsRehashClasses = TRUE;
+
     char sname[PATH_MAX];
     xstrncpy(sname, info->sname, PATH_MAX);
 
@@ -1280,6 +1288,8 @@ static BOOL parse_union(unsigned int* node, char* union_name, int size_union_nam
     if(!parse_attribute(info, asm_fname)) {
         return FALSE;
     }
+
+    gInhibitsRehashClasses = inhibits_rehash_classes;
 
     return TRUE;
 }

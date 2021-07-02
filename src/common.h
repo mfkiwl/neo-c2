@@ -32,7 +32,6 @@
 #define METHOD_DEFAULT_PARAM_MAX 128
 #define SOURCE_EXPRESSION_MAX 4096*2
 #define ELIF_NUM_MAX 128
-#define STRUCT_FIELD_MAX 256
 #define REAL_FUN_NAME_MAX (VAR_NAME_MAX*PARAMS_MAX+32)
 #define REAL_STRUCT_NAME_MAX (VAR_NAME_MAX*PARAMS_MAX+32)
 #define NODES_MAX 512
@@ -46,6 +45,7 @@
 #define LABEL_MAX 512
 #define GENERICS_STRUCT_MAX 64
 #define FUN_VERSION_MAX 512
+#define STRUCT_FIELD_MAX 2048
 
 #define clint64 long long      // for 32 bit cpu
 
@@ -107,15 +107,13 @@ unsigned int append_wstr_to_constant_pool(sConst* constant, char* str, BOOL no_o
 struct sCLClassStruct {
     clint64 mFlags;
 
-    sConst mConst;
-
-    int mClassNameOffset;
+    char* mName;
 
     int mGenericsNum;
     int mMethodGenericsNum;
     
-    unsigned int mFieldNameOffsets[STRUCT_FIELD_MAX];
-    struct sNodeTypeStruct* mFields[STRUCT_FIELD_MAX];
+    char** mFieldName;
+    struct sNodeTypeStruct** mFields;
     int mNumFields;
 
     void* mUndefinedStructType;
@@ -123,24 +121,9 @@ struct sCLClassStruct {
     int mVersion;
 };
 
-#define CLASS_NAME(klass) (CONS_str((&(klass)->mConst), (klass)->mClassNameOffset))
+#define CLASS_NAME(klass) (klass->mName)
 
 typedef struct sCLClassStruct sCLClass;
-
-struct sClassTableStruct
-{
-    char* mName;
-    sCLClass* mItem;
-    BOOL mFreed;
-    BOOL mInitialized;
-
-    struct sClassTableStruct* mNextClass;
-};
-
-typedef struct sClassTableStruct sClassTable;
-
-extern sClassTable* gHeadClassTable;
-
 
 void class_init();
 void class_final();
@@ -148,12 +131,14 @@ void class_final();
 sCLClass* get_class(char* class_name);
 sCLClass* alloc_struct(char* class_name, BOOL anonymous);
 sCLClass* alloc_enum(char* class_name);
-void add_fields_to_struct(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct* fields[STRUCT_FIELD_MAX]);
+void add_fields_to_struct(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct** fields);
 sCLClass* alloc_union(char* class_name, BOOL anonymous, BOOL anonymous_var_name);
-void add_fields_to_union(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct* fields[STRUCT_FIELD_MAX]);
+void add_fields_to_union(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct** fields);
 unsigned int get_hash_key(char* name, unsigned int max);
 int get_field_index(sCLClass* klass, char* var_name, int* parent_field_index);
 sCLClass* clone_class(sCLClass* klass);
+
+extern BOOL gInhibitsRehashClasses;
 
 //////////////////////////////
 /// node_type.c
@@ -329,6 +314,7 @@ BOOL skip_block(struct sParserInfoStruct* info);
 /// typedef.c
 //////////////////////////////
 void init_typedef();
+void final_typedef();
 
 void add_typedef(char* name, sNodeType* node_type);
 sNodeType* get_typedef(char* name);

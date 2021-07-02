@@ -1,7 +1,10 @@
 #include "common.h"
 
-sClassTable* gHeadClassTable = NULL;
-static sClassTable gClassTable[CLASS_NUM_MAX];
+sCLClass* gClasses;
+int gNumClasses;
+int gSizeClasses;
+
+BOOL gInhibitsRehashClasses;
 
 unsigned int get_hash_key(char* name, unsigned int max)
 {
@@ -15,403 +18,15 @@ unsigned int get_hash_key(char* name, unsigned int max)
     return result % max;
 }
 
-static void free_class(sCLClass* klass)
-{
-    free(klass->mConst.mConst);
-    free(klass);
-}
-
-static void remove_class(char* class_name_)
-{
-    unsigned int hash_key = get_hash_key(class_name_, CLASS_NUM_MAX);
-    sClassTable* table = gClassTable;
-    sClassTable** head_table = &gHeadClassTable;
-
-    sClassTable* p = table + hash_key;
-
-    while(1) {
-        if(p->mName == NULL) {
-            break;
-        }
-        else if(strcmp(p->mName, class_name_) == 0) {
-            /// remove from liked list ///
-            sClassTable* p2 = *head_table;
-            sClassTable* p2_before = p2;
-
-            while(p2) {
-                if(p2->mItem == p->mItem) {
-                    if(p2_before == *head_table) {
-                        *head_table = p2->mNextClass;
-                    }
-                    else {
-                        p2_before->mNextClass = p2->mNextClass;
-                    }
-                    break;
-                }
-
-                p2_before = p2;
-                p2 = p2->mNextClass;
-            }
-
-            /// remove found class ///
-            free(p->mName);
-            free_class(p->mItem);
-
-            p->mName = NULL;
-            p->mItem = NULL;
-            break;
-        }
-        else {
-            p++;
-
-            if(p == table + CLASS_NUM_MAX) {
-                p = table;
-            }
-            else if(p == table + hash_key) {
-                break;
-            }
-        }
-    }
-}
-
-static BOOL put_class_to_table(char* class_name_, sCLClass* klass)
-{
-    remove_class(class_name_);
-
-    sClassTable* table = gClassTable;
-    sClassTable** head_table = &gHeadClassTable;
-
-    unsigned int hash_key = get_hash_key(class_name_, CLASS_NUM_MAX);
-    sClassTable* p = table + hash_key;
-
-    while(1) {
-        if(p->mName == NULL) {
-            p->mName = xstrdup(class_name_);
-            p->mItem = klass;
-
-            p->mNextClass = *head_table;
-            *head_table = p;
-            break;
-        }
-        else {
-            p++;
-
-            if(p == table + CLASS_NUM_MAX) {
-                p = table;
-            }
-            else if(p == table + hash_key) {
-                return FALSE;
-            }
-        }
-    }
-
-    return TRUE;
-}
-
-static BOOL search_for_class_file(char* class_name_, char* class_file_name, size_t class_file_name_size, int version)
-{
-    char extname[PATH_MAX];
-
-    snprintf(extname, PATH_MAX, ".ncl");
-
-    if(version == 0) {
-        /// current working directory ///
-        char* cwd = getenv("PWD");
-
-        if(cwd) {
-            snprintf(class_file_name, class_file_name_size, "%s/%s%s", cwd, class_name_, extname);
-
-            if(access(class_file_name, F_OK) == 0) {
-                return TRUE;
-            }
-        }
-
-        /// system shared directory ///
-        snprintf(class_file_name, class_file_name_size, "%s/share/comelang/%s%s", PREFIX, class_name_, extname);
-
-        if(access(class_file_name, F_OK) == 0) {
-            return TRUE;
-        }
-    }
-    else {
-        /// current working directory ///
-        char* cwd = getenv("PWD");
-
-        if(cwd) {
-            snprintf(class_file_name, class_file_name_size, "%s/%s@%d%s", cwd, class_name_, version, extname);
-
-            if(access(class_file_name, F_OK) == 0) {
-                return TRUE;
-            }
-        }
-
-        /// system shared directory ///
-        snprintf(class_file_name, class_file_name_size, "%s/share/comelang/%s@%d%s", PREFIX, class_name_, version, extname);
-
-        if(access(class_file_name, F_OK) == 0) {
-            return TRUE;
-        }
-    }
-
-    return FALSE;
-}
-
-void read_from_file(char** p, void* buf, size_t size, char* head)
-{
-    memcpy(buf, *p, size);
-
-    (*p) += size;
-
-    alignment_pointer(p, head);
-}
-
-void read_char_from_file(char** p, char* c)
-{
-    *c = **p;
-    (*p)++;
-}
-
-void read_int_from_file(char** p, int* n)
-{
-    *n = *(int*)(*p);
-    (*p) += sizeof(int);
-}
-
-void read_long_from_file(char** p, clint64* n)
-{
-    *n = *(clint64*)(*p);
-    (*p) +=sizeof(clint64);
-}
-
-void read_const_from_file(char** p, sConst* constant, char* head)
-{
-    int len;
-    read_int_from_file(p, &len);
-
-    sConst_init_with_size(constant, len+1);
-    constant->mLen = len;
-
-    read_from_file(p, constant->mConst, len, head);
-}
-
-static sCLClass* read_class_from_file(char* class_name_, char** p, char* head)
-{
-    sCLClass* klass = xcalloc(1, sizeof(sCLClass));
-
-    read_const_from_file(p, &klass->mConst, head);
-
-    int n;
-    read_int_from_file(p, &n);
-    klass->mClassNameOffset = n;
-
-    return klass;
-}
-
-static sCLClass* load_class_from_class_file(char* class_name_, char* class_file_name)
-{
-    sBuf buf;
-    if(!read_source(class_file_name, &buf)) {
-        return NULL;
-    }
-
-    char* p = buf.mBuf;
-
-    /// check magic number. Is this Clover object file? ///
-    char c;
-
-    if(*p != 11) { return NULL; }
-    p++;
-    if(*p != 12) { return NULL; }
-    p++;
-    if(*p != 34) { return NULL; }
-    p++;
-    if(*p != 55) { return NULL; }
-    p++;
-    if(*p != 'N') { return NULL; }
-    p++;
-    if(*p != 'E') { return NULL; }
-    p++;
-    if(*p != 'O') { return NULL; }
-    p++;
-    if(*p != 'C') { return NULL; }
-    p++;
-
-    alignment_pointer(&p, buf.mBuf);
-
-    sCLClass* klass = read_class_from_file(class_name_, &p, buf.mBuf);
-
-    if(klass == NULL) {
-        fprintf(stderr, "Clover2 can't load class %s because of class file\n", class_name_);
-        return NULL;
-    }
-
-    if(!put_class_to_table(class_name_, klass)) {
-        fprintf(stderr, "overflow class number\n");
-        exit(1);
-    }
-
-    return klass;
-}
-
-static sCLClass* load_class(char* class_name_, int version)
-{
-    char class_file_name[PATH_MAX+1];
-    if(!search_for_class_file(class_name_, class_file_name, PATH_MAX, version)) {
-        return NULL;
-    }
-
-    sCLClass* result = load_class_from_class_file(class_name_, class_file_name);
-
-    return result;
-}
-
-sCLClass* get_class(char* class_name_)
-{
-    unsigned int hash_key = get_hash_key(class_name_, CLASS_NUM_MAX);
-    sClassTable* table = gClassTable;
-    sClassTable* p = table + hash_key;
-
-    while(1) {
-        if(p->mName) {
-            if(strcmp(p->mName, class_name_) == 0) {
-                sCLClass* result = p->mItem;
-                return result;
-            }
-            else {
-                p++;
-
-                if(p == table + CLASS_NUM_MAX) {
-                    p = table;
-                }
-                else if(p == table + hash_key) {
-                    break;
-                }
-            }
-        }
-        else {
-            break;
-        }
-    }
-
-    return load_class(class_name_, 0);
-}
-
-static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, BOOL number_type, BOOL unsigned_number, int generics_number, int method_generics_number, BOOL union_, BOOL anonymous, BOOL enum_, BOOL anonymous_var_name)
-{
-    sCLClass* klass = xcalloc(1, sizeof(sCLClass));
-
-    sConst_init(&klass->mConst);
-
-    klass->mFlags |= (primitive_ ? CLASS_FLAGS_PRIMITIVE:0) | (struct_ ? CLASS_FLAGS_STRUCT:0) | (number_type ? CLASS_FLAGS_NUMBER:0) | (unsigned_number ? CLASS_FLAGS_UNSIGNED_NUMBER:0) | (union_ ? CLASS_FLAGS_UNION:0) | (anonymous ? CLASS_FLAGS_ANONYMOUS:0) | (enum_ ? CLASS_FLAGS_ENUM:0) | (anonymous_var_name ? CLASS_FLAGS_ANONYMOUS_VAR_NAME:0);
-
-    if(generics_number >= 0) {
-        klass->mFlags |= CLASS_FLAGS_GENERICS;
-    }
-    if(method_generics_number >= 0) {
-        klass->mFlags |= CLASS_FLAGS_METHOD_GENERICS;
-    }
-
-    klass->mClassNameOffset = append_str_to_constant_pool(&klass->mConst, class_name_, FALSE);
-
-    klass->mGenericsNum = generics_number;
-    klass->mMethodGenericsNum = method_generics_number;
-    klass->mUndefinedStructType = NULL;
-
-    klass->mVersion = 0;
-
-    if(!put_class_to_table(class_name_, klass)) {
-        fprintf(stderr, "overflow class number\n");
-        exit(1);
-    }
-
-    return klass;
-}
-
-sCLClass* clone_class(sCLClass* klass)
-{
-    sCLClass* klass2 = xcalloc(1, sizeof(sCLClass));
-
-    sConst_init(&klass2->mConst);
-
-    klass2->mFlags = klass->mFlags;
-
-    char* class_name_ = CLASS_NAME(klass);
-
-    klass2->mClassNameOffset = append_str_to_constant_pool(&klass2->mConst, class_name_, FALSE);
-
-    klass2->mGenericsNum = klass->mGenericsNum;
-    klass2->mMethodGenericsNum = klass->mMethodGenericsNum;
-
-    klass2->mNumFields = klass->mNumFields;
-
-    int i;
-    for(i=0; i<klass->mNumFields; i++) {
-        char* field_name = CONS_str(&klass->mConst, klass->mFieldNameOffsets[i]);
-        klass2->mFieldNameOffsets[i] = append_str_to_constant_pool(&klass2->mConst, field_name, FALSE);
-        klass2->mFields[i] = clone_node_type(klass->mFields[i]);
-    }
-
-    return klass2;
-}
-
-sCLClass* alloc_struct(char* class_name_, BOOL anonymous)
-{
-    sCLClass* klass = alloc_class(class_name_, FALSE, TRUE, FALSE, FALSE, -1, -1, FALSE, anonymous, FALSE, FALSE);
-
-    return klass;
-}
-
-sCLClass* alloc_enum(char* class_name_)
-{
-    sCLClass* klass = alloc_class(class_name_, FALSE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, TRUE, FALSE);
-
-    return klass;
-}
-
-void add_fields_to_struct(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct* fields[STRUCT_FIELD_MAX])
-{
-    if(klass->mNumFields + num_fields >= STRUCT_FIELD_MAX) {
-        fprintf(stderr, "overflow field number of %s\n", CLASS_NAME(klass));
-        exit(0);
-    }
-
-    int i;
-    for(i=0; i<num_fields; i++) {
-        unsigned int offset = append_str_to_constant_pool(&klass->mConst, field_name[i], FALSE);
-        klass->mFieldNameOffsets[klass->mNumFields+i] = offset;
-        klass->mFields[klass->mNumFields+i] = clone_node_type(fields[i]);
-    }
-
-    klass->mNumFields += num_fields;
-}
-
-sCLClass* alloc_union(char* class_name_, BOOL anonymous, BOOL anonymous_var_name)
-{
-    sCLClass* klass = alloc_class(class_name_, FALSE, FALSE, FALSE, FALSE, -1, -1, TRUE, anonymous, FALSE, anonymous_var_name);
-
-    return klass;
-}
-
-void add_fields_to_union(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct* fields[STRUCT_FIELD_MAX])
-{
-    klass->mNumFields = num_fields;
-
-    if(klass->mNumFields >= STRUCT_FIELD_MAX) {
-        fprintf(stderr, "overflow field number of %s\n", CLASS_NAME(klass));
-        exit(0);
-    }
-
-
-    int i;
-    for(i=0; i<num_fields; i++) {
-        klass->mFieldNameOffsets[i] = append_str_to_constant_pool(&klass->mConst, field_name[i], FALSE);
-        klass->mFields[i] = clone_node_type(fields[i]);
-    }
-}
+static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, BOOL number_type, BOOL unsigned_number, int generics_number, int method_generics_number, BOOL union_, BOOL anonymous, BOOL enum_, BOOL anonymous_var_name);
 
 void class_init()
 {
-    memset(gClassTable, 0, sizeof(sClassTable)*CLASS_NUM_MAX);
+    gSizeClasses = 1024;
+    gClasses = calloc(1, sizeof(sCLClass)*gSizeClasses);
+    gNumClasses = 0;
+
+    gInhibitsRehashClasses = FALSE;
 
     alloc_class("bool", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
     alloc_class("char", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
@@ -464,27 +79,273 @@ void class_init()
     add_typedef("_Bool", create_node_type_with_class_name("bool"));
 }
 
+void classes_free()
+{
+    int i;
+    for(i=0; i<gSizeClasses; i++) {
+        if(gClasses[i].mName) {
+            free(gClasses[i].mName);
+
+            int j;
+            for(j=0; j<gClasses[i].mNumFields; j++) {
+                free(gClasses[i].mFieldName[j]);
+            }
+
+            if(gClasses[i].mFieldName) {
+                free(gClasses[i].mFieldName);
+            }
+            if(gClasses[i].mFields) {
+                free(gClasses[i].mFields);
+            }
+        }
+    }
+
+    free(gClasses);
+}
+
 void class_final()
 {
-    sClassTable* p = gHeadClassTable;
+    classes_free();
+}
 
-    while(p) {
-        if(p->mFreed == FALSE) {
-            sClassTable* p2 = gHeadClassTable;
-            while(p2) {
-                if(p->mItem == p2->mItem) {   // typedef class
-                    p2->mFreed = TRUE;
+void rehash_classes()
+{
+    int new_size_classes = gSizeClasses * 2;
+    sCLClass* new_classes = calloc(1, sizeof(sCLClass)*new_size_classes);
+
+    int i;
+    for(i=0; i<gSizeClasses; i++) {
+        if(gClasses[i].mName) {
+            int hash_value = get_hash_key(gClasses[i].mName, new_size_classes);
+            sCLClass* p = new_classes + hash_value;
+
+            while(1) {
+                if(p->mName == NULL) {
+                    p->mName = strdup(gClasses[i].mName);
+
+                    p->mFlags = gClasses[i].mFlags;
+                    p->mGenericsNum = gClasses[i].mGenericsNum;
+                    p->mMethodGenericsNum = gClasses[i].mMethodGenericsNum;
+                    p->mUndefinedStructType = gClasses[i].mUndefinedStructType;
+
+                    p->mVersion = gClasses[i].mVersion;
+
+                    p->mNumFields = gClasses[i].mNumFields;
+
+                    p->mFieldName = calloc(1, sizeof(char*)*gClasses[i].mNumFields);
+                    p->mFields = calloc(1, sizeof(sNodeType*)*gClasses[i].mNumFields);
+
+                    int j;
+                    for(j=0; j<gClasses[i].mNumFields; j++) {
+                        p->mFieldName[j] = strdup(gClasses[i].mFieldName[j]);
+                        p->mFields[j] = gClasses[i].mFields[j];
+                    }
+                    break;
                 }
-                p2 = p2->mNextClass;
+                else {
+                    p++;
+
+                    if(p == new_classes + new_size_classes) {
+                        p = new_classes;
+                    }
+                    else if(p == new_classes + hash_value) {
+                        fprintf(stderr, "overflow classes\n");
+                        exit(2);
+                    }
+                }
             }
-            free_class(p->mItem);
-            free(p->mName);
+            
+        }
+    }
+
+    classes_free();
+
+    gClasses = new_classes;
+    gSizeClasses = new_size_classes;
+}
+
+static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, BOOL number_type, BOOL unsigned_number, int generics_number, int method_generics_number, BOOL union_, BOOL anonymous, BOOL enum_, BOOL anonymous_var_name)
+{
+    if(gNumClasses >= gSizeClasses/3 && !gInhibitsRehashClasses) {
+        rehash_classes();
+    }
+
+    int hash_value = get_hash_key(class_name_, gSizeClasses);
+    sCLClass* p = gClasses + hash_value;
+
+    while(1) {
+        if(p->mName == NULL) {
+            p->mName = strdup(class_name_);
+
+            p->mFlags = 0;
+
+            p->mFlags |= (primitive_ ? CLASS_FLAGS_PRIMITIVE:0) | (struct_ ? CLASS_FLAGS_STRUCT:0) | (number_type ? CLASS_FLAGS_NUMBER:0) | (unsigned_number ? CLASS_FLAGS_UNSIGNED_NUMBER:0) | (union_ ? CLASS_FLAGS_UNION:0) | (anonymous ? CLASS_FLAGS_ANONYMOUS:0) | (enum_ ? CLASS_FLAGS_ENUM:0) | (anonymous_var_name ? CLASS_FLAGS_ANONYMOUS_VAR_NAME:0);
+
+            if(generics_number >= 0) {
+                p->mFlags |= CLASS_FLAGS_GENERICS;
+            }
+            if(method_generics_number >= 0) {
+                p->mFlags |= CLASS_FLAGS_METHOD_GENERICS;
+            }
+            p->mGenericsNum = generics_number;
+            p->mMethodGenericsNum = method_generics_number;
+            p->mUndefinedStructType = NULL;
+
+            p->mVersion = 0;
+
+            p->mFieldName = NULL;
+            p->mFields = NULL;
+
+            p->mNumFields = 0;
+
+            gNumClasses++;
+
+            return p;
         }
         else {
-            free(p->mName);
+            if(strcmp(p->mName, class_name_) == 0) {
+                p->mFlags = 0;
+                p->mFlags |= (primitive_ ? CLASS_FLAGS_PRIMITIVE:0) | (struct_ ? CLASS_FLAGS_STRUCT:0) | (number_type ? CLASS_FLAGS_NUMBER:0) | (unsigned_number ? CLASS_FLAGS_UNSIGNED_NUMBER:0) | (union_ ? CLASS_FLAGS_UNION:0) | (anonymous ? CLASS_FLAGS_ANONYMOUS:0) | (enum_ ? CLASS_FLAGS_ENUM:0) | (anonymous_var_name ? CLASS_FLAGS_ANONYMOUS_VAR_NAME:0);
+
+                if(generics_number >= 0) {
+                    p->mFlags |= CLASS_FLAGS_GENERICS;
+                }
+                if(method_generics_number >= 0) {
+                    p->mFlags |= CLASS_FLAGS_METHOD_GENERICS;
+                }
+                p->mGenericsNum = generics_number;
+                p->mMethodGenericsNum = method_generics_number;
+                p->mUndefinedStructType = NULL;
+
+                p->mVersion = 0;
+
+                int i;
+                for(i=0; i<p->mNumFields; p++) {
+                    free(p->mFieldName[i]);
+                }
+                free(p->mFieldName);
+                free(p->mFields);
+
+                p->mFieldName = NULL;
+                p->mFields = NULL;
+
+                p->mNumFields = 0;
+
+                return p;
+            }
+            else {
+                p++;
+
+                if(p == gClasses + gSizeClasses) {
+                    p = gClasses;
+                }
+                else if(p == gClasses + hash_value) {
+                    fprintf(stderr, "overflow classes\n");
+                    exit(2);
+                }
+            }
         }
-        p = p->mNextClass;
     }
+}
+
+sCLClass* get_class(char* class_name_)
+{
+    unsigned int hash_key = get_hash_key(class_name_, gSizeClasses);
+    sCLClass* p = gClasses + hash_key;
+
+    while(1) {
+        if(p->mName) {
+            if(strcmp(p->mName, class_name_) == 0) {
+                return p;
+            }
+            else {
+                p++;
+
+                if(p == gClasses + gSizeClasses) {
+                    p = gClasses;
+                }
+                else if(p == gClasses + hash_key) {
+                    break;
+                }
+            }
+        }
+        else {
+            break;
+        }
+    }
+
+    return NULL;
+}
+
+sCLClass* alloc_struct(char* class_name_, BOOL anonymous)
+{
+    sCLClass* klass = alloc_class(class_name_, FALSE, TRUE, FALSE, FALSE, -1, -1, FALSE, anonymous, FALSE, FALSE);
+
+    return klass;
+}
+
+sCLClass* alloc_enum(char* class_name_)
+{
+    sCLClass* klass = alloc_class(class_name_, FALSE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, TRUE, FALSE);
+
+    return klass;
+}
+
+sCLClass* alloc_union(char* class_name_, BOOL anonymous, BOOL anonymous_var_name)
+{
+    sCLClass* klass = alloc_class(class_name_, FALSE, FALSE, FALSE, FALSE, -1, -1, TRUE, anonymous, FALSE, anonymous_var_name);
+
+    return klass;
+}
+
+void add_fields_to_struct(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct** fields)
+{
+    if(klass->mNumFields > 0) {
+        int i;
+        for(i=0; i<klass->mNumFields; i++) {
+            free(klass->mFieldName[i]);
+        }
+        free(klass->mFieldName);
+        free(klass->mFields);
+
+        klass->mNumFields = 0;
+    }
+
+    klass->mFieldName = calloc(1, sizeof(char*)*num_fields);
+    klass->mFields = calloc(1, sizeof(sNodeType*)*num_fields);
+
+    int i;
+    for(i=0; i<num_fields; i++) {
+        klass->mFieldName[i] = strdup(field_name[i]);
+        klass->mFields[i] = clone_node_type(fields[i]);
+    }
+
+    klass->mNumFields = num_fields;
+}
+
+void add_fields_to_union(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct** fields)
+{
+    if(klass->mNumFields > 0) {
+        int i;
+        for(i=0; i<klass->mNumFields; i++) {
+            free(klass->mFieldName[i]);
+        }
+        free(klass->mFieldName);
+        free(klass->mFields);
+
+        klass->mNumFields = 0;
+    }
+
+    klass->mFieldName = calloc(1, sizeof(char*)*num_fields);
+    klass->mFields = calloc(1, sizeof(sNodeType*)*num_fields);
+
+    int i;
+    for(i=0; i<num_fields; i++) {
+        klass->mFieldName[i] = strdup(field_name[i]);
+        klass->mFields[i] = clone_node_type(fields[i]);
+    }
+
+    klass->mNumFields = num_fields;
 }
 
 int get_field_index(sCLClass* klass, char* var_name, int* parent_field_index)
@@ -509,7 +370,7 @@ int get_field_index(sCLClass* klass, char* var_name, int* parent_field_index)
                 }
             }
 
-            char* field_name = CONS_str(&klass->mConst, klass->mFieldNameOffsets[i]);
+            char* field_name = klass->mFieldName[i];
 
             if(strcmp(field_name, var_name) == 0) {
                 return i;

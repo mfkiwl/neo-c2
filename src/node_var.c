@@ -3215,7 +3215,7 @@ BOOL compile_store_field(unsigned int node, sCompileInfo* info)
         for(i=0; i<klass->mNumFields; i++) {
             sNodeType* field_type = klass->mFields[i];
 
-            char* field_name = CONS_str(&klass->mConst, klass->mFieldNameOffsets[i]);
+            char* field_name = klass->mFieldName[i];
 
             int parent_field_index = -1;
             field_index = get_field_index(field_type->mClass, var_name, &parent_field_index);
@@ -3409,7 +3409,7 @@ BOOL compile_load_field(unsigned int node, sCompileInfo* info)
         int i;
         for(i=0; i<klass->mNumFields; i++) {
             sNodeType* field_type = klass->mFields[i];
-            char* field_name = CONS_str(&klass->mConst, klass->mFieldNameOffsets[i]);
+            char* field_name = klass->mFieldName[i];
 
             int parent_field_index = -1;
             int field_index = get_field_index(field_type->mClass, var_name, &parent_field_index);

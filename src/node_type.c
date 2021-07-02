@@ -582,7 +582,7 @@ BOOL solve_generics(sNodeType** node_type, sNodeType* generics_type)
     else {
         if(((klass->mFlags & CLASS_FLAGS_STRUCT) || (klass->mFlags & CLASS_FLAGS_UNION)) && (klass->mFlags & CLASS_FLAGS_ANONYMOUS))
         {
-            (*node_type)->mClass = clone_class(klass);
+            //(*node_type)->mClass = clone_class(klass);
             klass = (*node_type)->mClass;
             
             int i;
