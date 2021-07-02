@@ -6,7 +6,7 @@ int gNumFuncs;
 
 void node_function_init()
 {
-    gSizeFuncs = 1024;
+    gSizeFuncs = 512;
     gFuncs = calloc(1, sizeof(sFunction)*gSizeFuncs);
     gNumFuncs = 0;
 }

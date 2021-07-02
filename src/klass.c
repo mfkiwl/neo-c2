@@ -22,7 +22,7 @@ static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, B
 
 void class_init()
 {
-    gSizeClasses = 4096*2;
+    gSizeClasses = CLASS_NUM_MAX;
     gClasses = calloc(1, sizeof(sCLClass)*gSizeClasses);
     gNumClasses = 0;
 
@@ -167,7 +167,13 @@ void rehash_classes()
 static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, BOOL number_type, BOOL unsigned_number, int generics_number, int method_generics_number, BOOL union_, BOOL anonymous, BOOL enum_, BOOL anonymous_var_name)
 {
     if(gNumClasses >= gSizeClasses/3 && !gInhibitsRehashClasses) {
-        rehash_classes();
+        //rehash_classes();
+        // class pointer can't move the address(statically contained)
+    }
+
+    if(gNumClasses >= gSizeClasses) {
+        fprintf(stderr, "overflow class number\n");
+        exit(2);
     }
 
     int hash_value = get_hash_key(class_name_, gSizeClasses);

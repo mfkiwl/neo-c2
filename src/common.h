@@ -23,7 +23,7 @@
 //////////////////////////////
 #define GENERICS_TYPES_MAX 10
 #define VAR_NAME_MAX 128
-#define CLASS_NUM_MAX 2048
+#define CLASS_NUM_MAX 8192
 #define PARSER_ERR_MSG_MAX 5
 #define COMPILE_ERR_MSG_MAX 5
 #define NEO_C_STACK_SIZE 512
@@ -40,10 +40,6 @@
 #define TYPEDEF_MAX 2048
 #define MACRO_MAX 1024
 #define ARRAY_DIMENTION_MAX 5
-#define FUN_NUM_MAX 4096
-#define STRUCT_NUM_MAX 2046
-#define LABEL_MAX 512
-#define GENERICS_STRUCT_MAX 64
 #define FUN_VERSION_MAX 512
 #define STRUCT_FIELD_MAX 2048
 
