@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.0.4
+version 1.0.5
 
 ```
 #include <come.h>
@@ -103,7 +103,7 @@ or
 bash no_self_host.sh
 ```
 
-Install to home directory. For termux(android)
+Install to home directory. For termux(android), and OSX(INTEL)
 
 ```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev

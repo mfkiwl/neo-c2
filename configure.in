@@ -180,7 +180,9 @@ export CFLAGS
 ##################################################
 CC=clang
 
-if which clang-11 2> /dev/null
+if test `uname -s` = "Darwin"; then
+    CC=clang
+elif which clang-11 2> /dev/null
 then
     CC=clang-11
 elif which clang-9 2> /dev/null

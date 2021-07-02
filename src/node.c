@@ -353,7 +353,38 @@ void init_nodes(char* sname)
     }
 
     /// va_list ///
-#if defined(__X86_64_CPU__ )
+#ifdef __DARWIN__
+    LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+
+    field_types[0] = create_llvm_type_with_class_name("int");
+    field_types[1] = create_llvm_type_with_class_name("int");
+    field_types[2] = create_llvm_type_with_class_name("char*");
+    field_types[3] = create_llvm_type_with_class_name("char*");
+
+    int num_fields = 4;
+
+    LLVMTypeRef struct_type = LLVMStructTypeInContext(gContext, field_types, num_fields, FALSE);
+
+    LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+
+    char* class_name = "__builtin_va_list";
+    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE);
+    sNodeType* node_type = create_node_type_with_class_pointer(va_list_struct);
+
+    if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+        fprintf(stderr, "overflow struct number\n");
+        exit(2);
+    }
+
+    class_name = "va_list";
+    va_list_struct = alloc_struct("va_list", FALSE);
+    node_type = create_node_type_with_class_pointer(va_list_struct);
+
+    if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+        fprintf(stderr, "overflow struct number\n");
+        exit(2);
+    }
+#elif  defined(__X86_64_CPU__ )
     LLVMTypeRef field_types[STRUCT_FIELD_MAX];
 
     field_types[0] = create_llvm_type_with_class_name("int");

@@ -15,11 +15,11 @@ static void compiler_init(char* sname)
 
 static void compiler_final(char* sname)
 {
-    free_nodes(sname);
     final_vtable();
     class_final();
     free_node_types();
     parser_final();
+    free_nodes(sname);
     node_function_final();
     node_var_final();
     node_loop_final();
@@ -45,12 +45,10 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     char cmd[1024];
 #ifdef __DARWIN__
     if(cflags) {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I . %s -U__GNUC__ %s %s > %s", cflags, fname, macro_definition, fname2);
-        //snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I . %s -U__GNUC__ -C %s %s > %s", cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I/usr/local/include -I . %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", cflags, fname, macro_definition, fname2);
     }
     else {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clang-cpp -I . -U__GNUC__ %s %s > %s", fname, macro_definition, fname2);
-        //snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clang-cpp -I . -U__GNUC__ -C %s %s > %s", fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clang-cpp -I/usr/local/include -I . -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", fname, macro_definition, fname2);
     }
 #else
     if(cflags) {
@@ -111,7 +109,7 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     return TRUE;
 }
 
-char* gVersion = "1.0.4";
+char* gVersion = "1.0.5";
 BOOL gNCDebug = FALSE;
 char gFName[PATH_MAX];
 sVarTable* gModuleVarTable;

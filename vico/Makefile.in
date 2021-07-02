@@ -34,79 +34,79 @@ vico: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02bas
 	$(CC) -o vico main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
 
 main.o: configure Makefile config.h main.c common.h
-	come main.c $(CFLAGS) $(NCFLAGS)
+	come main.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o main.o main.c.ll
 
 01init.o: configure Makefile config.h 01init.c common.h
-	come 01init.c $(CFLAGS) $(NCFLAGS)
+	come 01init.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 01init.o 01init.c.ll
 
 02base.o: configure Makefile config.h 02base.c common.h
-	come 02base.c $(CFLAGS) $(NCFLAGS)
+	come 02base.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 02base.o 02base.c.ll
 
 03insert_mode.o: configure Makefile config.h 03insert_mode.c common.h
-	come 03insert_mode.c $(CFLAGS) $(NCFLAGS)
+	come 03insert_mode.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 03insert_mode.o 03insert_mode.c.ll
 
 04word.o: configure Makefile config.h 04word.c common.h
-	come 04word.c $(CFLAGS) $(NCFLAGS)
+	come 04word.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 04word.o 04word.c.ll
 
 05undo.o: configure Makefile config.h 05undo.c common.h
-	come 05undo.c $(CFLAGS) $(NCFLAGS)
+	come 05undo.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 05undo.o 05undo.c.ll
 
 06file.o: configure Makefile config.h 06file.c common.h
-	come 06file.c $(CFLAGS) $(NCFLAGS)
+	come 06file.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 06file.o 06file.c.ll
 
 07yank.o: configure Makefile config.h 07yank.c common.h
-	come 07yank.c $(CFLAGS) $(NCFLAGS)
+	come 07yank.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 07yank.o 07yank.c.ll
 
 08visual.o: configure Makefile config.h 08visual.c common.h
-	come 08visual.c $(CFLAGS) $(NCFLAGS)
+	come 08visual.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 08visual.o 08visual.c.ll
 
 09search.o: configure Makefile config.h 09search.c common.h
-	come 09search.c $(CFLAGS) $(NCFLAGS)
+	come 09search.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 09search.o 09search.c.ll
 
 10edit.o: configure Makefile config.h 10edit.c common.h
-	come 10edit.c $(CFLAGS) $(NCFLAGS)
+	come 10edit.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 10edit.o 10edit.c.ll
 
 11move.o: configure Makefile config.h 11move.c common.h
-	come 11move.c $(CFLAGS) $(NCFLAGS)
+	come 11move.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 11move.o 11move.c.ll
 
 12command.o: configure Makefile config.h 12command.c common.h
-	come 12command.c $(CFLAGS) $(NCFLAGS)
+	come 12command.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 12command.o 12command.c.ll
 
 13completion.o: configure Makefile config.h 13completion.c common.h
-	come 13completion.c $(CFLAGS) $(NCFLAGS)
+	come 13completion.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 13completion.o 13completion.c.ll
 
 14dot.o: configure Makefile config.h 14dot.c common.h
-	come 14dot.c $(CFLAGS) $(NCFLAGS)
+	come 14dot.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 14dot.o 14dot.c.ll
 
 16mark.o: configure Makefile config.h 16mark.c common.h
-	come 16mark.c $(CFLAGS) $(NCFLAGS)
+	come 16mark.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 16mark.o 16mark.c.ll
 
 17hvisual.o: configure Makefile config.h 17hvisual.c common.h
-	come 17hvisual.c $(CFLAGS) $(NCFLAGS)
+	come 17hvisual.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 17hvisual.o 17hvisual.c.ll
 
 18vvisual.o: configure Makefile config.h 18vvisual.c common.h
-	come 18vvisual.c $(CFLAGS) $(NCFLAGS)
+	come 18vvisual.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 18vvisual.o 18vvisual.c.ll
 
 19rewrite_mode.o: configure Makefile config.h 19rewrite_mode.c common.h
-	come 19rewrite_mode.c $(CFLAGS) $(NCFLAGS)
+	come 19rewrite_mode.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 19rewrite_mode.o 19rewrite_mode.c.ll
 
 #########################################
@@ -136,7 +136,7 @@ permission:
 # clean
 #########################################
 clean:
-	rm -fR *.ll *.bc *.c.tmp *.out *.o valgrind.txt *.i aaa AAA BBB bbb
+	rm -fR *.ll *.bc *.c.tmp *.out *.o valgrind.txt *.i aaa AAA BBB bbb vico.dSYM
 	rm -fR vico
 
 distclean: clean

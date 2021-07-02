@@ -1021,6 +1021,12 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
         }
     }
 
+    char asm_fname[VAR_NAME_MAX];
+    if(!parse_attribute(info, asm_fname)) {
+        info->in_struct = in_struct;
+        return FALSE;
+    }
+
     if(*info->p == ';') {
         if(!definition_struct) {
             info->p++;
@@ -1049,7 +1055,6 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
 
     *node = sNodeTree_struct(struct_type, info, sname, sline, undefined_struct);
 
-    char asm_fname[VAR_NAME_MAX];
     if(!parse_attribute(info, asm_fname)) {
         info->in_struct = in_struct;
         return FALSE;
@@ -1968,7 +1973,16 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
         }
 
         if(*result_type == NULL) {
+#ifdef __DARWIN__
+            if(strcmp(type_name, "va_list") == 0) {
+                *result_type = create_node_type_with_class_name(type_name);
+            }
+            else {
+                *result_type = get_typedef(type_name);
+            }
+#else
             *result_type = get_typedef(type_name);
+#endif
 
             if(*result_type != NULL) {
                 if(strcmp(CLASS_NAME((*result_type)->mClass), "long") == 0)

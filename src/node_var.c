@@ -342,7 +342,7 @@ BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
 
     LLVMTypeRef llvm_type = create_llvm_type_from_node_type(var_type);
 
-#if defined(__X86_64_CPU__ )
+#if defined(__X86_64_CPU__ ) || defined(__DARWIN__)
     if(type_identify_with_class_name(var_type, "__builtin_va_list") || type_identify_with_class_name(var_type, "va_list")) {
         llvm_type = LLVMArrayType(llvm_type, 1);
     }
@@ -632,7 +632,7 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
 
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-#if defined(__X86_64_CPU__ )
+#if defined(__X86_64_CPU__ ) || defined(__DARWIN__)
             if(type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) {
                 llvm_type = LLVMArrayType(llvm_type, 1);
             }
@@ -688,7 +688,7 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         else {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-#if defined(__X86_64_CPU__ )
+#if defined(__X86_64_CPU__ ) || defined(__DARWIN__)
             if(type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) {
                 llvm_type = LLVMArrayType(llvm_type, 1);
             }
@@ -715,7 +715,7 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
     else {
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
 
-#if defined(__X86_64_CPU__ )
+#if defined(__X86_64_CPU__ ) || defined(__DARWIN__)
         if(type_identify_with_class_name(left_type, "__builtin_va_list") || type_identify_with_class_name(left_type, "va_list")) {
             llvm_type = LLVMArrayType(llvm_type, 1);
         }
@@ -2494,7 +2494,7 @@ BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
     else {
         if(type_identify_with_class_name(var_type, "__builtin_va_list") || type_identify_with_class_name(var_type, "va_list") || type_identify_with_class_name(var_type, "__va_list")) 
         {
-#if defined(__X86_64_CPU__ )
+#if defined(__X86_64_CPU__ ) && !defined(__DARWIN__)
 
             LLVMValueRef indices[2];
 

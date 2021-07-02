@@ -160,7 +160,11 @@ BOOL compile_external_function(unsigned int node, sCompileInfo* info)
             llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
         }
         else {
+#ifdef __DARWIN__
+            llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+#else
             llvm_fun = LLVMAddFunction(gModule, asm_fun_name, function_type);
+#endif
         }
 
         char* block_text = NULL;
@@ -756,6 +760,24 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
 
     if(strcmp(fun_name, "llvm.va_start") == 0 || strcmp(fun_name, "llvm.va_end") == 0)
     {
+#ifdef __DARWIN__
+        LLVMValueRef param = llvm_params[0];
+
+        LLVMValueRef indices[2];
+
+        LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
+
+        indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
+        indices[1] = LLVMConstInt(llvm_type, 0, FALSE);
+
+        param = LLVMBuildGEP(gBuilder, param, indices, 2, "gep");
+
+        LLVMTypeRef llvm_type2 = create_llvm_type_with_class_name("char*");
+        param = LLVMBuildCast(gBuilder, LLVMBitCast, param, llvm_type2, "castAE");
+
+        llvm_params[0] = param;
+        num_params = 1;
+#else
         LLVMValueRef param = llvm_params[0];
 
         LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
@@ -763,8 +785,25 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
 
         llvm_params[0] = param;
         num_params = 1;
+#endif
     }
-#if defined(__RASPBERRY_PI__)
+#ifdef __DARWIN__
+    else {
+        int i;
+        for(i=0;i<num_params; i++) {
+            if(type_identify_with_class_name(param_types[i], "__builtin_va_list") || type_identify_with_class_name(param_types[i], "va_list")) {
+                LLVMValueRef indices[2];
+
+                LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
+
+                indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
+                indices[1] = LLVMConstInt(llvm_type, 0, FALSE);
+
+                llvm_params[i] = LLVMBuildGEP(gBuilder, llvm_params[i], indices, 2, "gep");
+            }
+        }
+    }
+#elif __RASPBERRY_PI__
     else {
         int i;
         for(i=0;i<num_params; i++) {
@@ -1081,7 +1120,11 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
 
         LLVMValueRef llvm_fun;
         if(fun->mAsmFunName) {
+#ifdef __DARWIN__
+            llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
+#else
             llvm_fun = LLVMGetNamedFunction(gModule, fun->mAsmFunName);
+#endif
         }
         else {
             llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
