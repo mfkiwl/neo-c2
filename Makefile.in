@@ -21,6 +21,7 @@ CXX=@CXX@
 INSTALL=@INSTALL@
 CFLAGS=@CFLAGS@
 CXXFLAGS=@CXXFLAGS@
+CXXFLAGS2=@CXXFLAGS2@
 LIBS=@LIBS@
 OS=@OS@
 DESTDIR=@DESTDIR@
@@ -99,6 +100,69 @@ self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/
 	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC
 
 	$(CXX) -o come src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o $(CXXFLAGS) -fPIC
+
+debug-self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c src/node_function.c src/node_function2.c src/node_loop.c src/node_op.c src/node_value.c src/node_var.c
+	./come src/parser.c $(CFLAGS) -g
+	$(CC) -c -o src/parser.c.o src/parser.c.ll -fPIC -g
+
+	./come src/alignment.c $(CFLAGS) -g
+	$(CC) -c -o src/alignment.c.o src/alignment.c.ll -fPIC -g
+
+	./come src/buffer.c $(CFLAGS) -g
+	$(CC) -c -o src/buffer.c.o src/buffer.c.ll -fPIC -g
+
+	./come src/xfunc.c $(CFLAGS) -g
+	$(CC) -c -o src/xfunc.c.o src/xfunc.c.ll -fPIC -g
+
+	./come src/node.c $(CFLAGS) -g
+	$(CC) -c -o src/node.c.o src/node.c.ll -fPIC -g
+
+	./come src/node_function.c $(CFLAGS) -g
+	$(CC) -c -o src/node_function.c.o src/node_function.c.ll -fPIC -g
+
+	./come src/node_function2.c $(CFLAGS) -g
+	$(CC) -c -o src/node_function2.c.o src/node_function2.c.ll -fPIC -g
+
+	./come src/node_loop.c $(CFLAGS) -g
+	$(CC) -c -o src/node_loop.c.o src/node_loop.c.ll -fPIC -g
+
+	./come src/node_op.c $(CFLAGS) -g
+	$(CC) -c -o src/node_op.c.o src/node_op.c.ll -fPIC -g
+
+	./come src/node_value.c $(CFLAGS) -g
+	$(CC) -c -o src/node_value.c.o src/node_value.c.ll -fPIC -g
+
+	./come src/node_var.c $(CFLAGS) -g
+	$(CC) -c -o src/node_var.c.o src/node_var.c.ll -fPIC -g
+
+	./come src/node_compile.c $(CFLAGS) -g
+	$(CC) -c -o src/node_compile.c.o src/node_compile.c.ll -fPIC -g
+
+	./come src/vtable.c $(CFLAGS) -g
+	$(CC) -c -o src/vtable.c.o src/vtable.c.ll -fPIC -g
+
+	./come src/node_type.c $(CFLAGS) -g
+	$(CC) -c -o src/node_type.c.o src/node_type.c.ll -fPIC -g
+
+	./come src/klass.c $(CFLAGS) -g
+	$(CC) -c -o src/klass.c.o src/klass.c.ll -fPIC -g
+
+	./come src/constant.c $(CFLAGS) -g
+	$(CC) -c -o src/constant.c.o src/constant.c.ll -fPIC -g
+
+	./come src/node_block.c $(CFLAGS) -g
+	$(CC) -c -o src/node_block.c.o src/node_block.c.ll -fPIC -g
+
+	./come src/typedef.c $(CFLAGS) -g
+	$(CC) -c -o src/typedef.c.o src/typedef.c.ll -fPIC -g
+
+	./come src/compiler.c $(CFLAGS) -g
+	$(CC) -c -o src/compiler.c.o src/compiler.c.ll -fPIC -g
+
+	./come src/main.c $(CFLAGS) -g
+	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC -g
+
+	$(CXX) -o come src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o $(CXXFLAGS2) -fPIC
 
 #########################################
 # Object files

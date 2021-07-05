@@ -5292,7 +5292,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             *node = sNodeTree_create_store_field(var_name, obj_node, *node, info);
         }
         else {
-            parser_err_msg(info, "Invalid node for ++");
+            parser_err_msg(info, "Invalid node for ++(1)");
             info->err_num++;
 
             *node = 0;
@@ -5337,7 +5337,9 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             *node = sNodeTree_create_store_field(var_name, obj_node, *node, info);
         }
         else {
-            parser_err_msg(info, "Invalid node for ++");
+            char buf[256];
+            snprintf(buf, 256, "Invalid node for --(2) %d %d", exp, gNodes[exp].mNodeType);
+            parser_err_msg(info, buf);
             info->err_num++;
 
             *node = 0;

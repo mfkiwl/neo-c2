@@ -1530,8 +1530,13 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
                     result += size;
                 }
                 else if(element_size == 8) {
+#ifdef __32BIT_CPU__
+                    result = (result + 3) & ~3;
+                    result += size;
+#else
                     result = (result + 7) & ~7;
                     result += size;
+#endif
                 }
                 else {
                     result = (result + *alignment-1) & ~(*alignment-1);
@@ -1539,9 +1544,18 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
                 }
 
                 if(struct_ || union_) {
+#ifdef __32BIT_CPU__
+                    if(element_type->mPointerNum > 0) {
+                        *alignment = 4;
+                    }
+#else
                     if(element_type->mPointerNum > 0) {
                         *alignment = 8;
                     }
+#endif
+
+
+
 /*
                     if(field_type->mArrayDimentionNum > 0) {
                         *alignment = element_size;
@@ -1582,8 +1596,13 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
                     result = (result + 3) & ~3;
                 }
                 else if(*alignment == 8) {
+#ifdef __32BIT_CPU__
+                    result += size;
+                    result = (result + 3) & ~3;
+#else
                     result += size;
                     result = (result + 7) & ~7;
+#endif
                 }
                 else {
                     result += size;

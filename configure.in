@@ -276,7 +276,15 @@ else
     exit 1
 fi
 
+if test $DEBUGGING = 1
+then
+    CXXFLAGS2="${CXXFLAGS#-O2}"
+else
+    CXXFLAGS2="${CXXFLAGS#-g}"
+fi
+
 AC_SUBST(CXXFLAGS)
+AC_SUBST(CXXFLAGS2)
 AC_SUBST(CFLAGS)
 
 AC_CHECK_FUNCS(execvpe)
