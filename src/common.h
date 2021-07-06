@@ -27,7 +27,7 @@
 #define PARSER_ERR_MSG_MAX 5
 #define COMPILE_ERR_MSG_MAX 5
 #define NEO_C_STACK_SIZE 512
-#define LOCAL_VARIABLE_MAX 4096
+#define LOCAL_VARIABLE_MAX 1024
 #define PARAMS_MAX 32
 #define METHOD_DEFAULT_PARAM_MAX 128
 #define SOURCE_EXPRESSION_MAX 4096*2
@@ -228,7 +228,7 @@ typedef struct sVarStruct sVar;
 
 struct sVarTableStruct {
     int mID;
-    sVar mLocalVariables[LOCAL_VARIABLE_MAX];  // open address hash
+    sVar mLocalVariables[LOCAL_VARIABLE_MAX]; 
     int mVarNum;
     int mMaxBlockVarNum;
 

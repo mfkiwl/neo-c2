@@ -469,6 +469,25 @@ BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
 
             LVALUE llvm_value = *get_value_from_stack(-1);
 
+#ifdef __32BIT_CPU__
+            sNodeType* left_type = create_node_type_with_class_name("int");
+
+            if(!cast_right_type_to_left_type(left_type, &llvm_value.type, &llvm_value, info))
+            {
+                compile_err_msg(info, "Cast failed");
+                info->err_num++;
+
+                info->type = create_node_type_with_class_name("int"); // dummy
+
+                return TRUE;
+            }
+            dec_stack_ptr(1, info);
+
+            LLVMValueRef len_value = llvm_value.value;
+
+            LLVMValueRef alloca_value = LLVMBuildArrayAlloca(gBuilder, llvm_type, len_value, var_name);
+            var->mLLVMValue = alloca_value;
+#else
             sNodeType* left_type = create_node_type_with_class_name("long");
 
             if(!cast_right_type_to_left_type(left_type, &llvm_value.type, &llvm_value, info))
@@ -486,6 +505,7 @@ BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
 
             LLVMValueRef alloca_value = LLVMBuildArrayAlloca(gBuilder, llvm_type, len_value, var_name);
             var->mLLVMValue = alloca_value;
+#endif
         }
         else {
             LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
@@ -1690,6 +1710,23 @@ BOOL compile_sizeof(unsigned int node, sCompileInfo* info)
     int alignment = 0;
     uint64_t alloc_size = get_size_from_node_type(node_type2, &alignment);
 
+#ifdef __32BIT_CPU__
+    LLVMTypeRef int_type = create_llvm_type_with_class_name("int");
+    LLVMValueRef alloc_size_value = LLVMConstInt(int_type, alloc_size, FALSE);
+
+    /// result ///
+    LVALUE llvm_value;
+    llvm_value.value = alloc_size_value;
+    llvm_value.type = create_node_type_with_class_name("int");
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = create_node_type_with_class_name("int");
+#else
     LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
     LLVMValueRef alloc_size_value = LLVMConstInt(long_type, alloc_size, FALSE);
 
@@ -1708,6 +1745,7 @@ BOOL compile_sizeof(unsigned int node, sCompileInfo* info)
     push_value_to_stack_ptr(&llvm_value, info);
 
     info->type = create_node_type_with_class_name("long");
+#endif
 
     return TRUE;
 }
@@ -1753,13 +1791,13 @@ BOOL compile_sizeof_expression(unsigned int node, sCompileInfo* info)
 
     dec_stack_ptr(1, info);
 
-    int alignment = 0;
-    uint64_t alloc_size = get_size_from_node_type(node_type, &alignment);
-
-    LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
-    LLVMValueRef value = LLVMConstInt(long_type, alloc_size, FALSE);
-
 #ifdef __32BIT_CPU__
+    int alignment = 0;
+    uint32_t alloc_size = get_size_from_node_type(node_type, &alignment);
+
+    LLVMTypeRef int_type = create_llvm_type_with_class_name("int");
+    LLVMValueRef value = LLVMConstInt(int_type, alloc_size, FALSE);
+
     LVALUE llvm_value2;
     llvm_value2.value = value;
     llvm_value2.type = create_node_type_with_class_name("int");
@@ -1772,6 +1810,12 @@ BOOL compile_sizeof_expression(unsigned int node, sCompileInfo* info)
 
     info->type = create_node_type_with_class_name("int");
 #else
+    int alignment = 0;
+    uint64_t alloc_size = get_size_from_node_type(node_type, &alignment);
+
+    LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
+    LLVMValueRef value = LLVMConstInt(long_type, alloc_size, FALSE);
+
     LVALUE llvm_value2;
     llvm_value2.value = value;
     llvm_value2.type = create_node_type_with_class_name("long");
@@ -1813,6 +1857,20 @@ BOOL compile_alignof(unsigned int node, sCompileInfo* info)
 
     LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type2);
 
+#ifdef __32BIT_CPU__
+    /// result ///
+    LVALUE llvm_value;
+    llvm_value.value = LLVMAlignOf(llvm_type);
+    llvm_value.type = create_node_type_with_class_name("int");
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = create_node_type_with_class_name("int");
+#else
     /// result ///
     LVALUE llvm_value;
     llvm_value.value = LLVMAlignOf(llvm_type);
@@ -1825,6 +1883,7 @@ BOOL compile_alignof(unsigned int node, sCompileInfo* info)
     push_value_to_stack_ptr(&llvm_value, info);
 
     info->type = create_node_type_with_class_name("long");
+#endif
 
     return TRUE;
 }

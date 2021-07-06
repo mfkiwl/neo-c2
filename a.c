@@ -554,7 +554,6 @@ struct sNodeTreeStruct
             sParserParam mParams[PARAMS_MAX];
             int mNumParams;
             sNodeType* mResultType;
-
             struct sNodeBlockStruct* mNodeBlock;
             BOOL mLambda;
             sVarTable* mVarTable;
@@ -713,6 +712,17 @@ struct sNodeTreeStruct
     } uValue;
 };
 
+struct LVALUEStruct {
+    sNodeType* type;
+    LLVMValueRef value;
+    LLVMValueRef address;
+    sVar* var;
+    BOOL binded_value;
+    BOOL load_field;
+};
+
+typedef struct LVALUEStruct LVALUE;
+
 union uA {
     int mIntValue;
     long long int mLongValue;
@@ -781,22 +791,98 @@ struct sX {
     int mGenericsFunNum;
 };
 
+struct sFunctionStruct {
+    char* mName;
+    int mNumParams;
+    char* mParamNames[PARAMS_MAX];
+    sNodeType* mParamTypes[PARAMS_MAX];
+    sNodeType* mResultType;
+    LLVMValueRef mLLVMFunction;
+    char* mBlockText;
+    BOOL mGenericsFunction;
+    BOOL mVarArgs;
+    int mNumGenerics;
+    BOOL mExtern;
+    char* mGenericsTypeNames[GENERICS_TYPES_MAX];
+    char* mAsmFunName;
+};
+
+struct sGenericsStructTypeStruct
+{
+    char* mName;
+    sNodeType* mType;
+};
+
+struct sLabelStruct {
+    char* mName;
+    LLVMBasicBlockRef mBlock;
+};
+
+struct sStructStruct {
+    char* mName;
+    LLVMTypeRef mLLVMType;
+    sNodeType* mNodeType;
+    BOOL mUndefinedBody;
+};
+
+typedef struct sStructStruct sStruct;
+
+struct sTypeDefTable
+{
+    char* mName;
+    sNodeType* mItem;
+};
+
 int main()
 {
-    int b = sizeof(sParserParam);
-    printf("sParserParam %d\n", b);
+    printf("sParserParam %u\n", sizeof(sParserParam));
+    printf("sNodeTreeStruct %u\n", sizeof(struct sNodeTreeStruct));
+    printf("uA %u\n", sizeof(union uA));
+    printf("sX %u\n", sizeof(struct sX));
+    printf("sCLClassStruct %u\n", sizeof(struct sCLClassStruct));
+    printf("sNodeTypeStruct %u\n", sizeof(struct sNodeTypeStruct));
+    printf("sVarStruct %u\n", sizeof(struct sVarStruct));
+    printf("sVarTableStruct %u\n", sizeof(struct sVarTableStruct));
+    printf("sNodeBlockStruct %u\n", sizeof(struct sNodeBlockStruct));
+    printf("sParserInfoStruct %u\n", sizeof(struct sParserInfoStruct));
+    printf("sParserInfoStruct %u\n", sizeof(struct sParserInfoStruct));
+    printf("sRightValueObject %u\n", sizeof(struct sRightValueObject));
+    printf("sCompileInfoStruct %u\n", sizeof(struct sCompileInfoStruct));
+    printf("XXX %u\n", sizeof(struct sNodeBlockStruct));
+    printf("%d\n", sizeof(size_t));
+    printf("%d\n", sizeof(long));
+    printf("%d\n", sizeof(long int));
+    printf("%d\n", sizeof(long long int));
+    printf("%d\n", sizeof(long double));
 
-    int a = sizeof(struct sNodeTreeStruct);
-    printf("sNodeTreeStruct %d\n", a);
+    printf("LVALUEStruct %d\n", sizeof(struct LVALUEStruct));
+    printf("__pthread_cond_s %d\n", sizeof(struct __pthread_cond_s));
+    printf("__pthread_internal_slist %d\n", sizeof(struct __pthread_internal_slist));
+    printf("__pthread_mutex_s %d\n", sizeof(struct __pthread_mutex_s));
+    printf("__pthread_rwlock_arch_t %d\n", sizeof(struct __pthread_rwlock_arch_t));
+    printf("sBufStruct %d\n", sizeof(struct sBufStruct));
+    printf("sCLClassStruct %d\n", sizeof(struct sCLClassStruct));
+    printf("sCompileInfoStruct %d\n", sizeof(struct sCompileInfoStruct));
+    printf("sFunctionStruct %d\n", sizeof(struct sFunctionStruct));
+    printf("sGenericsStructTypeStruct %d\n", sizeof(struct sGenericsStructTypeStruct));
+    printf("sLabelStruct %d\n", sizeof(struct sLabelStruct));
+    printf("sNodeBlockStruct %d\n", sizeof(struct sNodeBlockStruct));
+    printf("sNodeTreeStruct %d\n", sizeof(struct sNodeTreeStruct));
+    printf("sNodeTypeStruct %d\n", sizeof(struct sNodeTypeStruct));
+    printf("sParserInfoStruct %d\n", sizeof(struct sParserInfoStruct));
+    printf("sParserParamStruct %d\n", sizeof(struct sParserParamStruct));
+    printf("sRightValueObject %d\n", sizeof(struct sRightValueObject));
+    printf("sStructStruct %d\n", sizeof(struct sStructStruct));
+    printf("sTypeDefTable %d\n", sizeof(struct sTypeDefTable));
+    printf("sVarStruct %d\n", sizeof(struct sVarStruct));
+    printf("sVarTableStruct %d\n", sizeof(struct sVarTableStruct));
+    
+    long double xxx;
 
-    int c = sizeof(union uA);
-    printf("uA %d\n", c);
+    printf("%lf\n", xxx);
 
-    int d = sizeof(struct sX);
-    printf("sX %d\n", d);
+    struct __pthread_mutex_s a;
 
     return 0;
 }
-
-
 

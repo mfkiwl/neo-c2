@@ -921,7 +921,7 @@ unsigned int alloc_node()
 {
     if(gSizeNodes == gUsedNodes) {
         int new_size = (gSizeNodes+1) * 2;
-        gNodes = (sNodeTree*)xrealloc(gNodes, sizeof(sNodeTree)*new_size);
+        gNodes = (sNodeTree*)realloc(gNodes, sizeof(sNodeTree)*new_size);
 //        memset(gNodes + gSizeNodes, 0, sizeof(sNodeTree)*(new_size - gSizeNodes));
 
         gSizeNodes = new_size;
@@ -1074,7 +1074,11 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
     }
     else if(type_identify_with_class_name(node_type, "long_double"))
     {
+#ifdef __RASPBERRY_PI__
+        result_type = LLVMDoubleTypeInContext(gContext);
+#else
         result_type = LLVMFP128TypeInContext(gContext);
+#endif
     }
     else if(type_identify_with_class_name(node_type, "bool")) {
         result_type = LLVMInt1TypeInContext(gContext);
@@ -1756,6 +1760,31 @@ uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment)
         }
         else if(type_identify_with_class_name(node_type, "double")){
             result = 8;
+
+            int i;
+            for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+                result *= node_type2->mArrayNum[i];
+            }
+        }
+        else if(type_identify_with_class_name(node_type, "long_double")){
+#if defined(__RASPBERRY_PI__)
+            result = 8;
+#else
+            result = 16;
+#endif
+
+            int i;
+            for(i=0; i<node_type2->mArrayDimentionNum; i++) {
+                result *= node_type2->mArrayNum[i];
+            }
+        }
+        else if(type_identify_with_class_name(node_type, "__uint128_t"))
+        {
+#if defined(__RASPBERRY_PI__)
+            result = 8;
+#else
+            result = 16;
+#endif
 
             int i;
             for(i=0; i<node_type2->mArrayDimentionNum; i++) {

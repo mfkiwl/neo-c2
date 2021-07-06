@@ -2,9 +2,9 @@
 
 int main()
 {
-    int a = sizeof(long long int);
+    int bh = 4;
 
-    printf("%d\n", a);
+    --bh;
 
     return 0;
 }

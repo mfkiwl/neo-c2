@@ -2045,7 +2045,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
         *result_type = create_node_type_with_class_name("int");
     }
 
-#ifdef __ISH__
+#if defined(__ISH__) || defined(__32BIT_CPU__)
     if(!long_long && type_identify_with_class_name((*result_type), "long"))
     {
         *result_type = create_node_type_with_class_name("int");
