@@ -1483,6 +1483,7 @@ BOOL create_llvm_struct_type(char* struct_name, sNodeType* node_type, sNodeType*
 
 uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment);
 
+#ifdef __32BIT_CPU__
 uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignment)
 {
     uint64_t result = 0;
@@ -1544,18 +1545,12 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
                 }
 
                 if(struct_ || union_) {
-#ifdef __32BIT_CPU__
                     if(element_type->mPointerNum > 0) {
                         *alignment = 4;
                     }
                     if(union_ && size > 8) {
                         *alignment = 8;
                     }
-#else
-                    if(element_type->mPointerNum > 0) {
-                        *alignment = 8;
-                    }
-#endif
                 }
                 else if(element_type->mPointerNum > 0) {
                     if(type_identify_with_class_name(element_type, "void")) {
@@ -1601,10 +1596,115 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
 
     return result;
 }
+#else
+uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignment)
+{
+    uint64_t result = 0;
+    int space = 0;
+    int i;
+    for(i=0; i<klass->mNumFields; i++) {
+        sNodeType* field_type = clone_node_type(klass->mFields[i]);
 
+        if(!solve_generics(&field_type, generics_type)) {
+            fprintf(stderr, "can't solve generics types");
+            exit(1);
+        }
+
+        sNodeType* element_type = clone_node_type(field_type);
+        element_type->mArrayDimentionNum = 0;
+        
+        int element_size = get_size_from_node_type(element_type, alignment);
+
+        uint64_t result_before = result;
+        int size = get_size_from_node_type(field_type, alignment);
+
+        BOOL struct_ = field_type->mClass->mFlags & CLASS_FLAGS_STRUCT;
+        BOOL union_ = field_type->mClass->mFlags & CLASS_FLAGS_UNION;
+
+        if(element_size < space && space > 0 && size > space) {
+            size -= space;
+            space = 0;
+        }
+
+        if(size <= space) {
+            space -= size;
+        }
+        else {
+            space = 0;
+
+            if(*alignment == size) {
+                result += size;
+            }
+            else if(*alignment < element_size) {
+                if(element_size == 1) {
+                    result += size;
+                }
+                else if(element_size == 2) {
+                    result = (result + 1) & ~1;
+                    result += size;
+                }
+                else if(element_size == 4) {
+                    result = (result + 3) & ~3;
+                    result += size;
+                }
+                else if(element_size == 8) {
+                    result = (result + 7) & ~7;
+                    result += size;
+                }
+                else {
+                    result = (result + *alignment-1) & ~(*alignment-1);
+                    result += size;
+                }
+
+                if(struct_ || union_) {
+                    if(element_type->mPointerNum > 0) {
+                        *alignment = 8;
+                    }
+                }
+                else if(element_type->mPointerNum > 0) {
+                    if(type_identify_with_class_name(element_type, "void")) {
+                        *alignment = 4;
+                    }
+                    else {
+                        *alignment = element_size;
+                    }
+                }
+                else {
+                    *alignment = element_size;
+                }
+            }
+            else {
+                if(*alignment == 1) {
+                    result += size;
+                }
+                else if(*alignment == 2) {
+                    result += size;
+                    result = (result + 1) & ~1;
+                }
+                else if(*alignment == 4) {
+                    result += size;
+                    result = (result + 3) & ~3;
+                }
+                else if(*alignment == 8) {
+                    result += size;
+                    result = (result + 7) & ~7;
+                }
+                else {
+                    result += size;
+                }
+
+                space = result - result_before - size;
+            }
+        }
+    }
+
+    return result;
+}
+#endif
+
+#ifdef __32BIT_CPU__
 uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, int* alignment)
 {
-#if defined(__32BIT_CPU__)
     char* class_name = CLASS_NAME(klass);
 
     sStruct* struct_ = get_struct_from_table(class_name);
@@ -1634,7 +1734,10 @@ uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, int* alignmen
     max_size = (max_size + max_alignment-1) & ~(max_alignment-1);
 
     return max_size;
+}
 #else
+uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, int* alignment)
+{
     uint64_t result = 0;
     int i;
     for(i=0; i<klass->mNumFields; i++) {
@@ -1666,13 +1769,12 @@ uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, int* alignmen
 
         if(result < size) {
             result = size;
-            result = (result + 3) & ~3;
         }
     }
 
     return result;
-#endif
 }
+#endif
 
 uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment)
 {
@@ -1811,6 +1913,7 @@ uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment)
     return result;
 }
 
+#ifdef __32BIT_CPU__
 BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL undefined_body, sCompileInfo* info)
 {
     sCLClass* klass = node_type->mClass;
@@ -1837,7 +1940,6 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
             uint64_t size = get_size_from_node_type(field, &alignment);
 
             if(size > max_size) {
-#if defined(__32BIT_CPU__)
                 max_size = size;
 
                 if(max_size > 8) {
@@ -1852,32 +1954,11 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
 
                     num_fields = 2;
                 }
-/*
-                else if(max_size > 8) {
-                    sNodeType* field_type = create_node_type_with_class_name("int");
-                    field_types[0] = create_llvm_type_from_node_type(field_type);
-
-                    sNodeType* field_type2 = create_node_type_with_class_name("char");
-                    int size = max_size;
-                    size = (size + 3) & ~3;
-                    size -=4;
-
-                    field_type2->mArrayNum[0] = size;
-                    field_type2->mArrayDimentionNum = 1;
-                    field_types[1] = create_llvm_type_from_node_type(field_type2);
-
-                    num_fields = 2;
-                }
-*/
                 else {
                     field_types[0] = create_llvm_type_from_node_type(field);
 
                     num_fields = 1;
                 }
-#else
-                field_types[0] = create_llvm_type_from_node_type(field);
-                num_fields = 1;
-#endif
             }
         }
 
@@ -1952,6 +2033,106 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
 
     return TRUE;
 }
+#else
+BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL undefined_body, sCompileInfo* info)
+{
+    sCLClass* klass = node_type->mClass;
+    char* class_name = CLASS_NAME(klass);
+
+    sStruct* struct_ = get_struct_from_table(class_name);
+
+    if(struct_ == NULL && !undefined_body) {
+        LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+
+        uint64_t max_size = 0;
+
+        int i;
+        for(i=0; i<klass->mNumFields; i++) {
+            sNodeType* field = clone_node_type(klass->mFields[i]);
+
+            if(!solve_generics(&field, generics_type)) {
+                compile_err_msg(info, "can't solve generics types");
+                return FALSE;
+            }
+
+            int alignment = 0;
+            uint64_t size = get_size_from_node_type(field, &alignment);
+
+            if(size > max_size) {
+                field_types[0] = create_llvm_type_from_node_type(field);
+                max_size = size;
+            }
+        }
+
+        int num_fields = 1;
+        LLVMTypeRef struct_type = LLVMStructCreateNamed(gContext, class_name);
+
+        LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+
+        if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+            fprintf(stderr, "overflow struct number\n");
+            exit(2);
+        }
+    }
+    else if(struct_ == NULL && undefined_body) {
+        LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+
+        int num_fields = 0;
+        LLVMTypeRef struct_type = LLVMStructCreateNamed(gContext, class_name);
+
+        if(!add_struct_to_table(class_name, node_type, struct_type, TRUE)) {
+            fprintf(stderr, "overflow struct number\n");
+            exit(2);
+        }
+    }
+    else if(struct_ && struct_->mUndefinedBody) {
+        if(undefined_body) {
+            return TRUE;
+        }
+        else {
+            LLVMTypeRef field_types[STRUCT_FIELD_MAX];
+
+            uint64_t max_size = 0;
+
+            int i;
+            for(i=0; i<klass->mNumFields; i++) {
+                sNodeType* field = clone_node_type(klass->mFields[i]);
+
+                if(!solve_generics(&field, generics_type)) {
+                    compile_err_msg(info, "can't solve generics types");
+                    return FALSE;
+                }
+
+                int alignment = 0;
+                uint64_t size = get_size_from_node_type(field, &alignment);
+
+                if(size > max_size) {
+                    field_types[0] = create_llvm_type_from_node_type(field);
+                    max_size = size;
+                }
+            }
+
+            int num_fields = 1;
+            LLVMTypeRef struct_type = struct_->mLLVMType;
+
+            LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
+
+            struct_->mUndefinedBody = FALSE;
+        }
+    }
+    else if((klass->mFlags & CLASS_FLAGS_GENERICS) && generics_type == NULL) {
+        LLVMTypeRef struct_type = NULL;
+
+        if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
+            fprintf(stderr, "overflow struct number\n");
+            exit(2);
+        }
+    }
+
+    return TRUE;
+}
+#endif
+
 
 void compile_err_msg(sCompileInfo* info, const char* msg, ...)
 {
