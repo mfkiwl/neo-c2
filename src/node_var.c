@@ -354,6 +354,9 @@ BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
             LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
 
             LLVMSetExternallyInitialized(alloca_value, TRUE);
+if(var_type->mPointerNum > 0) {
+    LLVMSetAlignment(alloca_value, 4);
+}
 
             var->mLLVMValue = alloca_value;
         }
@@ -369,6 +372,9 @@ BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
         }
 
         LLVMValueRef alloca_value = LLVMAddGlobal(gModule, llvm_type, var_name);
+if(var_type->mPointerNum > 0) {
+    LLVMSetAlignment(alloca_value, 4);
+}
 
         if(var_type->mArrayDimentionNum == 1) {
             /// zero initializer ///
@@ -822,7 +828,7 @@ BOOL compile_dereffernce(unsigned int node, sCompileInfo* info)
 
     push_value_to_stack_ptr(&llvm_value, info);
 
-    info->type = derefference_type;
+    info->type = clone_node_type(derefference_type);
 
     return TRUE;
 }
@@ -1269,7 +1275,8 @@ BOOL compile_load_element(unsigned int node, sCompileInfo* info)
         LLVMValueRef element_value;
 
         for(i=0; i<num_dimention; i++) {
-            load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, &rvalue[i].value, 1, "element_address");
+            LLVMValueRef value = rvalue[i].value;
+            load_element_addresss = LLVMBuildInBoundsGEP(gBuilder, load_element_addresss, &value, 1, "element_address");
 
             element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
             if(i < num_dimention-1) {

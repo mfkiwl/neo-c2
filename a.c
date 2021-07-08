@@ -833,6 +833,84 @@ struct sTypeDefTable
     sNodeType* mItem;
 };
 
+typedef struct sNodeTreeStruct sNodeTree;
+
+sNodeTree* gNodes;
+
+
+struct sXXX {
+    char mName[VAR_NAME_MAX];
+    char mAsmName[VAR_NAME_MAX];
+    char mSimpleName[VAR_NAME_MAX];
+    sParserParam mParams[PARAMS_MAX];
+    int mNumParams;
+    sNodeType* mResultType;
+    struct sNodeBlockStruct* mNodeBlock;
+    BOOL mLambda;
+    sVarTable* mVarTable;
+    BOOL mVarArg;
+    char mStructName[VAR_NAME_MAX];
+    BOOL mOperatorFun;
+    char* mBlockText;
+    int mNumGenerics;
+    char mGenericsTypeNames[PARAMS_MAX][VAR_NAME_MAX];
+
+    int mNumMethodGenerics;
+    char mMethodGenericsTypeNames[GENERICS_TYPES_MAX][VAR_NAME_MAX];
+    BOOL mSimpleLambdaParam;
+    BOOL mGenericsFunction;
+    BOOL mConstructorFun;
+    int mSLine;
+    BOOL mInCLang;
+    int mVersion;
+    BOOL mFinalize;
+    int mGenericsFunNum;
+};
+
+union uLLL {
+    int a;
+    int b;
+    char c[9];
+};
+
+union uLLL2 {
+    int a;
+    int b;
+    char c[16];
+};
+
+union uLLL3 {
+    int a;
+    int b;
+    char c[17];
+};
+
+union uLLL4 {
+    int a;
+    int b;
+    char c[24];
+};
+
+union uLLL5 {
+    int a;
+    int b;
+    char c[32];
+};
+
+struct sLLL {
+    char c[128][32];
+    long long int d;
+    char e;
+    long long int f;
+};
+
+union uLLL6 {
+    int a;
+    int b;
+    struct sLLL c;
+    char d[128];
+};
+
 int main()
 {
     printf("sParserParam %u\n", sizeof(sParserParam));
@@ -877,11 +955,41 @@ int main()
     printf("sVarStruct %d\n", sizeof(struct sVarStruct));
     printf("sVarTableStruct %d\n", sizeof(struct sVarTableStruct));
     
-    long double xxx;
+    long double yyy;
 
-    printf("%lf\n", xxx);
+    printf("%Lf\n", yyy);
 
     struct __pthread_mutex_s a;
+
+    struct sXXX xxx;
+    printf("sXXX %d\n", sizeof(struct sXXX));
+
+    int node_size = 5;
+    gNodes = (sNodeTree*)calloc(1, sizeof(sNodeTree)*node_size);
+    int node = 1;
+
+    int x = (int)&gNodes[node];
+    int y = (int)gNodes;
+
+    printf("pointer &gNodes[1] %p gNodes %p %d %d\n", &gNodes[node], gNodes, x-y, sizeof(sNodeTree));
+
+    union uLLL aaaa;
+    union uLLL2 aaaa2;
+    union uLLL3 aaaa3;
+    union uLLL4 aaaa4;
+    union uLLL5 aaaa5;
+    union uLLL6 aaaa6;
+    struct sLLL aaaa7;
+    union uA aaaaa8;
+
+    printf("%d\n", sizeof(union uLLL));
+    printf("%d\n", sizeof(union uLLL2));
+    printf("%d\n", sizeof(union uLLL3));
+    printf("%d\n", sizeof(union uLLL4));
+    printf("%d\n", sizeof(union uLLL5));
+    printf("%d\n", sizeof(union uLLL5));
+    printf("%d\n", sizeof(union uLLL6));
+    printf("%d\n", sizeof(struct sLLL));
 
     return 0;
 }

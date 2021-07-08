@@ -160,6 +160,10 @@ void expect_next_character_with_one_forward(char* characters, sParserInfo* info)
         info->err_num++;
         info->p++;
         skip_spaces_and_lf(info);
+
+        int f = 0;
+        int a = 1;
+        int x = a/f;
     }
 
     while(*info->p == '#') {
@@ -1120,6 +1124,13 @@ static BOOL parse_union(unsigned int* node, char* union_name, int size_union_nam
         }
     }
 
+    if(isalpha(*info->p) || *info->p == '_') {
+        if(terminated) {
+            *terminated = FALSE;
+            return TRUE;
+        }
+    }
+
     expect_next_character_with_one_forward("{", info);
 
     sCLClass* union_class = get_class(union_name);
@@ -1262,6 +1273,11 @@ static BOOL parse_union(unsigned int* node, char* union_name, int size_union_nam
         }
     }
 
+    char asm_fname[VAR_NAME_MAX];
+    if(!parse_attribute(info, asm_fname)) {
+        return FALSE;
+    }
+
     if(*info->p == ';') {
         if(!definition_struct) {
             info->p++;
@@ -1289,7 +1305,6 @@ static BOOL parse_union(unsigned int* node, char* union_name, int size_union_nam
 
     *node = sNodeTree_union(union_type, info, sname, sline, undefined_union);
 
-    char asm_fname[VAR_NAME_MAX];
     if(!parse_attribute(info, asm_fname)) {
         return FALSE;
     }
@@ -1868,6 +1883,13 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                     cinfo.pinfo = info;
 
                     if(!compile(node, &cinfo)) {
+                        return FALSE;
+                    }
+                }
+                else {
+                    sCLClass* klass = get_class(union_name);
+
+                    if(klass == NULL) {
                         return FALSE;
                     }
                 }

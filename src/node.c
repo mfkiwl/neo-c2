@@ -1487,6 +1487,7 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
 {
     uint64_t result = 0;
     int space = 0;
+    int max_alignment = 4;
     int i;
     for(i=0; i<klass->mNumFields; i++) {
         sNodeType* field_type = clone_node_type(klass->mFields[i]);
@@ -1534,13 +1535,8 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
                     result += size;
                 }
                 else if(element_size == 8) {
-#ifdef __32BIT_CPU__
-                    result = (result + 3) & ~3;
-                    result += size;
-#else
                     result = (result + 7) & ~7;
                     result += size;
-#endif
                 }
                 else {
                     result = (result + *alignment-1) & ~(*alignment-1);
@@ -1552,28 +1548,14 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
                     if(element_type->mPointerNum > 0) {
                         *alignment = 4;
                     }
+                    if(union_ && size > 8) {
+                        *alignment = 8;
+                    }
 #else
                     if(element_type->mPointerNum > 0) {
                         *alignment = 8;
                     }
 #endif
-
-
-
-/*
-                    if(field_type->mArrayDimentionNum > 0) {
-                        *alignment = element_size;
-                    }
-                    else if(field_type->mPointerNum > 0) {
-                        *alignment = 4;
-                    }
-                    if(element_type->mPointerNum > 0) {
-                        *alignment = element_size;
-                    }
-                    else {
-                        *alignment = element_size;
-                    }
-*/
                 }
                 else if(element_type->mPointerNum > 0) {
                     if(type_identify_with_class_name(element_type, "void")) {
@@ -1585,6 +1567,10 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
                 }
                 else {
                     *alignment = element_size;
+                }
+
+                if(max_alignment < *alignment) {
+                    max_alignment = *alignment;
                 }
             }
             else {
@@ -1600,13 +1586,8 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
                     result = (result + 3) & ~3;
                 }
                 else if(*alignment == 8) {
-#ifdef __32BIT_CPU__
-                    result += size;
-                    result = (result + 3) & ~3;
-#else
                     result += size;
                     result = (result + 7) & ~7;
-#endif
                 }
                 else {
                     result += size;
@@ -1616,12 +1597,44 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
             }
         }
     }
+    result = (result + max_alignment-1) & ~(max_alignment-1);
 
     return result;
 }
 
 uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, int* alignment)
 {
+#if defined(__32BIT_CPU__)
+    char* class_name = CLASS_NAME(klass);
+
+    sStruct* struct_ = get_struct_from_table(class_name);
+
+    uint64_t max_size = 0;
+    int max_alignment = 4;
+
+    int i;
+    for(i=0; i<klass->mNumFields; i++) {
+        sNodeType* field = clone_node_type(klass->mFields[i]);
+
+        if(!solve_generics(&field, generics_type)) {
+            return FALSE;
+        }
+
+        int alignment = 0;
+        uint64_t size = get_size_from_node_type(field, &alignment);
+
+        if(alignment > max_alignment) {
+            max_alignment = alignment;
+        }
+
+        if(size > max_size) {
+            max_size = size;
+        }
+    }
+    max_size = (max_size + max_alignment-1) & ~(max_alignment-1);
+
+    return max_size;
+#else
     uint64_t result = 0;
     int i;
     for(i=0; i<klass->mNumFields; i++) {
@@ -1653,10 +1666,12 @@ uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, int* alignmen
 
         if(result < size) {
             result = size;
+            result = (result + 3) & ~3;
         }
     }
 
     return result;
+#endif
 }
 
 uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment)
@@ -1807,6 +1822,7 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
         LLVMTypeRef field_types[STRUCT_FIELD_MAX];
 
         uint64_t max_size = 0;
+        int num_fields = 1;
 
         int i;
         for(i=0; i<klass->mNumFields; i++) {
@@ -1821,12 +1837,50 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
             uint64_t size = get_size_from_node_type(field, &alignment);
 
             if(size > max_size) {
-                field_types[0] = create_llvm_type_from_node_type(field);
+#if defined(__32BIT_CPU__)
                 max_size = size;
+
+                if(max_size > 8) {
+                    sNodeType* field_type = create_node_type_with_class_name("long");
+                    field_types[0] = create_llvm_type_from_node_type(field_type);
+
+                    sNodeType* field_type2 = create_node_type_with_class_name("char");
+                    max_size = (max_size + 3) & ~3;
+                    field_type2->mArrayNum[0] = max_size-8;
+                    field_type2->mArrayDimentionNum = 1;
+                    field_types[1] = create_llvm_type_from_node_type(field_type2);
+
+                    num_fields = 2;
+                }
+/*
+                else if(max_size > 8) {
+                    sNodeType* field_type = create_node_type_with_class_name("int");
+                    field_types[0] = create_llvm_type_from_node_type(field_type);
+
+                    sNodeType* field_type2 = create_node_type_with_class_name("char");
+                    int size = max_size;
+                    size = (size + 3) & ~3;
+                    size -=4;
+
+                    field_type2->mArrayNum[0] = size;
+                    field_type2->mArrayDimentionNum = 1;
+                    field_types[1] = create_llvm_type_from_node_type(field_type2);
+
+                    num_fields = 2;
+                }
+*/
+                else {
+                    field_types[0] = create_llvm_type_from_node_type(field);
+
+                    num_fields = 1;
+                }
+#else
+                field_types[0] = create_llvm_type_from_node_type(field);
+                num_fields = 1;
+#endif
             }
         }
 
-        int num_fields = 1;
         LLVMTypeRef struct_type = LLVMStructCreateNamed(gContext, class_name);
 
         LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
@@ -1852,6 +1906,8 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
             return TRUE;
         }
         else {
+            int num_fields = 1;
+
             LLVMTypeRef field_types[STRUCT_FIELD_MAX];
 
             uint64_t max_size = 0;
@@ -1872,9 +1928,12 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
                     field_types[0] = create_llvm_type_from_node_type(field);
                     max_size = size;
                 }
+                if(size > max_size) {
+                    field_types[0] = create_llvm_type_from_node_type(field);
+                    num_fields = 1;
+                }
             }
 
-            int num_fields = 1;
             LLVMTypeRef struct_type = struct_->mLLVMType;
 
             LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
