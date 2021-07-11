@@ -1483,7 +1483,7 @@ BOOL create_llvm_struct_type(char* struct_name, sNodeType* node_type, sNodeType*
 
 uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment);
 
-#ifdef __32BIT_CPU__
+#if defined(__32BIT_CPU__)
 uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignment)
 {
     uint64_t result = 0;
@@ -1536,7 +1536,11 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
                     result += size;
                 }
                 else if(element_size == 8) {
+#ifdef __ISH__
+                    result = (result + 3) & ~3;
+#else
                     result = (result + 7) & ~7;
+#endif
                     result += size;
                 }
                 else {
@@ -1582,7 +1586,11 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
                 }
                 else if(*alignment == 8) {
                     result += size;
+#ifdef __ISH__
+                    result = (result + 3) & ~3;
+#else
                     result = (result + 7) & ~7;
+#endif
                 }
                 else {
                     result += size;
@@ -1592,7 +1600,9 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
             }
         }
     }
+#ifndef __ISH__
     result = (result + max_alignment-1) & ~(max_alignment-1);
+#endif
 
     return result;
 }
@@ -1731,6 +1741,12 @@ uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, int* alignmen
             max_size = size;
         }
     }
+
+#if __ISH__
+    if(max_alignment > 4) {
+        max_alignment = 4;
+    }
+#endif
     max_size = (max_size + max_alignment-1) & ~(max_alignment-1);
 
     return max_size;
@@ -1886,6 +1902,8 @@ uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment)
         else if(type_identify_with_class_name(node_type, "long_double")){
 #if defined(__RASPBERRY_PI__)
             result = 8;
+#elif defined(__ISH__)
+            result = 12;
 #else
             result = 16;
 #endif
