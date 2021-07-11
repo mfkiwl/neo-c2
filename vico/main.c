@@ -259,7 +259,7 @@ int int_rindex(wchar_t* str, wchar_t* search_str, int default_value)
     wchar_t* p = str + wcslen(str) - len;
 
     while(p >= str) {
-        if(wcscmp(p, search_str) == 0) {
+        if(wcsncmp(p, search_str, len) == 0) {
             return (p - str);
         }
 
