@@ -65,7 +65,7 @@ int main()
 
 5. mixin-layersシステムを備えます。アプリケーションをレイヤーを重ねるように実装できます。各レイヤーは完結しており、デバッグや移植作業でも有効です。mixin-layersで実装されたエディッタとしてvicoというviクローンを実装しています。vicoというディレクトリの中に入っているので参考にしてください。
 
-For PC and WSL
+For PC, WSL, and Raspberry PI OS
 
 ```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
@@ -84,7 +84,7 @@ or
 bash all_build.sh
 ```
 
-Without self-host. For raspberry pi OS and iSH(iPhone)
+Without self-host. For iSH(iPhone)
 
 ```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
@@ -103,7 +103,7 @@ or
 bash no_self_host.sh
 ```
 
-Install to home directory. For termux(android), and OSX(INTEL)
+Install to home directory. For termux(android), and MacOS(INTEL)
 
 ```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
