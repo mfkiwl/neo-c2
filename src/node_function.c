@@ -474,10 +474,10 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         int n = 0;
 
         while(*p) {
-            if(*p == '_' && *(p+1) == 'v' && isdigit(*(p+2))) {
+            if(*p == '_' && *(p+1) == 'v' && xisdigit(*(p+2))) {
                 char* p2 = p + 2;
                 n = 0;
-                while(isdigit(*p2)) {
+                while(xisdigit(*p2)) {
                     n = n * 10 + (*p2 - '0');
                     p2++;
                 }

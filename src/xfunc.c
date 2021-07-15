@@ -5,7 +5,23 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <stddef.h>
+#include <ctype.h>
 #include "xfunc.h"
+
+BOOL xisdigit(char c) 
+{
+    return c >= '0' && c <= '9';
+}
+
+BOOL xisalpha(char c)
+{
+    return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
+}
+
+BOOL xisalnum(char c)
+{
+    return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'));
+}
 
 char* xstrncpy(char* des, char* src, size_t size)
 {

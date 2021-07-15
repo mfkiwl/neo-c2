@@ -226,7 +226,7 @@ static sNodeType* parse_class_name(char** p, char** p2, char* buf)
                 (*p)++;
 
                 int n = 0;
-                while(isdigit(**p)) {
+                while(xisdigit(**p)) {
                     n = n * 10 + (**p - '0');
                     (*p)++;
                 }

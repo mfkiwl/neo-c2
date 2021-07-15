@@ -841,6 +841,10 @@ BOOL create_generics_struct_type(sNodeType* node_type);
 BOOL add_generics_struct_type_to_table(char* name, sNodeType* node_type);
 sGenericsStructType* get_generics_struct_from_table(char* name);
 
+BOOL xisdigit(char c);
+BOOL xisalpha(char c);
+BOOL xisalnum(char c);
+
 //////////////////////////////
 /// node_op.c ///
 //////////////////////////////

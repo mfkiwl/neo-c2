@@ -81,8 +81,8 @@ BOOL parse_word(char* buf, int buf_size, sParserInfo* info, BOOL print_out_err_m
 
     char* p2 = buf;
 
-    if(isalpha(*info->p) || *info->p == '_') {
-        while(isalnum(*info->p) || *info->p == '_' || *info->p == '$') {
+    if(xisalpha(*info->p) || *info->p == '_') {
+        while(xisalnum(*info->p) || *info->p == '_' || *info->p == '$') {
             if(p2 - buf < buf_size-1) {
                 *p2++ = *info->p;
                 info->p++;
@@ -281,8 +281,8 @@ static BOOL get_number(BOOL minus, unsigned int* node, sParserInfo* info)
         p2++;
     }
 
-    if(isdigit(*info->p)) {
-        while(isdigit(*info->p) || *info->p == '_') {
+    if(xisdigit(*info->p)) {
+        while(xisdigit(*info->p) || *info->p == '_') {
             if(*info->p ==  '_') {
                 info->p++;
             }
@@ -674,7 +674,7 @@ static BOOL parse_variable_name(char* buf, int buf_size, sParserInfo* info, sNod
         skip_spaces_and_lf(info);
 
         int n = 0;
-        while(isdigit(*info->p)) {
+        while(xisdigit(*info->p)) {
             n = n * 10 + *info->p - '0';
             info->p++;
         }
@@ -699,11 +699,11 @@ BOOL parse_sharp(sParserInfo* info)
         info->p++;
         skip_spaces_and_lf(info);
 
-        if(isdigit(*info->p)) {
+        if(xisdigit(*info->p)) {
             int line = 0;
             char fname[PATH_MAX];
 
-            while(isdigit(*info->p)) {
+            while(xisdigit(*info->p)) {
                 line = line * 10 + (*info->p - '0');
                 info->p++;
             }
@@ -822,7 +822,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
         }
     }
 
-    if(isalpha(*info->p) || *info->p == '_') {
+    if(xisalpha(*info->p) || *info->p == '_') {
         if(terminated) {
             *terminated = FALSE;
             info->in_struct = in_struct;
@@ -1124,7 +1124,7 @@ static BOOL parse_union(unsigned int* node, char* union_name, int size_union_nam
         }
     }
 
-    if(isalpha(*info->p) || *info->p == '_') {
+    if(xisalpha(*info->p) || *info->p == '_') {
         if(terminated) {
             *terminated = FALSE;
             return TRUE;
@@ -1575,7 +1575,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
         skip_spaces_and_lf(info);
 
         expect_next_character_with_one_forward("(", info);
-        while(isdigit(*info->p)) {
+        while(xisdigit(*info->p)) {
             info->p++;
             skip_spaces_and_lf(info);
         }
@@ -1781,7 +1781,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
         }
         else if(strcmp(type_name, "struct") == 0)
         {
-            if(isalpha(*info->p) || *info->p == '_') {
+            if(xisalpha(*info->p) || *info->p == '_') {
                 char struct_name[VAR_NAME_MAX];
 
                 if(!parse_word(struct_name, VAR_NAME_MAX, info, FALSE, FALSE))
@@ -1861,7 +1861,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
             }
         }
         else if(strcmp(type_name, "union") == 0) {
-            if(isalpha(*info->p) || *info->p == '_') {
+            if(xisalpha(*info->p) || *info->p == '_') {
                 char union_name[VAR_NAME_MAX];
 
                 if(!parse_word(union_name, VAR_NAME_MAX, info, FALSE, FALSE))
@@ -1926,7 +1926,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
         }
         else if(strcmp(type_name, "enum") == 0) 
         {
-            if(isalpha(*info->p) || *info->p == '_') {
+            if(xisalpha(*info->p) || *info->p == '_') {
                 char enum_name[VAR_NAME_MAX];
 
                 if(!parse_word(enum_name, VAR_NAME_MAX, info, FALSE, FALSE))
@@ -2100,7 +2100,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
     }
 
     if(definition_typedef && func_pointer_name) {
-        if(isalpha(*info->p) || *info->p == '_' || *info->p == '*' || *info->p == '%' || *info->p == '(') 
+        if(xisalpha(*info->p) || *info->p == '_' || *info->p == '*' || *info->p == '%' || *info->p == '(') 
         {
             char* p_before = info->p;
             int sline_before = info->sline;
@@ -2209,7 +2209,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                                 return FALSE;
                             }
 
-                            if(isalpha(*info->p) || *info->p == '_') {
+                            if(xisalpha(*info->p) || *info->p == '_') {
                                 char buf[VAR_NAME_MAX];
 
                                 (void)parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE);
@@ -2316,7 +2316,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                                         return FALSE;
                                     }
 
-                                    if(isalpha(*info->p) || *info->p == '_') {
+                                    if(xisalpha(*info->p) || *info->p == '_') {
                                         char buf[VAR_NAME_MAX];
 
                                         (void)parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE);
@@ -2613,7 +2613,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                         return FALSE;
                     }
 
-                    if(isalpha(*info->p) || *info->p == '_') {
+                    if(xisalpha(*info->p) || *info->p == '_') {
                         char buf[VAR_NAME_MAX];
 
                         (void)parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE);
@@ -3182,7 +3182,7 @@ static void parse_version(int* version, sParserInfo* info)
         skip_spaces_and_lf(info);
 
         *version = 0;
-        while(isdigit(*info->p)) {
+        while(xisdigit(*info->p)) {
             *version = *version * 10 + (*info->p - '0');
             info->p++;
             skip_spaces_and_lf(info);
@@ -3439,7 +3439,7 @@ static BOOL parse_funcation_call_params(int* num_params, unsigned int* params, s
 
                 if(*info->p == '@') {
                     info->p++;
-                    while(isalnum(*info->p) || *info->p == '_') {
+                    while(xisalnum(*info->p) || *info->p == '_') {
                         info->p++;
                     }
                     skip_spaces_and_lf(info);
@@ -3529,7 +3529,7 @@ static BOOL parse_if(unsigned int* node, sParserInfo* info)
         char buf[VAR_NAME_MAX];
 
         /// else ///
-        if(!isalpha(*info->p)) {
+        if(!xisalpha(*info->p)) {
             break;
         }
         if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE)) {
@@ -3614,7 +3614,7 @@ static BOOL postposition_operator(unsigned int* node, BOOL enable_assginment, sP
                 return FALSE;
             }
 
-            if(isalpha(*info->p) || *info->p == '_') 
+            if(xisalpha(*info->p) || *info->p == '_') 
             {
                 char buf[VAR_NAME_MAX];
 
@@ -5368,7 +5368,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             return TRUE;
         }
     }
-    else if(*info->p == '-' && !isdigit(*(info->p+1)))
+    else if(*info->p == '-' && !xisdigit(*(info->p+1)))
     {
         info->p++;
         skip_spaces_and_lf(info);
@@ -5389,7 +5389,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             info->p++;
             skip_spaces_and_lf(info);
 
-            if(isdigit(*info->p)) {
+            if(xisdigit(*info->p)) {
                 if(!get_number(FALSE, node, info)) {
                     return FALSE;
                 }
@@ -5409,7 +5409,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             info->p++;
             skip_spaces_and_lf(info);
 
-            if(isdigit(*info->p)) {
+            if(xisdigit(*info->p)) {
                 if(!get_number(TRUE, node, info)) {
                     return FALSE;
                 }
@@ -5435,7 +5435,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         }
     }
     /// oct number ///
-    else if(*info->p == '0' && isdigit(*(info->p+1))) {
+    else if(*info->p == '0' && xisdigit(*(info->p+1))) {
         info->p++;
 
         if(!get_oct_number(node, info)) {
@@ -5443,7 +5443,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         }
     }
     /// number ///
-    else if(isdigit(*info->p)) {
+    else if(xisdigit(*info->p)) {
         if(!get_number(FALSE, node, info)) {
             return FALSE;
         }
@@ -5582,7 +5582,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             *node = sNodeTree_create_character_value(c, info);
         }
     }
-    else if(isalpha(*info->p) || *info->p == '_') {
+    else if(xisalpha(*info->p) || *info->p == '_') {
         char* p_before = info->p;
         int sline_before = info->sline;
 
