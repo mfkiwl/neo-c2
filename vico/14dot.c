@@ -95,16 +95,21 @@ bool ViWin_saveDotToFile(ViWin* self, Vi* nvi) version 2
         return false;
     }
 
+    string path0 = xsprintf("%s/.vico", home);
+    (void)mkdir(path0, 0755);
+
     string path = xsprintf("%s/.vico/dot.txt", home);
     FILE* f = fopen(path, "w");
 
     if(f == null) {
         return false;
     }
-    
-    foreach(it, self.savedInputedKeys) {
-        if(fputc(it, f) < 0) {
-            break;
+
+    if(self.savedInputedKeys) {
+        foreach(it, self.savedInputedKeys) {
+            if(fputc(it, f) < 0) {
+                break;
+            }
         }
     }
 
