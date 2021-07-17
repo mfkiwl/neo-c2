@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi)  version 5
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi)  version 5
 {
     auto result = inherit(self, y, x, width, height, vi);
 
@@ -20,7 +20,7 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     return result;
 }
 
-void ViWin_visualModeView(ViWin* self, Vi* nvi)
+void ViWin::visualModeView(ViWin* self, Vi* nvi)
 {
     int maxy = getmaxy(self.win);
     int maxx = getmaxx(self.win);
@@ -61,7 +61,7 @@ void ViWin_visualModeView(ViWin* self, Vi* nvi)
     wrefresh(self.win);
 }
 
-void ViWin_view(ViWin* self, Vi* nvi) version 4
+void ViWin::view(ViWin* self, Vi* nvi) version 4
 {
     if(nvi.mode == kVisualMode && nvi.activeWin.equals(self)) {
         self.visualModeView(nvi);
@@ -71,7 +71,7 @@ void ViWin_view(ViWin* self, Vi* nvi) version 4
     }
 }
 
-void ViWin_yankOnVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::yankOnVisualMode(ViWin* self, Vi* nvi) 
 {
     int head = self.visualModeHead;
     int tail = self.scroll+self.cursorY;
@@ -91,7 +91,7 @@ void ViWin_yankOnVisualMode(ViWin* self, Vi* nvi)
     self.saveYankToFile(nvi);
 }
 
-void ViWin_indentVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::indentVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
 
@@ -117,7 +117,7 @@ void ViWin_indentVisualMode(ViWin* self, Vi* nvi)
     self.modifyOverCursorXValue();
 }
 
-void ViWin_backIndentVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::backIndentVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
 
@@ -148,7 +148,7 @@ void ViWin_backIndentVisualMode(ViWin* self, Vi* nvi)
     self.modifyOverCursorXValue();
 }
 
-void ViWin_changeCaseVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::changeCaseVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
 
@@ -186,7 +186,7 @@ void ViWin_changeCaseVisualMode(ViWin* self, Vi* nvi)
     self.modifyOverCursorXValue();
 }
 
-void ViWin_joinVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::joinVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
 
@@ -237,7 +237,7 @@ void ViWin_joinVisualMode(ViWin* self, Vi* nvi)
 
 }
 
-void ViWin_equalVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::equalVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
 
@@ -320,7 +320,7 @@ void ViWin_equalVisualMode(ViWin* self, Vi* nvi)
 
 }
 
-void ViWin_rewriteVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::rewriteVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
     
@@ -368,7 +368,7 @@ void ViWin_rewriteVisualMode(ViWin* self, Vi* nvi)
 
 }
 
-void ViWin_deleteOnVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::deleteOnVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
 
@@ -401,17 +401,17 @@ void ViWin_deleteOnVisualMode(ViWin* self, Vi* nvi)
     
 }
 
-void ViWin_makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 1
+void ViWin::makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 1
 {
     /// implemented after layer
 }
 
-void ViWin_makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 1
+void ViWin::makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 1
 {
     /// implemented after layer
 }
 
-void ViWin_inputVisualMode(ViWin* self, Vi* nvi)
+void ViWin::inputVisualMode(ViWin* self, Vi* nvi)
 {
     auto key = self.getKey(false);
 
@@ -530,7 +530,7 @@ void ViWin_inputVisualMode(ViWin* self, Vi* nvi)
     self.saveInputedKey();
 }
 
-void ViWin_input(ViWin* self, Vi* nvi) version 4
+void ViWin::input(ViWin* self, Vi* nvi) version 4
 {
     if(nvi.mode == kVisualMode) {
         self.inputVisualMode(nvi);
@@ -540,7 +540,7 @@ void ViWin_input(ViWin* self, Vi* nvi) version 4
     }
 }
 
-void ViWin_restoreVisualMode(ViWin* self, Vi* nvi) version 2
+void ViWin::restoreVisualMode(ViWin* self, Vi* nvi) version 2
 {
     nvi.mode = kVisualMode;
 
@@ -551,12 +551,12 @@ void ViWin_restoreVisualMode(ViWin* self, Vi* nvi) version 2
     }
 }
 
-void ViWin_gotoBraceEnd(ViWin* self, Vi* nvi) version 1
+void ViWin::gotoBraceEnd(ViWin* self, Vi* nvi) version 1
 {
     /// implemeted after layer
 }
 
-Vi*% Vi_initialize(Vi*% self) version 8
+Vi*% Vi::initialize(Vi*% self) version 8
 {
     auto result = inherit(self);
 
@@ -569,14 +569,14 @@ Vi*% Vi_initialize(Vi*% self) version 8
     return result;
 }
 
-void Vi_enterVisualMode(Vi* self) 
+void Vi::enterVisualMode(Vi* self) 
 {
     self.mode = kVisualMode;
     self.activeWin.visualModeHead = self.activeWin.cursorY + self.activeWin.scroll;
     self.activeWin.visualModeHeadX = self.activeWin.cursorX;
 }
 
-void Vi_exitFromVisualMode(Vi* self) 
+void Vi::exitFromVisualMode(Vi* self) 
 {
     self.mode = kEditMode;
 

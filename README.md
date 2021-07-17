@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.0.8
+version 1.0.9
 
 ```
 #include <come.h>
@@ -2211,4 +2211,29 @@ int main()
 }
 ```
 
+# CHANGELOG
 
+addition from version 1.0.9
+
+version 1.0.9からの追加の仕様
+
+```
+void int_show(int self)
+{
+    printf("%d\n", self);
+}
+
+```
+
+は
+
+equals below:
+
+```
+void int::show(int self)
+{
+    printf("%d\n", self);
+}
+```
+
+とも書けます。

@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 10
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 10
 {
     auto result = inherit(self, y, x, width, height, vi);
     
@@ -16,7 +16,7 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     return result;
 }
 
-void ViWin_verticalVisualModeView(ViWin* self, Vi* nvi)
+void ViWin::verticalVisualModeView(ViWin* self, Vi* nvi)
 {
     int maxy = getmaxy(self.win);
     int maxx = getmaxx(self.win);
@@ -71,7 +71,7 @@ void ViWin_verticalVisualModeView(ViWin* self, Vi* nvi)
     wrefresh(self.win);
 }
 
-void ViWin_view(ViWin* self, Vi* nvi) version 8
+void ViWin::view(ViWin* self, Vi* nvi) version 8
 {
     if(nvi.mode == kVerticalVisualMode 
         && nvi.activeWin.equals(self)) 
@@ -83,7 +83,7 @@ void ViWin_view(ViWin* self, Vi* nvi) version 8
     }
 }
 
-void ViWin_deleteOnVerticalVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::deleteOnVerticalVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
     
@@ -110,7 +110,7 @@ void ViWin_deleteOnVerticalVisualMode(ViWin* self, Vi* nvi)
     self.cursorX = self.visualModeVerticalStartX;
 }
 
-void ViWin_deleteLinesOnVerticalVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::deleteLinesOnVerticalVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
     
@@ -135,7 +135,7 @@ void ViWin_deleteLinesOnVerticalVisualMode(ViWin* self, Vi* nvi)
     self.cursorX = self.visualModeVerticalStartX;
 }
 
-void ViWin_changeCaseVerticalVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::changeCaseVerticalVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
     
@@ -182,7 +182,7 @@ void ViWin_changeCaseVerticalVisualMode(ViWin* self, Vi* nvi)
     self.cursorX = self.visualModeVerticalStartX;
 }
 
-void ViWin_rewriteOnVerticalVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::rewriteOnVerticalVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
     
@@ -215,7 +215,7 @@ void ViWin_rewriteOnVerticalVisualMode(ViWin* self, Vi* nvi)
     self.cursorX = self.visualModeVerticalStartX;
 }
 
-void ViWin_insertOnVerticalVisualMode(ViWin* self, Vi* nvi) 
+void ViWin::insertOnVerticalVisualMode(ViWin* self, Vi* nvi) 
 {
     auto key = self.getKey(false);
     
@@ -282,7 +282,7 @@ void ViWin_insertOnVerticalVisualMode(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_inputVerticalVisualMode(ViWin* self, Vi* nvi)
+void ViWin::inputVerticalVisualMode(ViWin* self, Vi* nvi)
 {
     if(self.visualModeVerticalInserting) {
         self.insertOnVerticalVisualMode(nvi);
@@ -388,7 +388,7 @@ void ViWin_inputVerticalVisualMode(ViWin* self, Vi* nvi)
     self.saveInputedKey();
 }
 
-void ViWin_input(ViWin* self, Vi* nvi) version 8
+void ViWin::input(ViWin* self, Vi* nvi) version 8
 {
     if(nvi.mode == kVerticalVisualMode) {
         self.inputVerticalVisualMode(nvi);
@@ -398,7 +398,7 @@ void ViWin_input(ViWin* self, Vi* nvi) version 8
     }
 }
 
-void Vi_enterVerticalVisualMode(Vi* self) 
+void Vi::enterVerticalVisualMode(Vi* self) 
 {
     self.mode = kVerticalVisualMode;
     self.activeWin.visualModeVerticalHeadY
@@ -417,7 +417,7 @@ void Vi_enterVerticalVisualMode(Vi* self)
     self.activeWin.visualModeVerticalInserting = false;
 }
 
-Vi*% Vi_initialize(Vi*% self) version 16
+Vi*% Vi::initialize(Vi*% self) version 16
 {
     auto result = inherit(self);
 

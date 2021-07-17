@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-void ViWin_searchModeView(ViWin* self, Vi* nvi)
+void ViWin::searchModeView(ViWin* self, Vi* nvi)
 {
     werase(self.win);
 
@@ -28,7 +28,7 @@ void ViWin_searchModeView(ViWin* self, Vi* nvi)
     wrefresh(self.win);
 }
 
-void ViWin_view(ViWin* self, Vi* nvi) version 5
+void ViWin::view(ViWin* self, Vi* nvi) version 5
 {
     if(nvi.mode == kSearchMode && self.equals(nvi.activeWin)) {
         self.searchModeView(nvi);
@@ -38,7 +38,7 @@ void ViWin_view(ViWin* self, Vi* nvi) version 5
     }
 }
 
-void ViWin_search(ViWin* self, Vi* nvi) 
+void ViWin::search(ViWin* self, Vi* nvi) 
 {
     if(wcscmp(nvi.searchString, wstring("")) == 0) 
     {
@@ -90,7 +90,7 @@ void ViWin_search(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_searchReverse(ViWin* self, Vi* nvi) 
+void ViWin::searchReverse(ViWin* self, Vi* nvi) 
 {
     if(wcscmp(nvi.searchString, wstring("")) == 0) 
     {
@@ -148,7 +148,7 @@ void ViWin_searchReverse(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_searchWordOnCursor(ViWin* self, Vi* nvi)
+void ViWin::searchWordOnCursor(ViWin* self, Vi* nvi)
 {
     auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
@@ -195,7 +195,7 @@ void ViWin_searchWordOnCursor(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_searchWordOnCursorReverse(ViWin* self, Vi* nvi)
+void ViWin::searchWordOnCursorReverse(ViWin* self, Vi* nvi)
 {
     auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
@@ -241,7 +241,7 @@ void ViWin_searchWordOnCursorReverse(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_inputSearchlMode(ViWin* self, Vi* nvi)
+void ViWin::inputSearchlMode(ViWin* self, Vi* nvi)
 {
     auto key = self.getKey(false);
     
@@ -295,7 +295,7 @@ void ViWin_inputSearchlMode(ViWin* self, Vi* nvi)
     self.saveInputedKey();
 }
 
-void ViWin_input(ViWin* self, Vi* nvi) version 5
+void ViWin::input(ViWin* self, Vi* nvi) version 5
 {
     if(nvi.mode == kSearchMode) {
         self.inputSearchlMode(nvi);
@@ -305,7 +305,7 @@ void ViWin_input(ViWin* self, Vi* nvi) version 5
     }
 }
 
-void Vi_saveSearchString(Vi* self, char* file_name) 
+void Vi::saveSearchString(Vi* self, char* file_name) 
 {
     char* home = getenv("HOME");
     
@@ -335,7 +335,7 @@ void Vi_saveSearchString(Vi* self, char* file_name)
     fclose(f);
 }
 
-void Vi_readSearchString(Vi* self, char* file_name) 
+void Vi::readSearchString(Vi* self, char* file_name) 
 {
     char* home = getenv("HOME");
     
@@ -371,7 +371,7 @@ void Vi_readSearchString(Vi* self, char* file_name)
     wcsncpy(self.searchString, wstring(line), 128);
 }
 
-void Vi_enterSearchMode(Vi* self, bool regex_search, bool reverse) version 2
+void Vi::enterSearchMode(Vi* self, bool regex_search, bool reverse) version 2
 {
     self.mode = kSearchMode;
     wcsncpy(self.searchString, wstring(""), 128);
@@ -379,12 +379,12 @@ void Vi_enterSearchMode(Vi* self, bool regex_search, bool reverse) version 2
     self.searchReverse = reverse;
 }
 
-void Vi_exitFromSearchMode(Vi* self) 
+void Vi::exitFromSearchMode(Vi* self) 
 {
     self.mode = kEditMode;
 }
 
-Vi*% Vi_initialize(Vi*% self) version 9
+Vi*% Vi::initialize(Vi*% self) version 9
 {
     auto result = inherit(self);
     
@@ -439,7 +439,7 @@ Vi*% Vi_initialize(Vi*% self) version 9
     return result;
 }
     
-void Vi_finalize(Vi* self) version 4
+void Vi::finalize(Vi* self) version 4
 {
     self.saveSearchString("searchString.vico");
     

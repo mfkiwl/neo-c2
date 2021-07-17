@@ -584,6 +584,20 @@ static BOOL parse_variable_name(char* buf, int buf_size, sParserInfo* info, sNod
             return FALSE;
         }
 
+        if(*info->p == ':' && *(info->p+1) == ':') {
+            info->p+=2;
+            skip_spaces_and_lf(info);
+
+            char buf2[VAR_NAME_MAX];
+
+            if(!parse_word(buf2, VAR_NAME_MAX, info, TRUE, FALSE)) {
+                return FALSE;
+            }
+
+            xstrncat(buf, "_", buf_size);
+            xstrncat(buf, buf2, buf_size);
+        }
+
         if(strcmp(buf, "const") == 0) {
             if(!parse_word(buf, buf_size, info, TRUE, FALSE)) {
                 return FALSE;

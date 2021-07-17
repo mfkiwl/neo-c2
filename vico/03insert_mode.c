@@ -8,7 +8,7 @@
 #include <limits.h>
 #include <unistd.h>
 
-void ViWin_insertModeView(ViWin* self, Vi* nvi)
+void ViWin::insertModeView(ViWin* self, Vi* nvi)
 {
     werase(self.win);
 
@@ -21,7 +21,7 @@ void ViWin_insertModeView(ViWin* self, Vi* nvi)
     wrefresh(self.win);
 }
 
-void ViWin_view(ViWin* self, Vi* nvi) version 3
+void ViWin::view(ViWin* self, Vi* nvi) version 3
 {
     if(nvi.mode == kInsertMode && self.equals(nvi.activeWin)) {
         self.insertModeView(nvi);
@@ -31,7 +31,7 @@ void ViWin_view(ViWin* self, Vi* nvi) version 3
     }
 }
 
-void ViWin_insertText(ViWin* self, wstring text) {
+void ViWin::insertText(ViWin* self, wstring text) {
     if(self.texts.length() == 0) {
         self.texts.push_back(clone text);
         self.cursorX += text.length();
@@ -46,7 +46,7 @@ void ViWin_insertText(ViWin* self, wstring text) {
     }
 }
 
-void ViWin_enterNewLine(ViWin* self)
+void ViWin::enterNewLine(ViWin* self)
 {
     auto old_line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
@@ -80,7 +80,7 @@ void ViWin_enterNewLine(ViWin* self)
     self.modifyOverCursorYValue();
 }
 
-void ViWin_enterNewLine2(ViWin* self)
+void ViWin::enterNewLine2(ViWin* self)
 {
     auto line = self.texts.item(self.scroll+self.cursorY, null);
     int num_spaces = 0;
@@ -109,7 +109,7 @@ void ViWin_enterNewLine2(ViWin* self)
     self.modifyOverCursorYValue();
 }
 
-void ViWin_backSpace(ViWin* self) 
+void ViWin::backSpace(ViWin* self) 
 {
     auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
@@ -119,7 +119,7 @@ void ViWin_backSpace(ViWin* self)
     }
 }
 
-void ViWin_backIndent(ViWin* self) 
+void ViWin::backIndent(ViWin* self) 
 {
     self.pushUndo();
 
@@ -139,15 +139,15 @@ void ViWin_backIndent(ViWin* self)
     }
 }
 
-void ViWin_blinkBraceFoward(ViWin* self, wchar_t head, wchar_t tail, Vi* nvi) 
+void ViWin::blinkBraceFoward(ViWin* self, wchar_t head, wchar_t tail, Vi* nvi) 
 {
 }
 
-void ViWin_blinkBraceEnd(ViWin* self, wchar_t head, wchar_t tail, Vi* nvi) 
+void ViWin::blinkBraceEnd(ViWin* self, wchar_t head, wchar_t tail, Vi* nvi) 
 {
 }
 
-void ViWin_inputInsertMode(ViWin* self, Vi* nvi)
+void ViWin::inputInsertMode(ViWin* self, Vi* nvi)
 {
     auto key = self.getKey(false);
     
@@ -265,7 +265,7 @@ void ViWin_inputInsertMode(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_input(ViWin* self, Vi* nvi) version 3
+void ViWin::input(ViWin* self, Vi* nvi) version 3
 {
     if(nvi.mode == kInsertMode) {
         self.inputInsertMode(nvi);
@@ -275,37 +275,37 @@ void ViWin_input(ViWin* self, Vi* nvi) version 3
     }
 }
 
-void ViWin_pushUndo(ViWin* self) version 1
+void ViWin::pushUndo(ViWin* self) version 1
 {
     /// implemented by the after layer
 }
 
-void ViWin_writedFlagOn(ViWin* self) version 1
+void ViWin::writedFlagOn(ViWin* self) version 1
 {
     /// implemented by the after layer
 }
 
-void ViWin_completion(ViWin* self, Vi* nvi) version 1
+void ViWin::completion(ViWin* self, Vi* nvi) version 1
 {
     /// implemented by the after layer
 }
 
-void ViWin_clearInputedKey(ViWin* self) version 1
+void ViWin::clearInputedKey(ViWin* self) version 1
 {
     /// implemented by the after layer
 }
 
-void ViWin_saveInputedKey(ViWin* self) version 1
+void ViWin::saveInputedKey(ViWin* self) version 1
 {
     /// implemented by the after layer
 }
 
-void ViWin_backwardWord(ViWin* self) version 1
+void ViWin::backwardWord(ViWin* self) version 1
 {
     /// implemented by the after layer
 }
 
-void Vi_enterInsertMode(Vi* self) version 1
+void Vi::enterInsertMode(Vi* self) version 1
 {
     self.mode = kInsertMode;
     self.activeWin.writedFlagOn();
@@ -315,7 +315,7 @@ void Vi_enterInsertMode(Vi* self) version 1
     refresh();
 }
 
-void Vi_enterInsertMode2(Vi* self) 
+void Vi::enterInsertMode2(Vi* self) 
 {
     self.mode = kInsertMode;
     self.activeWin.writedFlagOn();
@@ -325,13 +325,13 @@ void Vi_enterInsertMode2(Vi* self)
     refresh();
 }
 
-void Vi_exitFromInsertMode(Vi* self) 
+void Vi::exitFromInsertMode(Vi* self) 
 {
     self.mode = kEditMode;
     self.activeWin.saveInputedKey();
 }
 
-Vi*% Vi_initialize(Vi*% self) version 3
+Vi*% Vi::initialize(Vi*% self) version 3
 {
     auto result = inherit(self);
 
@@ -376,7 +376,7 @@ Vi*% Vi_initialize(Vi*% self) version 3
     return result;
 }
 
-int Vi_main_loop(Vi* self) version 3
+int Vi::main_loop(Vi* self) version 3
 {
     while(!self.appEnd) {
         erase();

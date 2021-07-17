@@ -10,7 +10,7 @@
 #include <wctype.h>
 
 
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 2
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 2
 {
     auto result = inherit(self, y, x, width, height, vi);
     
@@ -19,13 +19,13 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     return result;
 }
 
-void ViWin_finalize(ViWin* self) version 2
+void ViWin::finalize(ViWin* self) version 2
 {
     inherit(self);
     delete self.returnPointStack;
 }
 
-void ViWin_textsView(ViWin* self, Vi* nvi)
+void ViWin::textsView(ViWin* self, Vi* nvi)
 {
     int maxy = getmaxy(self.win);
     int maxx = getmaxx(self.win);
@@ -157,7 +157,7 @@ void ViWin_textsView(ViWin* self, Vi* nvi)
 }
 
 /*
-void ViWin_textsView(ViWin* self, Vi* nvi)
+void ViWin::textsView(ViWin* self, Vi* nvi)
 {
     int maxy = getmaxy(self.win);
     int maxx = getmaxx(self.win);
@@ -214,7 +214,7 @@ void ViWin_textsView(ViWin* self, Vi* nvi)
 }
 */
 
-void ViWin_statusBarView(ViWin* self, Vi* nvi) version 1
+void ViWin::statusBarView(ViWin* self, Vi* nvi) version 1
 {
     int maxy = getmaxy(self.win);
     int maxx = getmaxx(self.win);
@@ -226,7 +226,7 @@ void ViWin_statusBarView(ViWin* self, Vi* nvi) version 1
     wrefresh(self.win);
 }
 
-void ViWin_view(ViWin* self, Vi* nvi) version 2
+void ViWin::view(ViWin* self, Vi* nvi) version 2
 {
     werase(self.win);
 
@@ -237,12 +237,12 @@ void ViWin_view(ViWin* self, Vi* nvi) version 2
     wrefresh(self.win);
 }
 
-int ViWin_getKey(ViWin* self, bool head) version 1
+int ViWin::getKey(ViWin* self, bool head) version 1
 {
     return wgetch(self.win);        
 }
 
-void ViWin_input(ViWin* self, Vi* nvi) version 2
+void ViWin::input(ViWin* self, Vi* nvi) version 2
 {
     auto key = self.getKey(true);
 
@@ -253,7 +253,7 @@ void ViWin_input(ViWin* self, Vi* nvi) version 2
     }
 }
 
-void ViWin_modifyUnderCursorYValue(ViWin* self)
+void ViWin::modifyUnderCursorYValue(ViWin* self)
 {
     if(self.cursorY < 0) {
         self.scroll += self.cursorY;
@@ -266,7 +266,7 @@ void ViWin_modifyUnderCursorYValue(ViWin* self)
     }
 }
 
-void ViWin_modifyOverCursorYValue(ViWin* self)
+void ViWin::modifyOverCursorYValue(ViWin* self)
 {
     if(self.texts.length() == 0) {
         self.scroll = 0;
@@ -293,7 +293,7 @@ void ViWin_modifyOverCursorYValue(ViWin* self)
     }
 }
 
-void ViWin_modifyOverCursorXValue(ViWin* self)
+void ViWin::modifyOverCursorXValue(ViWin* self)
 {
     if(self.texts.length() == 0) {
         self.scroll = 0;
@@ -316,7 +316,7 @@ void ViWin_modifyOverCursorXValue(ViWin* self)
     }
 }
 
-void ViWin_modifyOverCursorXValue2(ViWin* self)
+void ViWin::modifyOverCursorXValue2(ViWin* self)
 {
     if(self.texts.length() == 0) {
         self.scroll = 0;
@@ -339,26 +339,26 @@ void ViWin_modifyOverCursorXValue2(ViWin* self)
     }
 }
 
-void ViWin_modifyUnderCursorXValue(ViWin* self)
+void ViWin::modifyUnderCursorXValue(ViWin* self)
 {
     if(self.cursorX < 0) {
         self.cursorX = 0;
     }
 }
 
-void ViWin_forward(ViWin* self) 
+void ViWin::forward(ViWin* self) 
 {
     self.cursorX++;
     self.modifyOverCursorXValue();
 }
 
-void ViWin_backward(ViWin* self) 
+void ViWin::backward(ViWin* self) 
 {
     self.cursorX--;
     self.modifyUnderCursorXValue();
 }
 
-void ViWin_prevLine(ViWin* self) 
+void ViWin::prevLine(ViWin* self) 
 {
     self.cursorY--;
 
@@ -366,7 +366,7 @@ void ViWin_prevLine(ViWin* self)
     self.modifyOverCursorXValue();
 }
 
-void ViWin_nextLine(ViWin* self) 
+void ViWin::nextLine(ViWin* self) 
 {
     self.cursorY++;
 
@@ -374,7 +374,7 @@ void ViWin_nextLine(ViWin* self)
     self.modifyOverCursorXValue();
 }
 
-void ViWin_halfScrollUp(ViWin* self) 
+void ViWin::halfScrollUp(ViWin* self) 
 {
     int maxy = getmaxy(self.win);
 
@@ -384,7 +384,7 @@ void ViWin_halfScrollUp(ViWin* self)
     self.modifyOverCursorXValue();
 }
 
-void ViWin_halfScrollDown(ViWin* self) 
+void ViWin::halfScrollDown(ViWin* self) 
 {
     int maxy = getmaxy(self.win);
 
@@ -394,7 +394,7 @@ void ViWin_halfScrollDown(ViWin* self)
     self.modifyOverCursorXValue();
 }
 
-void ViWin_centeringCursor(ViWin* self) 
+void ViWin::centeringCursor(ViWin* self) 
 {
     int maxy = getmaxy(self.win);
     
@@ -415,18 +415,18 @@ void ViWin_centeringCursor(ViWin* self)
     }
 }
 
-void ViWin_topCursor(ViWin* self) 
+void ViWin::topCursor(ViWin* self) 
 {
     self.scroll = self.scroll + self.cursorY;
     self.cursorY = 0;
 }
 
-void ViWin_moveAtHead(ViWin* self) 
+void ViWin::moveAtHead(ViWin* self) 
 {
     self.cursorX = 0;
 }
 
-void ViWin_moveAtTail(ViWin* self) 
+void ViWin::moveAtTail(ViWin* self) 
 {
     auto cursor_line = self.texts.item(self.scroll+self.cursorY, wstring(""));
     auto line_max = cursor_line.length();
@@ -438,7 +438,7 @@ void ViWin_moveAtTail(ViWin* self)
     }
 }
 
-void ViWin_moveTop(ViWin* self) 
+void ViWin::moveTop(ViWin* self) 
 {
     self.saveReturnPoint();
 
@@ -450,11 +450,11 @@ void ViWin_moveTop(ViWin* self)
 }
 
 /// implemented after layer
-void ViWin_restoreVisualMode(ViWin* self, Vi* nvi) version 1
+void ViWin::restoreVisualMode(ViWin* self, Vi* nvi) version 1
 {
 }
 
-void ViWin_keyG(ViWin* self, Vi* nvi) 
+void ViWin::keyG(ViWin* self, Vi* nvi) 
 {
     auto key2 = self.getKey(false);
 
@@ -481,7 +481,7 @@ void ViWin_keyG(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_moveBottom(ViWin* self) 
+void ViWin::moveBottom(ViWin* self) 
 {
     self.saveReturnPoint();
     
@@ -499,12 +499,12 @@ void ViWin_moveBottom(ViWin* self)
     self.centeringCursor();
 }
 
-void ViWin_openFile(ViWin* self, char* file_name, int line_num) version 1
+void ViWin::openFile(ViWin* self, char* file_name, int line_num) version 1
 {
     /// implemented by the after layer
 }
 
-void ViWin_saveReturnPoint(ViWin* self)
+void ViWin::saveReturnPoint(ViWin* self)
 {
     auto return_point = new tuple3<int,int,int>;
 
@@ -516,12 +516,12 @@ void ViWin_saveReturnPoint(ViWin* self)
     self.returnPointStack.push_back(clone return_point);
 }
 
-void ViWin_saveInputedKeyOnTheMovingCursor(ViWin* self) version 1
+void ViWin::saveInputedKeyOnTheMovingCursor(ViWin* self) version 1
 {
     /// inpelemeted after layer
 }
 
-void ViWin_joinLines2(ViWin* self)  version 1
+void ViWin::joinLines2(ViWin* self)  version 1
 {
     /// implemented after layer
 }
@@ -529,7 +529,7 @@ void ViWin_joinLines2(ViWin* self)  version 1
 
 // Vi
 
-Vi*% Vi_initialize(Vi* self) version 2
+Vi*% Vi::initialize(Vi* self) version 2
 {
     setlocale(LC_ALL, "");
     
@@ -675,17 +675,17 @@ Vi*% Vi_initialize(Vi* self) version 2
     return self;
 }
 
-void Vi_finalize(Vi* self) version 2
+void Vi::finalize(Vi* self) version 2
 {
     inherit(self);
 }
 
-void Vi_exitFromApp(Vi* self) version 1
+void Vi::exitFromApp(Vi* self) version 1
 {
     self.appEnd = true;
 }
 
-void Vi_view(Vi* self) 
+void Vi::view(Vi* self) 
 {
     erase();
 
@@ -695,7 +695,7 @@ void Vi_view(Vi* self)
     }
 }
 
-void Vi_clearView(Vi* self)
+void Vi::clearView(Vi* self)
 {
     clearok(stdscr, true);
     clear();
@@ -709,7 +709,7 @@ void Vi_clearView(Vi* self)
     refresh();
 }
 
-int Vi_main_loop(Vi* self) version 2
+int Vi::main_loop(Vi* self) version 2
 {
     while(!self.appEnd) {
         self.view();
@@ -720,17 +720,17 @@ int Vi_main_loop(Vi* self) version 2
     0
 }
 
-void Vi_openFile(Vi* self, char* file_name, int line_num) version 1
+void Vi::openFile(Vi* self, char* file_name, int line_num) version 1
 {
     /// implemented by the after layer
 }
 
-void Vi_repositionWindows(Vi* self)  version 1
+void Vi::repositionWindows(Vi* self)  version 1
 {
     /// implemented by the after layer
 }
 
-void Vi_enterSearchMode(Vi* self, bool regex_search, bool search_reverse) version 1
+void Vi::enterSearchMode(Vi* self, bool regex_search, bool search_reverse) version 1
 {
     /// implemented by the after layer
 }

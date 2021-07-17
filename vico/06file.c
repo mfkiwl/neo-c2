@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 4
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 4
 {
     auto result = inherit(self, y, x, width, height, vi);
 
@@ -13,7 +13,7 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     return result;
 }
 
-void ViWin_statusBarView(ViWin* self, Vi* nvi) version 2
+void ViWin::statusBarView(ViWin* self, Vi* nvi) version 2
 {
     int maxy = getmaxy(self.win);
     int maxx = getmaxx(self.win);
@@ -25,7 +25,7 @@ void ViWin_statusBarView(ViWin* self, Vi* nvi) version 2
     wrefresh(self.win);
 }
 
-void ViWin_saveCursorPosition(ViWin* self, char* file_name) 
+void ViWin::saveCursorPosition(ViWin* self, char* file_name) 
 {
     char* home = getenv("HOME");
     
@@ -54,7 +54,7 @@ void ViWin_saveCursorPosition(ViWin* self, char* file_name)
     fclose(f);
 }
 
-void ViWin_readCursorPosition(ViWin* self, char* file_name) 
+void ViWin::readCursorPosition(ViWin* self, char* file_name) 
 {
     char* home = getenv("HOME");
     
@@ -96,7 +96,7 @@ void ViWin_readCursorPosition(ViWin* self, char* file_name)
     self.modifyOverCursorYValue();
 }
 
-void ViWin_openFile(ViWin* self, char* file_name, int line_num) version 2
+void ViWin::openFile(ViWin* self, char* file_name, int line_num) version 2
 {
     FILE* f = fopen(file_name, "r");
     
@@ -151,7 +151,7 @@ void ViWin_openFile(ViWin* self, char* file_name, int line_num) version 2
     }
 }
 
-void ViWin_writeFile(ViWin* self) 
+void ViWin::writeFile(ViWin* self) 
 {
     /// back up /// 
     char* home = getenv("HOME");
@@ -192,17 +192,17 @@ void ViWin_writeFile(ViWin* self)
     }
 }
 
-void ViWin_writedFlagOn(ViWin* self) version 2
+void ViWin::writedFlagOn(ViWin* self) version 2
 {
     self.writed = true;
 }
 
-bool ViWin_saveDotToFile(ViWin* self, Vi* nvi) version 1
+bool ViWin::saveDotToFile(ViWin* self, Vi* nvi) version 1
 {
     /// implementad after layer
 }
 
-void Vi_openNewFile(Vi* self, char* file_name) 
+void Vi::openNewFile(Vi* self, char* file_name) 
 {
     int maxy = xgetmaxy();
     int maxx = xgetmaxx();
@@ -228,7 +228,7 @@ void Vi_openNewFile(Vi* self, char* file_name)
     }
 }
 
-void Vi_closeActiveWin(Vi* self) 
+void Vi::closeActiveWin(Vi* self) 
 {
     int active_pos = self.wins.find(self.activeWin, -1);
     
@@ -239,7 +239,7 @@ void Vi_closeActiveWin(Vi* self)
     self.activeWin = self.wins.item(0, null);
 }
 
-void Vi_exitFromApp(Vi* self) version 2
+void Vi::exitFromApp(Vi* self) version 2
 {
     foreach(it, self.wins) {
         it.writeFile();
@@ -247,14 +247,14 @@ void Vi_exitFromApp(Vi* self) version 2
     self.appEnd = true;
 }
 
-void Vi_toggleWin(Vi* self) {
+void Vi::toggleWin(Vi* self) {
     if(self.toggleWin >= 0 && self.toggleWin < self.wins.length()) {
         int toggle_win = self.wins.find(self.activeWin, -1);
         self.activeWin = self.wins.item(self.toggleWin, null);
         self.toggleWin = toggle_win;
     }
 }
-void Vi_nextWin(Vi* self) {
+void Vi::nextWin(Vi* self) {
     int next_win = self.wins.find(self.activeWin, -1) + 1;
     if(next_win >= 0 && next_win < self.wins.length()) 
     {
@@ -264,7 +264,7 @@ void Vi_nextWin(Vi* self) {
     }
 }
 
-void Vi_prevWin(Vi* self) {
+void Vi::prevWin(Vi* self) {
     int prev_win = self.wins.find(self.activeWin, -1) - 1;
     if(self.toggleWin >= 0 && self.toggleWin < self.wins.length()) {
         int toggle_win = self.wins.find(self.activeWin, -1);
@@ -273,7 +273,7 @@ void Vi_prevWin(Vi* self) {
     }
 }
 
-Vi*% Vi_initialize(Vi*% self) version 6
+Vi*% Vi::initialize(Vi*% self) version 6
 {
     auto result = inherit(self);
 
@@ -298,7 +298,7 @@ Vi*% Vi_initialize(Vi*% self) version 6
     return result;
 }
 
-void Vi_repositionWindows(Vi* self) version 2
+void Vi::repositionWindows(Vi* self) version 2
 {
     int maxy = xgetmaxy();
     int maxx = xgetmaxx();
@@ -323,7 +323,7 @@ void Vi_repositionWindows(Vi* self) version 2
     }
 }
 
-void Vi_saveLastOpenFile(Vi* self, char* file_name) 
+void Vi::saveLastOpenFile(Vi* self, char* file_name) 
 {
     char* home = getenv("HOME");
     
@@ -350,7 +350,7 @@ void Vi_saveLastOpenFile(Vi* self, char* file_name)
     fclose(f);
 }
 
-string Vi_readLastOpenFile(Vi* self) 
+string Vi::readLastOpenFile(Vi* self) 
 {
     char* home = getenv("HOME");
     
@@ -383,7 +383,7 @@ string Vi_readLastOpenFile(Vi* self)
     return string(file_name);
 }
 
-void Vi_openFile(Vi* self, char* file_name, int line_num) version 2
+void Vi::openFile(Vi* self, char* file_name, int line_num) version 2
 {
     if(file_name == null) {
         auto file_name = self.readLastOpenFile();

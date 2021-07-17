@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-void ViWin_toggleBraceForward(ViWin* self, wchar_t head, wchar_t tail) 
+void ViWin::toggleBraceForward(ViWin* self, wchar_t head, wchar_t tail) 
 {
     int cursor_y = self.scroll + self.cursorY;
     int cursor_x = -1;
@@ -79,7 +79,7 @@ void ViWin_toggleBraceForward(ViWin* self, wchar_t head, wchar_t tail)
     }
 }
 
-void ViWin_toggleBraceBack(ViWin* self, wchar_t head, wchar_t tail) 
+void ViWin::toggleBraceBack(ViWin* self, wchar_t head, wchar_t tail) 
 {
     int cursor_y = self.scroll + self.cursorY;
     int cursor_x = -1;
@@ -150,7 +150,7 @@ void ViWin_toggleBraceBack(ViWin* self, wchar_t head, wchar_t tail)
     }
 }
 
-void ViWin_toggleCommentForward(ViWin* self)
+void ViWin::toggleCommentForward(ViWin* self)
 {
     int head = self.scroll + self.cursorY;
     int tail = -1;
@@ -185,7 +185,7 @@ void ViWin_toggleCommentForward(ViWin* self)
     }
 }
 
-void ViWin_toggleCommentBackward(ViWin* self)
+void ViWin::toggleCommentBackward(ViWin* self)
 {
     int head = 0;
     int tail = self.scroll + self.cursorY + 1;
@@ -220,7 +220,7 @@ void ViWin_toggleCommentBackward(ViWin* self)
     }
 }
 
-void ViWin_gotoBraceEnd(ViWin* self, Vi* nvi) version 2
+void ViWin::gotoBraceEnd(ViWin* self, Vi* nvi) version 2
 {
     auto line = self.texts.item(self.scroll+self.cursorY, null);
 
@@ -286,7 +286,7 @@ void ViWin_gotoBraceEnd(ViWin* self, Vi* nvi) version 2
     }
 }
 
-void ViWin_gotoFunctionTop(ViWin* self, Vi* nvi) 
+void ViWin::gotoFunctionTop(ViWin* self, Vi* nvi) 
 {
     bool ignore_case = false;
     bool multiline = false;
@@ -315,7 +315,7 @@ void ViWin_gotoFunctionTop(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_gotoFunctionBottom(ViWin* self, Vi* nvi) 
+void ViWin::gotoFunctionBottom(ViWin* self, Vi* nvi) 
 {
     int cursor_y = self.scroll+self.cursorY + 1;
 
@@ -347,7 +347,7 @@ void ViWin_gotoFunctionBottom(ViWin* self, Vi* nvi)
     }
 }
 
-Vi*% Vi_initialize(Vi*% self) version 11
+Vi*% Vi::initialize(Vi*% self) version 11
 {
     auto result = inherit(self);
 

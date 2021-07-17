@@ -17,7 +17,7 @@ static bool int_equals(wchar_t* left, wchar_t* right)
     return wcscmp(left, right) == 0;
 }
 
-wstring&? ViWin_selector2(ViWin* self, list<wstring>* lines) 
+wstring&? ViWin::selector2(ViWin* self, list<wstring>* lines) 
 {
     wstring&? result = null;
 
@@ -124,7 +124,7 @@ wstring&? ViWin_selector2(ViWin* self, list<wstring>* lines)
     return result;
 }
 
-void ViWin_completion(ViWin* self, Vi* nvi) version 2
+void ViWin::completion(ViWin* self, Vi* nvi) version 2
 {
     auto line = self.texts.item(self.scroll+self.cursorY, null);
 

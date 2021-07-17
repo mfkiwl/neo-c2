@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <wctype.h>
 
-void ViWin_forwardWord(ViWin* self) 
+void ViWin::forwardWord(ViWin* self) 
 {
     auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
@@ -203,7 +203,7 @@ void ViWin_forwardWord(ViWin* self)
     }
 }
 
-void ViWin_forwardWord2(ViWin* self) 
+void ViWin::forwardWord2(ViWin* self) 
 {
     auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
@@ -367,7 +367,7 @@ void ViWin_forwardWord2(ViWin* self)
     }
 }
 
-void ViWin_backwardWord(ViWin* self) version 2
+void ViWin::backwardWord(ViWin* self) version 2
 {
     auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
@@ -579,7 +579,7 @@ void ViWin_backwardWord(ViWin* self) version 2
     }
 }
 
-Vi*% Vi_initialize(Vi*% self) version 4
+Vi*% Vi::initialize(Vi*% self) version 4
 {
     auto result = inherit(self);
 

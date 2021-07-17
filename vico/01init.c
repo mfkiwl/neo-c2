@@ -1,6 +1,6 @@
 #include "common.h"
 
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 1
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 1
 {
     self.texts = borrow new list<wstring>.initialize();
 
@@ -27,13 +27,13 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     return self;
 }
 
-void ViWin_finalize(ViWin* self) version 1
+void ViWin::finalize(ViWin* self) version 1
 {
     delete self.texts;
     delwin(self.win);
 }
 
-void ViWin_view(ViWin* self, Vi* nvi) version 1
+void ViWin::view(ViWin* self, Vi* nvi) version 1
 {
     werase(self.win);
 
@@ -46,12 +46,12 @@ void ViWin_view(ViWin* self, Vi* nvi) version 1
     wrefresh(self.win);
 }
 
-void ViWin_input(ViWin* self, Vi* nvi) version 1
+void ViWin::input(ViWin* self, Vi* nvi) version 1
 {
     int key = wgetch(self.win);
 }
 
-Vi*% Vi_initialize(Vi*% self) version 1
+Vi*% Vi::initialize(Vi*% self) version 1
 {
     self.init_curses();
 
@@ -73,19 +73,19 @@ Vi*% Vi_initialize(Vi*% self) version 1
     return self;
 }
 
-bool ViWin_equals(ViWin* left, ViWin* right) 
+bool ViWin::equals(ViWin* left, ViWin* right) 
 {
     return left.id == right.id;
 }
 
-void Vi_finalize(Vi* self) version 1
+void Vi::finalize(Vi* self) version 1
 {
     delete self.wins;
 
     endwin();
 }
 
-int Vi_main_loop(Vi* self) version 1
+int Vi::main_loop(Vi* self) version 1
 {
     foreach(it, self.wins) {
         it.view(self);
@@ -96,7 +96,7 @@ int Vi_main_loop(Vi* self) version 1
     return 0;
 }
 
-void Vi_init_curses(Vi* self) 
+void Vi::init_curses(Vi* self) 
 {
     initscr();
     noecho();

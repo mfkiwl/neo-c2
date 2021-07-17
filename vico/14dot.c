@@ -57,7 +57,7 @@ void mreset_tty()
     //system("tset");
 }
 
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 7
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 7
 {
     auto result = inherit(self, y, x, width, height, vi);
 
@@ -77,7 +77,7 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     return result;
 }
 
-void ViWin_finalize(ViWin* self) version 4
+void ViWin::finalize(ViWin* self) version 4
 {
     inherit(self);
 
@@ -88,7 +88,7 @@ void ViWin_finalize(ViWin* self) version 4
     delete self.macro;
 }
 
-bool ViWin_saveDotToFile(ViWin* self, Vi* nvi) version 2
+bool ViWin::saveDotToFile(ViWin* self, Vi* nvi) version 2
 {
     char* home = getenv("HOME");
     if(home == null) {
@@ -118,7 +118,7 @@ bool ViWin_saveDotToFile(ViWin* self, Vi* nvi) version 2
     return true;
 }
 
-bool ViWin_loadDotFromFile(ViWin* self, Vi* nvi)
+bool ViWin::loadDotFromFile(ViWin* self, Vi* nvi)
 {
     char* home = getenv("HOME");
     if(home == null) {
@@ -151,7 +151,7 @@ bool ViWin_loadDotFromFile(ViWin* self, Vi* nvi)
     return true;
 }
 
-int ViWin_getKey(ViWin* self, bool head) version 2
+int ViWin::getKey(ViWin* self, bool head) version 2
 {
     if(self.runningMacro) {
         if(self.runningMacroIndex1 >= self.runningMacro.length())
@@ -256,19 +256,19 @@ int ViWin_getKey(ViWin* self, bool head) version 2
 
 }
 
-void ViWin_clearInputedKey(ViWin* self) version 2
+void ViWin::clearInputedKey(ViWin* self) version 2
 {
     self.inputedKeys.reset();
 }
 
-void ViWin_saveInputedKeyOnTheMovingCursor(ViWin* self) version 2
+void ViWin::saveInputedKeyOnTheMovingCursor(ViWin* self) version 2
 {
     if(self.recordingMacro) {
         self.saveInputedKey();
     }
 }
 
-void ViWin_saveInputedKey(ViWin* self) version 2
+void ViWin::saveInputedKey(ViWin* self) version 2
 {
     if(!self.autoInput && !self.pressedDot) {
         if(self.digitInput > 0) {
@@ -298,7 +298,7 @@ void ViWin_saveInputedKey(ViWin* self) version 2
     }
 }
 
-void ViWin_makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 2
+void ViWin::makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 2
 {
     if(self.inputedKeys) {
         delete self.inputedKeys;
@@ -312,7 +312,7 @@ void ViWin_makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 2
     self.saveInputedKey();
 }
 
-void ViWin_makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 2
+void ViWin::makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 2
 {
     if(self.inputedKeys) {
         delete self.inputedKeys;
@@ -326,7 +326,7 @@ void ViWin_makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 2
     self.saveInputedKey();
 }
 
-void ViWin_recordMacro(ViWin* self) 
+void ViWin::recordMacro(ViWin* self) 
 {
     if(self.recordingMacroKey == -1) {
         int key = self.getKey(false);
@@ -343,7 +343,7 @@ void ViWin_recordMacro(ViWin* self)
     }
 }
 
-void ViWin_runMacro(ViWin* self) 
+void ViWin::runMacro(ViWin* self) 
 {
     int key = self.getKey(false);
     
@@ -356,7 +356,7 @@ void ViWin_runMacro(ViWin* self)
     }
 }
 
-Vi*% Vi_initialize(Vi*% self) version 13
+Vi*% Vi::initialize(Vi*% self) version 13
 {
     auto result = inherit(self);
     

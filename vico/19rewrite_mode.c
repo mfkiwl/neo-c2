@@ -8,7 +8,7 @@
 #include <limits.h>
 #include <unistd.h>
 
-void ViWin_rewriteModeView(ViWin* self, Vi* nvi)
+void ViWin::rewriteModeView(ViWin* self, Vi* nvi)
 {
     self.textsView(nvi);
 
@@ -17,7 +17,7 @@ void ViWin_rewriteModeView(ViWin* self, Vi* nvi)
     wattroff(self.win, A_REVERSE);
 }
 
-void ViWin_view(ViWin* self, Vi* nvi) version 9
+void ViWin::view(ViWin* self, Vi* nvi) version 9
 {
     if(nvi.mode == kRewriteMode && self.equals(nvi.activeWin)) {
         self.rewriteModeView(nvi);
@@ -27,7 +27,7 @@ void ViWin_view(ViWin* self, Vi* nvi) version 9
     }
 }
 
-void ViWin_insertText2(ViWin* self, wstring text) 
+void ViWin::insertText2(ViWin* self, wstring text) 
 {
     if(self.texts.length() == 0) {
         self.texts.push_back(clone text);
@@ -46,7 +46,7 @@ void ViWin_insertText2(ViWin* self, wstring text)
     }
 }
 
-void ViWin_inputRewritetMode(ViWin* self, Vi* nvi)
+void ViWin::inputRewritetMode(ViWin* self, Vi* nvi)
 {
     auto key = self.getKey(false);
     
@@ -167,7 +167,7 @@ void ViWin_inputRewritetMode(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_input(ViWin* self, Vi* nvi) version 9
+void ViWin::input(ViWin* self, Vi* nvi) version 9
 {
     if(nvi.mode == kRewriteMode) {
         self.inputRewritetMode(nvi);
@@ -177,20 +177,20 @@ void ViWin_input(ViWin* self, Vi* nvi) version 9
     }
 }
 
-void Vi_enterRewriteMode(Vi* self) 
+void Vi::enterRewriteMode(Vi* self) 
 {
     self.mode = kRewriteMode;
     self.activeWin.writedFlagOn();
     self.activeWin.modifyOverCursorXValue();
 }
 
-void Vi_exitFromRewiteMode(Vi* self) 
+void Vi::exitFromRewiteMode(Vi* self) 
 {
     self.mode = kEditMode;
     self.activeWin.saveInputedKey();
 }
 
-Vi*% Vi_initialize(Vi*% self) version 17
+Vi*% Vi::initialize(Vi*% self) version 17
 {
     auto result = inherit(self);
 
@@ -205,7 +205,7 @@ Vi*% Vi_initialize(Vi*% self) version 17
     return result;
 }
 
-int Vi_main_loop(Vi* self) version 4
+int Vi::main_loop(Vi* self) version 4
 {
     while(!self.appEnd) {
         self.view();

@@ -1,6 +1,6 @@
 #include "common.h"
 
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 6
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 6
 {
     auto result = inherit(self, y, x, width, height, vi);
     
@@ -10,13 +10,13 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     return result;
 }
 
-void ViWin_modifyCursorOnDeleting(ViWin* self) 
+void ViWin::modifyCursorOnDeleting(ViWin* self) 
 {
     self.modifyOverCursorYValue();
     self.modifyOverCursorXValue2();
 }
 
-void ViWin_deleteOneLine(ViWin* self, Vi* nvi) version 2
+void ViWin::deleteOneLine(ViWin* self, Vi* nvi) version 2
 {
     if(self.digitInput > 0) {
         self.pushUndo();
@@ -54,7 +54,7 @@ void ViWin_deleteOneLine(ViWin* self, Vi* nvi) version 2
     }
 }
 
-void ViWin_deleteOneLine2(ViWin* self, Vi* nvi) 
+void ViWin::deleteOneLine2(ViWin* self, Vi* nvi) 
 {
     if(self.digitInput > 0) {
         self.pushUndo();
@@ -89,7 +89,7 @@ void ViWin_deleteOneLine2(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_deleteWord(ViWin* self, Vi* nvi) 
+void ViWin::deleteWord(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
     
@@ -261,7 +261,7 @@ void ViWin_deleteWord(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_deleteForNextCharacter(ViWin* self) 
+void ViWin::deleteForNextCharacter(ViWin* self) 
 {
     self.pushUndo();
     
@@ -329,7 +329,7 @@ void ViWin_deleteForNextCharacter(ViWin* self)
     }
 }
 
-void ViWin_deleteForNextCharacter2(ViWin* self) 
+void ViWin::deleteForNextCharacter2(ViWin* self) 
 {
     self.pushUndo();
     
@@ -397,7 +397,7 @@ void ViWin_deleteForNextCharacter2(ViWin* self)
     }
 }
 
-void ViWin_deleteCursorCharactor(ViWin* self) 
+void ViWin::deleteCursorCharactor(ViWin* self) 
 {
     self.pushUndo();
     
@@ -422,7 +422,7 @@ void ViWin_deleteCursorCharactor(ViWin* self)
     }
 }
 
-void ViWin_deleteBack(ViWin* self) 
+void ViWin::deleteBack(ViWin* self) 
 {
     self.pushUndo();
     
@@ -454,7 +454,7 @@ void ViWin_deleteBack(ViWin* self)
     }
 }
 
-void ViWin_getCursorNumber(ViWin* self, int* head, int* tail) 
+void ViWin::getCursorNumber(ViWin* self, int* head, int* tail) 
 {
     auto line = self.texts.item(self.scroll+self.cursorY, null);
     
@@ -505,7 +505,7 @@ void ViWin_getCursorNumber(ViWin* self, int* head, int* tail)
     }
 }
 
-void ViWin_incrementNumber(ViWin* self) 
+void ViWin::incrementNumber(ViWin* self) 
 {
     self.pushUndo();
     
@@ -557,7 +557,7 @@ void ViWin_incrementNumber(ViWin* self)
     }
 }
 
-void ViWin_replaceCursorCharactor(ViWin* self) 
+void ViWin::replaceCursorCharactor(ViWin* self) 
 {
     self.pushUndo();
     
@@ -582,7 +582,7 @@ void ViWin_replaceCursorCharactor(ViWin* self)
 //    }
 }
 
-void ViWin_deleteUntilTail(ViWin* self) 
+void ViWin::deleteUntilTail(ViWin* self) 
 {
     self.pushUndo();
     
@@ -615,7 +615,7 @@ void ViWin_deleteUntilTail(ViWin* self)
     }
 }
 
-void ViWin_joinLines(ViWin* self) 
+void ViWin::joinLines(ViWin* self) 
 {
     self.pushUndo();
 
@@ -632,7 +632,7 @@ void ViWin_joinLines(ViWin* self)
     self.modifyOverCursorXValue();
 }
 
-void ViWin_yankOneLine(ViWin* self, Vi* nvi) 
+void ViWin::yankOneLine(ViWin* self, Vi* nvi) 
 {
     if(self.digitInput > 0) {
         self.pushUndo();
@@ -664,7 +664,7 @@ void ViWin_yankOneLine(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_joinLines2(ViWin* self) version 2
+void ViWin::joinLines2(ViWin* self) version 2
 {
     self.pushUndo();
 
@@ -679,7 +679,7 @@ void ViWin_joinLines2(ViWin* self) version 2
     self.modifyOverCursorXValue();
 }
 
-void ViWin_forwardToNextCharacter1(ViWin* self, int key) 
+void ViWin::forwardToNextCharacter1(ViWin* self, int key) 
 {
     self.mRepeatFowardNextCharacterKind = kRFNC1;
     self.mRepeatFowardNextCharacter = key;
@@ -709,7 +709,7 @@ void ViWin_forwardToNextCharacter1(ViWin* self, int key)
     }
 }
 
-void ViWin_forwardToNextCharacter2(ViWin* self, int key) 
+void ViWin::forwardToNextCharacter2(ViWin* self, int key) 
 {
     self.mRepeatFowardNextCharacterKind = kRFNC2;
     self.mRepeatFowardNextCharacter = key;
@@ -739,7 +739,7 @@ void ViWin_forwardToNextCharacter2(ViWin* self, int key)
     }
 }
 
-void ViWin_repeatForwardNextCharacter(ViWin* self) 
+void ViWin::repeatForwardNextCharacter(ViWin* self) 
 {
     switch(self.mRepeatFowardNextCharacterKind) {
         case kRFNC1:
@@ -753,7 +753,7 @@ void ViWin_repeatForwardNextCharacter(ViWin* self)
     }
 }
 
-void ViWin_backwardToNextCharacter1(ViWin* self) 
+void ViWin::backwardToNextCharacter1(ViWin* self) 
 {
     auto key = self.getKey(false);
     
@@ -782,7 +782,7 @@ void ViWin_backwardToNextCharacter1(ViWin* self)
     }
 }
 
-void ViWin_backwardToNextCharacter2(ViWin* self) 
+void ViWin::backwardToNextCharacter2(ViWin* self) 
 {
     auto key = self.getKey(false);
     
@@ -811,7 +811,7 @@ void ViWin_backwardToNextCharacter2(ViWin* self)
     }
 }
 
-void ViWin_changeCase(ViWin* self) 
+void ViWin::changeCase(ViWin* self) 
 {
     self.pushUndo();
 
@@ -858,7 +858,7 @@ void ViWin_changeCase(ViWin* self)
     }
 }
 
-void ViWin_moveToHead(ViWin* self) 
+void ViWin::moveToHead(ViWin* self) 
 {
     auto line = self.texts.item(self.scroll+self.cursorY, null);
     
@@ -872,7 +872,7 @@ void ViWin_moveToHead(ViWin* self)
     self.cursorX = i;
 }
 
-Vi*% Vi_initialize(Vi*% self) version 10
+Vi*% Vi::initialize(Vi*% self) version 10
 {
     auto result = inherit(self);
 

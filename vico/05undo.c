@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <wctype.h>
 
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 3
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 3
 {
     auto result = inherit(self, y, x, width, height, vi);
 
@@ -20,7 +20,7 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     return result;
 }
 
-void ViWin_finalize(ViWin* self) version 3
+void ViWin::finalize(ViWin* self) version 3
 {
     inherit(self);
 
@@ -30,7 +30,7 @@ void ViWin_finalize(ViWin* self) version 3
     delete self.undoCursorY;
 }
 
-void ViWin_pushUndo(ViWin* self) version 2
+void ViWin::pushUndo(ViWin* self) version 2
 {
     self.undo.delete(self.undoIndex, -1);
     self.undoScroll.delete(self.undoIndex, -1);
@@ -47,7 +47,7 @@ void ViWin_pushUndo(ViWin* self) version 2
     self.undoIndex++;
 }
 
-void ViWin_redo(ViWin* self) 
+void ViWin::redo(ViWin* self) 
 {
     if(self.undoIndex < self.undo.length()-1) 
     {
@@ -68,7 +68,7 @@ void ViWin_redo(ViWin* self)
     }
 }
 
-void ViWin_undo(ViWin* self) 
+void ViWin::undo(ViWin* self) 
 {
     if(self.undoIndex == self.undo.length())
     {
@@ -94,7 +94,7 @@ void ViWin_undo(ViWin* self)
     }
 }
 
-Vi*% Vi_initialize(Vi*% self) version 5
+Vi*% Vi::initialize(Vi*% self) version 5
 {
     auto result = inherit(self);
 
@@ -111,7 +111,7 @@ Vi*% Vi_initialize(Vi*% self) version 5
     return result;
 }
 
-void Vi_enterInsertMode(Vi* self) version 2
+void Vi::enterInsertMode(Vi* self) version 2
 {
     inherit(self);
 

@@ -10,7 +10,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-void ViWin_commandModeView(ViWin* self, Vi* nvi) 
+void ViWin::commandModeView(ViWin* self, Vi* nvi) 
 {
     werase(self.win);
 
@@ -23,7 +23,7 @@ void ViWin_commandModeView(ViWin* self, Vi* nvi)
     wrefresh(self.win);
 }
 
-string ViWin_selector(ViWin* self, list<string>* lines) 
+string ViWin::selector(ViWin* self, list<string>* lines) 
 {
     bool end_of_select = false;
     bool canceled = false;
@@ -127,7 +127,7 @@ string ViWin_selector(ViWin* self, list<string>* lines)
     return string(lines.item(scrolltop+cursor, string("")));
 }
 
-void ViWin_fileCompetion(ViWin* self, Vi* nvi) 
+void ViWin::fileCompetion(ViWin* self, Vi* nvi) 
 {
     char* line = nvi.commandString;
 
@@ -285,7 +285,7 @@ void ViWin_fileCompetion(ViWin* self, Vi* nvi)
     strncat(nvi.commandString, file_name, 128);
 }
 
-void ViWin_commandModeInput(ViWin* self, Vi* nvi) 
+void ViWin::commandModeInput(ViWin* self, Vi* nvi) 
 {
     auto key = self.getKey(false);
 
@@ -323,7 +323,7 @@ void ViWin_commandModeInput(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_view(ViWin* self, Vi* nvi) version 6
+void ViWin::view(ViWin* self, Vi* nvi) version 6
 {
     if(nvi.mode == kCommandMode && self == nvi.activeWin) {
         self.commandModeView(nvi);
@@ -333,7 +333,7 @@ void ViWin_view(ViWin* self, Vi* nvi) version 6
     }
 }
 
-void ViWin_input(ViWin* self, Vi* nvi) version 6
+void ViWin::input(ViWin* self, Vi* nvi) version 6
 {
     if(nvi.mode == kCommandMode) {
         self.commandModeInput(nvi);
@@ -343,7 +343,7 @@ void ViWin_input(ViWin* self, Vi* nvi) version 6
     }
 }
 
-void ViWin_subAllTextsFromCommandMode(ViWin* self, Vi* nvi) 
+void ViWin::subAllTextsFromCommandMode(ViWin* self, Vi* nvi) 
 {
     /// parse command ///
     bool ignore_case = false;
@@ -386,13 +386,13 @@ void ViWin_subAllTextsFromCommandMode(ViWin* self, Vi* nvi)
     }
 }
 
-void Vi_enterComandMode(Vi* self) 
+void Vi::enterComandMode(Vi* self) 
 {
     self.mode = kCommandMode;
     strncpy(self.commandString, "", 128);
 }
 
-void Vi_exitFromComandMode(Vi* self) 
+void Vi::exitFromComandMode(Vi* self) 
 {
     if(string(self.commandString).index("sp", -1) == 0) {
         bool ignore_case = false;
@@ -444,7 +444,7 @@ void Vi_exitFromComandMode(Vi* self)
     self.mode = kEditMode;
 }
 
-Vi*% Vi_initialize(Vi*% self) version 12
+Vi*% Vi::initialize(Vi*% self) version 12
 {
     auto result = inherit(self);
 

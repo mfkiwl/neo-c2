@@ -13,7 +13,7 @@ static bool int_equals(int left, int right)
     return left == right;
 }
 
-ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 8
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 8
 {
     auto result = inherit(self, y, x, width, height, vi);
     
@@ -22,7 +22,7 @@ ViWin*% ViWin_initialize(ViWin*% self, int y, int x, int width, int height, Vi* 
     return result;
 }
 
-void ViWin_finalize(ViWin* self) version 5
+void ViWin::finalize(ViWin* self) version 5
 {
     inherit(self);
 
@@ -33,7 +33,7 @@ void ViWin_finalize(ViWin* self) version 5
     }
 }
 
-void ViWin_markAtCurrentPoint(ViWin* self, wchar_t c) 
+void ViWin::markAtCurrentPoint(ViWin* self, wchar_t c) 
 {
     auto point = borrow new tuple3<int, int, int>;
 
@@ -44,7 +44,7 @@ void ViWin_markAtCurrentPoint(ViWin* self, wchar_t c)
     self.mark.insert(c, point);
 }
 
-void ViWin_returnAtMarkedPoint(ViWin* self, wchar_t c) 
+void ViWin::returnAtMarkedPoint(ViWin* self, wchar_t c) 
 {
     auto point = self.mark.at(c, null);
     
@@ -61,7 +61,7 @@ void ViWin_returnAtMarkedPoint(ViWin* self, wchar_t c)
     }
 }
 
-void ViWin_returnBack(ViWin* self) 
+void ViWin::returnBack(ViWin* self) 
 {
     auto point = borrow self.returnPoint;
     
@@ -88,7 +88,7 @@ void ViWin_returnBack(ViWin* self)
     }
 }
 
-void ViWin_returnBackOfStack(ViWin* self) 
+void ViWin::returnBackOfStack(ViWin* self) 
 {
     auto point = self.returnPointStack.item(-1, null);
     
@@ -105,7 +105,7 @@ void ViWin_returnBackOfStack(ViWin* self)
     }
 }
 
-Vi*% Vi_initialize(Vi*% self) version 14
+Vi*% Vi::initialize(Vi*% self) version 14
 {
     auto result = inherit(self);
 

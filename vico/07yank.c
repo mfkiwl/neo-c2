@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-bool ViWin_saveYankToFile(ViWin* self, Vi* nvi)
+bool ViWin::saveYankToFile(ViWin* self, Vi* nvi)
 {
     char* home = getenv("HOME");
     if(home == null) {
@@ -31,7 +31,7 @@ bool ViWin_saveYankToFile(ViWin* self, Vi* nvi)
     return true;
 }
 
-bool ViWin_loadYankFromFile(ViWin* self, Vi* nvi)
+bool ViWin::loadYankFromFile(ViWin* self, Vi* nvi)
 {
     char* home = getenv("HOME");
     if(home == null) {
@@ -61,7 +61,7 @@ bool ViWin_loadYankFromFile(ViWin* self, Vi* nvi)
     return true;
 }
 
-void ViWin_pasteAfterCursor(ViWin* self, Vi* nvi) 
+void ViWin::pasteAfterCursor(ViWin* self, Vi* nvi) 
 {
     self.loadYankFromFile(nvi);
     if(nvi.yankKind == kYankKindLine) {
@@ -132,7 +132,7 @@ void ViWin_pasteAfterCursor(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin_pasteBeforeCursor(ViWin* self, Vi* nvi) 
+void ViWin::pasteBeforeCursor(ViWin* self, Vi* nvi) 
 {
     self.loadYankFromFile(nvi);
     if(nvi.yankKind == kYankKindLine) {
@@ -201,7 +201,7 @@ void ViWin_pasteBeforeCursor(ViWin* self, Vi* nvi)
     }
 }
 
-Vi*% Vi_initialize(Vi*% self) version 7
+Vi*% Vi::initialize(Vi*% self) version 7
 {
     auto result = inherit(self);
 
@@ -224,7 +224,7 @@ Vi*% Vi_initialize(Vi*% self) version 7
     return result;
 }
 
-void Vi_finalize(Vi* self) version 3
+void Vi::finalize(Vi* self) version 3
 {
     inherit(self);
 
