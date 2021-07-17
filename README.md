@@ -374,7 +374,7 @@ static string xsprintf(char* msg, ...)
     return dummy_heap result;
 }
 
-static string char_reverse(char* str) 
+static string char::reverse(char* str) 
 {
     int len = strlen(str);
     string result = new char[len + 1];
@@ -388,7 +388,7 @@ static string char_reverse(char* str)
     return result;
 }
 
-static string char_substring(char* str, int head, int tail)
+static string char::substring(char* str, int head, int tail)
 {
     if(str == null) {
         return string("");
@@ -1425,7 +1425,7 @@ vectorと違う点は要素の挿入のinsertがある点です。insertは高�
 sortは以下のように使います。
 
 ```
-int int_compare(int left, int right) {
+int int::compare(int left, int right) {
     if(left < right) {
         return -1;
     }

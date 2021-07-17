@@ -102,7 +102,7 @@ wstring a = new wchar_t[1];
     return wstr;
 }
 
-wstring int_substring(wchar_t* str, int head, int tail)
+wstring int::substring(wchar_t* str, int head, int tail)
 {
     if(str == null) {
         return wstring("");
@@ -145,7 +145,7 @@ wstring int_substring(wchar_t* str, int head, int tail)
     return result;
 }
 
-wstring int_printable(wchar_t* str)
+wstring int::printable(wchar_t* str)
 {
     int len = str.length();
     wstring result = new wchar_t[len*2+1];
@@ -170,7 +170,7 @@ wstring int_printable(wchar_t* str)
     return result;
 }
 
-string char_multiply(char* str, int n)
+string char::multiply(char* str, int n)
 {
     int len = strlen(str) * n + 1;
 
@@ -185,7 +185,7 @@ string char_multiply(char* str, int n)
     return result;
 }
 
-wstring int_multiply(wchar_t* str, int n)
+wstring int::multiply(wchar_t* str, int n)
 {
     int len = wcslen(str) * n + 1;
 
@@ -201,12 +201,12 @@ wstring int_multiply(wchar_t* str, int n)
 }
 
 
-int int_length(wchar_t* str)
+int int::length(wchar_t* str)
 {
     return wcslen(str);
 }
 
-wchar_t* int_delete(wchar_t* str, int head, int tail) 
+wchar_t* int::delete(wchar_t* str, int head, int tail) 
 {
     int len = wcslen(str);
 
@@ -241,7 +241,7 @@ wchar_t* int_delete(wchar_t* str, int head, int tail)
     return str;
 }
 
-int int_index(wchar_t* str, wchar_t* search_str, int default_value)
+int int::index(wchar_t* str, wchar_t* search_str, int default_value)
 {
     wchar_t* head = wcsstr(str, search_str);
 
@@ -252,7 +252,7 @@ int int_index(wchar_t* str, wchar_t* search_str, int default_value)
     return head - str;
 }
 
-int int_rindex(wchar_t* str, wchar_t* search_str, int default_value)
+int int::rindex(wchar_t* str, wchar_t* search_str, int default_value)
 {
     int len = wcslen(search_str);
 
@@ -269,7 +269,7 @@ int int_rindex(wchar_t* str, wchar_t* search_str, int default_value)
     return default_value;
 }
 
-string int_to_string(wchar_t* wstr)
+string int::to_string(wchar_t* wstr)
 {
     int len = MB_LEN_MAX*(wcslen(wstr)+1);
 
@@ -283,7 +283,7 @@ string int_to_string(wchar_t* wstr)
     return result;
 }
 
-wstring int_reverse(whar_t* str) 
+wstring int::reverse(whar_t* str) 
 {
     int len = wcslen(str);
     wstring result = new wchar_t[len + 1];
@@ -297,7 +297,7 @@ wstring int_reverse(whar_t* str)
     return result;
 }
 
-wstring char_to_wstring(char* str)
+wstring char::to_wstring(char* str)
 {
     return wstring(str);
 }
@@ -332,7 +332,7 @@ regex_struct*% regex(char* str, bool ignore_case, bool multiline, bool global, b
     return result;
 }
 
-bool char_match(char* self, regex_struct* reg, list<string>?* group_strings)
+bool char::match(char* self, regex_struct* reg, list<string>?* group_strings)
 {
     int offset = 0;
 
@@ -387,7 +387,7 @@ bool char_match(char* self, regex_struct* reg, list<string>?* group_strings)
     return false;
 }
 
-string char_sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings)
+string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings)
 {
     int offset = 0;
 
@@ -479,7 +479,7 @@ string char_sub(char* self, regex_struct* reg, char* replace, list<string>?* gro
     return result.to_string();
 }
 
-list<string>*% char_scan(char* self, regex_struct* reg)
+list<string>*% char::scan(char* self, regex_struct* reg)
 {
     auto result = new list<string>.initialize();
 
@@ -550,7 +550,7 @@ list<string>*% char_scan(char* self, regex_struct* reg)
     return result;
 }
 
-int char_index(char* str, char* search_str, int default_value)
+int char::index(char* str, char* search_str, int default_value)
 {
     char* head = strstr(str, search_str);
 
@@ -561,7 +561,7 @@ int char_index(char* str, char* search_str, int default_value)
     return head - str;
 }
 
-int char_rindex(char* str, char* search_str, int default_value)
+int char::rindex(char* str, char* search_str, int default_value)
 {
     int len = strlen(search_str);
     char* p = str + strlen(str) - len;
@@ -577,7 +577,7 @@ int char_rindex(char* str, char* search_str, int default_value)
     return default_value;
 }
 
-int char_index_regex(char* self, regex_struct* reg, int default_value)
+int char::index_regex(char* self, regex_struct* reg, int default_value)
 {
     int ovec_max = 16;
     int start[ovec_max];

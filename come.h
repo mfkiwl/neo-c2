@@ -103,7 +103,7 @@ static string xsprintf(char* msg, ...)
     return dummy_heap result;
 }
 
-static string char_reverse(char* str) 
+static string char::reverse(char* str) 
 {
     int len = strlen(str);
     char*% result = new char[len + 1];
@@ -117,7 +117,7 @@ static string char_reverse(char* str)
     return result;
 }
 
-static string char_substring(char* str, int head, int tail)
+static string char::substring(char* str, int head, int tail)
 {
     if(str == null) {
         return string("");
@@ -161,13 +161,13 @@ static string char_substring(char* str, int head, int tail)
 }
 
 /// int methods ///
-static int int_get_hash_key(int value)
+static int int::get_hash_key(int value)
 {
     return value;
 }
 
 /// char methods ///
-static int char_get_hash_key(char* value)
+static int char::get_hash_key(char* value)
 {
     int result = 0;
     char* p = value;
@@ -178,12 +178,12 @@ static int char_get_hash_key(char* value)
     return result;
 }
 
-static bool char_equals(string& left, string& right)
+static bool char::equals(string& left, string& right)
 {
     return strcmp(left, right) == 0;
 }
 
-static int char_compare(int left, int right) 
+static int char::compare(int left, int right) 
 {
     if(left < right) {
         return -1;

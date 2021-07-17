@@ -33,23 +33,23 @@ regex_struct*% regex(char* str, bool ignore_case, bool multiline, bool global, b
 
 /// wstring ///
 wstring wstring(char* str);
-wstring int_substring(wchar_t* str, int head, int tail);
-wstring int_printable(wchar_t* str);
-int int_length(wchar_t* str);
-wchar_t* int_delete(wchar_t* str, int head, int tail);
-int int_index(wchar_t* str, wchar_t* search_str, int default_value);
-int int_rindex(wchar_t* str, wchar_t* search_str, int default_value);
-string int_to_string(wchar_t* wstr);
-wstring char_to_wstring(char* str);
-wstring int_reverse(whar_t* str);
-bool char_match(char* self, regex_struct* reg, list<string>?* group_strings);
-int char_index(char* str, char* search_str, int default_value);
-int char_rindex(char* str, char* search_str, int default_value);
-string char_sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings);
-list<string>*% char_scan(char* self, regex_struct* reg);
-string char_multiply(char* str, int n);
-wstring int_multiply(wchar_t* str, int n);
-int char_index_regex(char* self, regex_struct* reg, int default_value);
+wstring int::substring(wchar_t* str, int head, int tail);
+wstring int::printable(wchar_t* str);
+int int::length(wchar_t* str);
+wchar_t* int::delete(wchar_t* str, int head, int tail);
+int int::index(wchar_t* str, wchar_t* search_str, int default_value);
+int int::rindex(wchar_t* str, wchar_t* search_str, int default_value);
+string int::to_string(wchar_t* wstr);
+wstring char::to_wstring(char* str);
+wstring int::reverse(whar_t* str);
+bool char::match(char* self, regex_struct* reg, list<string>?* group_strings);
+int char::index(char* str, char* search_str, int default_value);
+int char::rindex(char* str, char* search_str, int default_value);
+string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings);
+list<string>*% char::scan(char* self, regex_struct* reg);
+string char::multiply(char* str, int n);
+wstring int::multiply(wchar_t* str, int n);
+int char::index_regex(char* self, regex_struct* reg, int default_value);
 
 /// main.c ///
 bool xiswalpha(wchar_t c);
