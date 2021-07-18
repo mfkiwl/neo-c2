@@ -871,7 +871,7 @@ LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
     return result;
 }
 
-void createDebugFunctionInfo(int sline, char* fun_name, sFunction* function, LLVMValueRef llvm_function, char* module_name, sCompileInfo* info)
+void createDebugFunctionInfo(char* fname, int sline, char* fun_name, sFunction* function, LLVMValueRef llvm_function, char* module_name, sCompileInfo* info)
 {
     char cwd[PATH_MAX];
     getcwd(cwd, PATH_MAX);
@@ -882,7 +882,7 @@ void createDebugFunctionInfo(int sline, char* fun_name, sFunction* function, LLV
 
     int directory_len = strlen(directory);
 
-    LLVMMetadataRef file = LLVMDIBuilderCreateFile(gDIBuilder, gFName, strlen(gFName), directory, directory_len);
+    LLVMMetadataRef file = LLVMDIBuilderCreateFile(gDIBuilder, fname, strlen(fname), directory, directory_len);
 
 
     int num_params = function->mNumParams;

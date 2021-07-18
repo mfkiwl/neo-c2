@@ -34,7 +34,7 @@ wstring&? ViWin::selector2(ViWin* self, list<wstring>* lines)
         clear();
         int maxy2 = lines.length() - scrolltop;
 
-        ### view ###
+        /// view ///
         for(int y=0; y<maxy && y < maxy2; y++) {
             auto it = lines.item(scrolltop+y, null);
 
@@ -51,7 +51,7 @@ wstring&? ViWin::selector2(ViWin* self, list<wstring>* lines)
         }
         refresh();
 
-        ### input ###
+        /// input ///
         auto key = getch();
 
         switch(key) {
@@ -89,7 +89,7 @@ wstring&? ViWin::selector2(ViWin* self, list<wstring>* lines)
                 break;
         }
         
-        ### modification ###
+        /// modification ///
         if(cursor < 0) {
             int scroll_size = -cursor +1;
             

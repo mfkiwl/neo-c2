@@ -34,6 +34,7 @@ BOOL parse_block_easy(ALLOC sNodeBlock** node_block, BOOL extern_c_lang, sParser
 
 BOOL parse_block(sNodeBlock* node_block, BOOL extern_c_lang, BOOL single_expression, sParserInfo* info)
 {
+    info->change_sline = FALSE;
     node_block->mLVTable = info->lv_table;
 
     xstrncpy(node_block->mSName, info->sname, PATH_MAX);
@@ -90,8 +91,6 @@ BOOL parse_block(sNodeBlock* node_block, BOOL extern_c_lang, BOOL single_express
         char sname[PATH_MAX];
         xstrncpy(sname, info->sname, PATH_MAX);
 
-        info->sline_top = sline;
-
         while(TRUE) {
             if(parse_cmp(info->p, "__extension__") == 0)
             {
@@ -134,12 +133,6 @@ BOOL parse_block(sNodeBlock* node_block, BOOL extern_c_lang, BOOL single_express
 
                 gNodes[node].mLine = info->sline;
                 xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
-
-                info->sline_top = info->sline;
-            }
-            else {
-                gNodes[node].mLine = sline;
-                xstrncpy(gNodes[node].mSName, sname, PATH_MAX);
             }
         }
 
@@ -216,8 +209,6 @@ BOOL parse_block(sNodeBlock* node_block, BOOL extern_c_lang, BOOL single_express
             char sname[PATH_MAX];
             xstrncpy(sname, info->sname, PATH_MAX);
 
-            info->sline_top = sline;
-
             while(TRUE) {
                 if(parse_cmp(info->p, "__extension__") == 0)
                 {
@@ -274,12 +265,6 @@ BOOL parse_block(sNodeBlock* node_block, BOOL extern_c_lang, BOOL single_express
 
                 gNodes[node].mLine = info->sline;
                 xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
-
-                info->sline_top = info->sline;
-            }
-            else {
-                gNodes[node].mLine = sline;
-                xstrncpy(gNodes[node].mSName, sname, PATH_MAX);
             }
 
 

@@ -2225,9 +2225,9 @@ void int_show(int self)
 
 ```
 
-は
-
 equals below:
+
+は
 
 ```
 void int::show(int self)
@@ -2237,3 +2237,9 @@ void int::show(int self)
 ```
 
 とも書けます。
+
+addition from version 1.1.0
+
+The debug info line number has been corrected.
+
+ソースファイルの行番号のエラーを修正しています。

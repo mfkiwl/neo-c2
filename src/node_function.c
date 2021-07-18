@@ -377,7 +377,7 @@ BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_
 
         result_type->mStatic = TRUE;
 
-        unsigned int node = sNodeTree_create_function(real_fun_name, real_fun_name, params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, struct_name, operator_fun, constructor_fun, simple_lambda_param, &info2, generics_function, var_args, version, finalize, generics_fun_num, fun->mName);
+        unsigned int node = sNodeTree_create_function(real_fun_name, real_fun_name, params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, struct_name, operator_fun, constructor_fun, simple_lambda_param, &info2, generics_function, var_args, version, finalize, generics_fun_num, fun->mName, 0);
 
         sCompileInfo cinfo;
 
@@ -1183,14 +1183,14 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
     return TRUE;
 }
 
-unsigned int sNodeTree_create_function(char* fun_name, char* asm_fname, sParserParam* params, int num_params, sNodeType* result_type, MANAGED struct sNodeBlockStruct* node_block, BOOL lambda_, sVarTable* block_var_table, char* struct_name, BOOL operator_fun, BOOL constructor_fun, BOOL simple_lambda_param, sParserInfo* info, BOOL generics_function, BOOL var_arg, int version, BOOL finalize, int generics_fun_num, char* simple_fun_name)
+unsigned int sNodeTree_create_function(char* fun_name, char* asm_fname, sParserParam* params, int num_params, sNodeType* result_type, MANAGED struct sNodeBlockStruct* node_block, BOOL lambda_, sVarTable* block_var_table, char* struct_name, BOOL operator_fun, BOOL constructor_fun, BOOL simple_lambda_param, sParserInfo* info, BOOL generics_function, BOOL var_arg, int version, BOOL finalize, int generics_fun_num, char* simple_fun_name, int sline)
 {
     unsigned int node = alloc_node();
 
     gNodes[node].mNodeType = kNodeTypeFunction;
 
     xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
-    gNodes[node].mLine = info->sline;
+    gNodes[node].mLine = sline;
 
     gNodes[node].mLeft = 0;
     gNodes[node].mRight = 0;
@@ -1400,7 +1400,9 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
     if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !empty_function) {
         int sline = gNodes[node].mLine;
-        createDebugFunctionInfo(sline, fun_name, fun, llvm_fun, gFName, info);
+        char fname[PATH_MAX];
+        xstrncpy(fname, gNodes[node].mSName, PATH_MAX);
+        createDebugFunctionInfo(fname, sline, fun_name, fun, llvm_fun, gFName, info);
     }
 
     for(i=0; i<num_params; i++) {

@@ -338,7 +338,6 @@ struct sParserInfoStruct
     int sline;
     int err_num;
     int parse_phase;
-    int sline_top;
     sVarTable* lv_table;
     int mNumGenerics;
     char* mGenericsTypeNames[GENERICS_TYPES_MAX];
@@ -788,7 +787,7 @@ extern sNodeType* gComeFunctionResultType;
 void setCurrentDebugLocation(int sline, sCompileInfo* info);
 void setNullCurrentDebugLocation(int sline, sCompileInfo* info);
 LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type);
-void createDebugFunctionInfo(int sline, char* fun_name, sFunction* function, LLVMValueRef llvm_function, char* module_name, sCompileInfo* info);
+void createDebugFunctionInfo(char* fname, int sline, char* fun_name, sFunction* function, LLVMValueRef llvm_function, char* module_name, sCompileInfo* info);
 void finishDebugFunctionInfo();
 unsigned int alloc_node();
 sNodeBlock* sNodeBlock_alloc();
@@ -935,7 +934,7 @@ unsigned int sNodeTree_create_is_heap(sNodeType* node_type, sParserInfo* info);
 unsigned int sNodeTree_create_is_heap_expression(unsigned int lnode, sParserInfo* info);
 unsigned int sNodeTree_create_struct_with_initialization(char* name, int num_initialize_array_value, unsigned int* initialize_array_value, unsigned int left_node, sParserInfo* info);
 unsigned int sNodeTree_create_array_initializer(char* name, int num_initialize_array_value, unsigned int* initialize_array_value, unsigned int left_node, sParserInfo* info);
-unsigned int sNodeTree_create_load_function(char* fun_name, sParserInfo* info);
+unsigned int sNodeTree_create_load_function(char* fun_name, sParserInfo* info, int sline);
 unsigned int sNodeTree_create_sizeof(sNodeType* node_type, sParserInfo* info);
 unsigned int sNodeTree_create_sizeof_expression(unsigned int lnode, sParserInfo* info);
 unsigned int sNodeTree_create_alignof(sNodeType* node_type, sParserInfo* info);
@@ -1027,7 +1026,7 @@ unsigned int sNodeTree_create_lambda_call(unsigned int lambda_node, unsigned int
 unsigned int sNodeTree_create_external_function(char* fun_name, char* asm_fname, sParserParam* params, int num_params, BOOL var_arg, sNodeType* result_type, char* struct_name, BOOL operator_fun, int version, sParserInfo* info);
 
 
-unsigned int sNodeTree_create_function(char* fun_name, char* asm_fname, sParserParam* params, int num_params, sNodeType* result_type, MANAGED struct sNodeBlockStruct* node_block, BOOL lambda_, sVarTable* block_var_table, char* struct_name, BOOL operator_fun, BOOL constructor_fun, BOOL simple_lambda_param, sParserInfo* info, BOOL generics_function, BOOL var_arg, int version, BOOL finalize, int generics_fun_num, char* simple_fun_name);
+unsigned int sNodeTree_create_function(char* fun_name, char* asm_fname, sParserParam* params, int num_params, sNodeType* result_type, MANAGED struct sNodeBlockStruct* node_block, BOOL lambda_, sVarTable* block_var_table, char* struct_name, BOOL operator_fun, BOOL constructor_fun, BOOL simple_lambda_param, sParserInfo* info, BOOL generics_function, BOOL var_arg, int version, BOOL finalize, int generics_fun_num, char* simple_fun_name, int sline);
 
 unsigned int sNodeTree_create_function_call(char* fun_name, unsigned int* params, int num_params, BOOL method, BOOL inherit, int version, sParserInfo* info);
 unsigned int sNodeTree_create_generics_function(char* fun_name, sParserParam* params, int num_params, sNodeType* result_type, MANAGED char* block_text, char* struct_name, char* sname, int sline, BOOL va_arg, int version, sParserInfo* info);

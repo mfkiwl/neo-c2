@@ -740,7 +740,6 @@ BOOL parse_sharp(sParserInfo* info)
             }
 
             info->sline = line;
-            info->sline_top = line;
             xstrncpy(info->sname, fname, PATH_MAX);
             info->change_sline = TRUE;
 
@@ -762,8 +761,6 @@ BOOL parse_sharp(sParserInfo* info)
         }
 
         skip_spaces_and_lf(info);
- 
-        info->sline_top = info->sline;
     }
 
     return TRUE;
@@ -1343,6 +1340,7 @@ static void create_lambda_name(char* lambda_name, size_t size_lambda_name, char*
 
 static BOOL parse_lambda(unsigned int* node, sNodeType* result_type, sParserInfo* info)
 {
+    int sline = info->sline;
     expect_next_character_with_one_forward("(", info);
 
     /// params ///
@@ -1393,7 +1391,7 @@ static BOOL parse_lambda(unsigned int* node, sNodeType* result_type, sParserInfo
 
     result_type->mStatic = TRUE;
 
-    *node = sNodeTree_create_function(fun_name, "", params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, NULL, operator_fun, construct_fun, simple_lambda_param, info, FALSE, FALSE, 0, FALSE, -1, fun_name);
+    *node = sNodeTree_create_function(fun_name, "", params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, NULL, operator_fun, construct_fun, simple_lambda_param, info, FALSE, FALSE, 0, FALSE, -1, fun_name, sline);
 
     return TRUE;
 }
@@ -3208,6 +3206,7 @@ static void parse_version(int* version, sParserInfo* info)
 
 BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, char* struct_name, sParserInfo* info)
 {
+    int sline = info->sline;
     char* function_head = info->p;
 
     /// method generics ///
@@ -3314,7 +3313,7 @@ BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, 
         BOOL simple_lambda_param = FALSE;
         BOOL construct_fun = FALSE;
 
-        *node = sNodeTree_create_function(fun_name, asm_fname, params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, struct_name, operator_fun, construct_fun, simple_lambda_param, info, FALSE, var_arg, version, FALSE, -1, fun_name);
+        *node = sNodeTree_create_function(fun_name, asm_fname, params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, struct_name, operator_fun, construct_fun, simple_lambda_param, info, FALSE, var_arg, version, FALSE, -1, fun_name, sline);
     }
 
     info->mNumMethodGenerics = 0;
@@ -6462,7 +6461,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                 *node = sNodeTree_create_function_call(fun_name, params, num_params, FALSE, FALSE, info->mFunVersion, info);
         }
         else {
-            *node = sNodeTree_create_load_function(buf, info);
+            *node = sNodeTree_create_load_function(buf, info, sline_before);
         }
     }
     else if(*info->p == '(') {

@@ -38,7 +38,7 @@ string ViWin::selector(ViWin* self, list<string>* lines)
         clear();
         int maxy2 = lines.length() - scrolltop;
 
-        ### view ###
+        /// view ///
         for(int y=0; y<maxy && y < maxy2; y++) {
             auto it = lines.item(scrolltop+y, null);
 
@@ -55,8 +55,9 @@ string ViWin::selector(ViWin* self, list<string>* lines)
         }
         refresh();
 
-        ### input ###
+        /// input ///
         auto key = getch();
+
 
         switch(key) {
             case KEY_UP:
@@ -93,7 +94,7 @@ string ViWin::selector(ViWin* self, list<string>* lines)
                 break;
         }
         
-        ### modification ###
+        /// modification ///
         if(cursor < 0) {
             int scroll_size = -cursor +1;
             
@@ -150,13 +151,14 @@ void ViWin::fileCompetion(ViWin* self, Vi* nvi)
         dir_name = string(word);
     }
     else {
-        char* dname = dirname(clone word);
+        string tmp = clone word;
+        char* dname = dirname(tmp);
 
         if(strcmp(dname, "/") == 0) {
             dir_name = string("/");
         }
         else {
-            dir_name = xsprintf("%s/", dirname(clone word));
+            dir_name = xsprintf("%s/", dname);
         }
     }
 
@@ -270,7 +272,7 @@ void ViWin::fileCompetion(ViWin* self, Vi* nvi)
     
         closedir(dir);
     }
-    
+
     auto words2 = new vector<string>.initialize();
     
     foreach(it, words) {

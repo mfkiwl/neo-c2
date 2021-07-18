@@ -736,6 +736,10 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
     else if(constant) {
         var->mLLVMValue = rvalue.value;
 
+        if(left_type->mHeap) {
+            remove_object_from_right_values(rvalue.value, info);
+        }
+
         info->type = left_type;
     }
     else {
@@ -752,6 +756,10 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         LLVMBuildStore(gBuilder, rvalue.value, alloca_value);
 
         info->type = left_type;
+
+        if(left_type->mHeap) {
+            remove_object_from_right_values(rvalue.value, info);
+        }
     }
 
     return TRUE;
@@ -1965,14 +1973,14 @@ BOOL compile_alignof_expression(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-unsigned int sNodeTree_create_load_function(char* fun_name, sParserInfo* info)
+unsigned int sNodeTree_create_load_function(char* fun_name, sParserInfo* info, int sline)
 {
     unsigned node = alloc_node();
 
     gNodes[node].mNodeType = kNodeTypeLoadFunction;
 
     xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
-    gNodes[node].mLine = info->sline;
+    gNodes[node].mLine = sline;
 
     xstrncpy(gNodes[node].uValue.sLoadFunction.mFunName, fun_name, VAR_NAME_MAX);
 

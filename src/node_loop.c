@@ -139,7 +139,7 @@ unsigned int sNodeTree_if_expression(unsigned int expression_node, MANAGED struc
     gNodes[node].mNodeType = kNodeTypeIf;
 
     xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
-    gNodes[node].mLine = sline;
+    gNodes[node].mLine = info->sline;
 
     gNodes[node].uValue.sIf.mExpressionNode = expression_node;
     gNodes[node].uValue.sIf.mIfNodeBlock = MANAGED if_node_block;
@@ -162,6 +162,8 @@ BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
 
     /// compile expression ///
     unsigned int expression_node = gNodes[node].uValue.sIf.mExpressionNode;
+
+    info->sline = gNodes[expression_node].mLine;
 
     if(!compile(expression_node, info)) {
         return FALSE;
@@ -256,6 +258,8 @@ BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
             llvm_change_block(cond_elif_block[i], info);
 
             unsigned int expression_node = gNodes[node].uValue.sIf.mElifExpressionNodes[i];
+
+            info->sline = gNodes[expression_node].mLine;
 
             if(!compile(expression_node, info)) {
                 return FALSE;
@@ -383,6 +387,8 @@ BOOL compile_while_expression(unsigned int node, sCompileInfo* info)
 
     /// compile expression ///
     unsigned int expression_node = gNodes[node].uValue.sWhile.mExpressionNode;
+
+    info->sline = gNodes[expression_node].mLine;
 
     if(!compile(expression_node, info)) {
         return FALSE;
@@ -551,6 +557,8 @@ BOOL compile_do_while_expression(unsigned int node, sCompileInfo* info)
     /// compile expression ///
     unsigned int expression_node = gNodes[node].uValue.sWhile.mExpressionNode;
 
+    info->sline = gNodes[expression_node].mLine;
+
     if(!compile(expression_node, info)) {
         return FALSE;
     }
@@ -616,6 +624,8 @@ BOOL compile_and_and(unsigned int node, sCompileInfo* info)
     /// compile expression ///
     unsigned int left_node = gNodes[node].mLeft;
 
+    info->sline = gNodes[left_node].mLine;
+
     if(!compile(left_node, info)) {
         return FALSE;
     }
@@ -660,6 +670,8 @@ BOOL compile_and_and(unsigned int node, sCompileInfo* info)
 
     /// compile right expression ///
     unsigned int right_node = gNodes[node].mRight;
+
+    info->sline = gNodes[right_node].mLine;
 
     if(!compile(right_node, info)) {
         return FALSE;
@@ -740,6 +752,8 @@ BOOL compile_or_or(unsigned int node, sCompileInfo* info)
     /// compile expression ///
     unsigned int left_node = gNodes[node].mLeft;
 
+    info->sline = gNodes[left_node].mLine;
+
     if(!compile(left_node, info)) {
         return FALSE;
     }
@@ -783,6 +797,8 @@ BOOL compile_or_or(unsigned int node, sCompileInfo* info)
 
     /// compile right expression ///
     unsigned int right_node = gNodes[node].mRight;
+
+    info->sline = gNodes[right_node].mLine;
 
     if(!compile(right_node, info)) {
         return FALSE;
@@ -875,6 +891,8 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
     unsigned int expression_node = gNodes[node].uValue.sFor.mExpressionNode;
 
+    info->sline = gNodes[expression_node].mLine;
+
     if(!compile(expression_node, info)) {
         info->pinfo->lv_table = lv_table_before;
         return FALSE;
@@ -892,6 +910,8 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
     unsigned int expression_node2 = gNodes[node].uValue.sFor.mExpressionNode2;
     stack_num_before = info->stack_num;
+
+    info->sline = gNodes[expression_node2].mLine;
 
     if(!compile(expression_node2, info)) {
         info->pinfo->lv_table = lv_table_before;
@@ -982,6 +1002,8 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     BOOL last_expression_is_return_before = info->last_expression_is_return;
     info->last_expression_is_return = FALSE;
     stack_num_before = info->stack_num;
+
+    info->sline = gNodes[expression_node3].mLine;
 
     if(!compile(expression_node3, info)) {
         info->pinfo->lv_table = lv_table_before;
@@ -1117,10 +1139,6 @@ BOOL compile_nodes(unsigned int node, sCompileInfo* info)
         xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
         info->sline = gNodes[node].mLine;
 
-        if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function) {
-            setCurrentDebugLocation(info->sline, info);
-        }
-
         if(!compile(node, info)) {
             return FALSE;
         }
@@ -1203,6 +1221,8 @@ BOOL compile_switch_expression(unsigned int node, sCompileInfo* info)
 
         return TRUE;
     }
+
+    info->sline = gNodes[expression_node].mLine;
 
     if(!compile(expression_node, info)) {
         return FALSE;
@@ -1545,6 +1565,8 @@ BOOL compile_conditional(unsigned int node, sCompileInfo* info)
     /// compile expression ///
     unsigned int conditional_node = gNodes[node].mLeft;
 
+    info->sline = gNodes[conditional_node].mLine;
+
     if(!compile(conditional_node, info)) 
     {
         return FALSE;
@@ -1591,6 +1613,8 @@ BOOL compile_conditional(unsigned int node, sCompileInfo* info)
         if(compile_time_value) {
             unsigned int value1_node  = gNodes[node].mRight;
 
+            info->sline = gNodes[value1_node].mLine;
+
             if(!compile(value1_node, info)) 
             {
                 return FALSE;
@@ -1598,6 +1622,8 @@ BOOL compile_conditional(unsigned int node, sCompileInfo* info)
         }
         else {
             unsigned int value2_node  = gNodes[node].mMiddle;
+
+            info->sline = gNodes[value2_node].mLine;
 
             if(!compile(value2_node, info)) 
             {
@@ -1624,6 +1650,8 @@ BOOL compile_conditional(unsigned int node, sCompileInfo* info)
         llvm_change_block(cond_then_block, info);
 
         unsigned int value1_node  = gNodes[node].mRight;
+
+        info->sline = gNodes[value1_node].mLine;
 
         if(!compile(value1_node, info)) 
         {
@@ -1683,6 +1711,8 @@ BOOL compile_conditional(unsigned int node, sCompileInfo* info)
         llvm_change_block(cond_else_block, info);
 
         unsigned int value2_node  = gNodes[node].mMiddle;
+
+        info->sline = gNodes[value2_node].mLine;
 
         if(!compile(value2_node, info)) 
         {
@@ -1778,6 +1808,8 @@ BOOL compile_comma(unsigned int node, sCompileInfo* info)
 {
     unsigned int left_node = gNodes[node].mLeft;
 
+    info->sline = gNodes[left_node].mLine;
+
     if(!compile(left_node, info)) {
         return FALSE;
     }
@@ -1789,6 +1821,8 @@ BOOL compile_comma(unsigned int node, sCompileInfo* info)
     }
 
     unsigned int right_node = gNodes[node].mRight;
+
+    info->sline = gNodes[right_node].mLine;
 
     if(!compile(right_node, info)) {
         return FALSE;

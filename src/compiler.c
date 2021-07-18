@@ -180,7 +180,7 @@ BOOL compile_source(char* fname, char* source, BOOL optimize, sVarTable* module_
         int sline = info.sline;
         char* sname = info.sname;
 
-        info.sline_top = sline;
+        info.change_sline = FALSE;
 
         if(*info.p == '#') {
             if(!parse_sharp(&info)) {
@@ -195,6 +195,7 @@ BOOL compile_source(char* fname, char* source, BOOL optimize, sVarTable* module_
         }
         else {
             unsigned int node = 0;
+
             if(!expression(&node, TRUE, &info)) {
                 free(info.mConst.mBuf);
                 return FALSE;
@@ -211,20 +212,12 @@ BOOL compile_source(char* fname, char* source, BOOL optimize, sVarTable* module_
 
                 gNodes[node].mLine = info.sline;
                 xstrncpy(gNodes[node].mSName, info.sname, PATH_MAX);
-
-                info.sline_top = info.sline;
-            }
-            else {
-                gNodes[node].mLine = sline;
-                xstrncpy(gNodes[node].mSName, sname, PATH_MAX);
             }
 
             if(info.err_num == 0)
             {
-
                 cinfo.sline = gNodes[node].mLine;
                 xstrncpy(cinfo.sname, gNodes[node].mSName, PATH_MAX);
-
 
                 if(!compile(node, &cinfo)) {
                     free(info.mConst.mBuf);
