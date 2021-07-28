@@ -68,7 +68,7 @@ int main()
 For PC, WSL, Raspberry PI OS and iSH(iPhone)
 
 ```
-sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
+sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev g++ gcc 
 
 git clone https://github.com/ab25cq/comelang
 
@@ -86,8 +86,8 @@ bash all_build.sh
 
 Without self-host. 
 
-```
-sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
+``
+sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev g++ gcc 
 
 git clone https://github.com/ab25cq/comelang
 
@@ -106,7 +106,7 @@ bash no_self_host.sh
 Install to home directory. For termux(android), and MacOS(INTEL)
 
 ```
-sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev
+sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev g++ gcc 
 
 git clone https://github.com/ab25cq/comelang
 
@@ -449,10 +449,10 @@ if(strcmp("ABC".substring(0,1), "A") == 0) {
 }
 ```
 
-It will be. It is called when "object type name_method name" is called as an OOP-like function. In other words, "ABC" .reverse () is the same as calling char_reverse ("ABC"). Another important point is that the memory allocated in the heap is called finalizer according to the type name.
+It will be. It is called when "object type name_method name" is called as an OOP-like function. In other words, "ABC" .reverse () is the same as calling char_reverse ("ABC") or char::reverse("ABC"). Another important point is that the memory allocated in the heap is called finalizer according to the type name.
 
 となります。OOP的な機能として"オブジェクトの型名_メソッド名"がメソッドコールした場合は呼ばれます。
-つまり、"ABC".reverse()はchar_reverse("ABC")を呼び出したことと同じことです。
+つまり、"ABC".reverse()はchar_reverse("ABC")もしくはchar::reverse("ABC")を呼び出したことと同じことです。
 
 もう一つ重要な点はヒープで確保されたメモリは型名に応じてfinalizerが呼ばれることです。
 
