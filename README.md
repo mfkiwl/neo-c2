@@ -86,7 +86,7 @@ bash all_build.sh
 
 Without self-host. 
 
-``
+```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev g++ gcc 
 
 git clone https://github.com/ab25cq/comelang
