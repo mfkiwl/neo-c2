@@ -1,1 +1,1 @@
-./configure --with-optimize && make && sudo make install
+./configure && make && sudo make install

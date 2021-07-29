@@ -594,8 +594,8 @@ static BOOL parse_variable_name(char* buf, int buf_size, sParserInfo* info, sNod
                 return FALSE;
             }
 
-            xstrncat(buf, "_", buf_size);
-            xstrncat(buf, buf2, buf_size);
+            strncat(buf, "_", buf_size);
+            strncat(buf, buf2, buf_size);
         }
 
         if(strcmp(buf, "const") == 0) {
