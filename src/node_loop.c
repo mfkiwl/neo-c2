@@ -1830,3 +1830,44 @@ BOOL compile_comma(unsigned int node, sCompileInfo* info)
 
     return TRUE;
 }
+
+unsigned int sNodeTree_create_select(int num_pipes, char** pipes, struct sNodeBlockStruct* node_block, sParserInfo* info)
+{
+    unsigned int node = alloc_node();
+
+    gNodes[node].mNodeType = kNodeTypeSelect;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    gNodes[node].uValue.sSelect.mNodeBlock = node_block;
+    gNodes[node].uValue.sSelect.mNumPipes = num_pipes;
+    int i;
+    for(i=0; i<num_pipes; i++) {
+        xstrncpy(gNodes[node].uValue.sSelect.mPipes[i], pipes[i], VAR_NAME_MAX);
+    }
+
+    gNodes[node].mLeft = 0;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    return node;
+}
+
+BOOL compile_select(unsigned int node, sCompileInfo* info)
+{
+    BOOL in_select_block = info->in_select_block;
+    info->in_select_block = TRUE;
+
+    struct sNodeBlockStruct* node_block = gNodes[node].uValue.sSelect.mNodeBlock;
+
+    if(!compile_block(node_block, info)) {
+        return FALSE;
+    }
+
+    info->type = create_node_type_with_class_name("void");
+
+    info->in_select_block = in_select_block;
+
+    return TRUE;
+}

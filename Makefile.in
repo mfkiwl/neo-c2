@@ -212,6 +212,10 @@ test:
 	./code/HelloWorld2
 	PWD=`pwd` ./come code/HelloWorld3.c && $(CC) -o code/HelloWorld3 code/HelloWorld3.c.ll
 	./code/HelloWorld3
+	PWD=`pwd` ./come code/HelloWorld4.c && $(CC) -o code/HelloWorld4 code/HelloWorld4.c.ll -lpthread
+	./code/HelloWorld4
+	PWD=`pwd` ./come code/HelloWorld5.c && $(CC) -o code/HelloWorld5 code/HelloWorld5.c.ll -lpthread
+	./code/HelloWorld5
 
 debug-test: 
 	@echo "Compile to test code..."

@@ -81,6 +81,7 @@ sNodeType* clone_node_type(sNodeType* node_type)
     }
     node_type2->mSizeNum = node_type->mSizeNum;
     node_type2->mNullable = node_type->mNullable;
+    node_type2->mChannel = node_type->mChannel;
     node_type2->mPointerNum = node_type->mPointerNum;
     node_type2->mHeap = node_type->mHeap;
     node_type2->mNoHeap = node_type->mNoHeap;
@@ -144,6 +145,9 @@ void show_type_core(sNodeType* type)
     if(type->mNullable) {
         printf("?");
     }
+    if(type->mChannel) {
+        printf("~");
+    }
     
     printf("(");
     for(i=0; i<type->mNumParams; i++)
@@ -179,6 +183,7 @@ static sNodeType* parse_class_name(char** p, char** p2, char* buf)
     node_type->mNumGenericsTypes = 0;
     node_type->mArrayDimentionNum = 0;
     node_type->mNullable = FALSE;
+    node_type->mChannel = FALSE;
 
     *p2 = buf;
 
@@ -246,6 +251,12 @@ static sNodeType* parse_class_name(char** p, char** p2, char* buf)
             skip_spaces_for_parse_class_name(p);
 
             node_type->mNullable = TRUE;
+        }
+        else if(**p == '~') {
+            (*p)++;
+            skip_spaces_for_parse_class_name(p);
+
+            node_type->mChannel = TRUE;
         }
         else if(**p == '*') {
             (*p)++;
@@ -404,6 +415,10 @@ BOOL auto_cast_posibility(sNodeType* left_type, sNodeType* right_type)
     {
         return TRUE;
     }
+    else if((left_type->mPointerNum-1 == right_type->mPointerNum) && right_type->mChannel == 1)
+    {
+        return TRUE;
+    }
 
     return FALSE;
 }
@@ -550,6 +565,7 @@ BOOL solve_generics(sNodeType** node_type, sNodeType* generics_type)
                 array_num[i] = (*node_type)->mArrayNum[i];
             }
             BOOL nullable = (*node_type)->mNullable;
+            BOOL channel = (*node_type)->mChannel;
             int pointer_num = (*node_type)->mPointerNum;
             BOOL heap = (*node_type)->mHeap;
 
@@ -565,6 +581,9 @@ BOOL solve_generics(sNodeType** node_type, sNodeType* generics_type)
             }
             if(nullable) {
                 (*node_type)->mNullable = nullable;
+            }
+            if(channel) {
+                (*node_type)->mChannel = channel;
             }
             if(array_dimetion_num > 0) {
                 (*node_type)->mArrayDimentionNum = array_dimetion_num;
@@ -647,6 +666,7 @@ BOOL solve_method_generics(sNodeType** node_type, int num_method_generics_types,
             BOOL nullable = (*node_type)->mNullable;
             int pointer_num = (*node_type)->mPointerNum;
             BOOL heap = (*node_type)->mHeap;
+            BOOL channel = (*node_type)->mChannel;
 
             BOOL no_heap = (*node_type)->mNoHeap;
 
@@ -660,6 +680,9 @@ BOOL solve_method_generics(sNodeType** node_type, int num_method_generics_types,
             }
             if(nullable) {
                 (*node_type)->mNullable = nullable;
+            }
+            if(channel) {
+                (*node_type)->mChannel = channel;
             }
             if(array_dimetion_num > 0) {
                 (*node_type)->mArrayDimentionNum = array_dimetion_num;
@@ -902,6 +925,9 @@ void create_type_name_from_node_type(char* type_name, int type_name_max, sNodeTy
     }
     if(node_type->mHeap) {
         xstrncat(type_name, "%", type_name_max);
+    }
+    if(node_type->mChannel) {
+        xstrncat(type_name, "~", type_name_max);
     }
     if(node_type->mNumGenericsTypes > 0) {
         xstrncat(type_name, "<", type_name_max);

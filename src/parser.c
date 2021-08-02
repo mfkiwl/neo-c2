@@ -1613,6 +1613,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
     BOOL no_heap = FALSE;
     BOOL managed_ = FALSE;
     BOOL override_ = 0;
+    BOOL channel = FALSE;
     int pointer_num = 0;
 
     while(TRUE) {
@@ -2032,6 +2033,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                 }
 
                 heap = (*result_type)->mHeap;
+                channel = (*result_type)->mChannel;
                 nullable = (*result_type)->mNullable;
                 constant = (*result_type)->mConstant;
                 unsigned_ = (*result_type)->mUnsigned;
@@ -2448,6 +2450,12 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
 
             heap = TRUE;
         }
+        else if(*info->p == '~') {
+            info->p++;
+            skip_spaces_and_lf(info);
+
+            channel = TRUE;
+        }
         else if(*info->p == '&') {
             info->p++;
             skip_spaces_and_lf(info);
@@ -2498,6 +2506,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
 
     (*result_type)->mPointerNum = pointer_num;
     (*result_type)->mHeap = heap;
+    (*result_type)->mChannel = channel;
     (*result_type)->mNullable = nullable;
     (*result_type)->mConstant = constant;
     (*result_type)->mUnsigned = unsigned_;
@@ -4313,6 +4322,48 @@ static BOOL parse_delete(unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
+static BOOL parse_select(unsigned int* node, sParserInfo* info)
+{
+    expect_next_character_with_one_forward("(", info);
+
+    int num_pipes = 0;
+    char pipes[SELECT_MAX][VAR_NAME_MAX+1];
+
+    while(TRUE) {
+        char buf[VAR_NAME_MAX+1];
+
+        if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE))
+        {
+            return FALSE;
+        };
+
+        if(*info->p == ',') {
+            xstrncpy(pipes[num_pipes++], buf, VAR_NAME_MAX);
+            info->p++;
+        }
+        else {
+            xstrncpy(pipes[num_pipes++], buf, VAR_NAME_MAX);
+            break;
+        }
+    }
+    sNodeBlock* node_block = NULL;
+    if(!parse_block_easy(ALLOC &node_block, FALSE, info))
+    {
+        return FALSE;
+    };
+
+    char* pipes2[SELECT_MAX];
+
+    int i;
+    for(i=0; i<num_pipes; i++) {
+        pipes2[i] = pipes[i];
+    }
+
+    *node = sNodeTree_create_select(num_pipes, pipes2, node_block, info);
+
+    return TRUE;
+}
+
 static BOOL parse_borrow(unsigned int* node, sParserInfo* info)
 {
     unsigned int object_node;
@@ -5131,6 +5182,29 @@ static BOOL parse_inherit(unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
+static BOOL parse_come(unsigned int* node, sParserInfo* info)
+{
+    char buf[VAR_NAME_MAX+1];
+    if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE))
+    {
+        return FALSE;
+    }
+    
+    char* fun_name = buf;
+
+    unsigned int params[PARAMS_MAX];
+    int num_params = 0;
+
+    if(!parse_funcation_call_params(&num_params, params, info)) 
+    {
+        return FALSE;
+    }
+
+    *node = sNodeTree_create_come_function_call(fun_name, params, num_params, info);
+    
+    return TRUE;
+}
+
 static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* info)
 {
     if(!parse_sharp(info)) {
@@ -5879,6 +5953,19 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         }
         else if(strcmp(buf, "auto") == 0) {
             if(!parse_var(node, info, FALSE)) {
+                return FALSE;
+            }
+        }
+        else if(strcmp(buf, "come") == 0) {
+            if(!parse_come(node, info)) {
+                return FALSE;
+            }
+        }
+        else if(strcmp(buf, "join") == 0 && *info->p != '(') {
+            *node = sNodeTree_create_join(info);
+        }
+        else if(strcmp(buf, "select") == 0 && *info->p == '(') {
+            if(!parse_select(node, info)) {
                 return FALSE;
             }
         }

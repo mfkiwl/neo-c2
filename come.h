@@ -9,6 +9,9 @@
 #include <malloc.h>
 #endif
 
+#include <pthread.h>
+#include <unistd.h>
+
 typedef char*% string;
 
 // for assembler debug
@@ -1596,3 +1599,4 @@ static int buffer_compare(buffer* left, buffer* right)
 {
     return strcmp(left.buf, right.buf);
 }
+

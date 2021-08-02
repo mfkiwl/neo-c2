@@ -108,6 +108,18 @@ BOOL compile(unsigned int node, sCompileInfo* info)
             }
             break;
 
+        case kNodeTypeComeFunctionCall:
+            if(!compile_come_function_call(node, info)) {
+                return FALSE;
+            }
+            break;
+
+        case kNodeTypeJoin:
+            if(!compile_join(node, info)) {
+                return FALSE;
+            }
+            break;
+
         case kNodeTypeLoadVariable:
             if(!compile_load_variable(node, info)) {
                 return FALSE;
@@ -371,6 +383,13 @@ BOOL compile(unsigned int node, sCompileInfo* info)
                 return FALSE;
             }
             break;
+
+        case kNodeTypeSelect:
+            if(!compile_select(node, info)) {
+                return FALSE;
+            }
+            break;
+
 
         case kNodeTypeStructWithInitialization:
             if(!compile_struct_with_initialization(node, info))
