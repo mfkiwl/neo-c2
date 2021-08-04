@@ -568,8 +568,6 @@ BOOL compile_do_while_expression(unsigned int node, sCompileInfo* info)
     LVALUE conditional_value = *get_value_from_stack(-1);
     dec_stack_ptr(1, info);
 
-    LLVMBuildCondBr(gBuilder, conditional_value.value, loop_top_block, cond_end_block);
-
     sNodeType* bool_type = create_node_type_with_class_name("bool");
 
     if(auto_cast_posibility(bool_type, conditional_type)) {
@@ -590,6 +588,8 @@ BOOL compile_do_while_expression(unsigned int node, sCompileInfo* info)
         info->type = create_node_type_with_class_name("int"); // dummy
         return TRUE;
     }
+
+    LLVMBuildCondBr(gBuilder, conditional_value.value, loop_top_block, cond_end_block);
 
     llvm_change_block(cond_end_block, info);
 
@@ -1859,11 +1859,17 @@ BOOL compile_select(unsigned int node, sCompileInfo* info)
     BOOL in_select_block = info->in_select_block;
     info->in_select_block = TRUE;
 
+    int num_pipes = gNodes[node].uValue.sSelect.mNumPipes;
+
+    char pipes[SELECT_MAX][VAR_NAME_MAX];
+
     struct sNodeBlockStruct* node_block = gNodes[node].uValue.sSelect.mNodeBlock;
 
-    if(!compile_block(node_block, info)) {
-        return FALSE;
+    int i;
+    for(i=0; i<num_pipes; i++) {
+        xstrncpy(pipes[i], gNodes[node].uValue.sSelect.mPipes[i], VAR_NAME_MAX);
     }
+
 
     info->type = create_node_type_with_class_name("void");
 

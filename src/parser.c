@@ -1373,9 +1373,21 @@ static BOOL parse_lambda(unsigned int* node, sNodeType* result_type, sParserInfo
         }
     }
 
-    if(!parse_block(node_block, FALSE, FALSE, info)) {
+    BOOL single_expression = FALSE;
+    if(*info->p == '{') {
+        info->p++;
+    }
+    else {
+        single_expression = TRUE;
+    }
+
+    if(!parse_block(node_block, FALSE, single_expression, info)) {
         sNodeBlock_free(node_block);
         return FALSE;
+    }
+
+    if(!single_expression) {
+        expect_next_character_with_one_forward("}", info);
     }
 
     expect_next_character_with_one_forward("}", info);
@@ -2450,7 +2462,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
 
             heap = TRUE;
         }
-        else if(*info->p == '~') {
+        else if(*info->p == '@') {
             info->p++;
             skip_spaces_and_lf(info);
 
@@ -4004,6 +4016,31 @@ static BOOL postposition_operator(unsigned int* node, BOOL enable_assginment, sP
                 *node = sNodeTree_create_load_array_element(*node, index_node, num_dimention, info);
             }
         }
+        /// access channel ///
+        else if(*info->p == '@') {
+            info->p++;
+            skip_spaces_and_lf(info);
+
+            int num;
+            if(*info->p == '0') {
+                info->p++;
+                skip_spaces_and_lf(info);
+
+                num = 0;
+            }
+            else if(*info->p == '1') {
+                info->p++;
+                skip_spaces_and_lf(info);
+
+                num = 1;
+            }
+            else {
+                parser_err_msg(info, "invalid channel element");
+                return FALSE;
+            }
+
+            *node = sNodeTree_create_load_channel_element(*node, num, info);
+        }
         else if(*info->p == '+' && *(info->p+1) == '+')
         {
             info->p+=2;
@@ -4287,18 +4324,26 @@ static BOOL parse_for(unsigned int* node, sParserInfo* info)
         return TRUE;
     }
 
-    expect_next_character_with_one_forward("{", info);
+    BOOL single_expression = FALSE;
+    if(*info->p == '{') {
+        info->p++;
+    }
+    else {
+        single_expression = TRUE;
+    }
 
     sVarTable* old_vtable2 = info->lv_table;
     info->lv_table = init_block_vtable(old_vtable2, FALSE);
 
     sNodeBlock* for_node_block = ALLOC sNodeBlock_alloc();
-    if(!parse_block(for_node_block, FALSE, FALSE, info)) 
+    if(!parse_block(for_node_block, FALSE, single_expression, info)) 
     {
         return FALSE;
     }
 
-    expect_next_character_with_one_forward("}", info);
+    if(!single_expression) {
+        expect_next_character_with_one_forward("}", info);
+    }
 
     *node = sNodeTree_for_expression(expression_node, expression_node2, expression_node3, MANAGED for_node_block, info);
 
@@ -5189,18 +5234,28 @@ static BOOL parse_come(unsigned int* node, sParserInfo* info)
     {
         return FALSE;
     }
-    
-    char* fun_name = buf;
 
-    unsigned int params[PARAMS_MAX];
-    int num_params = 0;
-
-    if(!parse_funcation_call_params(&num_params, params, info)) 
-    {
-        return FALSE;
+    if(strcmp(buf, "join") == 0) {
+        *node = sNodeTree_create_join(info);
     }
+    else if(strcmp(buf, "select") == 0) {
+        if(!parse_select(node, info)) {
+            return FALSE;
+        }
+    }
+    else {
+        char* fun_name = buf;
 
-    *node = sNodeTree_create_come_function_call(fun_name, params, num_params, info);
+        unsigned int params[PARAMS_MAX];
+        int num_params = 0;
+
+        if(!parse_funcation_call_params(&num_params, params, info)) 
+        {
+            return FALSE;
+        }
+
+        *node = sNodeTree_create_come_function_call(fun_name, params, num_params, info);
+    }
     
     return TRUE;
 }
@@ -5315,6 +5370,41 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         }
         else {
             *node = sNodeTree_create_dereffernce(*node, info);
+        }
+    }
+    else if(*info->p == '@') {
+        info->p++;
+        skip_spaces_and_lf(info);
+
+        if(!expression_node(node, FALSE, info)) 
+        {
+            return FALSE;
+        }
+
+        if(*node == 0) {
+            parser_err_msg(info, "require value for *");
+            info->err_num++;
+        }
+
+        if(*info->p == '=' && *(info->p+1) != '=') {
+            info->p++;
+            skip_spaces_and_lf(info);
+
+            unsigned int node2 = 0;
+            if(!expression(&node2, FALSE, info)) 
+            {
+                return FALSE;
+            }
+
+            if(*node == 0) {
+                parser_err_msg(info, "require value for *");
+                info->err_num++;
+            };
+
+            *node = sNodeTree_create_write_channel(*node, node2, info);
+        }
+        else {
+            *node = sNodeTree_create_read_channel(*node, info);
         }
     }
     else if(*info->p == '&') {
@@ -5958,14 +6048,6 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         }
         else if(strcmp(buf, "come") == 0) {
             if(!parse_come(node, info)) {
-                return FALSE;
-            }
-        }
-        else if(strcmp(buf, "join") == 0 && *info->p != '(') {
-            *node = sNodeTree_create_join(info);
-        }
-        else if(strcmp(buf, "select") == 0 && *info->p == '(') {
-            if(!parse_select(node, info)) {
                 return FALSE;
             }
         }

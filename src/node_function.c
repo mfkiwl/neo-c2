@@ -300,7 +300,7 @@ BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_
 
         info2.p = buf;
         xstrncpy(info2.sname, info->sname, PATH_MAX);
-        info2.source = buf;
+        info2.source = &buf;
         info2.module_name = info->pinfo->module_name;
         info2.lv_table = init_block_vtable(NULL, FALSE);
 
@@ -937,7 +937,7 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
 
         info2.p = fun->mBlockText;
         xstrncpy(info2.sname, gFName, PATH_MAX);
-        info2.source = fun->mBlockText;
+        info2.source = &fun->mBlockText;
         info2.module_name = info->pinfo->module_name;
         info2.sline = sline;
         info2.parse_phase = info->pinfo->parse_phase;
@@ -1937,9 +1937,6 @@ BOOL compile_come_function_call(unsigned int node, sCompileInfo* info)
     BOOL inherit = gNodes[node].uValue.sFunctionCall.mInherit;
     int version = gNodes[node].uValue.sFunctionCall.mVersion;
 
-    BOOL in_come_function = info->in_come_function;
-    info->in_come_function = TRUE;
-    
     /// create thread handler ///
     char thread_var_name[VAR_NAME_MAX];
     snprintf(thread_var_name, VAR_NAME_MAX, "thread%d", gThreadNum);
@@ -2063,7 +2060,8 @@ BOOL compile_come_function_call(unsigned int node, sCompileInfo* info)
     sParserInfo pinfo;
     memset(&pinfo, 0, sizeof(sParserInfo));
     pinfo.p = source;
-    pinfo.source = source;
+    char* source2 = source;
+    pinfo.source = &source2;
     snprintf(pinfo.sname, PATH_MAX, "thread_fun%d", gThreadNum);
     pinfo.lv_table = init_var_table();
     pinfo.sline = 1;
@@ -2118,8 +2116,6 @@ BOOL compile_come_function_call(unsigned int node, sCompileInfo* info)
     if(!compile(node7, info)) {
         return FALSE;
     }
-    
-    info->in_come_function = in_come_function;
 
     gThreadNum++;
 

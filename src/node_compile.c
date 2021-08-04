@@ -289,6 +289,24 @@ BOOL compile(unsigned int node, sCompileInfo* info)
             }
             break;
 
+        case kNodeTypeLoadChannelElement:
+            if(!compile_load_channel_element(node, info)) {
+                return FALSE;
+            }
+            break;
+
+        case kNodeTypeReadChannel:
+            if(!compile_read_channel(node, info)) {
+                return FALSE;
+            }
+            break;
+
+        case kNodeTypeWriteChannel:
+            if(!compile_write_channel(node, info)) {
+                return FALSE;
+            }
+            break;
+
         case kNodeTypeGenericsFunction:
             if(!compile_generics_function(node, info))
             {

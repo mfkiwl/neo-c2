@@ -85,26 +85,13 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
         return FALSE;
     }
 
-/*
-    sBuf source2;
-    sBuf_init(&source2);
-
-    if(!delete_comment(&source, &source2)) {
-        free(source.mBuf);
-        free(source2.mBuf);
-        return FALSE;
-    }
-*/
-
-    if(!compile_source(fname, source.mBuf, optimize, module_var_table)) 
+    if(!compile_source(fname, &source.mBuf, optimize, module_var_table)) 
     {
         free(source.mBuf);
-//        free(source2.mBuf);
         return FALSE;
     }
 
     free(source.mBuf);
-//k    free(source2.mBuf);
 
     return TRUE;
 }
