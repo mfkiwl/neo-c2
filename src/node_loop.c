@@ -618,8 +618,17 @@ unsigned int sNodeTree_create_and_and(unsigned int left_node, unsigned int right
 
 BOOL compile_and_and(unsigned int node, sCompileInfo* info)
 {
+    LLVMBasicBlockRef this_block = LLVMGetInsertBlock(gBuilder);
+    LLVMBasicBlockRef entry_block = LLVMGetEntryBasicBlock(gFunction);
+    LLVMValueRef inst = LLVMGetFirstInstruction(entry_block);
+    if(inst != NULL) {
+        LLVMPositionBuilderBefore(gBuilder, inst);
+    }
+
     LLVMTypeRef llvm_type = create_llvm_type_with_class_name("bool");
     LLVMValueRef result_var = LLVMBuildAlloca(gBuilder, llvm_type, "andand");
+
+    llvm_change_block(this_block, info);
 
     /// compile expression ///
     unsigned int left_node = gNodes[node].mLeft;
@@ -746,9 +755,17 @@ unsigned int sNodeTree_create_or_or(unsigned int left_node, unsigned int right_n
 
 BOOL compile_or_or(unsigned int node, sCompileInfo* info)
 {
+    LLVMBasicBlockRef this_block = LLVMGetInsertBlock(gBuilder);
+    LLVMBasicBlockRef entry_block = LLVMGetEntryBasicBlock(gFunction);
+    LLVMValueRef inst = LLVMGetFirstInstruction(entry_block);
+    if(inst != NULL) {
+        LLVMPositionBuilderBefore(gBuilder, inst);
+    }
+
     LLVMTypeRef llvm_type = create_llvm_type_with_class_name("bool");
     LLVMValueRef result_var = LLVMBuildAlloca(gBuilder, llvm_type, "oror");
 
+    llvm_change_block(this_block, info);
     /// compile expression ///
     unsigned int left_node = gNodes[node].mLeft;
 
@@ -1673,10 +1690,11 @@ BOOL compile_conditional(unsigned int node, sCompileInfo* info)
             LLVMBasicBlockRef this_block = LLVMGetInsertBlock(gBuilder);
             LLVMBasicBlockRef entry_block = LLVMGetEntryBasicBlock(gFunction);
             LLVMValueRef inst = LLVMGetFirstInstruction(entry_block);
-            LLVMPositionBuilderBefore(gBuilder, inst);
+            if(inst != NULL) {
+                LLVMPositionBuilderBefore(gBuilder, inst);
+            }
 
             LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(value1_result_type);
-
             result_value = LLVMBuildAlloca(gBuilder, llvm_result_type, "conditional_result_type");
 
             llvm_change_block(this_block, info);
@@ -1695,7 +1713,9 @@ BOOL compile_conditional(unsigned int node, sCompileInfo* info)
             LLVMBasicBlockRef this_block = LLVMGetInsertBlock(gBuilder);
             LLVMBasicBlockRef entry_block = LLVMGetEntryBasicBlock(gFunction);
             LLVMValueRef inst = LLVMGetFirstInstruction(entry_block);
-            LLVMPositionBuilderBefore(gBuilder, inst);
+            if(inst != NULL) {
+                LLVMPositionBuilderBefore(gBuilder, inst);
+            }
 
             LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(value1_result_type);
 
@@ -1831,7 +1851,7 @@ BOOL compile_comma(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-unsigned int sNodeTree_create_select(int num_pipes, char** pipes, struct sNodeBlockStruct* node_block, sParserInfo* info)
+unsigned int sNodeTree_create_select(int num_pipes, char** pipes, struct sNodeBlockStruct** pipe_blocks, sParserInfo* info)
 {
     unsigned int node = alloc_node();
 
@@ -1840,11 +1860,11 @@ unsigned int sNodeTree_create_select(int num_pipes, char** pipes, struct sNodeBl
     xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
     gNodes[node].mLine = info->sline;
 
-    gNodes[node].uValue.sSelect.mNodeBlock = node_block;
     gNodes[node].uValue.sSelect.mNumPipes = num_pipes;
     int i;
     for(i=0; i<num_pipes; i++) {
         xstrncpy(gNodes[node].uValue.sSelect.mPipes[i], pipes[i], VAR_NAME_MAX);
+        gNodes[node].uValue.sSelect.mPipeBlocks[i] = pipe_blocks[i];
     }
 
     gNodes[node].mLeft = 0;
@@ -1856,24 +1876,79 @@ unsigned int sNodeTree_create_select(int num_pipes, char** pipes, struct sNodeBl
 
 BOOL compile_select(unsigned int node, sCompileInfo* info)
 {
-    BOOL in_select_block = info->in_select_block;
-    info->in_select_block = TRUE;
-
     int num_pipes = gNodes[node].uValue.sSelect.mNumPipes;
 
-    char pipes[SELECT_MAX][VAR_NAME_MAX];
+    if(num_pipes == 0) {
+        compile_err_msg(info, "require pipe name");
+        return FALSE;
+    }
 
-    struct sNodeBlockStruct* node_block = gNodes[node].uValue.sSelect.mNodeBlock;
+    char pipes[SELECT_MAX][VAR_NAME_MAX];
+    sNodeBlock* pipe_blocks[SELECT_MAX];
 
     int i;
     for(i=0; i<num_pipes; i++) {
         xstrncpy(pipes[i], gNodes[node].uValue.sSelect.mPipes[i], VAR_NAME_MAX);
+        pipe_blocks[i] = gNodes[node].uValue.sSelect.mPipeBlocks[i];
     }
 
+    sBuf source;
+    sBuf_init(&source);
+
+    char source2[1024];
+    snprintf(source2, 1024, "{ fd_set readfds; int max_fd = %s+1; ", pipes[0]);
+
+    sBuf_append_str(&source, source2);
+
+    for(i=1; i<num_pipes; i++) {
+        char source2[1024];
+        snprintf(source2, 1024, "if(%s > max_fd) { max_fd = %s+1; }", pipes[i], pipes[i]);
+        sBuf_append_str(&source, source2);
+    }
+
+    sBuf_append_str(&source, "FD_ZERO(&readfds);");
+
+    for(i=0; i<num_pipes; i++) {
+        char source2[1024];
+        snprintf(source2, 1024, "FD_SET(%s[0], &readfds);", pipes[i]);
+        sBuf_append_str(&source, source2);
+    }
+
+    sBuf_append_str(&source, "select(max_fd, &readfds, NULL, NULL, NULL);");
+
+    for(i=0; i<num_pipes; i++) {
+        char source2[4096];
+        snprintf(source2, 4096, "if(FD_ISSET(%s[0], &readfds)) {", pipes[i]);
+        sBuf_append_str(&source, source2);
+
+        sBuf_append_str(&source, pipe_blocks[i]->mSource.mBuf);
+
+        snprintf(source2, 4096, "}");
+        sBuf_append_str(&source, source2);
+    }
+
+    sBuf_append_str(&source, " }");
+
+    sParserInfo pinfo;
+    memset(&pinfo, 0, sizeof(sParserInfo));
+    pinfo.p = source.mBuf;
+    char* source3 = source.mBuf;
+    pinfo.source = &source3;
+    snprintf(pinfo.sname, PATH_MAX, "select");
+    pinfo.sline = 1;
+
+    sNodeBlock* node_block = NULL;
+    if(!parse_block_easy(&node_block, FALSE, &pinfo)) {
+        return FALSE;
+    }
+
+    if(!compile_block(node_block, info)) {
+        return FALSE;
+    }
+
+    sNodeBlock_free(node_block);
 
     info->type = create_node_type_with_class_name("void");
-
-    info->in_select_block = in_select_block;
 
     return TRUE;
 }

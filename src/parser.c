@@ -4369,33 +4369,31 @@ static BOOL parse_delete(unsigned int* node, sParserInfo* info)
 
 static BOOL parse_select(unsigned int* node, sParserInfo* info)
 {
-    expect_next_character_with_one_forward("(", info);
-
     int num_pipes = 0;
     char pipes[SELECT_MAX][VAR_NAME_MAX+1];
+    sNodeBlock* pipe_blocks[SELECT_MAX];
+
+    expect_next_character_with_one_forward("{", info);
 
     while(TRUE) {
-        char buf[VAR_NAME_MAX+1];
-
-        if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE))
+        if(!parse_word(pipes[num_pipes], VAR_NAME_MAX, info, TRUE, FALSE))
         {
             return FALSE;
-        };
-
-        if(*info->p == ',') {
-            xstrncpy(pipes[num_pipes++], buf, VAR_NAME_MAX);
-            info->p++;
         }
-        else {
-            xstrncpy(pipes[num_pipes++], buf, VAR_NAME_MAX);
+
+        if(!parse_block_easy(ALLOC &pipe_blocks[num_pipes], FALSE, info))
+        {
+            return FALSE;
+        }
+
+        num_pipes++;
+
+        if(*info->p == '}') {
+            info->p++;
+            skip_spaces_and_lf(info);
             break;
         }
     }
-    sNodeBlock* node_block = NULL;
-    if(!parse_block_easy(ALLOC &node_block, FALSE, info))
-    {
-        return FALSE;
-    };
 
     char* pipes2[SELECT_MAX];
 
@@ -4404,7 +4402,7 @@ static BOOL parse_select(unsigned int* node, sParserInfo* info)
         pipes2[i] = pipes[i];
     }
 
-    *node = sNodeTree_create_select(num_pipes, pipes2, node_block, info);
+    *node = sNodeTree_create_select(num_pipes, pipes2, pipe_blocks, info);
 
     return TRUE;
 }

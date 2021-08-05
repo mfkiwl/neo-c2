@@ -746,10 +746,12 @@ void free_nodes(char* sname)
                     }
                     break;
 
-                case kNodeTypeSelect:
-                    if(gNodes[i].uValue.sSelect.mNodeBlock) 
-                    {
-                        sNodeBlock_free(gNodes[i].uValue.sSelect.mNodeBlock);
+                case kNodeTypeSelect:{
+                    int i;
+                    int num_pipes = gNodes[i].uValue.sSelect.mNumPipes;
+                    for(i=0; i<num_pipes; i++) {
+                        sNodeBlock_free(gNodes[i].uValue.sSelect.mPipeBlocks[i]);
+                    }
                     }
                     break;
 

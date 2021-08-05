@@ -21,7 +21,7 @@ int main()
 
     fd_set readfds;
 
-    int max_fd;
+    int max_fd = 0;
     if(pipe[0] > pipe2[0]) {
         max_fd = pipe[0] + 1;
     }
@@ -42,31 +42,6 @@ int main()
     else if(FD_ISSET(pipe2[0], &readfds)) {
         printf("pipe2 %d\n", @pipe2);
     }
-
-/*
-    for(bool end_flg = false; !end_flg; ) {
-        come select(pipe, pipe2) {
-            case pipe2:
-                end_flg = true;
-                printf("x %d\n", x);
-                break;
-
-            case pipe: 
-                end_flg = true;
-                printf("y %d\n", y);
-                break;
-
-            default: 
-                puts("AAA");
-                break;
-        }
-    }
-    int x = @pipe;
-    printf("x %d\n", x);
-
-    int y = @pipe2;
-    printf("y %d\n", y);
-*/
 
     come join;
     

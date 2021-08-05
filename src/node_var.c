@@ -514,7 +514,17 @@ if(var_type->mPointerNum > 0) {
 #endif
         }
         else if(var_type->mChannel) {
+            LLVMBasicBlockRef this_block = LLVMGetInsertBlock(gBuilder);
+            LLVMBasicBlockRef entry_block = LLVMGetEntryBasicBlock(gFunction);
+            LLVMValueRef inst = LLVMGetFirstInstruction(entry_block);
+            if(inst != NULL) {
+                LLVMPositionBuilderBefore(gBuilder, inst);
+            }
+
             LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
+
+            llvm_change_block(this_block, info);
+
             var->mLLVMValue = alloca_value;
 
             /// call pipe ///
@@ -538,7 +548,17 @@ if(var_type->mPointerNum > 0) {
             }
         }
         else {
+            LLVMBasicBlockRef this_block = LLVMGetInsertBlock(gBuilder);
+            LLVMBasicBlockRef entry_block = LLVMGetEntryBasicBlock(gFunction);
+            LLVMValueRef inst = LLVMGetFirstInstruction(entry_block);
+            if(inst != NULL) {
+                LLVMPositionBuilderBefore(gBuilder, inst);
+            }
+
             LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
+
+            llvm_change_block(this_block, info);
+
             var->mLLVMValue = alloca_value;
         }
     }
@@ -744,8 +764,17 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
             }
 #endif
 
+
+            LLVMBasicBlockRef this_block = LLVMGetInsertBlock(gBuilder);
+            LLVMBasicBlockRef entry_block = LLVMGetEntryBasicBlock(gFunction);
+            LLVMValueRef inst = LLVMGetFirstInstruction(entry_block);
+            if(inst != NULL) {
+                LLVMPositionBuilderBefore(gBuilder, inst);
+            }
+
             LLVMValueRef alloca_value = LLVMBuildAlloca(gBuilder, llvm_type, var_name);
 
+            llvm_change_block(this_block, info);
 
             LLVMBuildStore(gBuilder, rvalue.value, alloca_value);
 
@@ -1014,14 +1043,9 @@ BOOL compile_load_element(unsigned int node, sCompileInfo* info)
     /// compile left node ///
     unsigned int lnode = gNodes[node].mLeft;
 
-    BOOL in_come_function = info->in_come_function;
-    info->in_come_function = TRUE;
-
     if(!compile(lnode, info)) {
         return FALSE;
     }
-
-    info->in_come_function = in_come_function;
 
     sNodeType* left_type = info->type;
 
@@ -1029,7 +1053,7 @@ BOOL compile_load_element(unsigned int node, sCompileInfo* info)
 
     sVar* var = lvalue.var;
 
-    if(left_type->mArrayDimentionNum == 0 && left_type->mPointerNum == 0 && left_type->mDynamicArrayNum == 0)
+    if(left_type->mArrayDimentionNum == 0 && left_type->mPointerNum == 0 && left_type->mDynamicArrayNum == 0 && !left_type->mChannel)
     {
         compile_err_msg(info, "comelang can't get an element from this type.(1)");
         info->err_num++;
@@ -1145,6 +1169,33 @@ BOOL compile_load_element(unsigned int node, sCompileInfo* info)
 
             info->type = clone_node_type(node_type);
         }
+    }
+    else if(left_type->mChannel) {
+        sNodeType* element_type = create_node_type_with_class_name("int");
+
+        sNodeType* node_type = clone_node_type(element_type);
+        node_type->mPointerNum++;
+
+        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
+
+        LLVMValueRef lvalue2 = LLVMBuildCast(gBuilder, LLVMBitCast, lvalue.address, llvm_type, "array_cast");
+        LLVMValueRef load_element_addresss = LLVMBuildGEP(gBuilder, lvalue2, &rvalue[0].value, 1, "gep");
+
+        LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
+
+        LVALUE llvm_value;
+
+        llvm_value.value = element_value;
+        llvm_value.type = clone_node_type(element_type);
+        llvm_value.address = load_element_addresss;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = FALSE;
+        llvm_value.load_field = FALSE;
+
+        dec_stack_ptr(1+num_dimention, info);
+        push_value_to_stack_ptr(&llvm_value, info);
+
+        info->type = clone_node_type(element_type);
     }
     else if(left_type->mArrayDimentionNum == 1 || left_type->mDynamicArrayNum != 0) {
         sNodeType* element_type = clone_node_type(var_type);
@@ -3265,7 +3316,18 @@ BOOL compile_stack_object(unsigned int node, sCompileInfo* info)
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
 
         LVALUE llvm_value;
+
+        LLVMBasicBlockRef this_block = LLVMGetInsertBlock(gBuilder);
+        LLVMBasicBlockRef entry_block = LLVMGetEntryBasicBlock(gFunction);
+        LLVMValueRef inst = LLVMGetFirstInstruction(entry_block);
+        if(inst != NULL) {
+            LLVMPositionBuilderBefore(gBuilder, inst);
+        }
+
         llvm_value.value = LLVMBuildAlloca(gBuilder, llvm_type, "stack_object");
+
+        llvm_change_block(this_block, info);
+
         llvm_value.type = node_type2;
         llvm_value.address = NULL;
         llvm_value.var = NULL;
@@ -3784,14 +3846,9 @@ BOOL compile_load_channel_element(unsigned int node, sCompileInfo* info)
     /// compile left node ///
     unsigned int lnode = gNodes[node].mLeft;
 
-    BOOL in_come_function = info->in_come_function;
-    info->in_come_function = TRUE;
-
     if(!compile(lnode, info)) {
         return FALSE;
     }
-
-    info->in_come_function = in_come_function;
 
     sNodeType* left_type = info->type;
 
@@ -3866,33 +3923,6 @@ unsigned int sNodeTree_create_write_channel(unsigned int address_node, unsigned 
 
     return node;
 }
-    else if(left_type->mChannel) {
-        sNodeType* element_type = create_node_type_with_class_name("int");
-
-        sNodeType* node_type = clone_node_type(element_type);
-        node_type->mPointerNum++;
-
-        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
-
-        LLVMValueRef lvalue2 = LLVMBuildCast(gBuilder, LLVMBitCast, lvalue.address, llvm_type, "array_cast");
-        LLVMValueRef load_element_addresss = LLVMBuildGEP(gBuilder, lvalue2, &rvalue[0].value, 1, "gep");
-
-        LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
-
-        LVALUE llvm_value;
-
-        llvm_value.value = element_value;
-        llvm_value.type = clone_node_type(element_type);
-        llvm_value.address = load_element_addresss;
-        llvm_value.var = NULL;
-        llvm_value.binded_value = FALSE;
-        llvm_value.load_field = FALSE;
-
-        dec_stack_ptr(1+num_dimention, info);
-        push_value_to_stack_ptr(&llvm_value, info);
-
-        info->type = clone_node_type(element_type);
-    }
 
 BOOL compile_write_channel(unsigned int node, sCompileInfo* info)
 {
@@ -3926,8 +3956,6 @@ BOOL compile_write_channel(unsigned int node, sCompileInfo* info)
     LVALUE rvalue = *get_value_from_stack(-1);
     dec_stack_ptr(1, info);
 
-    left_type->mPointerNum--;
-
     if(auto_cast_posibility(left_type, right_type)) {
         if(!cast_right_type_to_left_type(left_type, &right_type, &rvalue, info))
         {
@@ -3942,7 +3970,7 @@ BOOL compile_write_channel(unsigned int node, sCompileInfo* info)
 
     /// create buffer ///
     int alignment = 0;
-    size_t buffer_size = get_size_from_node_type(var->mType, &alignment);
+    size_t buffer_size = get_size_from_node_type(left_type, &alignment);
 
     char buffer_var_name[VAR_NAME_MAX];
     snprintf(buffer_var_name, VAR_NAME_MAX, "channel_buf%d", gThreadNum);
@@ -3961,9 +3989,9 @@ BOOL compile_write_channel(unsigned int node, sCompileInfo* info)
     info->pinfo->mBlockLevel = 1;
     
     BOOL extern_ = FALSE;
-    unsigned int node = sNodeTree_create_define_variable(buffer_var_name, extern_, info->pinfo);
+    unsigned int node2 = sNodeTree_create_define_variable(buffer_var_name, extern_, info->pinfo);
     
-    if(!compile(node, info)) {
+    if(!compile(node2, info)) {
         return FALSE;
     }
 
@@ -3971,7 +3999,7 @@ BOOL compile_write_channel(unsigned int node, sCompileInfo* info)
     char right_var_name[VAR_NAME_MAX];
     snprintf(right_var_name, VAR_NAME_MAX, "channel_bufB%d", gThreadNum);
 
-    sNodeType* right_var_type = clone_node_type(var->mType);
+    sNodeType* right_var_type = clone_node_type(left_type);
     right_var_type->mChannel = FALSE;
     
     if(!add_variable_to_table(info->pinfo->lv_table, right_var_name, right_var_type, readonly, NULL, -1, FALSE, FALSE))
@@ -3979,9 +4007,9 @@ BOOL compile_write_channel(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    unsigned int node2 = sNodeTree_create_store_variable(right_var_name, right_node, TRUE, info->pinfo);
+    unsigned int node3 = sNodeTree_create_store_variable(right_var_name, right_node, TRUE, info->pinfo);
     
-    if(!compile(node2, info)) {
+    if(!compile(node3, info)) {
         return FALSE;
     }
 
@@ -4013,9 +4041,9 @@ BOOL compile_write_channel(unsigned int node, sCompileInfo* info)
     BOOL inherit2 = FALSE;
     int version2 = 0;
     
-    unsigned int node3 = sNodeTree_create_function_call(fun_name, params, num_params, method2, inherit2, version2, info->pinfo);
+    unsigned int node4 = sNodeTree_create_function_call(fun_name, params, num_params, method2, inherit2, version2, info->pinfo);
     
-    if(!compile(node3, info)) {
+    if(!compile(node4, info)) {
         return FALSE;
     }
 
@@ -4031,15 +4059,15 @@ BOOL compile_write_channel(unsigned int node, sCompileInfo* info)
 
     index_node2[0] = sNodeTree_create_int_value(1, info->pinfo);
     
-    params2[0] = sNodeTree_create_load_variable(var_name, info->pinfo);
+    params2[0] = left_node;
     params2[0] = sNodeTree_create_load_array_element(params2[0], index_node2, 1, info->pinfo);
 
     params2[1] = sNodeTree_create_load_variable(buffer_var_name, info->pinfo);
     params2[2] = sNodeTree_create_long_value(buffer_size, info->pinfo);
     
-    unsigned int node4 = sNodeTree_create_function_call(fun_name2, params2, num_params2, method2, inherit2, version2, info->pinfo);
+    unsigned int node5 = sNodeTree_create_function_call(fun_name2, params2, num_params2, method2, inherit2, version2, info->pinfo);
     
-    if(!compile(node4, info)) {
+    if(!compile(node5, info)) {
         return FALSE;
     }
 
@@ -4115,7 +4143,7 @@ BOOL compile_read_channel(unsigned int node, sCompileInfo* info)
 
     index_node[0] = sNodeTree_create_int_value(0, info->pinfo);
     
-    params[0] = sNodeTree_create_load_variable(var_name, info->pinfo);
+    params[0] = left_node;
     params[0] = sNodeTree_create_load_array_element(params[0], index_node, 1, info->pinfo);
 
     params[1] = sNodeTree_create_load_variable(buffer_var_name, info->pinfo);
@@ -4127,9 +4155,6 @@ BOOL compile_read_channel(unsigned int node, sCompileInfo* info)
     
     unsigned int node3 = sNodeTree_create_function_call(fun_name, params, num_params, method2, inherit2, version2, info->pinfo);
 
-    BOOL in_come_function = info->in_come_function;
-    info->in_come_function = TRUE;
-    
     if(!compile(node3, info)) {
         return FALSE;
     }
@@ -4142,8 +4167,6 @@ BOOL compile_read_channel(unsigned int node, sCompileInfo* info)
     if(!compile(node4, info)) {
         return FALSE;
     }
-
-    info->in_come_function = in_come_function;
 
     return TRUE;
 }

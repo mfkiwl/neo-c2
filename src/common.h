@@ -684,7 +684,7 @@ struct sNodeTreeStruct
         } sNormalBlock;
 
         struct {
-            struct sNodeBlockStruct* mNodeBlock;
+            struct sNodeBlockStruct* mPipeBlocks[SELECT_MAX];
             char mPipes[SELECT_MAX][VAR_NAME_MAX];
             int mNumPipes;
         } sSelect;
@@ -1087,7 +1087,7 @@ unsigned int sNodeTree_for_expression(unsigned int expression_node1, unsigned in
 unsigned int sNodeTree_if_expression(unsigned int expression_node, MANAGED struct sNodeBlockStruct* if_node_block, unsigned int* elif_expression_nodes, MANAGED struct sNodeBlockStruct** elif_node_blocks, int elif_num, MANAGED struct sNodeBlockStruct* else_node_block, sParserInfo* info, char* sname, int sline);
 unsigned int sNodeTree_while_expression(unsigned int expression_node, MANAGED struct sNodeBlockStruct* while_node_block, sParserInfo* info);
 unsigned int sNodeTree_do_while_expression(unsigned int expression_node, MANAGED struct sNodeBlockStruct* while_node_block, sParserInfo* info);
-unsigned int sNodeTree_create_select(int num_pipes, char** pipes, struct sNodeBlockStruct* node_block, sParserInfo* info);
+unsigned int sNodeTree_create_select(int num_pipes, char** pipes, struct sNodeBlockStruct** pipe_blocks, sParserInfo* info);
 
 BOOL compile_comma(unsigned int node, sCompileInfo* info);
 BOOL compile_conditional(unsigned int node, sCompileInfo* info);
