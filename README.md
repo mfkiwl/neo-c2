@@ -2211,6 +2211,10 @@ int main()
 }
 ```
 
+この機能を使ったときはリンクするときに-lpthreadしてください。
+
+Please link with -lpthread using this functions.
+
 7. Parallel Processing
 
 It can be executed in parallel with the come function name.
