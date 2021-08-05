@@ -55,6 +55,8 @@ int main()
 
 5. It has a mixin-layers system. You can implement your application in layers. Each layer is complete and useful for debugging and porting. A vi clone called vico is implemented as an editor implemented in mixin-layers. Please refer to it because it is in a directory called vico.
 
+6. Parallel excuting functions like Go.
+
 1. C言語とある程度互換性があります。Cプリプロセッサーも動きます。
 
 2. 独自のヒープシステムを備えます。一時的に生成されたヒープ（右辺値）の自動freeと変数に代入されたヒープの自動freeを備えます。
@@ -64,6 +66,8 @@ int main()
 4. ライブラリはcome.hに書かれてあり、何もライブラリをリンクする必要はありません。ライブラリは最小限となっており学習コストを抑えています。コレクションライブラリと文字列ライブラリを備えます。
 
 5. mixin-layersシステムを備えます。アプリケーションをレイヤーを重ねるように実装できます。各レイヤーは完結しており、デバッグや移植作業でも有効です。mixin-layersで実装されたエディッタとしてvicoというviクローンを実装しています。vicoというディレクトリの中に入っているので参考にしてください。
+
+6. Goのような関数の並列実行の機能があります。チャネルも備えます。
 
 For PC, WSL, Raspberry PI OS and iSH(iPhone)
 
@@ -2211,10 +2215,6 @@ int main()
 }
 ```
 
-この機能を使ったときはリンクするときに-lpthreadしてください。
-
-Please link with -lpthread using this functions.
-
 7. Parallel Processing
 
 It can be executed in parallel with the come function name.
@@ -2306,6 +2306,10 @@ int main()
     return 0;
 }
 ```
+
+この機能を使ったときはリンクするときに-lpthreadしてください。
+
+Please link with -lpthread using this functions.
 
 # CHANGELOG
 
