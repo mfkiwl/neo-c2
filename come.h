@@ -1603,3 +1603,18 @@ static int buffer_compare(buffer* left, buffer* right)
     return strcmp(left.buf, right.buf);
 }
 
+inline void come_fd_zero(fd_set* fds)
+{
+    FD_ZERO(fds);
+}
+
+inline void come_fd_set(int fd, fd_set* fds)
+{
+    FD_SET(fd, fds);
+}
+
+inline int come_fd_isset(int fd, fd_set* fds)
+{
+    return FD_ISSET(fd, fds);
+}
+

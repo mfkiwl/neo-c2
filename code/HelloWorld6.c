@@ -19,28 +19,14 @@ int main()
     int@ pipe2;
     come fun2(pipe2);
 
-    fd_set readfds;
+    come select {
+        pipe {
+            printf("pipe %d\n", @pipe);
+        }
 
-    int max_fd = 0;
-    if(pipe[0] > pipe2[0]) {
-        max_fd = pipe[0] + 1;
-    }
-    else {
-        max_fd = pipe2[0] + 1;
-    }
-
-    FD_ZERO(&readfds);
-
-    FD_SET(pipe[0], &readfds);
-    FD_SET(pipe2[0], &readfds);
-
-    int result = select(max_fd, &readfds, NULL, NULL, NULL);
-
-    if(FD_ISSET(pipe[0], &readfds)) {
-        printf("pipe %d\n", @pipe);
-    }
-    else if(FD_ISSET(pipe2[0], &readfds)) {
-        printf("pipe2 %d\n", @pipe2);
+        pipe2 {
+            printf("pipe2 %d\n", @pipe2);
+        }
     }
 
     come join;

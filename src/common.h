@@ -488,6 +488,8 @@ struct sCompileInfoStruct
     LLVMBasicBlockRef block_after_creating_generics;
 
     struct sRightValueObject* right_value_objects;
+
+    BOOL in_thread_function;
 };
 
 typedef struct sCompileInfoStruct sCompileInfo;

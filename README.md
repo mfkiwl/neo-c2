@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.1.1
+version 1.1.2
 
 ```
 #include <come.h>
@@ -2211,6 +2211,98 @@ int main()
 }
 ```
 
+7. Parallel Processing
+
+It can be executed in parallel with the come function name.
+
+come 関数名で並列実行できます。
+
+```
+void fun(int n) 
+{
+    puts("HELLO PARALLEL WORLD");
+    printf("%d\n", n);
+}
+
+int main()
+{
+    come fun(123);
+
+    come join;
+
+    return 0;
+}
+```
+
+Channels add @ to the variable name.
+
+チャネルは変数名に@をつけます。
+
+```
+void fun(int@ n)
+{
+    @n = 123;
+}
+
+int main()
+{
+    int@ m;
+    come fun(m);
+
+    printf("%d\n", @m);
+
+    come join;
+
+    return 0;
+}
+```
+
+@mはfunの@n = 123が実行されるまでブロックされます。
+
+複数のチャネルを同時に待つにはselectを使います。selectはブロックします。
+
+@m is blocked until @ n = 123 of fun is executed. $
+Use select to wait for multiple channels at the same time. select blocks.
+
+```
+void fun(int@ n)
+{
+    sleep(1);
+    @n = 123;
+}
+
+void fun2(int@ m)
+{
+    sleep(2);
+    @m = 234;
+}
+
+int main()
+{
+    int@ n;
+    int@ m 
+
+    come fun(n);
+    come fun(m);
+
+    while(true) {
+        select {
+            n {
+                printf("n %d\n", @n);
+            }
+
+            m {
+                printf("m %d\n", @m);
+            }
+        }
+    }
+
+    come join;
+
+    return 0;
+}
+```
+
 # CHANGELOG
 
 addition from version 1.0.9
@@ -2243,3 +2335,9 @@ addition from version 1.1.0
 The debug info line number has been corrected.
 
 ソースファイルの行番号のエラーを修正しています。
+
+addition from version 1.1.2
+
+Added to parallel processing like Go
+
+Goのような並列処理を入れました。

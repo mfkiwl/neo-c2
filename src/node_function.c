@@ -1404,7 +1404,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     sNodeType* come_function_result_type = gComeFunctionResultType;
     gComeFunctionResultType = fun->mResultType;
 
-    if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !empty_function) {
+    if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !empty_function && !info->in_thread_function) {
         int sline = gNodes[node].mLine;
         char fname[PATH_MAX];
         xstrncpy(fname, gNodes[node].mSName, PATH_MAX);
@@ -1421,7 +1421,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(type_);
 
-        if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function) {
+        if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !info->in_thread_function) {
             setCurrentDebugLocation(info->sline, info);
         }
 
@@ -1439,7 +1439,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    if(gNCDebug && !info->in_generics_function && !empty_function &&info->in_inline_function && info->in_lambda_function) {
+    if(gNCDebug && !info->in_generics_function && !empty_function &&info->in_inline_function && info->in_lambda_function && !info->in_thread_function) {
         finishDebugFunctionInfo();
     }
 
@@ -2082,10 +2082,15 @@ BOOL compile_come_function_call(unsigned int node, sCompileInfo* info)
     LLVMBasicBlockRef current_block = info->current_block;
 
     unsigned int node6 = sNodeTree_create_function(thread_fun_name, "", thread_fun_params, thread_fun_num_params, thread_fun_result_type,  thread_fun_block, FALSE, thread_fun_var_table, "", FALSE, FALSE, FALSE, info->pinfo, FALSE, FALSE, 0, FALSE, 0, "", info->pinfo->sline);
+
+    BOOL in_thread_function = info->in_thread_function;
+    info->in_thread_function = TRUE;
     
     if(!compile(node6, info)) {
         return FALSE;
     }
+
+    info->in_thread_function = in_thread_function;
 
     llvm_change_block(current_block, info);
 

@@ -1896,29 +1896,29 @@ BOOL compile_select(unsigned int node, sCompileInfo* info)
     sBuf_init(&source);
 
     char source2[1024];
-    snprintf(source2, 1024, "{ fd_set readfds; int max_fd = %s+1; ", pipes[0]);
+    snprintf(source2, 1024, "{ fd_set readfds; int max_fd = %s[0]+1; ", pipes[0]);
 
     sBuf_append_str(&source, source2);
 
     for(i=1; i<num_pipes; i++) {
         char source2[1024];
-        snprintf(source2, 1024, "if(%s > max_fd) { max_fd = %s+1; }", pipes[i], pipes[i]);
+        snprintf(source2, 1024, "if(%s[0] > max_fd) { max_fd = %s[0]+1; };", pipes[i], pipes[i]);
         sBuf_append_str(&source, source2);
     }
 
-    sBuf_append_str(&source, "FD_ZERO(&readfds);");
+    sBuf_append_str(&source, "come_fd_zero(&readfds);");
 
     for(i=0; i<num_pipes; i++) {
         char source2[1024];
-        snprintf(source2, 1024, "FD_SET(%s[0], &readfds);", pipes[i]);
+        snprintf(source2, 1024, "come_fd_set(%s[0], &readfds);", pipes[i]);
         sBuf_append_str(&source, source2);
     }
 
-    sBuf_append_str(&source, "select(max_fd, &readfds, NULL, NULL, NULL);");
+    sBuf_append_str(&source, "select(max_fd, &readfds, 0, 0, 0);");
 
     for(i=0; i<num_pipes; i++) {
         char source2[4096];
-        snprintf(source2, 4096, "if(FD_ISSET(%s[0], &readfds)) {", pipes[i]);
+        snprintf(source2, 4096, "if(come_fd_isset(%s[0], &readfds)) {", pipes[i]);
         sBuf_append_str(&source, source2);
 
         sBuf_append_str(&source, pipe_blocks[i]->mSource.mBuf);
@@ -1936,6 +1936,7 @@ BOOL compile_select(unsigned int node, sCompileInfo* info)
     pinfo.source = &source3;
     snprintf(pinfo.sname, PATH_MAX, "select");
     pinfo.sline = 1;
+    pinfo.lv_table = info->pinfo->lv_table;
 
     sNodeBlock* node_block = NULL;
     if(!parse_block_easy(&node_block, FALSE, &pinfo)) {
