@@ -69,11 +69,19 @@ int main()
 
 6. Goのような関数の並列実行の機能があります。チャネルも備えます。
 
-For PC, WSL, Raspberry PI OS and iSH(iPhone)
+0. INSTALL
+
+Required libraries are LLVM, clang(with LLVM-C), g++, libxml2-dev, gcc, make, autoconf, valgrind, gdb 
+
+Examples
 
 ```
 sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev g++ gcc 
+```
 
+For PC, WSL, Raspberry PI OS and iSH(iPhone)
+
+```
 git clone https://github.com/ab25cq/comelang
 
 cd comelang
@@ -91,8 +99,6 @@ bash all_build.sh
 Without self-host. 
 
 ```
-sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev g++ gcc 
-
 git clone https://github.com/ab25cq/comelang
 
 cd comelang
@@ -110,8 +116,6 @@ bash no_self_host.sh
 Install to home directory. For termux(android), and MacOS(INTEL)
 
 ```
-sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev g++ gcc 
-
 git clone https://github.com/ab25cq/comelang
 
 cd comelang
