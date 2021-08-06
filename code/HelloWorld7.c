@@ -39,7 +39,7 @@ int main()
             }
 
             default {
-                puts("wating...");
+//                puts("wating...");
             }
         }
     }
