@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.1.2
+version 1.1.3
 
 ```
 #include <come.h>
@@ -2294,13 +2294,58 @@ int main()
     come fun(m);
 
     while(true) {
-        select {
+        come select {
             n {
                 printf("n %d\n", @n);
             }
 
             m {
                 printf("m %d\n", @m);
+            }
+        }
+    }
+
+    come join;
+
+    return 0;
+}
+```
+
+polling select
+
+```
+void fun(int@ n)
+{
+    sleep(1);
+    @n = 123;
+}
+
+void fun2(int@ m)
+{
+    sleep(2);
+    @m = 234;
+}
+
+int main()
+{
+    int@ n;
+    int@ m 
+
+    come fun(n);
+    come fun(m);
+
+    while(true) {
+        come pselect {
+            n {
+                printf("n %d\n", @n);
+            }
+
+            m {
+                printf("m %d\n", @m);
+            }
+
+            default {
+                puts("waiting....");
             }
         }
     }
@@ -2353,3 +2398,7 @@ addition from version 1.1.2
 Added to parallel processing like Go
 
 Goのような並列処理を入れました。
+
+addition from version 1.1.3
+
+Added to pselect for polling-select

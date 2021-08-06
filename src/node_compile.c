@@ -408,6 +408,12 @@ BOOL compile(unsigned int node, sCompileInfo* info)
             }
             break;
 
+        case kNodeTypePSelect:
+            if(!compile_pselect(node, info)) {
+                return FALSE;
+            }
+            break;
+
 
         case kNodeTypeStructWithInitialization:
             if(!compile_struct_with_initialization(node, info))

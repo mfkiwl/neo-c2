@@ -4407,6 +4407,58 @@ static BOOL parse_select(unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
+static BOOL parse_pselect(unsigned int* node, sParserInfo* info)
+{
+    int num_pipes = 0;
+    char pipes[SELECT_MAX][VAR_NAME_MAX+1];
+    sNodeBlock* pipe_blocks[SELECT_MAX];
+    sNodeBlock* default_block = NULL;
+
+    expect_next_character_with_one_forward("{", info);
+
+    while(TRUE) {
+        char buf[VAR_NAME_MAX];
+        if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE))
+        {
+            return FALSE;
+        }
+
+        if(strcmp(buf, "default") == 0) {
+            if(!parse_block_easy(ALLOC &default_block, FALSE, info))
+            {
+                return FALSE;
+            }
+        }
+        else {
+            xstrncpy(pipes[num_pipes], buf, VAR_NAME_MAX);
+
+            if(!parse_block_easy(ALLOC &pipe_blocks[num_pipes], FALSE, info))
+            {
+                return FALSE;
+            }
+
+            num_pipes++;
+        }
+
+        if(*info->p == '}') {
+            info->p++;
+            skip_spaces_and_lf(info);
+            break;
+        }
+    }
+
+    char* pipes2[SELECT_MAX];
+
+    int i;
+    for(i=0; i<num_pipes; i++) {
+        pipes2[i] = pipes[i];
+    }
+
+    *node = sNodeTree_create_pselect(num_pipes, pipes2, pipe_blocks, default_block, info);
+
+    return TRUE;
+}
+
 static BOOL parse_borrow(unsigned int* node, sParserInfo* info)
 {
     unsigned int object_node;
@@ -5238,6 +5290,11 @@ static BOOL parse_come(unsigned int* node, sParserInfo* info)
     }
     else if(strcmp(buf, "select") == 0) {
         if(!parse_select(node, info)) {
+            return FALSE;
+        }
+    }
+    else if(strcmp(buf, "pselect") == 0) {
+        if(!parse_pselect(node, info)) {
             return FALSE;
         }
     }

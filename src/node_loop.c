@@ -1953,3 +1953,130 @@ BOOL compile_select(unsigned int node, sCompileInfo* info)
 
     return TRUE;
 }
+
+unsigned int sNodeTree_create_pselect(int num_pipes, char** pipes, struct sNodeBlockStruct** pipe_blocks, struct sNodeBlockStruct* default_block, sParserInfo* info)
+{
+    unsigned int node = alloc_node();
+
+    gNodes[node].mNodeType = kNodeTypePSelect;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    gNodes[node].uValue.sSelect.mNumPipes = num_pipes;
+    int i;
+    for(i=0; i<num_pipes; i++) {
+        xstrncpy(gNodes[node].uValue.sSelect.mPipes[i], pipes[i], VAR_NAME_MAX);
+        gNodes[node].uValue.sSelect.mPipeBlocks[i] = pipe_blocks[i];
+    }
+    gNodes[node].uValue.sSelect.mDefaultBlock = default_block;
+
+    gNodes[node].mLeft = 0;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    return node;
+}
+
+BOOL compile_pselect(unsigned int node, sCompileInfo* info)
+{
+    int num_pipes = gNodes[node].uValue.sSelect.mNumPipes;
+
+    if(num_pipes == 0) {
+        compile_err_msg(info, "require pipe name");
+        return FALSE;
+    }
+
+    char pipes[SELECT_MAX][VAR_NAME_MAX];
+    sNodeBlock* pipe_blocks[SELECT_MAX];
+
+    int i;
+    for(i=0; i<num_pipes; i++) {
+        xstrncpy(pipes[i], gNodes[node].uValue.sSelect.mPipes[i], VAR_NAME_MAX);
+        pipe_blocks[i] = gNodes[node].uValue.sSelect.mPipeBlocks[i];
+    }
+
+    sNodeBlock* default_block = gNodes[node].uValue.sSelect.mDefaultBlock;
+
+    sBuf source;
+    sBuf_init(&source);
+
+    char source2[1024];
+    snprintf(source2, 1024, "{ fd_set readfds; timeval tv; tv.tv_sec = 0; tv.tv_usec = 0; int max_fd = %s[0]+1; ", pipes[0]);
+
+    sBuf_append_str(&source, source2);
+
+    for(i=1; i<num_pipes; i++) {
+        char source2[1024];
+        snprintf(source2, 1024, "if(%s[0] > max_fd) { max_fd = %s[0]+1; };", pipes[i], pipes[i]);
+        sBuf_append_str(&source, source2);
+    }
+
+    sBuf_append_str(&source, "come_fd_zero(&readfds);");
+
+    for(i=0; i<num_pipes; i++) {
+        char source2[1024];
+        snprintf(source2, 1024, "come_fd_set(%s[0], &readfds);", pipes[i]);
+        sBuf_append_str(&source, source2);
+    }
+
+    sBuf_append_str(&source, "select(max_fd, &readfds, 0, 0, &tv);");
+
+
+    snprintf(source2, 1024, "if(come_fd_isset(%s[0], &readfds)) {", pipes[0]);
+    sBuf_append_str(&source, source2);
+
+    sBuf_append_str(&source, pipe_blocks[0]->mSource.mBuf);
+
+    snprintf(source2, 1024, "}");
+
+    sBuf_append_str(&source, source2);
+
+    for(i=1; i<num_pipes; i++) {
+        char source2[4096];
+        snprintf(source2, 4096, "else if(come_fd_isset(%s[0], &readfds)) {", pipes[i]);
+        sBuf_append_str(&source, source2);
+
+        sBuf_append_str(&source, pipe_blocks[i]->mSource.mBuf);
+
+        snprintf(source2, 4096, "}");
+        sBuf_append_str(&source, source2);
+    }
+
+    if(default_block) {
+        snprintf(source2, 1024, "else {");
+        sBuf_append_str(&source, source2);
+
+        sBuf_append_str(&source, default_block->mSource.mBuf);
+
+        snprintf(source2, 1024, "}");
+
+        sBuf_append_str(&source, source2);
+    }
+
+    sBuf_append_str(&source, " }");
+
+    sParserInfo pinfo;
+    memset(&pinfo, 0, sizeof(sParserInfo));
+    pinfo.p = source.mBuf;
+    char* source3 = source.mBuf;
+    pinfo.source = &source3;
+    snprintf(pinfo.sname, PATH_MAX, "select");
+    pinfo.sline = 1;
+    pinfo.lv_table = info->pinfo->lv_table;
+
+    sNodeBlock* node_block = NULL;
+    if(!parse_block_easy(&node_block, FALSE, &pinfo)) {
+        return FALSE;
+    }
+
+    if(!compile_block(node_block, info)) {
+        return FALSE;
+    }
+
+    sNodeBlock_free(node_block);
+
+    info->type = create_node_type_with_class_name("void");
+
+    return TRUE;
+}

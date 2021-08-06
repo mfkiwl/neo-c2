@@ -752,6 +752,10 @@ void free_nodes(char* sname)
                     for(i=0; i<num_pipes; i++) {
                         sNodeBlock_free(gNodes[i].uValue.sSelect.mPipeBlocks[i]);
                     }
+
+                    if(gNodes[i].uValue.sSelect.mDefaultBlock) {
+                        sNodeBlock_free(gNodes[i].uValue.sSelect.mDefaultBlock);
+                    }
                     }
                     break;
 
