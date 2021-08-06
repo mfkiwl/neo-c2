@@ -705,9 +705,31 @@ static BOOL parse_variable_name(char* buf, int buf_size, sParserInfo* info, sNod
     return TRUE;
 }
 
+BOOL parse_annotation(sParserInfo* info)
+{
+    if(*info->p == '`') {
+        info->p++;
+        skip_spaces_and_lf(info);
+
+        if(xisalpha(*info->p)) {
+            info->p++;
+            while(xisalnum(*info->p) || *info->p == '_') {
+                info->p++;
+            }
+            skip_spaces_and_lf(info);
+        }
+    }
+
+    return TRUE;
+}
+
 BOOL parse_sharp(sParserInfo* info)
 {
     skip_spaces_and_lf(info);
+
+    if(!parse_annotation(info)) {
+        return FALSE;
+    }
 
     if(*info->p == '#') {
         info->p++;

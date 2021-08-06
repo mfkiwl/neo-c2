@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.1.3
+version 1.1.4
 
 ```
 #include <come.h>
@@ -2269,7 +2269,7 @@ int main()
 
 複数のチャネルを同時に待つにはselectを使います。selectはブロックします。
 
-@m is blocked until @ n = 123 of fun is executed. $
+@m is blocked until @ n = 123 of fun is executed. 
 Use select to wait for multiple channels at the same time. select blocks.
 
 ```
@@ -2360,6 +2360,30 @@ int main()
 
 Please link with -lpthread using this functions.
 
+8. Annotation
+
+```
+int fun(bool flag) 
+{
+    if(flag) {
+        puts("TRUE");
+    }
+    else {
+        puts("FALSE");
+    }
+}
+
+int main()
+{
+    fun(false`flag);
+
+    return 0;
+}
+```
+
+`[a-zA-Z][a-zA-Z_0-9]* is a comment of expression.
+
+
 # CHANGELOG
 
 addition from version 1.0.9
@@ -2402,3 +2426,7 @@ Goのような並列処理を入れました。
 addition from version 1.1.3
 
 Added to pselect for polling-select
+
+addition from version 1.1.4
+
+Added anotation. `[a-ZA-Z0-9_]+ is comment.
