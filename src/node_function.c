@@ -546,6 +546,48 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     else if(strcmp(fun_name, "__builtin_memset") == 0) {
         xstrncpy(fun_name, "llvm.memset.p0i8.i64", VAR_NAME_MAX);
     }
+    else if(strcmp(fun_name, "__builtin_assume") == 0) {
+        xstrncpy(fun_name, "llvm.assume", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_readcyclecounter") == 0) {
+        xstrncpy(fun_name, "llvm.readcyclecounter", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_rotateleft8") == 0) {
+        xstrncpy(fun_name, "llvm.fshl.i8", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_rotateleft16") == 0) {
+        xstrncpy(fun_name, "llvm.fshl.i16", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_rotateleft32") == 0) {
+        xstrncpy(fun_name, "llvm.fshl.i32", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_rotateleft64") == 0) {
+        xstrncpy(fun_name, "llvm.fshl.i64", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_rotateright8") == 0) {
+        xstrncpy(fun_name, "llvm.fshr.i8", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_rotateright16") == 0) {
+        xstrncpy(fun_name, "llvm.fshr.i16", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_rotateright32") == 0) {
+        xstrncpy(fun_name, "llvm.fshr.i32", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_rotateright64") == 0) {
+        xstrncpy(fun_name, "llvm.fshr.i64", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_bitreverse8") == 0) {
+        xstrncpy(fun_name, "llvm.bitreverse.i8", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_bitreverse16") == 0) {
+        xstrncpy(fun_name, "llvm.bitreverse.i16", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_bitreverse32") == 0) {
+        xstrncpy(fun_name, "llvm.bitreverse.i32", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_bitreverse64") == 0) {
+        xstrncpy(fun_name, "llvm.bitreverse.i64", VAR_NAME_MAX);
+    }
 
     /// go ///
     sNodeType* param_types[PARAMS_MAX];

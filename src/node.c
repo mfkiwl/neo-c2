@@ -665,26 +665,532 @@ void init_nodes(char* sname)
         }
     }
     {
-        char* name = "__builtin_object_size";
+        char* name = "llvm.assume";
+        int num_params = 1;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "exp", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("bool");
+
+        sNodeType* result_type = create_node_type_with_class_name("void");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.readcyclecounter";
+        int num_params = 0;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        sNodeType* result_type = create_node_type_with_class_name("long");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.bitreverse.i8";
+        int num_params = 1;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("char");
+
+        sNodeType* result_type = create_node_type_with_class_name("char");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.bitreverse.i16";
+        int num_params = 1;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("short");
+
+        sNodeType* result_type = create_node_type_with_class_name("short");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.bitreverse.i32";
+        int num_params = 1;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("int");
+
+        sNodeType* result_type = create_node_type_with_class_name("int");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.bitreverse.i64";
+        int num_params = 1;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("long");
+
+        sNodeType* result_type = create_node_type_with_class_name("long");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.fshl.i8";
         int num_params = 2;
         char param_names[PARAMS_MAX][VAR_NAME_MAX];
         sNodeType* param_types[PARAMS_MAX];
         char* block_text = NULL;
         BOOL var_arg = FALSE;
 
-        xstrncpy(param_names[0], "ptr", VAR_NAME_MAX);
-        param_types[0] = create_node_type_with_class_name("void*");
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("char");
 
-        xstrncpy(param_names[1], "type", VAR_NAME_MAX);
+        xstrncpy(param_names[1], "m", VAR_NAME_MAX);
+        param_types[1] = create_node_type_with_class_name("char");
+
+        sNodeType* result_type = create_node_type_with_class_name("char");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.fshl.i16";
+        int num_params = 2;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("short");
+
+        xstrncpy(param_names[1], "m", VAR_NAME_MAX);
+        param_types[1] = create_node_type_with_class_name("short");
+
+        sNodeType* result_type = create_node_type_with_class_name("short");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.fshl.i32";
+        int num_params = 2;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("int");
+
+        xstrncpy(param_names[1], "m", VAR_NAME_MAX);
         param_types[1] = create_node_type_with_class_name("int");
 
-        sNodeType* result_type = create_node_type_with_class_name("size_t");
-        if(sizeof(size_t) == 4) {
-            result_type = create_node_type_with_class_name("int");
+        sNodeType* result_type = create_node_type_with_class_name("int");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
         }
-        else {
-            result_type = create_node_type_with_class_name("long");
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
         }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.fshl.i64";
+        int num_params = 2;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("long");
+
+        xstrncpy(param_names[1], "m", VAR_NAME_MAX);
+        param_types[1] = create_node_type_with_class_name("long");
+
+        sNodeType* result_type = create_node_type_with_class_name("long");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.fshr.i8";
+        int num_params = 2;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("char");
+
+        xstrncpy(param_names[1], "m", VAR_NAME_MAX);
+        param_types[1] = create_node_type_with_class_name("char");
+
+        sNodeType* result_type = create_node_type_with_class_name("char");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.fshr.i16";
+        int num_params = 2;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("short");
+
+        xstrncpy(param_names[1], "m", VAR_NAME_MAX);
+        param_types[1] = create_node_type_with_class_name("short");
+
+        sNodeType* result_type = create_node_type_with_class_name("short");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.fshr.i32";
+        int num_params = 2;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("int");
+
+        xstrncpy(param_names[1], "m", VAR_NAME_MAX);
+        param_types[1] = create_node_type_with_class_name("int");
+
+        sNodeType* result_type = create_node_type_with_class_name("int");
+
+        LLVMTypeRef llvm_param_types[PARAMS_MAX];
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            llvm_param_types[i] = create_llvm_type_from_node_type(param_types[i]);
+        }
+
+        LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
+
+        LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
+        LLVMValueRef llvm_fun = LLVMAddFunction(gModule, name, function_type);
+
+        char* param_names2[PARAMS_MAX];
+        for(i=0; i<num_params; i++) {
+            param_names2[i] = param_names[i];
+        }
+
+        BOOL generics_function = FALSE;
+        BOOL var_args = FALSE;
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL))
+        {
+            fprintf(stderr, "overflow function number\n");
+            exit(1);
+        }
+    }
+    {
+        char* name = "llvm.fshr.i64";
+        int num_params = 2;
+        char param_names[PARAMS_MAX][VAR_NAME_MAX];
+        sNodeType* param_types[PARAMS_MAX];
+        char* block_text = NULL;
+        BOOL var_arg = FALSE;
+
+        xstrncpy(param_names[0], "n", VAR_NAME_MAX);
+        param_types[0] = create_node_type_with_class_name("long");
+
+        xstrncpy(param_names[1], "m", VAR_NAME_MAX);
+        param_types[1] = create_node_type_with_class_name("long");
+
+        sNodeType* result_type = create_node_type_with_class_name("long");
 
         LLVMTypeRef llvm_param_types[PARAMS_MAX];
 
