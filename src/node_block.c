@@ -24,7 +24,14 @@ BOOL parse_block_easy(ALLOC sNodeBlock** node_block, BOOL extern_c_lang, sParser
     }
 
     if(!single_expression) {
-        expect_next_character_with_one_forward("}", info);
+        if(gNCType) {
+            if(*info->p != '\0') {
+                expect_next_character_with_one_forward("}", info);
+            }
+        }
+        else {
+            expect_next_character_with_one_forward("}", info);
+        }
     }
 
     info->lv_table = old_table;
@@ -414,6 +421,9 @@ BOOL skip_block(sParserInfo* info)
                 nest--;
             }
             else if(*info->p == '\0') {
+                if(gNCType) {
+                    break;
+                }
                 parser_err_msg(info, "The block requires } character for closing block");
                 info->err_num++;
                 return TRUE;

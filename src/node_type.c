@@ -123,7 +123,10 @@ void show_type_core(sNodeType* type)
     if(type->mConstant) {
         printf("const ");
     }
-    printf("class %s", CLASS_NAME(type->mClass));
+    if(type->mResultType) {
+        show_node_type(type->mResultType);
+    }
+    printf("%s", CLASS_NAME(type->mClass));
     int i;
     for(i=0; i<type->mPointerNum; i++) {
         printf("*");
@@ -146,19 +149,16 @@ void show_type_core(sNodeType* type)
         printf("?");
     }
     if(type->mChannel) {
-        printf("~");
+        printf("@");
     }
     
-    printf("(");
+    if(type->mNumParams > 0) printf("(");
     for(i=0; i<type->mNumParams; i++)
     {
         show_node_type(type->mParamTypes[i]);
         puts(" ");
     }
-    printf(")");
-    if(type->mResultType) {
-        show_node_type(type->mResultType);
-    }
+    if(type->mNumParams > 0) printf(")");
 }
 
 

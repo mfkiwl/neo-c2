@@ -1409,10 +1409,19 @@ static BOOL parse_lambda(unsigned int* node, sNodeType* result_type, sParserInfo
     }
 
     if(!single_expression) {
-        expect_next_character_with_one_forward("}", info);
+        if(gNCType) {
+            if(*info->p != '\0') {
+                expect_next_character_with_one_forward("}", info);
+            }
+        }
+        else {
+            expect_next_character_with_one_forward("}", info);
+        }
     }
 
-    expect_next_character_with_one_forward("}", info);
+    if(!gNCType && *info->p != '\0') {
+        expect_next_character_with_one_forward("}", info);
+    }
     info->lv_table = old_table;
 
     char fun_name[VAR_NAME_MAX];
@@ -3348,7 +3357,15 @@ BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, 
             return FALSE;
         }
 
-        expect_next_character_with_one_forward("}", info);
+        if(gNCType) {
+            if(*info->p != '\0') {
+                expect_next_character_with_one_forward("}", info);
+            }
+        }
+        else {
+            expect_next_character_with_one_forward("}", info);
+        }
+
         info->lv_table = old_table;
 
         BOOL lambda_ = FALSE;
@@ -4364,7 +4381,14 @@ static BOOL parse_for(unsigned int* node, sParserInfo* info)
     }
 
     if(!single_expression) {
-        expect_next_character_with_one_forward("}", info);
+        if(gNCType) {
+            if(*info->p != '\0') {
+                expect_next_character_with_one_forward("}", info);
+            }
+        }
+        else {
+            expect_next_character_with_one_forward("}", info);
+        }
     }
 
     *node = sNodeTree_for_expression(expression_node, expression_node2, expression_node3, MANAGED for_node_block, info);
