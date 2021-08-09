@@ -58,6 +58,7 @@ struct sVarTableStruct;
 /// main.c 
 //////////////////////////////
 extern BOOL gNCDebug;
+extern BOOL gNCType;
 extern char gFName[PATH_MAX];
 extern struct sVarTableStruct* gModuleVarTable;
 
@@ -299,6 +300,7 @@ struct sNodeBlockStruct
     int mExternCLang;
 
     BOOL mInCLang;
+    BOOL mTerminated;
 };
 
 typedef struct sNodeBlockStruct sNodeBlock;
@@ -922,6 +924,37 @@ BOOL compile_and(unsigned int node, sCompileInfo* info);
 BOOL compile_xor(unsigned int node, sCompileInfo* info);
 BOOL compile_or(unsigned int node, sCompileInfo* info);
 
+BOOL type_equal_or(unsigned int node, sCompileInfo* info);
+BOOL type_equal_xor(unsigned int node, sCompileInfo* info);
+BOOL type_equal_and(unsigned int node, sCompileInfo* info);
+BOOL type_equal_rshift(unsigned int node, sCompileInfo* info);
+BOOL type_equal_lshift(unsigned int node, sCompileInfo* info);
+BOOL type_equal_mod(unsigned int node, sCompileInfo* info);
+BOOL type_equal_div(unsigned int node, sCompileInfo* info);
+BOOL type_equal_mult(unsigned int node, sCompileInfo* info);
+BOOL type_equal_minus(unsigned int node, sCompileInfo* info);
+BOOL type_equal_plus(unsigned int node, sCompileInfo* info);
+BOOL type_minus_minus(unsigned int node, sCompileInfo* info);
+BOOL type_plus_plus(unsigned int node, sCompileInfo* info);
+BOOL type_complement(unsigned int node, sCompileInfo* info);
+BOOL type_add(unsigned int node, sCompileInfo* info);
+BOOL type_sub(unsigned int node, sCompileInfo* info);
+BOOL type_mult(unsigned int node, sCompileInfo* info);
+BOOL type_div(unsigned int node, sCompileInfo* info);
+BOOL type_mod(unsigned int node, sCompileInfo* info);
+BOOL type_equals(unsigned int node, sCompileInfo* info);
+BOOL type_not_equals(unsigned int node, sCompileInfo* info);
+BOOL type_gteq(unsigned int node, sCompileInfo* info);
+BOOL type_leeq(unsigned int node, sCompileInfo* info);
+BOOL type_gt(unsigned int node, sCompileInfo* info);
+BOOL type_le(unsigned int node, sCompileInfo* info);
+BOOL type_logical_denial(unsigned int node, sCompileInfo* info);
+BOOL type_left_shift(unsigned int node, sCompileInfo* info);
+BOOL type_right_shift(unsigned int node, sCompileInfo* info);
+BOOL type_and(unsigned int node, sCompileInfo* info);
+BOOL type_xor(unsigned int node, sCompileInfo* info);
+BOOL type_or(unsigned int node, sCompileInfo* info);
+
 //////////////////////////////
 /// node_var.c ///
 //////////////////////////////
@@ -969,6 +1002,9 @@ unsigned int sNodeTree_create_typedef(char* name, sNodeType* node_type, sParserI
 unsigned int sNodeTree_create_write_channel(unsigned int address_node, unsigned int right_node, sParserInfo* info);
 unsigned int sNodeTree_create_read_channel(unsigned int left_node, sParserInfo* info);
 
+BOOL is_generics_type(sNodeType* node_type);
+BOOL is_generics_struct_type(sNodeType* node_type);
+
 BOOL compile_read_channel(unsigned int node, sCompileInfo* info);
 BOOL compile_write_channel(unsigned int node, sCompileInfo* info);
 BOOL compile_load_channel_element(unsigned int node, sCompileInfo* info);
@@ -986,8 +1022,6 @@ BOOL compile_sizeof_expression(unsigned int node, sCompileInfo* info);
 BOOL compile_load_variable(unsigned int node, sCompileInfo* info);
 BOOL compile_define_variable(unsigned int node, sCompileInfo* info);
 BOOL compile_store_variable(unsigned int node, sCompileInfo* info);
-BOOL is_generics_type(sNodeType* node_type);
-BOOL is_generics_struct_type(sNodeType* node_type);
 BOOL compile_struct(unsigned int node, sCompileInfo* info);
 BOOL compile_union(unsigned int node, sCompileInfo* info);
 BOOL compile_object(unsigned int node, sCompileInfo* info);
@@ -1006,6 +1040,42 @@ BOOL compile_load_element(unsigned int node, sCompileInfo* info);
 BOOL compile_store_element(unsigned int node, sCompileInfo* info);
 BOOL compile_cast(unsigned int node, sCompileInfo* info);
 BOOL compile_typedef(unsigned int node, sCompileInfo* info);
+
+BOOL type_read_channel(unsigned int node, sCompileInfo* info);
+BOOL type_write_channel(unsigned int node, sCompileInfo* info);
+BOOL type_load_channel_element(unsigned int node, sCompileInfo* info);
+BOOL type_func_name(unsigned int node, sCompileInfo* info);
+BOOL type_load_address_value(unsigned int node, sCompileInfo* info);
+BOOL type_store_address(unsigned int node, sCompileInfo* info);
+BOOL type_is_heap(unsigned int node, sCompileInfo* info);
+BOOL type_struct_with_initialization(unsigned int node, sCompileInfo* info);
+BOOL type_array_initializer(unsigned int node, sCompileInfo* info);
+BOOL type_load_function(unsigned int node, sCompileInfo* info);
+BOOL type_alignof(unsigned int node, sCompileInfo* info);
+BOOL type_alignof_expression(unsigned int node, sCompileInfo* info);
+BOOL type_sizeof(unsigned int node, sCompileInfo* info);
+BOOL type_sizeof_expression(unsigned int node, sCompileInfo* info);
+BOOL type_load_variable(unsigned int node, sCompileInfo* info);
+BOOL type_define_variable(unsigned int node, sCompileInfo* info);
+BOOL type_store_variable(unsigned int node, sCompileInfo* info);
+BOOL type_struct(unsigned int node, sCompileInfo* info);
+BOOL type_union(unsigned int node, sCompileInfo* info);
+BOOL type_object(unsigned int node, sCompileInfo* info);
+BOOL type_delete(unsigned int node, sCompileInfo* info);
+BOOL type_borrow(unsigned int node, sCompileInfo* info);
+BOOL type_nomove(unsigned int node, sCompileInfo* info);
+BOOL type_dummy_heap(unsigned int node, sCompileInfo* info);
+BOOL type_managed(unsigned int node, sCompileInfo* info);
+BOOL type_stack_object(unsigned int node, sCompileInfo* info);
+BOOL type_store_field(unsigned int node, sCompileInfo* info);
+BOOL type_load_field(unsigned int node, sCompileInfo* info);
+BOOL type_dereffernce(unsigned int node, sCompileInfo* info);
+BOOL type_reffernce(unsigned int node, sCompileInfo* info);
+BOOL type_clone(unsigned int node, sCompileInfo* info);
+BOOL type_load_element(unsigned int node, sCompileInfo* info);
+BOOL type_store_element(unsigned int node, sCompileInfo* info);
+BOOL type_cast(unsigned int node, sCompileInfo* info);
+BOOL type_typedef(unsigned int node, sCompileInfo* info);
 
 //////////////////////////////
 /// node_value.c ///
@@ -1030,6 +1100,16 @@ BOOL compile_true(unsigned int node, sCompileInfo* info);
 BOOL compile_false(unsigned int node, sCompileInfo* info);
 BOOL compile_null(unsigned int node, sCompileInfo* info);
 
+BOOL type_c_string_value(unsigned int node, sCompileInfo* info);
+BOOL type_int_value(unsigned int node, sCompileInfo* info);
+BOOL type_uint_value(unsigned int node, sCompileInfo* info);
+BOOL type_long_value(unsigned long long int node, sCompileInfo* info);
+BOOL type_ulong_value(unsigned long long int node, sCompileInfo* info);
+BOOL type_char_value(unsigned int node, sCompileInfo* info);
+BOOL type_true(unsigned int node, sCompileInfo* info);
+BOOL type_false(unsigned int node, sCompileInfo* info);
+BOOL type_null(unsigned int node, sCompileInfo* info);
+
 //////////////////////////////
 /// node_function.c///
 //////////////////////////////
@@ -1053,17 +1133,28 @@ unsigned int sNodeTree_create_join(sParserInfo* info);
 unsigned int sNodeTree_create_generics_function(char* fun_name, sParserParam* params, int num_params, sNodeType* result_type, MANAGED char* block_text, char* struct_name, char* sname, int sline, BOOL va_arg, int version, sParserInfo* info);
 unsigned int sNodeTree_create_inline_function(char* fun_name, sParserParam* params, int num_params, sNodeType* result_type, MANAGED char* block_text, char* struct_name, char* sname, int sline, BOOL var_arg, sParserInfo* info);
 
-BOOL compile_external_function(unsigned int node, sCompileInfo* info);
+void create_real_fun_name(char* real_fun_name, size_t size_real_fun_name, char* fun_name, char* struct_name);
 void llvm_change_block(LLVMBasicBlockRef current_block, sCompileInfo* info);
 void create_generics_fun_name(char* real_fun_name, int size_real_fun_name, char* fun_name,  sNodeType* generics_type);
 BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_name, sNodeType* generics_type, sCompileInfo* info);
+
+
+BOOL compile_external_function(unsigned int node, sCompileInfo* info);
 BOOL compile_function_call(unsigned int node, sCompileInfo* info);
 BOOL compile_come_function_call(unsigned int node, sCompileInfo* info);
 BOOL compile_function(unsigned int node, sCompileInfo* info);
-void create_real_fun_name(char* real_fun_name, size_t size_real_fun_name, char* fun_name, char* struct_name);
 BOOL compile_generics_function(unsigned int node, sCompileInfo* info);
 BOOL compile_inline_function(unsigned int node, sCompileInfo* info);
 BOOL compile_lambda_call(unsigned int node, sCompileInfo* info);
+
+BOOL type_external_function(unsigned int node, sCompileInfo* info);
+BOOL type_function_call(unsigned int node, sCompileInfo* info);
+BOOL type_come_function_call(unsigned int node, sCompileInfo* info);
+BOOL type_function(unsigned int node, sCompileInfo* info);
+void create_real_fun_name(char* real_fun_name, size_t size_real_fun_name, char* fun_name, char* struct_name);
+BOOL type_generics_function(unsigned int node, sCompileInfo* info);
+BOOL type_inline_function(unsigned int node, sCompileInfo* info);
+BOOL type_lambda_call(unsigned int node, sCompileInfo* info);
 
 //////////////////////////////
 /// node_loop ///
@@ -1113,6 +1204,27 @@ BOOL compile_return(unsigned int node, sCompileInfo* info);
 BOOL compile_join(unsigned int node, sCompileInfo* info);
 BOOL compile_select(unsigned int node, sCompileInfo* info);
 BOOL compile_pselect(unsigned int node, sCompileInfo* info);
+
+BOOL type_comma(unsigned int node, sCompileInfo* info);
+BOOL type_conditional(unsigned int node, sCompileInfo* info);
+BOOL type_goto_expression(unsigned int node, sCompileInfo* info);
+BOOL type_label_expression(unsigned int node, sCompileInfo* info);
+BOOL type_continue_expression(unsigned int node, sCompileInfo* info);
+BOOL type_break_expression(unsigned int node, sCompileInfo* info);
+BOOL type_switch_expression(unsigned int node, sCompileInfo* info);
+BOOL type_case_expression(unsigned int node, sCompileInfo* info);
+BOOL type_normal_block(unsigned int node, sCompileInfo* info);
+BOOL type_nodes(unsigned int node, sCompileInfo* info);
+BOOL type_if_expression(unsigned int node, sCompileInfo* info);
+BOOL type_while_expression(unsigned int node, sCompileInfo* info);
+BOOL type_do_while_expression(unsigned int node, sCompileInfo* info);
+BOOL type_and_and(unsigned int node, sCompileInfo* info);
+BOOL type_or_or(unsigned int node, sCompileInfo* info);
+BOOL type_for_expression(unsigned int node, sCompileInfo* info);
+BOOL type_return(unsigned int node, sCompileInfo* info);
+BOOL type_join(unsigned int node, sCompileInfo* info);
+BOOL type_select(unsigned int node, sCompileInfo* info);
+BOOL type_pselect(unsigned int node, sCompileInfo* info);
 
 
 #endif

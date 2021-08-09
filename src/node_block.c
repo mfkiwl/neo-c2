@@ -191,6 +191,10 @@ BOOL parse_block(sNodeBlock* node_block, BOOL extern_c_lang, BOOL single_express
                 break;
             }
             else if(*info->p == '\0') {
+                if(gNCType) {
+                    node_block->mTerminated = TRUE;
+                    break;
+                }
                 parser_err_msg(info, "require } before the source end");
                 info->err_num++;
 
@@ -287,6 +291,10 @@ BOOL parse_block(sNodeBlock* node_block, BOOL extern_c_lang, BOOL single_express
                 break;
             }
             else if(*info->p == '\0') {
+                if(gNCType) {
+                    node_block->mTerminated = TRUE;
+                    break;
+                }
                 parser_err_msg(info, "require } before the source end");
                 info->err_num++;
                 if(!extern_c_lang) {

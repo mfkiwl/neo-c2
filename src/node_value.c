@@ -81,6 +81,7 @@ BOOL compile_int_value(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
+
 unsigned int sNodeTree_create_uint_value(int value, sParserInfo* info)
 {
     unsigned node = alloc_node();
@@ -117,8 +118,7 @@ BOOL compile_uint_value(unsigned int node, sCompileInfo* info)
     push_value_to_stack_ptr(&llvm_value, info);
 
     info->type = create_node_type_with_class_name("int");
-
-    return TRUE;
+    info->type->mUnsigned = TRUE;
 
     return TRUE;
 }
@@ -199,8 +199,7 @@ BOOL compile_ulong_value(unsigned long long int node, sCompileInfo* info)
     push_value_to_stack_ptr(&llvm_value, info);
 
     info->type = create_node_type_with_class_name("long");
-
-    return TRUE;
+    info->type->mUnsigned = TRUE;
 
     return TRUE;
 }
@@ -240,6 +239,7 @@ BOOL compile_true(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
+
 unsigned int sNodeTree_create_null(sParserInfo* info)
 {
     unsigned node = alloc_node();
@@ -276,6 +276,7 @@ BOOL compile_null(unsigned int node, sCompileInfo* info)
 
     return TRUE;
 }
+
 
 unsigned int sNodeTree_create_false(sParserInfo* info)
 {
@@ -332,3 +333,4 @@ BOOL compile_char_value(unsigned int node, sCompileInfo* info)
 
     return TRUE;
 }
+

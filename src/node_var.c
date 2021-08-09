@@ -819,7 +819,6 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-
 unsigned int sNodeTree_create_load_variable(char* var_name, sParserInfo* info)
 {
     unsigned node = alloc_node();
@@ -837,118 +836,6 @@ unsigned int sNodeTree_create_load_variable(char* var_name, sParserInfo* info)
     gNodes[node].mMiddle = 0;
 
     return node;
-}
-
-unsigned int sNodeTree_create_dereffernce(unsigned int left_node, sParserInfo* info)
-{
-    unsigned int node = alloc_node();
-
-    gNodes[node].mNodeType = kNodeTypeDerefference;
-
-    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
-    gNodes[node].mLine = info->sline;
-
-    gNodes[node].mLeft = left_node;
-    gNodes[node].mRight = 0;
-    gNodes[node].mMiddle = 0;
-
-    return node;
-}
-
-BOOL compile_dereffernce(unsigned int node, sCompileInfo* info)
-{
-    unsigned int left_node = gNodes[node].mLeft;
-
-    if(!compile(left_node, info)) {
-        return FALSE;
-    }
-
-    sNodeType* left_type = info->type;
-
-    sNodeType* derefference_type = clone_node_type(left_type);
-
-    if(derefference_type->mPointerNum == 0) {
-        compile_err_msg(info, "This is not pointer type1(%s)", CLASS_NAME(derefference_type->mClass));
-        info->err_num++;
-
-        info->type = create_node_type_with_class_name("int"); // dummy
-        return TRUE;
-    }
-
-    derefference_type->mPointerNum--;
-
-    LVALUE lvalue = *get_value_from_stack(-1);
-    dec_stack_ptr(1, info);
-
-    LVALUE llvm_value;
-    llvm_value.value = LLVMBuildLoad(gBuilder, lvalue.value, "derefference_value");
-    llvm_value.type = derefference_type;
-    llvm_value.address = lvalue.value;
-    llvm_value.var = NULL;
-    llvm_value.binded_value = FALSE;
-    llvm_value.load_field = FALSE;
-
-    push_value_to_stack_ptr(&llvm_value, info);
-
-    info->type = clone_node_type(derefference_type);
-
-    return TRUE;
-}
-
-unsigned int sNodeTree_create_reffernce(unsigned int left_node, sParserInfo* info)
-{
-    unsigned int node = alloc_node();
-
-    gNodes[node].mNodeType = kNodeTypeRefference;
-
-    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
-    gNodes[node].mLine = info->sline;
-
-    gNodes[node].mLeft = left_node;
-    gNodes[node].mRight = 0;
-    gNodes[node].mMiddle = 0;
-
-    return node;
-}
-
-BOOL compile_reffernce(unsigned int node, sCompileInfo* info)
-{
-    unsigned int left_node = gNodes[node].mLeft;
-
-    if(!compile(left_node, info)) {
-        return FALSE;
-    }
-
-    LVALUE lvalue = *get_value_from_stack(-1);
-    dec_stack_ptr(1, info);
-
-    if(lvalue.address == NULL) {
-        compile_err_msg(info, "Can't get address of this value on & operator");
-        info->err_num++;
-
-        info->type = create_node_type_with_class_name("int"); // dummy
-        return TRUE;
-    }
-
-    sNodeType* left_type = info->type;
-
-    sNodeType* refference_type = clone_node_type(left_type);
-
-    refference_type->mPointerNum++;
-
-    LVALUE llvm_value;
-    llvm_value.value = lvalue.address;
-    llvm_value.type = refference_type;
-    llvm_value.address = NULL;
-    llvm_value.var = NULL;
-    llvm_value.binded_value = FALSE;
-    llvm_value.load_field = FALSE;
-
-    push_value_to_stack_ptr(&llvm_value, info);
-
-    info->type = refference_type;
-
-    return TRUE;
 }
 
 unsigned int sNodeTree_create_clone(unsigned int left, sParserInfo* info)
@@ -1010,391 +897,114 @@ BOOL compile_clone(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-unsigned int sNodeTree_create_load_array_element(unsigned int array, unsigned int index_node[], int num_dimention, sParserInfo* info)
+unsigned int sNodeTree_create_reffernce(unsigned int left_node, sParserInfo* info)
 {
     unsigned int node = alloc_node();
 
-    gNodes[node].mNodeType = kNodeTypeLoadElement;
+    gNodes[node].mNodeType = kNodeTypeRefference;
 
     xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
     gNodes[node].mLine = info->sline;
 
-    gNodes[node].uValue.sLoadElement.mArrayDimentionNum = num_dimention;
-    int i;
-    for(i=0; i<num_dimention; i++) {
-        gNodes[node].uValue.sLoadElement.mIndex[i] = index_node[i];
-    }
-
-    gNodes[node].mLeft = array;
+    gNodes[node].mLeft = left_node;
     gNodes[node].mRight = 0;
-    gNodes[node].mMiddle = index_node[0];
+    gNodes[node].mMiddle = 0;
 
     return node;
 }
 
-BOOL compile_load_element(unsigned int node, sCompileInfo* info)
+BOOL compile_reffernce(unsigned int node, sCompileInfo* info)
 {
-    int num_dimention = gNodes[node].uValue.sLoadElement.mArrayDimentionNum;
-    int i;
-    unsigned int index_node[ARRAY_DIMENTION_MAX];
-    for(i=0; i<num_dimention; i++) {
-        index_node[i] = gNodes[node].uValue.sLoadElement.mIndex[i];
-    }
-    /// compile left node ///
-    unsigned int lnode = gNodes[node].mLeft;
+    unsigned int left_node = gNodes[node].mLeft;
 
-    if(!compile(lnode, info)) {
+    if(!compile(left_node, info)) {
+        return FALSE;
+    }
+
+    LVALUE lvalue = *get_value_from_stack(-1);
+    dec_stack_ptr(1, info);
+
+    if(lvalue.address == NULL) {
+        compile_err_msg(info, "Can't get address of this value on & operator");
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+        return TRUE;
+    }
+
+    sNodeType* left_type = info->type;
+
+    sNodeType* refference_type = clone_node_type(left_type);
+
+    refference_type->mPointerNum++;
+
+    LVALUE llvm_value;
+    llvm_value.value = lvalue.address;
+    llvm_value.type = refference_type;
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = refference_type;
+
+    return TRUE;
+}
+
+unsigned int sNodeTree_create_dereffernce(unsigned int left_node, sParserInfo* info)
+{
+    unsigned int node = alloc_node();
+
+    gNodes[node].mNodeType = kNodeTypeDerefference;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    gNodes[node].mLeft = left_node;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    return node;
+}
+
+BOOL compile_dereffernce(unsigned int node, sCompileInfo* info)
+{
+    unsigned int left_node = gNodes[node].mLeft;
+
+    if(!compile(left_node, info)) {
         return FALSE;
     }
 
     sNodeType* left_type = info->type;
 
-    LVALUE lvalue = *get_value_from_stack(-1);
+    sNodeType* derefference_type = clone_node_type(left_type);
 
-    sVar* var = lvalue.var;
-
-    if(left_type->mArrayDimentionNum == 0 && left_type->mPointerNum == 0 && left_type->mDynamicArrayNum == 0 && !left_type->mChannel)
-    {
-        compile_err_msg(info, "comelang can't get an element from this type.(1)");
+    if(derefference_type->mPointerNum == 0) {
+        compile_err_msg(info, "This is not pointer type1(%s)", CLASS_NAME(derefference_type->mClass));
         info->err_num++;
 
         info->type = create_node_type_with_class_name("int"); // dummy
-
         return TRUE;
     }
 
-    /// compile middle node ///
-    LVALUE rvalue[ARRAY_DIMENTION_MAX];
-    for(i=0; i<num_dimention; i++) {
-        unsigned int mnode = index_node[i];
+    derefference_type->mPointerNum--;
 
-        if(!compile(mnode, info)) {
-            return FALSE;
-        }
+    LVALUE lvalue = *get_value_from_stack(-1);
+    dec_stack_ptr(1, info);
 
-        sNodeType* middle_type = info->type;
+    LVALUE llvm_value;
+    llvm_value.value = LLVMBuildLoad(gBuilder, lvalue.value, "derefference_value");
+    llvm_value.type = derefference_type;
+    llvm_value.address = lvalue.value;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
 
-        rvalue[i] = *get_value_from_stack(-1);
+    push_value_to_stack_ptr(&llvm_value, info);
 
-        sNodeType* int_type = create_node_type_with_class_name("int");
-
-        if(!cast_right_type_to_left_type(int_type, &middle_type, &rvalue[i], info))
-        {
-            compile_err_msg(info, "Cast failed");
-            info->err_num++;
-
-            info->type = create_node_type_with_class_name("int"); // dummy
-
-            return TRUE;
-        }
-
-        if(!type_identify_with_class_name(middle_type, "int")) {
-            compile_err_msg(info, "Type of index should be number");
-            info->err_num++;
-
-            info->type = create_node_type_with_class_name("int"); // dummy
-
-            return TRUE;
-        }
-    }
-
-    /// generate code ///
-    sNodeType* var_type = clone_node_type(left_type);
-
-    /// go ///
-    if(left_type->mArrayDimentionNum > num_dimention) {
-        int i;
-        LLVMValueRef lvalue2 = lvalue.address;
-
-        LLVMValueRef load_element_addresss = lvalue2;
-
-        LLVMValueRef indices[left_type->mArrayDimentionNum+1];
-
-        int j;
-        for(j=0; j<left_type->mArrayDimentionNum-num_dimention; j++) {
-            LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
-            indices[j] = LLVMConstInt(llvm_type, 0, FALSE);
-        }
-        int k;
-        for(k=0; j<left_type->mArrayDimentionNum; j++, k++) {
-            indices[j] = rvalue[k].value;
-        }
-        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, left_type->mArrayDimentionNum, "gep");
-
-        for(j=0; j<left_type->mArrayDimentionNum; j++) {
-            LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
-            indices[j] = LLVMConstInt(llvm_type, 0, FALSE);
-        }
-        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, left_type->mArrayDimentionNum, "gep2");
-
-        sNodeType* element_type = clone_node_type(var_type);
-        element_type->mArrayDimentionNum = 0;
-        element_type->mDynamicArrayNum = 0;
-
-        sNodeType* node_type = clone_node_type(element_type);
-        node_type->mPointerNum -= num_dimention;
-        node_type->mPointerNum+=2;
-
-        if(node_type->mPointerNum == 0) {
-            LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
-
-            LVALUE llvm_value;
-            llvm_value.value = element_value;
-            llvm_value.type = clone_node_type(node_type);
-            llvm_value.address = load_element_addresss;
-            llvm_value.var = NULL;
-            llvm_value.binded_value = FALSE;
-            llvm_value.load_field = FALSE;
-
-            dec_stack_ptr(1+num_dimention, info);
-            push_value_to_stack_ptr(&llvm_value, info);
-
-            info->type = clone_node_type(node_type);
-        }
-        else {
-            LLVMTypeRef llvm_var_type2 = create_llvm_type_from_node_type(node_type);
-            load_element_addresss = LLVMBuildCast(gBuilder, LLVMBitCast, load_element_addresss, llvm_var_type2, "array_cast");
-            LLVMValueRef element_value = load_element_addresss;
-
-            LVALUE llvm_value;
-            llvm_value.value = element_value;
-            llvm_value.type = clone_node_type(node_type);
-            llvm_value.address = load_element_addresss;
-            llvm_value.var = NULL;
-            llvm_value.binded_value = FALSE;
-            llvm_value.load_field = FALSE;
-
-            dec_stack_ptr(1+num_dimention, info);
-            push_value_to_stack_ptr(&llvm_value, info);
-
-            info->type = clone_node_type(node_type);
-        }
-    }
-    else if(left_type->mChannel) {
-        sNodeType* element_type = create_node_type_with_class_name("int");
-
-        sNodeType* node_type = clone_node_type(element_type);
-        node_type->mPointerNum++;
-
-        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
-
-        LLVMValueRef lvalue2 = LLVMBuildCast(gBuilder, LLVMBitCast, lvalue.address, llvm_type, "array_cast");
-        LLVMValueRef load_element_addresss = LLVMBuildGEP(gBuilder, lvalue2, &rvalue[0].value, 1, "gep");
-
-        LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
-
-        LVALUE llvm_value;
-
-        llvm_value.value = element_value;
-        llvm_value.type = clone_node_type(element_type);
-        llvm_value.address = load_element_addresss;
-        llvm_value.var = NULL;
-        llvm_value.binded_value = FALSE;
-        llvm_value.load_field = FALSE;
-
-        dec_stack_ptr(1+num_dimention, info);
-        push_value_to_stack_ptr(&llvm_value, info);
-
-        info->type = clone_node_type(element_type);
-    }
-    else if(left_type->mArrayDimentionNum == 1 || left_type->mDynamicArrayNum != 0) {
-        sNodeType* element_type = clone_node_type(var_type);
-
-        element_type->mArrayDimentionNum = 0;
-        element_type->mDynamicArrayNum = 0;
-
-        sNodeType* node_type = clone_node_type(element_type);
-        node_type->mPointerNum++;
-
-        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
-
-        LLVMValueRef lvalue2 = LLVMBuildCast(gBuilder, LLVMBitCast, lvalue.address, llvm_type, "array_cast");
-        LLVMValueRef load_element_addresss = LLVMBuildGEP(gBuilder, lvalue2, &rvalue[0].value, 1, "gep");
-
-        LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
-
-        LVALUE llvm_value;
-
-        llvm_value.value = element_value;
-        llvm_value.type = clone_node_type(element_type);
-        llvm_value.address = load_element_addresss;
-        llvm_value.var = NULL;
-        llvm_value.binded_value = FALSE;
-        llvm_value.load_field = FALSE;
-
-        dec_stack_ptr(1+num_dimention, info);
-        push_value_to_stack_ptr(&llvm_value, info);
-
-        info->type = clone_node_type(element_type);
-    }
-    else if(left_type->mArrayDimentionNum == 2) {
-        LLVMValueRef lvalue2 = lvalue.address;
-
-        LLVMValueRef load_element_addresss = lvalue2;
-
-        LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
-
-        LLVMValueRef indices[2];
-
-        indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
-        indices[1] = rvalue[0].value;
-        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, 2, "gep");
-
-        indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
-        indices[1] = rvalue[1].value;
-        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, 2, "gep2");
-
-        sNodeType* element_type = clone_node_type(var_type);
-        element_type->mArrayDimentionNum = 0;
-        element_type->mDynamicArrayNum = 0;
-
-        sNodeType* node_type = clone_node_type(element_type);
-        node_type->mPointerNum -= num_dimention;
-        node_type->mPointerNum+=2;
-
-        if(node_type->mPointerNum == 0) {
-            LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
-
-            LVALUE llvm_value;
-
-            llvm_value.value = element_value;
-            llvm_value.type = clone_node_type(element_type);
-            llvm_value.address = load_element_addresss;
-            llvm_value.var = NULL;
-            llvm_value.binded_value = FALSE;
-            llvm_value.load_field = FALSE;
-
-            dec_stack_ptr(1+num_dimention, info);
-            push_value_to_stack_ptr(&llvm_value, info);
-
-            info->type = clone_node_type(element_type);
-        }
-        else {
-            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
-
-            load_element_addresss = LLVMBuildCast(gBuilder, LLVMBitCast, load_element_addresss, llvm_type, "array_cast");
-            LLVMValueRef element_value = load_element_addresss;
-
-            LVALUE llvm_value;
-
-            llvm_value.value = element_value;
-            llvm_value.type = clone_node_type(element_type);
-            llvm_value.address = load_element_addresss;
-            llvm_value.var = NULL;
-            llvm_value.binded_value = FALSE;
-            llvm_value.load_field = FALSE;
-
-            dec_stack_ptr(1+num_dimention, info);
-            push_value_to_stack_ptr(&llvm_value, info);
-
-            info->type = clone_node_type(var_type);
-        }
-    }
-    else if(left_type->mArrayDimentionNum == 3) {
-        LLVMValueRef lvalue2 = lvalue.address;
-
-        LLVMValueRef load_element_addresss = lvalue2;
-
-        LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
-
-        LLVMValueRef indices[2];
-
-        indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
-        indices[1] = rvalue[0].value;
-        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, 2, "gep");
-
-        indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
-        indices[1] = rvalue[1].value;
-
-        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, 2, "gep2");
-
-        indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
-        indices[1] = rvalue[2].value;
-
-        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, 2, "gep3");
-
-        sNodeType* element_type = clone_node_type(var_type);
-        element_type->mArrayDimentionNum = 0;
-        element_type->mDynamicArrayNum = 0;
-
-        sNodeType* node_type = clone_node_type(element_type);
-        node_type->mPointerNum -= num_dimention;
-        node_type->mPointerNum+=2;
-
-        if(node_type->mPointerNum == 0) {
-            LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
-
-            LVALUE llvm_value;
-
-            llvm_value.value = element_value;
-            llvm_value.type = clone_node_type(element_type);
-            llvm_value.address = load_element_addresss;
-            llvm_value.var = NULL;
-            llvm_value.binded_value = FALSE;
-            llvm_value.load_field = FALSE;
-
-            dec_stack_ptr(1+num_dimention, info);
-            push_value_to_stack_ptr(&llvm_value, info);
-
-            info->type = clone_node_type(element_type);
-        }
-        else {
-            LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
-
-            LVALUE llvm_value;
-
-            llvm_value.value = element_value;
-            llvm_value.type = clone_node_type(element_type);
-            llvm_value.address = load_element_addresss;
-            llvm_value.var = NULL;
-            llvm_value.binded_value = FALSE;
-            llvm_value.load_field = FALSE;
-
-            dec_stack_ptr(1+num_dimention, info);
-            push_value_to_stack_ptr(&llvm_value, info);
-
-            info->type = clone_node_type(element_type);
-        }
-    }
-    else if(left_type->mPointerNum > 0) {
-        LLVMValueRef lvalue2 = lvalue.value;
-
-        LLVMValueRef load_element_addresss = lvalue2;
-
-        LLVMValueRef element_value;
-
-        for(i=0; i<num_dimention; i++) {
-            LLVMValueRef value = rvalue[i].value;
-            load_element_addresss = LLVMBuildInBoundsGEP(gBuilder, load_element_addresss, &value, 1, "element_address");
-
-            element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
-            if(i < num_dimention-1) {
-                load_element_addresss = element_value;
-            }
-        }
-
-        sNodeType* element_type = clone_node_type(var_type);
-        element_type->mPointerNum -= num_dimention;
-
-        LVALUE llvm_value;
-        llvm_value.value = element_value;
-        llvm_value.type = clone_node_type(element_type);
-        llvm_value.address = load_element_addresss;
-        llvm_value.var = NULL;
-        llvm_value.binded_value = FALSE;
-        llvm_value.load_field = FALSE;
-
-        dec_stack_ptr(1+num_dimention, info);
-        push_value_to_stack_ptr(&llvm_value, info);
-
-        info->type = clone_node_type(element_type);
-    }
-    else {
-        compile_err_msg(info, "come lang supports under 3 dimention array. this is %d dimetion", left_type->mArrayDimentionNum);
-        return FALSE;
-    }
-
-    info->type->mHeap = FALSE;
+    info->type = clone_node_type(derefference_type);
 
     return TRUE;
 }
@@ -1667,16 +1277,6 @@ BOOL compile_store_element(unsigned int node, sCompileInfo* info)
 
     return TRUE;
 }
-
-
-
-
-
-
-
-
-
-
 
 unsigned int sNodeTree_create_character_value(char c, sParserInfo* info)
 {
@@ -2337,6 +1937,8 @@ BOOL compile_array_initializer(unsigned int node, sCompileInfo* info)
         free(values);
     }
 
+    info->type = create_node_type_with_class_name("void");
+
     return TRUE;
 }
 
@@ -2499,6 +2101,8 @@ BOOL compile_store_address(unsigned int node, sCompileInfo* info)
 
     LLVMBuildStore(gBuilder, value, address);
 
+    info->type = create_node_type_with_class_name("void");
+
     return TRUE;
 }
 
@@ -2595,6 +2199,7 @@ BOOL compile_func_name(unsigned int node, sCompileInfo* info)
 
     return TRUE;
 }
+
 
 BOOL compile_load_variable(unsigned int node, sCompileInfo* info)
 {
@@ -2787,6 +2392,8 @@ BOOL compile_struct(unsigned int node, sCompileInfo* info)
         char* struct_name = CLASS_NAME(node_type->mClass);
         create_llvm_struct_type(struct_name, node_type, NULL, undefined_body);
     }
+    
+    info->type = create_node_type_with_class_name("void");
 
     return TRUE;
 }
@@ -2817,6 +2424,8 @@ BOOL compile_union(unsigned int node, sCompileInfo* info)
     BOOL undefined_body = gNodes[node].uValue.sStruct.mUndefinedBody;
 
     create_llvm_union_type(node_type, NULL, undefined_body, info);
+
+    info->type = create_node_type_with_class_name("void");
 
     return TRUE;
 }
@@ -3222,6 +2831,7 @@ BOOL compile_dummy_heap(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
+
 unsigned int sNodeTree_create_managed(char* var_name, sParserInfo* info)
 {
     unsigned node = alloc_node();
@@ -3272,6 +2882,7 @@ BOOL compile_managed(unsigned int node, sCompileInfo* info)
 
     return TRUE;
 }
+
 
 unsigned int sNodeTree_create_stack_object(sNodeType* node_type, unsigned int object_num, char* sname, int sline, sParserInfo* info)
 {
@@ -4071,6 +3682,8 @@ BOOL compile_write_channel(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
+    info->type = create_node_type_with_class_name("void");
+
     return TRUE;
 }
 
@@ -4167,6 +3780,395 @@ BOOL compile_read_channel(unsigned int node, sCompileInfo* info)
     if(!compile(node4, info)) {
         return FALSE;
     }
+
+    return TRUE;
+}
+
+unsigned int sNodeTree_create_load_array_element(unsigned int array, unsigned int index_node[], int num_dimention, sParserInfo* info)
+{
+    unsigned int node = alloc_node();
+
+    gNodes[node].mNodeType = kNodeTypeLoadElement;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    gNodes[node].uValue.sLoadElement.mArrayDimentionNum = num_dimention;
+    int i;
+    for(i=0; i<num_dimention; i++) {
+        gNodes[node].uValue.sLoadElement.mIndex[i] = index_node[i];
+    }
+
+    gNodes[node].mLeft = array;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = index_node[0];
+
+    return node;
+}
+
+BOOL compile_load_element(unsigned int node, sCompileInfo* info)
+{
+    int num_dimention = gNodes[node].uValue.sLoadElement.mArrayDimentionNum;
+    int i;
+    unsigned int index_node[ARRAY_DIMENTION_MAX];
+    for(i=0; i<num_dimention; i++) {
+        index_node[i] = gNodes[node].uValue.sLoadElement.mIndex[i];
+    }
+    /// compile left node ///
+    unsigned int lnode = gNodes[node].mLeft;
+
+    if(!compile(lnode, info)) {
+        return FALSE;
+    }
+
+    sNodeType* left_type = info->type;
+
+    LVALUE lvalue = *get_value_from_stack(-1);
+
+    sVar* var = lvalue.var;
+
+    if(left_type->mArrayDimentionNum == 0 && left_type->mPointerNum == 0 && left_type->mDynamicArrayNum == 0 && !left_type->mChannel)
+    {
+        compile_err_msg(info, "comelang can't get an element from this type.(1)");
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+
+        return TRUE;
+    }
+
+    /// compile middle node ///
+    LVALUE rvalue[ARRAY_DIMENTION_MAX];
+    for(i=0; i<num_dimention; i++) {
+        unsigned int mnode = index_node[i];
+
+        if(!compile(mnode, info)) {
+            return FALSE;
+        }
+
+        sNodeType* middle_type = info->type;
+
+        rvalue[i] = *get_value_from_stack(-1);
+
+        sNodeType* int_type = create_node_type_with_class_name("int");
+
+        if(!cast_right_type_to_left_type(int_type, &middle_type, &rvalue[i], info))
+        {
+            compile_err_msg(info, "Cast failed");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+
+        if(!type_identify_with_class_name(middle_type, "int")) {
+            compile_err_msg(info, "Type of index should be number");
+            info->err_num++;
+
+            info->type = create_node_type_with_class_name("int"); // dummy
+
+            return TRUE;
+        }
+    }
+
+    /// generate code ///
+    sNodeType* var_type = clone_node_type(left_type);
+
+    /// go ///
+    if(left_type->mArrayDimentionNum > num_dimention) {
+        int i;
+        LLVMValueRef lvalue2 = lvalue.address;
+
+        LLVMValueRef load_element_addresss = lvalue2;
+
+        LLVMValueRef indices[left_type->mArrayDimentionNum+1];
+
+        int j;
+        for(j=0; j<left_type->mArrayDimentionNum-num_dimention; j++) {
+            LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
+            indices[j] = LLVMConstInt(llvm_type, 0, FALSE);
+        }
+        int k;
+        for(k=0; j<left_type->mArrayDimentionNum; j++, k++) {
+            indices[j] = rvalue[k].value;
+        }
+        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, left_type->mArrayDimentionNum, "gep");
+
+        for(j=0; j<left_type->mArrayDimentionNum; j++) {
+            LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
+            indices[j] = LLVMConstInt(llvm_type, 0, FALSE);
+        }
+        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, left_type->mArrayDimentionNum, "gep2");
+
+        sNodeType* element_type = clone_node_type(var_type);
+        element_type->mArrayDimentionNum = 0;
+        element_type->mDynamicArrayNum = 0;
+
+        sNodeType* node_type = clone_node_type(element_type);
+        node_type->mPointerNum -= num_dimention;
+        node_type->mPointerNum+=2;
+
+        if(node_type->mPointerNum == 0) {
+            LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
+
+            LVALUE llvm_value;
+            llvm_value.value = element_value;
+            llvm_value.type = clone_node_type(node_type);
+            llvm_value.address = load_element_addresss;
+            llvm_value.var = NULL;
+            llvm_value.binded_value = FALSE;
+            llvm_value.load_field = FALSE;
+
+            dec_stack_ptr(1+num_dimention, info);
+            push_value_to_stack_ptr(&llvm_value, info);
+
+            info->type = clone_node_type(node_type);
+        }
+        else {
+            LLVMTypeRef llvm_var_type2 = create_llvm_type_from_node_type(node_type);
+            load_element_addresss = LLVMBuildCast(gBuilder, LLVMBitCast, load_element_addresss, llvm_var_type2, "array_cast");
+            LLVMValueRef element_value = load_element_addresss;
+
+            LVALUE llvm_value;
+            llvm_value.value = element_value;
+            llvm_value.type = clone_node_type(node_type);
+            llvm_value.address = load_element_addresss;
+            llvm_value.var = NULL;
+            llvm_value.binded_value = FALSE;
+            llvm_value.load_field = FALSE;
+
+            dec_stack_ptr(1+num_dimention, info);
+            push_value_to_stack_ptr(&llvm_value, info);
+
+            info->type = clone_node_type(node_type);
+        }
+    }
+    else if(left_type->mChannel) {
+        sNodeType* element_type = create_node_type_with_class_name("int");
+
+        sNodeType* node_type = clone_node_type(element_type);
+        node_type->mPointerNum++;
+
+        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
+
+        LLVMValueRef lvalue2 = LLVMBuildCast(gBuilder, LLVMBitCast, lvalue.address, llvm_type, "array_cast");
+        LLVMValueRef load_element_addresss = LLVMBuildGEP(gBuilder, lvalue2, &rvalue[0].value, 1, "gep");
+
+        LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
+
+        LVALUE llvm_value;
+
+        llvm_value.value = element_value;
+        llvm_value.type = clone_node_type(element_type);
+        llvm_value.address = load_element_addresss;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = FALSE;
+        llvm_value.load_field = FALSE;
+
+        dec_stack_ptr(1+num_dimention, info);
+        push_value_to_stack_ptr(&llvm_value, info);
+
+        info->type = clone_node_type(element_type);
+    }
+    else if(left_type->mArrayDimentionNum == 1 || left_type->mDynamicArrayNum != 0) {
+        sNodeType* element_type = clone_node_type(var_type);
+
+        element_type->mArrayDimentionNum = 0;
+        element_type->mDynamicArrayNum = 0;
+
+        sNodeType* node_type = clone_node_type(element_type);
+        node_type->mPointerNum++;
+
+        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
+
+        LLVMValueRef lvalue2 = LLVMBuildCast(gBuilder, LLVMBitCast, lvalue.address, llvm_type, "array_cast");
+        LLVMValueRef load_element_addresss = LLVMBuildGEP(gBuilder, lvalue2, &rvalue[0].value, 1, "gep");
+
+        LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
+
+        LVALUE llvm_value;
+
+        llvm_value.value = element_value;
+        llvm_value.type = clone_node_type(element_type);
+        llvm_value.address = load_element_addresss;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = FALSE;
+        llvm_value.load_field = FALSE;
+
+        dec_stack_ptr(1+num_dimention, info);
+        push_value_to_stack_ptr(&llvm_value, info);
+
+        info->type = clone_node_type(element_type);
+    }
+    else if(left_type->mArrayDimentionNum == 2) {
+        LLVMValueRef lvalue2 = lvalue.address;
+
+        LLVMValueRef load_element_addresss = lvalue2;
+
+        LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
+
+        LLVMValueRef indices[2];
+
+        indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
+        indices[1] = rvalue[0].value;
+        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, 2, "gep");
+
+        indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
+        indices[1] = rvalue[1].value;
+        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, 2, "gep2");
+
+        sNodeType* element_type = clone_node_type(var_type);
+        element_type->mArrayDimentionNum = 0;
+        element_type->mDynamicArrayNum = 0;
+
+        sNodeType* node_type = clone_node_type(element_type);
+        node_type->mPointerNum -= num_dimention;
+        node_type->mPointerNum+=2;
+
+        if(node_type->mPointerNum == 0) {
+            LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
+
+            LVALUE llvm_value;
+
+            llvm_value.value = element_value;
+            llvm_value.type = clone_node_type(element_type);
+            llvm_value.address = load_element_addresss;
+            llvm_value.var = NULL;
+            llvm_value.binded_value = FALSE;
+            llvm_value.load_field = FALSE;
+
+            dec_stack_ptr(1+num_dimention, info);
+            push_value_to_stack_ptr(&llvm_value, info);
+
+            info->type = clone_node_type(element_type);
+        }
+        else {
+            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
+
+            load_element_addresss = LLVMBuildCast(gBuilder, LLVMBitCast, load_element_addresss, llvm_type, "array_cast");
+            LLVMValueRef element_value = load_element_addresss;
+
+            LVALUE llvm_value;
+
+            llvm_value.value = element_value;
+            llvm_value.type = clone_node_type(element_type);
+            llvm_value.address = load_element_addresss;
+            llvm_value.var = NULL;
+            llvm_value.binded_value = FALSE;
+            llvm_value.load_field = FALSE;
+
+            dec_stack_ptr(1+num_dimention, info);
+            push_value_to_stack_ptr(&llvm_value, info);
+
+            info->type = clone_node_type(var_type);
+        }
+    }
+    else if(left_type->mArrayDimentionNum == 3) {
+        LLVMValueRef lvalue2 = lvalue.address;
+
+        LLVMValueRef load_element_addresss = lvalue2;
+
+        LLVMTypeRef llvm_type = create_llvm_type_with_class_name("int");
+
+        LLVMValueRef indices[2];
+
+        indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
+        indices[1] = rvalue[0].value;
+        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, 2, "gep");
+
+        indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
+        indices[1] = rvalue[1].value;
+
+        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, 2, "gep2");
+
+        indices[0] = LLVMConstInt(llvm_type, 0, FALSE);
+        indices[1] = rvalue[2].value;
+
+        load_element_addresss = LLVMBuildGEP(gBuilder, load_element_addresss, indices, 2, "gep3");
+
+        sNodeType* element_type = clone_node_type(var_type);
+        element_type->mArrayDimentionNum = 0;
+        element_type->mDynamicArrayNum = 0;
+
+        sNodeType* node_type = clone_node_type(element_type);
+        node_type->mPointerNum -= num_dimention;
+        node_type->mPointerNum+=2;
+
+        if(node_type->mPointerNum == 0) {
+            LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
+
+            LVALUE llvm_value;
+
+            llvm_value.value = element_value;
+            llvm_value.type = clone_node_type(element_type);
+            llvm_value.address = load_element_addresss;
+            llvm_value.var = NULL;
+            llvm_value.binded_value = FALSE;
+            llvm_value.load_field = FALSE;
+
+            dec_stack_ptr(1+num_dimention, info);
+            push_value_to_stack_ptr(&llvm_value, info);
+
+            info->type = clone_node_type(element_type);
+        }
+        else {
+            LLVMValueRef element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
+
+            LVALUE llvm_value;
+
+            llvm_value.value = element_value;
+            llvm_value.type = clone_node_type(element_type);
+            llvm_value.address = load_element_addresss;
+            llvm_value.var = NULL;
+            llvm_value.binded_value = FALSE;
+            llvm_value.load_field = FALSE;
+
+            dec_stack_ptr(1+num_dimention, info);
+            push_value_to_stack_ptr(&llvm_value, info);
+
+            info->type = clone_node_type(element_type);
+        }
+    }
+    else if(left_type->mPointerNum > 0) {
+        LLVMValueRef lvalue2 = lvalue.value;
+
+        LLVMValueRef load_element_addresss = lvalue2;
+
+        LLVMValueRef element_value;
+
+        for(i=0; i<num_dimention; i++) {
+            LLVMValueRef value = rvalue[i].value;
+            load_element_addresss = LLVMBuildInBoundsGEP(gBuilder, load_element_addresss, &value, 1, "element_address");
+
+            element_value = LLVMBuildLoad(gBuilder, load_element_addresss, "element");
+            if(i < num_dimention-1) {
+                load_element_addresss = element_value;
+            }
+        }
+
+        sNodeType* element_type = clone_node_type(var_type);
+        element_type->mPointerNum -= num_dimention;
+
+        LVALUE llvm_value;
+        llvm_value.value = element_value;
+        llvm_value.type = clone_node_type(element_type);
+        llvm_value.address = load_element_addresss;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = FALSE;
+        llvm_value.load_field = FALSE;
+
+        dec_stack_ptr(1+num_dimention, info);
+        push_value_to_stack_ptr(&llvm_value, info);
+
+        info->type = clone_node_type(element_type);
+    }
+    else {
+        compile_err_msg(info, "come lang supports under 3 dimention array. this is %d dimetion", left_type->mArrayDimentionNum);
+        return FALSE;
+    }
+
+    info->type->mHeap = FALSE;
 
     return TRUE;
 }

@@ -184,6 +184,8 @@ BOOL compile_external_function(unsigned int node, sCompileInfo* info)
         }
     }
 
+    info->type = create_node_type_with_class_name("void");
+
     return TRUE;
 }
 
@@ -1507,6 +1509,11 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
+    if(gNCType && node_block->mTerminated) {
+        show_node_type(info->type);
+        return TRUE;
+    }
+
     if(gNCDebug && !info->in_generics_function && !empty_function &&info->in_inline_function && info->in_lambda_function && !info->in_thread_function) {
         finishDebugFunctionInfo();
     }
@@ -2241,6 +2248,9 @@ BOOL compile_join(unsigned int node, sCompileInfo* info)
             return FALSE;
         }
     }
+
+    info->type = create_node_type_with_class_name("void");
     
     return TRUE;
 }
+

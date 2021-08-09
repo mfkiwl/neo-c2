@@ -100,6 +100,7 @@ char* gVersion = "1.1.5";
 BOOL gNCDebug = FALSE;
 char gFName[PATH_MAX];
 sVarTable* gModuleVarTable;
+BOOL gNCType = FALSE;
 
 int main(int argc, char** argv)
 {
@@ -123,6 +124,10 @@ int main(int argc, char** argv)
         else if(strcmp(argv[i], "-g") == 0)
         {
             gNCDebug = TRUE;
+        }
+        else if(strcmp(argv[i], "type") == 0)
+        {
+            gNCType = TRUE;
         }
         else if(strstr(argv[i], "-I") == argv[i])
         {
