@@ -588,6 +588,18 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     else if(strcmp(fun_name, "__builtin_bitreverse64") == 0) {
         xstrncpy(fun_name, "llvm.bitreverse.i64", VAR_NAME_MAX);
     }
+    else if(strcmp(fun_name, "__builtin_canonicalize") == 0) {
+        xstrncpy(fun_name, "llvm.canonicalize.f64", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_canonicalizef") == 0) {
+        xstrncpy(fun_name, "llvm.canonicalize.f32", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_canonicalizel") == 0) {
+        xstrncpy(fun_name, "llvm.canonicalize.f80", VAR_NAME_MAX);
+    }
+    else if(strcmp(fun_name, "__builtin_memcpy_inline") == 0) {
+        xstrncpy(fun_name, "llvm.memcpy.inline.p0i8.p0i8.i64", VAR_NAME_MAX);
+    }
 
     /// go ///
     sNodeType* param_types[PARAMS_MAX];

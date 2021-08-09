@@ -59,6 +59,26 @@ int main()
     uint32_t rot_xr3 = __builtin_rotateright32(x33, y33);
     uint64_t rot_xr4 = __builtin_rotateright64(x44, y44);
 
+//    unsigned *xz, *yz, *zz, carryin=0, carryout;
+//    zz[0] = __builtin_addc(xz[0], yz[0], carryin, &carryout);
+
+    double xy;
+    double xzz = __builtin_canonicalize(xy);
+
+    float ax;
+    ax = __builtin_canonicalizef(ax);
+
+    long double xxx;
+    long YYY = __builtin_canonicalizel(xxx);
+
+//    void *ppppp = __builtin_memchr("foobar", 'b', 5);
+
+    void *pxy, *pxc;
+    __builtin_memcpy_inline(pxy, pxc, 128);
+
+//    char* file = __builtin_FILE();
+
+//    puts(file);
 
     return 0;
 }
