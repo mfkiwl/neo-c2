@@ -1331,6 +1331,7 @@ void init_nodes(char* sname)
             exit(1);
         }
     }
+/*
     {
         char* name = "llvm.memcpy.inline.p0i8.p0i8.i64";
         int num_params = 3;
@@ -1375,6 +1376,7 @@ void init_nodes(char* sname)
             exit(1);
         }
     }
+*/
     {
         char* name = "llvm.objectsize.i64.p0i8";
         int num_params = 4;

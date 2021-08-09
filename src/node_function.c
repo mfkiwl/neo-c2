@@ -597,9 +597,11 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     else if(strcmp(fun_name, "__builtin_canonicalizel") == 0) {
         xstrncpy(fun_name, "llvm.canonicalize.f80", VAR_NAME_MAX);
     }
+/*
     else if(strcmp(fun_name, "__builtin_memcpy_inline") == 0) {
         xstrncpy(fun_name, "llvm.memcpy.inline.p0i8.p0i8.i64", VAR_NAME_MAX);
     }
+*/
     else if(strcmp(fun_name, "__builtin_object_size") == 0) {
         xstrncpy(fun_name, "llvm.objectsize.i64.p0i8", VAR_NAME_MAX);
         num_params+=2;
