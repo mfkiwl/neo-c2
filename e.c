@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <ncurses.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -79,6 +80,10 @@ int main()
 //    char* file = __builtin_FILE();
 
 //    puts(file);
+
+    int* a = malloc(sizeof(int));
+    long size = __builtin_object_size(a, 0);
+    long size2 = __builtin_dynamic_object_size(a, 0);
 
     return 0;
 }

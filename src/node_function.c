@@ -600,6 +600,18 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     else if(strcmp(fun_name, "__builtin_memcpy_inline") == 0) {
         xstrncpy(fun_name, "llvm.memcpy.inline.p0i8.p0i8.i64", VAR_NAME_MAX);
     }
+    else if(strcmp(fun_name, "__builtin_object_size") == 0) {
+        xstrncpy(fun_name, "llvm.objectsize.i64.p0i8", VAR_NAME_MAX);
+        num_params+=2;
+        gNodes[node].uValue.sFunctionCall.mParams[2] = sNodeTree_create_true(info->pinfo);
+        gNodes[node].uValue.sFunctionCall.mParams[3] = sNodeTree_create_true(info->pinfo);
+    }
+    else if(strcmp(fun_name, "__builtin_dynamic_object_size") == 0) {
+        xstrncpy(fun_name, "llvm.objectsize.i64.p0i8", VAR_NAME_MAX);
+        num_params+=2;
+        gNodes[node].uValue.sFunctionCall.mParams[2] = sNodeTree_create_true(info->pinfo);
+        gNodes[node].uValue.sFunctionCall.mParams[3] = sNodeTree_create_true(info->pinfo);
+    }
 
     /// go ///
     sNodeType* param_types[PARAMS_MAX];
