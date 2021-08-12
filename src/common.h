@@ -954,8 +954,8 @@ unsigned int sNodeTree_create_sizeof_expression(unsigned int lnode, sParserInfo*
 unsigned int sNodeTree_create_alignof(sNodeType* node_type, sParserInfo* info);
 unsigned int sNodeTree_create_alignof_expression(unsigned int lnode, sParserInfo* info);
 unsigned int sNodeTree_create_load_variable(char* var_name, sParserInfo* info);
-unsigned int sNodeTree_create_define_variable(char* var_name, BOOL extern_, sParserInfo* info);
-unsigned int sNodeTree_create_store_variable(char* var_name, int right, BOOL alloc, sParserInfo* info);
+unsigned int sNodeTree_create_define_variable(char* var_name, BOOL extern_, BOOL global, sParserInfo* info);
+unsigned int sNodeTree_create_store_variable(char* var_name, int right, BOOL alloc, BOOL global, sParserInfo* info);
 unsigned int sNodeTree_struct(sNodeType* struct_type, sParserInfo* info, char* sname, int sline, BOOL undefined_body);
 unsigned int sNodeTree_union(sNodeType* struct_type, sParserInfo* info, char* sname, int sline, BOOL undefined_body);
 unsigned int sNodeTree_create_object(sNodeType* node_type, unsigned int object_num, int num_params, unsigned int* params, char* sname, int sline, sParserInfo* info);

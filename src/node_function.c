@@ -2029,7 +2029,8 @@ BOOL compile_come_function_call(unsigned int node, sCompileInfo* info)
     }
     
     BOOL extern_ = FALSE;
-    unsigned int node2 = sNodeTree_create_define_variable(thread_var_name, extern_, info->pinfo);
+    BOOL global = FALSE;
+    unsigned int node2 = sNodeTree_create_define_variable(thread_var_name, extern_, global, info->pinfo);
     
     if(!compile(node2, info)) {
         return FALSE;
@@ -2084,7 +2085,8 @@ BOOL compile_come_function_call(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    unsigned int node4 = sNodeTree_create_define_variable(thread_arg_var_name, FALSE, info->pinfo);
+    BOOL global2 = FALSE;
+    unsigned int node4 = sNodeTree_create_define_variable(thread_arg_var_name, FALSE, global2, info->pinfo);
 
     if(!compile(node4, info)) {
         return FALSE;

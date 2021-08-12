@@ -269,7 +269,7 @@ sStruct* get_struct_from_table(char* name)
     }
 }
 
-unsigned int sNodeTree_create_define_variable(char* var_name, BOOL extern_, sParserInfo* info)
+unsigned int sNodeTree_create_define_variable(char* var_name, BOOL extern_, BOOL global, sParserInfo* info)
 {
     unsigned node = alloc_node();
 
@@ -279,7 +279,7 @@ unsigned int sNodeTree_create_define_variable(char* var_name, BOOL extern_, sPar
     gNodes[node].mLine = info->sline;
 
     xstrncpy(gNodes[node].uValue.sDefineVariable.mVarName, var_name, VAR_NAME_MAX);
-    gNodes[node].uValue.sDefineVariable.mGlobal = info->mBlockLevel == 0;
+    gNodes[node].uValue.sDefineVariable.mGlobal = global;
     gNodes[node].uValue.sDefineVariable.mExtern = extern_;
 
     gNodes[node].mLeft = 0;
@@ -568,7 +568,7 @@ if(var_type->mPointerNum > 0) {
     return TRUE;
 }
 
-unsigned int sNodeTree_create_store_variable(char* var_name, int right, BOOL alloc, sParserInfo* info)
+unsigned int sNodeTree_create_store_variable(char* var_name, int right, BOOL alloc, BOOL global, sParserInfo* info)
 {
     unsigned node = alloc_node();
 
@@ -579,7 +579,7 @@ unsigned int sNodeTree_create_store_variable(char* var_name, int right, BOOL all
 
     xstrncpy(gNodes[node].uValue.sStoreVariable.mVarName, var_name, VAR_NAME_MAX);
     gNodes[node].uValue.sStoreVariable.mAlloc = alloc;
-    gNodes[node].uValue.sStoreVariable.mGlobal = info->mBlockLevel == 0;
+    gNodes[node].uValue.sStoreVariable.mGlobal = global;
 
     gNodes[node].mLeft = 0;
     gNodes[node].mRight = right;
@@ -3596,11 +3596,9 @@ BOOL compile_write_channel(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    int block_level = info->pinfo->mBlockLevel;
-    info->pinfo->mBlockLevel = 1;
-    
     BOOL extern_ = FALSE;
-    unsigned int node2 = sNodeTree_create_define_variable(buffer_var_name, extern_, info->pinfo);
+    BOOL global = FALSE;
+    unsigned int node2 = sNodeTree_create_define_variable(buffer_var_name, extern_, global, info->pinfo);
     
     if(!compile(node2, info)) {
         return FALSE;
@@ -3618,13 +3616,13 @@ BOOL compile_write_channel(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    unsigned int node3 = sNodeTree_create_store_variable(right_var_name, right_node, TRUE, info->pinfo);
+    BOOL alloc = TRUE;
+    BOOL global2 = info->mBlockLevel == 0;
+    unsigned int node3 = sNodeTree_create_store_variable(right_var_name, right_node, alloc, global2, info->pinfo);
     
     if(!compile(node3, info)) {
         return FALSE;
     }
-
-    info->pinfo->mBlockLevel = block_level;
 
     /// memcpy ///
     char fun_name[VAR_NAME_MAX];
@@ -3732,17 +3730,13 @@ BOOL compile_read_channel(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    int block_level = info->pinfo->mBlockLevel;
-    info->pinfo->mBlockLevel = 1;
-    
     BOOL extern_ = FALSE;
-    unsigned int node2 = sNodeTree_create_define_variable(buffer_var_name, extern_, info->pinfo);
+    BOOL global = FALSE;
+    unsigned int node2 = sNodeTree_create_define_variable(buffer_var_name, extern_, global, info->pinfo);
     
     if(!compile(node2, info)) {
         return FALSE;
     }
-
-    info->pinfo->mBlockLevel = block_level;
 
     /// read ///
     char fun_name[VAR_NAME_MAX];

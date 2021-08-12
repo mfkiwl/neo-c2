@@ -1419,7 +1419,12 @@ static BOOL parse_lambda(unsigned int* node, sNodeType* result_type, sParserInfo
         }
     }
 
-    if(!gNCType && *info->p != '\0') {
+    if(gNCType) {
+        if(*info->p != '\0') {
+            expect_next_character_with_one_forward("}", info);
+        }
+    }
+    else {
         expect_next_character_with_one_forward("}", info);
     }
     info->lv_table = old_table;
@@ -1498,7 +1503,8 @@ static BOOL parse_enum(unsigned int* node, char* name, int name_size, BOOL* term
                 unsigned int right_node = sNodeTree_create_int_value(value, info);
 
                 BOOL alloc_ = TRUE;
-                unsigned int node = sNodeTree_create_store_variable(var_name, right_node, alloc_, info);
+                BOOL global = info->mBlockLevel == 0;
+                unsigned int node = sNodeTree_create_store_variable(var_name, right_node, alloc_, global, info);
 
                 sNodeType* result_type = create_node_type_with_class_name("int");
                 result_type->mConstant = TRUE;
@@ -2819,7 +2825,7 @@ static BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* nam
             info->no_comma_operator = no_comma_operator;
 
             if(info->mBlockLevel == 0) {
-                *node = sNodeTree_create_define_variable(name, extern_, info);
+                *node = sNodeTree_create_define_variable(name, extern_, info->mBlockLevel == 0, info);
 
                 *node = sNodeTree_create_array_initializer(name, num_initialize_array_value, initialize_array_values, *node, info);
             }
@@ -2827,7 +2833,7 @@ static BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* nam
                 unsigned int nodes[INIT_ARRAY_MAX+128];
                 int num_nodes = 0;
 
-                nodes[num_nodes++] = sNodeTree_create_define_variable(name, extern_, info);
+                nodes[num_nodes++] = sNodeTree_create_define_variable(name, extern_, info->mBlockLevel == 0, info);
 
                 unsigned int array_node = sNodeTree_create_load_variable(name, info);
 
@@ -2931,7 +2937,8 @@ static BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* nam
                 *node = 0;
             }
             else {
-                *node = sNodeTree_create_store_variable(name, right_node, TRUE, info);
+                BOOL global = info->mBlockLevel == 0;
+                *node = sNodeTree_create_store_variable(name, right_node, TRUE, global, info);
             }
         }
     }
@@ -2946,7 +2953,7 @@ static BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* nam
             *node = 0;
         }
         else {
-            *node = sNodeTree_create_define_variable(name, extern_, info);
+            *node = sNodeTree_create_define_variable(name, extern_, info->mBlockLevel == 0, info);
         }
     }
 
@@ -5289,7 +5296,8 @@ static BOOL parse_var(unsigned int* node, sParserInfo* info, BOOL readonly)
             *node = 0;
         }
         else {
-            *node = sNodeTree_create_store_variable(buf, right_node, TRUE, info);
+            BOOL global = info->mBlockLevel == 0;
+            *node = sNodeTree_create_store_variable(buf, right_node, TRUE, global, info);
         }
     }
     else {
@@ -5576,7 +5584,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
             *node = sNodeTree_create_add(left_node, right_node, 0, info);
 
-            *node = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+            BOOL global = info->mBlockLevel == 0;
+            *node = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
         }
         else if(gNodes[exp].mNodeType == kNodeTypeLoadField)
         {
@@ -5620,7 +5629,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
             *node = sNodeTree_create_sub(left_node, right_node, 0, info);
 
-            *node = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+            BOOL global = info->mBlockLevel == 0;
+            *node = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
         }
         else if(gNodes[exp].mNodeType == kNodeTypeLoadField)
         {
@@ -6331,7 +6341,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                     *node = 0;
                 }
                 else {
-                    *node = sNodeTree_create_store_variable(buf, right_node, FALSE, info);
+                    BOOL global = info->mBlockLevel == 0;
+                    *node = sNodeTree_create_store_variable(buf, right_node, FALSE, global, info);
                 }
             }
             else if(*info->p == '+' && *(info->p+1) == '+')
@@ -6349,7 +6360,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_add(left_node, right_node, 0, info);
 
-                unsigned int left_node2 = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                unsigned int left_node2 = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
 
                 unsigned int right_node2 = sNodeTree_create_int_value(1, info);
 
@@ -6379,7 +6391,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_sub(left_node, right_node, 0, info);
 
-                unsigned int left_node2 = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                unsigned int left_node2 = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
 
                 unsigned int right_node2 = sNodeTree_create_int_value(1, info);
 
@@ -6403,7 +6416,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_add(left_node, right_node, 0, info);
 
-                unsigned int left_node2 = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                unsigned int left_node2 = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
 
                 *node = sNodeTree_create_sub(left_node2, right_node, 0, info);
             }
@@ -6425,7 +6439,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_sub(left_node, right_node, 0, info);
 
-                unsigned int left_node2 = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                unsigned int left_node2 = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
 
                 *node = sNodeTree_create_add(left_node2, right_node, 0, info);
             }
@@ -6447,7 +6462,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_mult(left_node, right_node, 0, info);
 
-                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
             }
             else if(*info->p == '/' && *(info->p+1) == '=')
             {
@@ -6467,7 +6483,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_div(left_node, right_node, 0, info);
 
-                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
             }
             else if(*info->p == '%' && *(info->p+1) == '=')
             {
@@ -6487,7 +6504,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_mod(left_node, right_node, 0, info);
 
-                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
             }
             else if(*info->p == '<' && *(info->p+1) == '<' && *(info->p+2) == '=')
             {
@@ -6507,7 +6525,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_left_shift(left_node, right_node, 0, info);
 
-                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
             }
             else if(*info->p == '>' && *(info->p+1) == '>' && *(info->p+2) == '=')
             {
@@ -6527,7 +6546,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_right_shift(left_node, right_node, 0, info);
 
-                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
             }
             else if(*info->p == '&' && *(info->p+1) == '=')
             {
@@ -6547,7 +6567,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_and(left_node, right_node, 0, info);
 
-                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
             }
             else if(*info->p == '^' && *(info->p+1) == '=')
             {
@@ -6567,7 +6588,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_xor(left_node, right_node, 0, info);
 
-                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
             }
             else if(*info->p == '|' && *(info->p+1) == '=')
             {
@@ -6587,7 +6609,8 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
 
                 *node = sNodeTree_create_or(left_node, right_node, 0, info);
 
-                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, info);
+                BOOL global = info->mBlockLevel == 0;
+                *node = sNodeTree_create_store_variable(var_name, *node, FALSE, global, info);
             }
             else if(*info->p == '(')
             {

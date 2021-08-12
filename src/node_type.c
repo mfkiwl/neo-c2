@@ -124,9 +124,20 @@ void show_type_core(sNodeType* type)
         printf("const ");
     }
     if(type->mResultType) {
-        show_node_type(type->mResultType);
+        show_type_core(type->mResultType);
+        printf(" ");
     }
-    printf("%s", CLASS_NAME(type->mClass));
+    sCLClass* klass = type->mClass;
+    if(klass->mFlags & CLASS_FLAGS_UNION) {
+        printf("union ");
+    }
+    if(klass->mFlags & CLASS_FLAGS_ENUM) {
+        printf("enum ");
+    }
+    if(klass->mFlags & CLASS_FLAGS_STRUCT) {
+        printf("struct ");
+    }
+    printf("%s", CLASS_NAME(klass));
     int i;
     for(i=0; i<type->mPointerNum; i++) {
         printf("*");
@@ -159,6 +170,25 @@ void show_type_core(sNodeType* type)
         puts(" ");
     }
     if(type->mNumParams > 0) printf(")");
+    if((klass->mFlags & CLASS_FLAGS_STRUCT) || (klass->mFlags & CLASS_FLAGS_UNION)) {
+        puts("");
+        int i;
+        for(i=0; i<klass->mNumFields; i++) {
+            char* field_name = klass->mFieldName[i];
+            sNodeType* field_type = klass->mFields[i];
+
+            printf("#%d ", i);
+            show_type_core(field_type);
+            printf(" ");
+            if(i == klass->mNumFields -1) {
+                printf("%s", field_name);
+            }
+            else {
+                puts(field_name);
+            }
+        }
+        
+    }
 }
 
 
