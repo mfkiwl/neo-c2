@@ -97,6 +97,9 @@ void classes_free()
             if(gClasses[i].mFields) {
                 free(gClasses[i].mFields);
             }
+            for(j=0; j<gClasses[i].mNumElementNum; j++) {
+                free(gClasses[i].mEnumElementNames[j]);
+            }
         }
     }
 
@@ -290,9 +293,17 @@ sCLClass* alloc_struct(char* class_name_, BOOL anonymous)
     return klass;
 }
 
-sCLClass* alloc_enum(char* class_name_)
+sCLClass* alloc_enum(char* class_name_, int num_element, char** element_names, int* element_values)
 {
     sCLClass* klass = alloc_class(class_name_, FALSE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, TRUE, FALSE);
+
+    klass->mNumElementNum = num_element;
+
+    int i;
+    for(i=0; i<num_element; i++) {
+        klass->mEnumElementNames[i] = strdup(element_names[i]);
+        klass->mEnumElementValues[i] = element_values[i];
+    }
 
     return klass;
 }

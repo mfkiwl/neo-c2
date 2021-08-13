@@ -1462,6 +1462,9 @@ static BOOL parse_enum(unsigned int* node, char* name, int name_size, BOOL* term
     BOOL no_comma_operator = info->no_comma_operator;
     info->no_comma_operator = TRUE;
 
+    int num_element = 0;
+    char** element_names = calloc(1, sizeof(char*)*ENUM_ELEMENT_MAX);
+    int* element_values = calloc(1, sizeof(int)*ENUM_ELEMENT_MAX);
     int value = 0;
 
     while(TRUE) {
@@ -1542,6 +1545,16 @@ static BOOL parse_enum(unsigned int* node, char* name, int name_size, BOOL* term
             break;
         }
 
+        element_values[num_element] = value;
+        element_names[num_element] = strdup(var_name);
+
+        if(num_element >= ENUM_ELEMENT_MAX) {
+            fprintf(stderr, "overflow enum element number\n");
+            exit(2);
+        }
+
+        num_element++;
+
         value++;
     }
 
@@ -1558,9 +1571,16 @@ static BOOL parse_enum(unsigned int* node, char* name, int name_size, BOOL* term
 
     *node = sNodeTree_create_null(info);
 
-    (void)alloc_enum(name);
+    (void)alloc_enum(name, num_element, element_names, element_values);
 
     info->no_comma_operator = no_comma_operator;
+
+    int k;
+    for(k=0; k<num_element; k++) {
+        free(element_names[k]);
+    }
+    free(element_names);
+    free(element_values);
 
     return TRUE;
 }
@@ -2721,10 +2741,12 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
         }
     }
 
+/*
     if((*result_type)->mClass->mFlags & CLASS_FLAGS_ENUM)
     {
         (*result_type)->mClass = get_class("int");
     }
+*/
 
     return TRUE;
 }

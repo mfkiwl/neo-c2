@@ -43,6 +43,7 @@
 #define FUN_VERSION_MAX 512
 #define STRUCT_FIELD_MAX 2048
 #define SELECT_MAX 64
+#define ENUM_ELEMENT_MAX 512
 
 #define clint64 long long      // for 32 bit cpu
 
@@ -117,6 +118,10 @@ struct sCLClassStruct {
     void* mUndefinedStructType;
 
     int mVersion;
+
+    char* mEnumElementNames[ENUM_ELEMENT_MAX];
+    int mEnumElementValues[ENUM_ELEMENT_MAX];
+    int mNumElementNum;
 };
 
 #define CLASS_NAME(klass) (klass->mName)
@@ -128,7 +133,7 @@ void class_final();
 
 sCLClass* get_class(char* class_name);
 sCLClass* alloc_struct(char* class_name, BOOL anonymous);
-sCLClass* alloc_enum(char* class_name);
+sCLClass* alloc_enum(char* class_name_, int num_element, char** element_names, int* element_values);
 void add_fields_to_struct(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct** fields);
 sCLClass* alloc_union(char* class_name, BOOL anonymous, BOOL anonymous_var_name);
 void add_fields_to_union(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct** fields);

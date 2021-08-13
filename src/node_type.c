@@ -194,6 +194,17 @@ void show_type_core(sNodeType* type)
             }
         }
     }
+    if(klass->mFlags & CLASS_FLAGS_ENUM) {
+        puts("");
+        int i;
+        for(i=0; i<klass->mNumElementNum; i++) {
+            printf("%s %d", klass->mEnumElementNames[i], klass->mEnumElementValues[i]);
+
+            if(i != klass->mNumElementNum -1) {
+                puts("");
+            }
+        }
+    }
 }
 
 
