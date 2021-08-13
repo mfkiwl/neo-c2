@@ -22,6 +22,12 @@ enum eA {
 
 typedef int tType;
 
+struct sB {
+    int a;
+    char* b;
+    struct sB* c;
+};
+
 int main()
 {
     int a = 1;
@@ -34,9 +40,12 @@ int main()
     union uA c;
     c;
 
-    tType e;
+    tType d;
+    d;
+
+    eA e;
     e;
 
-    eA d;
-    d;
+    sB f;
+    f;
 

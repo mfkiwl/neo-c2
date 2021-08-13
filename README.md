@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.1.5
+version 1.1.6
 
 ```
 #include <come.h>
@@ -2383,6 +2383,33 @@ int main()
 
 `[a-zA-Z][a-zA-Z_0-9]* is a comment of expression.
 
+8. Reflection
+
+```
+> vim a.c
+struct sB {
+    int a;
+    char* b;
+    struct sB* c;
+};
+
+int main() {
+    sB b;
+    b;
+> come type a.c
+struct sB
+#0 int a
+#1 char* b
+#2 struct sB*
+```
+
+come type file name outputs the type of last expression and the type inner contents. It's useful for reflection. You will make a program output a program with any script languaged or comelang its self.
+
+come type ファイル名で最後の式の型とその内容を出力することができます。これはリフレクションで便利です。プログラムを生成するプログラムを任意のスクリプト言語やcomelang自身で作ることができるでしょう。
+
+`[a-zA-Z][a-zA-Z_0-9]* is a comment of expression.
+
+
 
 # CHANGELOG
 
@@ -2430,3 +2457,8 @@ Added to pselect for polling-select
 addition from version 1.1.4
 
 Added anotation. `[a-ZA-Z0-9_]+ is comment.
+
+addition from version 1.1.6
+
+Added refrection. come type file-name outputs the type of last expression and its inner infomation.
+8. Reflection

@@ -120,16 +120,30 @@ sNodeType* clone_node_type(sNodeType* node_type)
     return node_type2;
 }
 
-void show_type_core(sNodeType* type) 
+void show_type_core(sNodeType* type, int num_classes, char** classes, BOOL no_output_fields) 
 {
+    sCLClass* klass = type->mClass;
+    char* class_name = CLASS_NAME(klass);
+
+    int i;
+    for(i=0; i<num_classes; i++) {
+        char* class_name2 = classes[num_classes];
+
+        if(strcmp(class_name, class_name2) == 0) {
+            return;
+        }
+    }
+
+    xstrncpy(classes[num_classes], class_name, VAR_NAME_MAX);
+    num_classes++;
+
     if(type->mConstant) {
         printf("const ");
     }
     if(type->mResultType) {
-        show_type_core(type->mResultType);
+        show_type_core(type->mResultType, num_classes, classes, no_output_fields);
         printf(" ");
     }
-    sCLClass* klass = type->mClass;
     if(klass->mFlags & CLASS_FLAGS_UNION) {
         printf("union ");
     }
@@ -144,7 +158,6 @@ void show_type_core(sNodeType* type)
     if(strcmp(type->mOriginalTypeName, "") != 0) {
         printf(" typedef %s", type->mOriginalTypeName);
     }
-    int i;
     for(i=0; i<type->mPointerNum; i++) {
         printf("*");
     }
@@ -158,7 +171,7 @@ void show_type_core(sNodeType* type)
         printf("<");
         int i;
         for(i=0; i<type->mNumGenericsTypes; i++) {
-            show_type_core(type->mGenericsTypes[i]);
+            show_type_core(type->mGenericsTypes[i], num_classes, classes, no_output_fields);
         }
         printf(">");
     }
@@ -176,21 +189,48 @@ void show_type_core(sNodeType* type)
         puts(" ");
     }
     if(type->mNumParams > 0) printf(")");
-    if((klass->mFlags & CLASS_FLAGS_STRUCT) || (klass->mFlags & CLASS_FLAGS_UNION)) {
+    if(!no_output_fields && ((klass->mFlags & CLASS_FLAGS_STRUCT) || (klass->mFlags & CLASS_FLAGS_UNION))) {
         puts("");
         int i;
         for(i=0; i<klass->mNumFields; i++) {
             char* field_name = klass->mFieldName[i];
             sNodeType* field_type = klass->mFields[i];
 
+            char* class_name = CLASS_NAME(field_type->mClass);
+
+            int j;
+            BOOL nest = FALSE;
+            for(j=0; j<num_classes; j++) {
+                char* class_name2 = classes[j];
+
+                if(strcmp(class_name, class_name2) == 0) {
+                    nest = TRUE;
+                }
+            }
+
+            xstrncpy(classes[num_classes], class_name, VAR_NAME_MAX);
+            num_classes++;
+
+            if(num_classes >= 128) {
+                fprintf(stderr, "overflow class\n");
+                exit(2);
+            }
+
             printf("#%d ", i);
-            show_type_core(field_type);
-            printf(" ");
-            if(i == klass->mNumFields -1) {
-                printf("%s", field_name);
+            if(nest) {
+                BOOL no_output_fields = TRUE;
+                show_type_core(field_type, num_classes, classes, no_output_fields);
             }
             else {
-                puts(field_name);
+                show_type_core(field_type, num_classes, classes, no_output_fields);
+
+                printf(" ");
+                if(i == klass->mNumFields -1) {
+                    printf("%s", field_name);
+                }
+                else {
+                    puts(field_name);
+                }
             }
         }
     }
@@ -210,7 +250,23 @@ void show_type_core(sNodeType* type)
 
 void show_node_type(sNodeType* type)
 {
-    show_type_core(type);
+    char classes[128][VAR_NAME_MAX];
+    char* classes2[128];
+    int j;
+    for(j=0; j<128; j++) {
+        classes2[j] = classes[j];
+    }
+    int num_classes = 0;
+
+    char* class_name = CLASS_NAME(type->mClass);
+
+    if(type->mClass->mFlags & CLASS_FLAGS_STRUCT || type->mClass->mFlags & CLASS_FLAGS_UNION) {
+        xstrncpy(classes2[num_classes], class_name, VAR_NAME_MAX);
+        num_classes++;
+    }
+
+    BOOL no_output_fields = FALSE;
+    show_type_core(type, num_classes, classes2, no_output_fields);
     puts("");
 }
 

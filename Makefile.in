@@ -220,6 +220,7 @@ test:
 	./code/HelloWorld6
 	PWD=`pwd` ./come code/HelloWorld7.c && $(CC) -o code/HelloWorld7 code/HelloWorld7.c.ll -lpthread
 	./code/HelloWorld7
+	./come type f.c
 
 debug-test: 
 	@echo "Compile to test code..."
@@ -237,6 +238,7 @@ debug-test:
 	./code/HelloWorld6
 	PWD=`pwd` ./come -g code/HelloWorld7.c && $(CC) -g -o code/HelloWorld7 code/HelloWorld7.c.ll -lpthread
 	./code/HelloWorld7
+	./come type f.c
 
 #########################################
 # uninstall
