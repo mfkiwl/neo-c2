@@ -2069,6 +2069,8 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
 #endif
 
             if(*result_type != NULL) {
+                xstrncpy((*result_type)->mOriginalTypeName, type_name, VAR_NAME_MAX);
+
                 if(strcmp(CLASS_NAME((*result_type)->mClass), "long") == 0)
                 {
                     long_long = TRUE;

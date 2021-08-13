@@ -97,6 +97,8 @@ sNodeType* clone_node_type(sNodeType* node_type)
     node_type2->mTypeOfExpression = node_type->mTypeOfExpression;
     node_type2->mConstant = node_type->mConstant;
 
+    xstrncpy(node_type2->mOriginalTypeName, node_type->mOriginalTypeName, VAR_NAME_MAX);
+
     if(node_type->mResultType) {
         node_type2->mResultType = clone_node_type(node_type->mResultType);
     }
@@ -138,6 +140,10 @@ void show_type_core(sNodeType* type)
         printf("struct ");
     }
     printf("%s", CLASS_NAME(klass));
+
+    if(strcmp(type->mOriginalTypeName, "") != 0) {
+        printf(" typedef %s", type->mOriginalTypeName);
+    }
     int i;
     for(i=0; i<type->mPointerNum; i++) {
         printf("*");
@@ -187,7 +193,6 @@ void show_type_core(sNodeType* type)
                 puts(field_name);
             }
         }
-        
     }
 }
 

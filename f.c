@@ -1,4 +1,4 @@
-#include <come.h>
+//#include <come.h>
 
 struct sA {
     int a;
@@ -20,6 +20,8 @@ enum eA {
     kA, kB, kC
 };
 
+typedef int tType;
+
 int main()
 {
     int a = 1;
@@ -31,6 +33,9 @@ int main()
 
     union uA c;
     c;
+
+    tType e;
+    e;
 
     eA d;
     d;

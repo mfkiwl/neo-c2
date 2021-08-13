@@ -182,6 +182,8 @@ struct sNodeTypeStruct {
 
     char mTypeName[VAR_NAME_MAX];
     int mTypePointerNum;
+
+    char mOriginalTypeName[VAR_NAME_MAX];
 };
 
 typedef struct sNodeTypeStruct sNodeType;
