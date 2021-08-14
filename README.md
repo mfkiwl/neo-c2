@@ -2469,12 +2469,12 @@ tType2 int
 
 9. MACRO
 
+~~~
 ```
-\```
 ruby <<EOS
     puts("int gGlobal2;");
 EOS
-\```
+```
 ```
 
 The output of the enclosed code is pasted into the source code. With this and reflection, you'll be able to generate code with reflection at compile time.
@@ -2487,21 +2487,21 @@ Do not expand macros with the -n option.
 
 Compile Time Reflection and code generation is below:
 
-```
+~~~
 > vim g.c
 int gGlobal;
 
 
-\```
+```
 ruby <<EOS
     type = "`./come -n global g.c | grep gGlobal`".split()[1];
     puts(type + " gGlobal2;");
 EOS
-\```
+```
 > come global g.c
 gGlobal int
 gGlobal2 int
-```
+~~~
 
 # CHANGELOG
 
