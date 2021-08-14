@@ -1,4 +1,4 @@
-//#include <come.h>
+#include <come.h>
 
 struct sA {
     int a;
@@ -27,6 +27,16 @@ struct sB {
     char* b;
     struct sB* c;
 };
+
+int gGlobal1;
+char* gGlobal2;
+
+sB* gGlobal3;
+
+int fun2(int x, int y)
+{
+    return x + y;
+}
 
 int main()
 {

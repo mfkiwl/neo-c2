@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.1.6
+version 1.1.7
 
 ```
 #include <come.h>
@@ -2407,9 +2407,34 @@ come type file name outputs the type of last expression and the type inner conte
 
 come type ファイル名で最後の式の型とその内容を出力することができます。これはリフレクションで便利です。プログラムを生成するプログラムを任意のスクリプト言語やcomelang自身で作ることができるでしょう。
 
-`[a-zA-Z][a-zA-Z_0-9]* is a comment of expression.
+```
+> vim a.c
+int gGlobal1;
+int gGlobal2;
+> come global a.c
+gGlobal1 int
+gGlobal2 int
+```
 
+```
+> vim a.c
+int fun(int a, int b)
+{
+    return a + b;
+}
 
+int fun2()
+{
+    return 123;
+}
+> come function a.c
+fun extern 0 var args 0 gnerics function 0 num params 2
+a int
+b int
+result type int
+fun2 extern 0 var args 0 gnerics function 0 num params 0
+result type int
+```
 
 # CHANGELOG
 
@@ -2461,4 +2486,7 @@ Added anotation. `[a-ZA-Z0-9_]+ is comment.
 addition from version 1.1.6
 
 Added refrection. come type file-name outputs the type of last expression and its inner infomation.
-8. Reflection
+
+addition from version 1.1.7
+
+Added refrection. come global file-name outputs the type and the name of global variables. come function file-name outputs the type and the name of functions.

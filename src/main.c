@@ -96,11 +96,13 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     return TRUE;
 }
 
-char* gVersion = "1.1.6";
+char* gVersion = "1.1.7";
 BOOL gNCDebug = FALSE;
 char gFName[PATH_MAX];
 sVarTable* gModuleVarTable;
 BOOL gNCType = FALSE;
+BOOL gNCGlobal = FALSE;
+BOOL gNCFunction = FALSE;
 
 int main(int argc, char** argv)
 {
@@ -127,6 +129,16 @@ int main(int argc, char** argv)
         }
         else if(strcmp(argv[i], "type") == 0)
         {
+            gNCType = TRUE;
+        }
+        else if(strcmp(argv[i], "global") == 0)
+        {
+            gNCGlobal = TRUE;
+            gNCType = TRUE;
+        }
+        else if(strcmp(argv[i], "function") == 0)
+        {
+            gNCFunction = TRUE;
             gNCType = TRUE;
         }
         else if(strstr(argv[i], "-I") == argv[i])

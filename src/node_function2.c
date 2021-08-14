@@ -34,6 +34,44 @@ void free_funcs()
     free(gFuncs);
 }
 
+void show_func(sFunction* fun, BOOL code)
+{
+    printf("%s ", fun->mName);
+    if(fun->mAsmFunName) {
+        printf("asm fun name %s ", fun->mAsmFunName);
+    }
+    printf("extern %d var args %d gnerics function %d ", fun->mExtern, fun->mVarArgs, fun->mGenericsFunction);
+
+    printf("num params %d\n", fun->mNumParams);
+
+    int j;
+    for(j=0; j<fun->mNumParams; j++) {
+        printf("%s ", fun->mParamNames[j]);
+        show_node_type(fun->mParamTypes[j]);
+    }
+
+    printf("result type ");
+    show_node_type(fun->mResultType);
+
+    if(fun->mNumGenerics > 0) {
+        printf("num gererincs %d\n", fun->mNumGenerics);
+
+        for(j=0; j<fun->mNumGenerics; j++) {
+            puts(fun->mGenericsTypeNames[j]);
+        }
+    }
+}
+
+void show_funcs()
+{
+    int i;
+    for(i=0; i<gSizeFuncs; i++) {
+        if(gFuncs[i].mName && gFuncs[i].mUser) {
+            show_func(&gFuncs[i], FALSE);
+        }
+    }
+}
+
 void node_function_final()
 {
     free_funcs();
@@ -101,7 +139,7 @@ void rehash_funcs()
     gSizeFuncs = new_size_funcs;
 }
 
-BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name)
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name, BOOL user)
 {
     if(gNumFuncs >= gSizeFuncs/3) {
         rehash_funcs();
@@ -129,6 +167,7 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
             p->mVarArgs = var_args;
             p->mNumGenerics = num_generics;
             p->mExtern = extern_;
+            p->mUser = user;
 
             for(i=0; i<num_generics; i++) {
                 p->mGenericsTypeNames[i] = strdup(generics_type_names[i]);
@@ -178,6 +217,7 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
                 p->mVarArgs = var_args;
                 p->mNumGenerics = num_generics;
                 p->mExtern = extern_;
+                p->mUser = user;
 
                 for(i=0; i<num_generics; i++) {
                     p->mGenericsTypeNames[i] = strdup(generics_type_names[i]);

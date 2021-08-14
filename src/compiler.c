@@ -149,5 +149,31 @@ BOOL compile_source(char* fname, char** source, BOOL optimize, sVarTable* module
 
     free(info.mConst.mBuf);
 
+    if(gNCGlobal) {
+        sVarTable* table = module_var_table;
+
+        sVar* p;
+
+        p = table->mLocalVariables;
+
+        while(1) {
+            if(p->mName[0] != 0) {
+                printf("%s ", p->mName);
+                show_node_type(p->mType);
+            }
+
+            p++;
+
+            if(p == table->mLocalVariables + LOCAL_VARIABLE_MAX) {
+                break;
+            }
+        }
+    }
+
+    if(gNCFunction) {
+        show_funcs();
+    }
+
     return TRUE;
 }
+

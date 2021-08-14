@@ -145,7 +145,7 @@ BOOL compile_external_function(unsigned int node, sCompileInfo* info)
             }
 
             BOOL generics_function = FALSE;
-            if(!add_function_to_table(old_fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, TRUE, asm_fun_name)) {
+            if(!add_function_to_table(old_fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, TRUE, asm_fun_name, TRUE)) {
                 fprintf(stderr, "overflow function table\n");
                 return FALSE;
             }
@@ -178,7 +178,7 @@ BOOL compile_external_function(unsigned int node, sCompileInfo* info)
         }
 
         BOOL generics_function = FALSE;
-        if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, TRUE, asm_fun_name)) {
+        if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, TRUE, asm_fun_name, TRUE)) {
             fprintf(stderr, "overflow function table\n");
             return FALSE;
         }
@@ -1463,7 +1463,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     }
 
     BOOL generics_function = FALSE;
-    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, FALSE, asm_fun_name)) {
+    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, FALSE, asm_fun_name, TRUE)) {
         fprintf(stderr, "overflow function table\n");
         info->function_node_block = function_node_block;
         return FALSE;
@@ -1510,7 +1510,9 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     }
 
     if(gNCType && node_block->mTerminated) {
-        show_node_type(info->type);
+        if(!gNCGlobal && !gNCFunction) {
+            show_node_type(info->type);
+        }
         return TRUE;
     }
 
@@ -1722,7 +1724,7 @@ BOOL compile_generics_function(unsigned int node, sCompileInfo* info)
 
     LLVMValueRef llvm_fun = NULL;
     BOOL generics_function = TRUE;
-    if(!add_function_to_table(real_fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, num_generics, generics_type_names2, FALSE, NULL)) {
+    if(!add_function_to_table(real_fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, num_generics, generics_type_names2, FALSE, NULL, TRUE)) {
         return TRUE;
     }
     
@@ -1833,7 +1835,7 @@ BOOL compile_inline_function(unsigned int node, sCompileInfo* info)
     }
 
     BOOL generics_function = FALSE;
-    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, FALSE, NULL)) {
+    if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, FALSE, NULL, TRUE)) {
         fprintf(stderr, "overflow function table\n");
         return FALSE;
     }
