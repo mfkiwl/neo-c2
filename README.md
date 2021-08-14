@@ -2475,7 +2475,7 @@ ruby <<EOS
     puts("int gGlobal2;");
 EOS
 \```
-{{{
+```
 
 The output of the enclosed code is pasted into the source code. With this and reflection, you'll be able to generate code with reflection at compile time.
 
