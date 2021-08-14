@@ -220,6 +220,14 @@ void show_type_core(sNodeType* type, int num_classes, char** classes, BOOL no_ou
             if(nest) {
                 BOOL no_output_fields = TRUE;
                 show_type_core(field_type, num_classes, classes, no_output_fields);
+
+                printf(" ");
+                if(i == klass->mNumFields -1) {
+                    printf("%s", field_name);
+                }
+                else {
+                    puts(field_name);
+                }
             }
             else {
                 show_type_core(field_type, num_classes, classes, no_output_fields);

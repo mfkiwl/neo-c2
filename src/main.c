@@ -61,7 +61,7 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     }
 #endif
 
-    puts(cmd);
+    //puts(cmd);
     int rc = system(cmd);
     if(rc != 0) {
         char cmd[1024];
@@ -96,13 +96,16 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     return TRUE;
 }
 
-char* gVersion = "1.1.7";
+char* gVersion = "1.1.8";
 BOOL gNCDebug = FALSE;
 char gFName[PATH_MAX];
 sVarTable* gModuleVarTable;
 BOOL gNCType = FALSE;
 BOOL gNCGlobal = FALSE;
 BOOL gNCFunction = FALSE;
+BOOL gNCClass = FALSE;
+BOOL gNCTypedef = FALSE;
+BOOL gNCNoMacro = FALSE;
 
 int main(int argc, char** argv)
 {
@@ -136,10 +139,24 @@ int main(int argc, char** argv)
             gNCGlobal = TRUE;
             gNCType = TRUE;
         }
+        else if(strcmp(argv[i], "class") == 0)
+        {
+            gNCClass = TRUE;
+            gNCType = TRUE;
+        }
+        else if(strcmp(argv[i], "typedef") == 0)
+        {
+            gNCTypedef = TRUE;
+            gNCType = TRUE;
+        }
         else if(strcmp(argv[i], "function") == 0)
         {
             gNCFunction = TRUE;
             gNCType = TRUE;
+        }
+        else if(strcmp(argv[i], "-n") == 0) 
+        {
+            gNCNoMacro = TRUE;
         }
         else if(strstr(argv[i], "-I") == argv[i])
         {

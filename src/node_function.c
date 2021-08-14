@@ -1510,7 +1510,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     }
 
     if(gNCType && node_block->mTerminated) {
-        if(!gNCGlobal && !gNCFunction) {
+        if(!gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef) {
             show_node_type(info->type);
         }
         return TRUE;
@@ -2043,7 +2043,7 @@ BOOL compile_come_function_call(unsigned int node, sCompileInfo* info)
 
     snprintf(thread_arg_struct_name, VAR_NAME_MAX, "thread_struct%d", gThreadNum);
 
-    sCLClass* thread_arg_struct_class = alloc_struct(thread_arg_struct_name, FALSE);
+    sCLClass* thread_arg_struct_class = alloc_struct(thread_arg_struct_name, FALSE, FALSE);
 
     int num_fields = num_params;
     char* field_names[STRUCT_FIELD_MAX];

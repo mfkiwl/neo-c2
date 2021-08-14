@@ -59,9 +59,12 @@ struct sVarTableStruct;
 /// main.c 
 //////////////////////////////
 extern BOOL gNCDebug;
+extern BOOL gNCNoMacro;
 extern BOOL gNCType;
 extern BOOL gNCGlobal;
 extern BOOL gNCFunction;
+extern BOOL gNCClass;
+extern BOOL gNCTypedef;
 extern char gFName[PATH_MAX];
 extern struct sVarTableStruct* gModuleVarTable;
 
@@ -124,6 +127,8 @@ struct sCLClassStruct {
     char* mEnumElementNames[ENUM_ELEMENT_MAX];
     int mEnumElementValues[ENUM_ELEMENT_MAX];
     int mNumElementNum;
+
+    BOOL mUser;
 };
 
 #define CLASS_NAME(klass) (klass->mName)
@@ -133,8 +138,10 @@ typedef struct sCLClassStruct sCLClass;
 void class_init();
 void class_final();
 
+void show_classes();
+
 sCLClass* get_class(char* class_name);
-sCLClass* alloc_struct(char* class_name, BOOL anonymous);
+sCLClass* alloc_struct(char* class_name, BOOL anonymous, BOOL user);
 sCLClass* alloc_enum(char* class_name_, int num_element, char** element_names, int* element_values);
 void add_fields_to_struct(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct** fields);
 sCLClass* alloc_union(char* class_name, BOOL anonymous, BOOL anonymous_var_name);
@@ -325,7 +332,8 @@ BOOL skip_block(struct sParserInfoStruct* info);
 void init_typedef();
 void final_typedef();
 
-void add_typedef(char* name, sNodeType* node_type);
+void show_typedefs();
+void add_typedef(char* name, sNodeType* node_type, BOOL user);
 sNodeType* get_typedef(char* name);
 
 //////////////////////////////

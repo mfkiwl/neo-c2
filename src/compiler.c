@@ -169,8 +169,13 @@ BOOL compile_source(char* fname, char** source, BOOL optimize, sVarTable* module
             }
         }
     }
-
-    if(gNCFunction) {
+    else if(gNCClass) {
+        show_classes();
+    }
+    else if(gNCTypedef) {
+        show_typedefs();
+    }
+    else if(gNCFunction) {
         show_funcs();
     }
 

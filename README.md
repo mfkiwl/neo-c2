@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.1.7
+version 1.1.8
 
 ```
 #include <come.h>
@@ -57,7 +57,7 @@ int main()
 
 6. Parallel excuting functions like Go.
 
-7. Reflection 
+7. Macro and Reflection. Combination using with its can generate code on compile time. Compile time reflection.
 
 1. C言語とある程度互換性があります。Cプリプロセッサーも動きます。
 
@@ -71,7 +71,7 @@ int main()
 
 6. Goのような関数の並列実行の機能があります。チャネルも備えます。
 
-7. リフレクションを備えます。
+7. マクロとリフレクションを備えます。コンパイルタイムにリフレクションとコード生成が行えます。
 
 0. INSTALL
 
@@ -2440,6 +2440,67 @@ fun2 extern 0 var args 0 gnerics function 0 num params 0
 result type int
 ```
 
+```
+> vim a.c
+struct sA 
+{
+    int a;
+    int b;
+};
+
+enum eEnumA { kA, kB };
+> come class a.c
+struct sA
+#0 int a
+#1 int b
+enum eEnumA
+kA 0
+kB 1
+```
+
+```
+> vim a.c
+typedef int tType;
+typedef int tType2;
+> come typedef a.c
+tType int
+tType2 int
+```
+
+9. MACRO
+
+\```
+ruby <<EOS
+    puts("int gGlobal2;");
+EOS
+\```
+
+The output of the enclosed code is pasted into the source code. With this and reflection, you'll be able to generate code with reflection at compile time.
+
+囲まれたコードの出力がソースコードに貼り付けます。これとリフレクションを使えばコンパイルタイムにリフレクションでコードを生成できるでしょう。
+
+Do not expand macros with the -n option.
+
+-nオプションを使うとマクロを展開しません。
+
+Compile Time Reflection and code generation is below:
+
+```
+> vim g.c
+int gGlobal;
+
+
+\```
+ruby <<EOS
+    type = "`./come -n global g.c | grep gGlobal`".split()[1];
+    puts(type + " gGlobal2;");
+EOS
+\```
+> come global g.c
+gGlobal int
+gGlobal2 int
+```
+
 # CHANGELOG
 
 addition from version 1.0.9
@@ -2494,3 +2555,7 @@ Added refrection. come type file-name outputs the type of last expression and it
 addition from version 1.1.7
 
 Added refrection. come global file-name outputs the type and the name of global variables. come function file-name outputs the type and the name of functions.
+
+addition from version 1.1.8
+
+Added macro. Compile time reflection

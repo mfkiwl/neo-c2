@@ -1363,7 +1363,7 @@ unsigned int sNodeTree_create_typedef(char* name, sNodeType* node_type, sParserI
     gNodes[node].mRight = 0;
     gNodes[node].mMiddle = 0;
 
-    add_typedef(name, clone_node_type(node_type));
+    add_typedef(name, clone_node_type(node_type), TRUE);
 
     return node;
 }

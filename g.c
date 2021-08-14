@@ -1,10 +1,19 @@
+int gGlobal;
 
-int fun(int a, int b)
+struct sA 
 {
-    return a + b;
-}
+    int a;
+    int b;
+};
 
-int fun2()
-{
-    return 123;
-}
+typedef int tType;
+typedef int tType2;
+
+enum eEnumA { kA, kB };
+
+```
+ruby <<EOS
+    type = "`./come -n global g.c | grep gGlobal`".split()[1];
+    puts(type + " gGlobal2;");
+EOS
+```

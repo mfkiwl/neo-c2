@@ -368,7 +368,7 @@ void init_nodes(char* sname)
     LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
 
     char* class_name = "__builtin_va_list";
-    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE);
+    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE, FALSE);
     sNodeType* node_type = create_node_type_with_class_pointer(va_list_struct);
 
     if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
@@ -377,7 +377,7 @@ void init_nodes(char* sname)
     }
 
     class_name = "va_list";
-    va_list_struct = alloc_struct("va_list", FALSE);
+    va_list_struct = alloc_struct("va_list", FALSE, FALSE);
     node_type = create_node_type_with_class_pointer(va_list_struct);
 
     if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
@@ -399,7 +399,7 @@ void init_nodes(char* sname)
     LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
 
     char* class_name = "__builtin_va_list";
-    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE);
+    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE, FALSE);
     sNodeType* node_type = create_node_type_with_class_pointer(va_list_struct);
 
     if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
@@ -408,7 +408,7 @@ void init_nodes(char* sname)
     }
 
     class_name = "va_list";
-    va_list_struct = alloc_struct("va_list", FALSE);
+    va_list_struct = alloc_struct("va_list", FALSE, FALSE);
     node_type = create_node_type_with_class_pointer(va_list_struct);
 
     if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
@@ -431,7 +431,7 @@ void init_nodes(char* sname)
     LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
 
     char* class_name = "__builtin_va_list";
-    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE);
+    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE, FALSE);
     sNodeType* node_type = create_node_type_with_class_pointer(va_list_struct);
 
     if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
@@ -440,7 +440,7 @@ void init_nodes(char* sname)
     }
 
     class_name = "va_list";
-    va_list_struct = alloc_struct("va_list", FALSE);
+    va_list_struct = alloc_struct("va_list", FALSE, FALSE);
     node_type = create_node_type_with_class_pointer(va_list_struct);
 
     if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
@@ -459,7 +459,7 @@ void init_nodes(char* sname)
     LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
 
     char* class_name = "__builtin_va_list";
-    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE);
+    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE, FALSE);
     sNodeType* node_type = create_node_type_with_class_pointer(va_list_struct);
 
     if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
@@ -468,7 +468,7 @@ void init_nodes(char* sname)
     }
 
     class_name = "va_list";
-    va_list_struct = alloc_struct("va_list", FALSE);
+    va_list_struct = alloc_struct("va_list", FALSE, FALSE);
     node_type = create_node_type_with_class_pointer(va_list_struct);
 
     if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
@@ -491,7 +491,7 @@ void init_nodes(char* sname)
     LLVMStructSetBody(struct_type, field_types, num_fields, FALSE);
 
     char* class_name = "__builtin_va_list";
-    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE);
+    sCLClass* va_list_struct = alloc_struct("__builtin_va_list", FALSE, FALSE);
     sNodeType* node_type = create_node_type_with_class_pointer(va_list_struct);
 
     if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
@@ -500,7 +500,7 @@ void init_nodes(char* sname)
     }
 
     class_name = "va_list";
-    va_list_struct = alloc_struct("va_list", FALSE);
+    va_list_struct = alloc_struct("va_list", FALSE, FALSE);
     node_type = create_node_type_with_class_pointer(va_list_struct);
 
     if(!add_struct_to_table(class_name, node_type, struct_type, FALSE)) {
@@ -1439,7 +1439,7 @@ void free_nodes(char* sname)
     snprintf(sname2, PATH_MAX, "%s.ll", sname);
 
     //LLVMDumpModule(gModule); // dump module to STDOUT
-    if(!gNCType && !gNCGlobal && !gNCFunction) {
+    if(!gNCType && !gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef) {
         LLVMPrintModuleToFile(gModule, sname2, NULL);
     }
 

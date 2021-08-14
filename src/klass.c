@@ -18,7 +18,7 @@ unsigned int get_hash_key(char* name, unsigned int max)
     return result % max;
 }
 
-static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, BOOL number_type, BOOL unsigned_number, int generics_number, int method_generics_number, BOOL union_, BOOL anonymous, BOOL enum_, BOOL anonymous_var_name);
+static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, BOOL number_type, BOOL unsigned_number, int generics_number, int method_generics_number, BOOL union_, BOOL anonymous, BOOL enum_, BOOL anonymous_var_name, BOOL user);
 
 void class_init()
 {
@@ -28,55 +28,55 @@ void class_init()
 
     gInhibitsRehashClasses = FALSE;
 
-    alloc_class("bool", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("char", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("short", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("int", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("long", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("__uint128_t", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("void", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("float", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("double", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("long_double", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("any", FALSE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("TYPEOF", FALSE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("lambda", FALSE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("generics0", FALSE, FALSE, FALSE, FALSE, 0, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("generics1", FALSE, FALSE, FALSE, FALSE, 1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("generics2", FALSE, FALSE, FALSE, FALSE, 2, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("generics3", FALSE, FALSE, FALSE, FALSE, 3, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("generics4", FALSE, FALSE, FALSE, FALSE, 4, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("generics5", FALSE, FALSE, FALSE, FALSE, 5, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("generics6", FALSE, FALSE, FALSE, FALSE, 6, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("generics7", FALSE, FALSE, FALSE, FALSE, 7, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("generics8", FALSE, FALSE, FALSE, FALSE, 8, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("generics9", FALSE, FALSE, FALSE, FALSE, 9, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("mgenerics0", FALSE, FALSE, FALSE, FALSE, -1, 0, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("mgenerics1", FALSE, FALSE, FALSE, FALSE, -1, 1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("mgenerics2", FALSE, FALSE, FALSE, FALSE, -1, 2, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("mgenerics3", FALSE, FALSE, FALSE, FALSE, -1, 3, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("mgenerics4", FALSE, FALSE, FALSE, FALSE, -1, 4, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("mgenerics5", FALSE, FALSE, FALSE, FALSE, -1, 5, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("mgenerics6", FALSE, FALSE, FALSE, FALSE, -1, 6, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("mgenerics7", FALSE, FALSE, FALSE, FALSE, -1, 7, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("mgenerics8", FALSE, FALSE, FALSE, FALSE, -1, 8, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("mgenerics9", FALSE, FALSE, FALSE, FALSE, -1, 9, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("_Float16", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("_Float16x", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("_Float32", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("_Float32x", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("_Float64", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("_Float64x", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("_Float128", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
-    alloc_class("_Float128x", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("bool", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("char", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("short", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("int", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("long", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("__uint128_t", TRUE, FALSE, TRUE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("void", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("float", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("double", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("long_double", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("any", FALSE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("TYPEOF", FALSE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("lambda", FALSE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("generics0", FALSE, FALSE, FALSE, FALSE, 0, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("generics1", FALSE, FALSE, FALSE, FALSE, 1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("generics2", FALSE, FALSE, FALSE, FALSE, 2, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("generics3", FALSE, FALSE, FALSE, FALSE, 3, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("generics4", FALSE, FALSE, FALSE, FALSE, 4, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("generics5", FALSE, FALSE, FALSE, FALSE, 5, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("generics6", FALSE, FALSE, FALSE, FALSE, 6, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("generics7", FALSE, FALSE, FALSE, FALSE, 7, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("generics8", FALSE, FALSE, FALSE, FALSE, 8, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("generics9", FALSE, FALSE, FALSE, FALSE, 9, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("mgenerics0", FALSE, FALSE, FALSE, FALSE, -1, 0, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("mgenerics1", FALSE, FALSE, FALSE, FALSE, -1, 1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("mgenerics2", FALSE, FALSE, FALSE, FALSE, -1, 2, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("mgenerics3", FALSE, FALSE, FALSE, FALSE, -1, 3, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("mgenerics4", FALSE, FALSE, FALSE, FALSE, -1, 4, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("mgenerics5", FALSE, FALSE, FALSE, FALSE, -1, 5, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("mgenerics6", FALSE, FALSE, FALSE, FALSE, -1, 6, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("mgenerics7", FALSE, FALSE, FALSE, FALSE, -1, 7, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("mgenerics8", FALSE, FALSE, FALSE, FALSE, -1, 8, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("mgenerics9", FALSE, FALSE, FALSE, FALSE, -1, 9, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("_Float16", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("_Float16x", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("_Float32", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("_Float32x", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("_Float64", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("_Float64x", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("_Float128", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
+    alloc_class("_Float128x", TRUE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, FALSE, FALSE, FALSE);
 
     if(sizeof(size_t) == 4) {
-        add_typedef("size_t", create_node_type_with_class_name("int"));
+        add_typedef("size_t", create_node_type_with_class_name("int"), FALSE);
     }
     else {
-        add_typedef("size_t", create_node_type_with_class_name("long"));
+        add_typedef("size_t", create_node_type_with_class_name("long"), FALSE);
     }
-    add_typedef("_Bool", create_node_type_with_class_name("bool"));
+    add_typedef("_Bool", create_node_type_with_class_name("bool"), FALSE);
 }
 
 void classes_free()
@@ -167,7 +167,21 @@ void rehash_classes()
     gSizeClasses = new_size_classes;
 }
 
-static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, BOOL number_type, BOOL unsigned_number, int generics_number, int method_generics_number, BOOL union_, BOOL anonymous, BOOL enum_, BOOL anonymous_var_name)
+void show_classes()
+{
+    int i;
+    for(i=0; i<gSizeClasses; i++) {
+        if(gClasses[i].mName && gClasses[i].mUser) {
+            sCLClass* klass = &gClasses[i];
+
+            sNodeType* node_type = create_node_type_with_class_pointer(klass);
+
+            show_node_type(node_type);
+        }
+    }
+}
+
+static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, BOOL number_type, BOOL unsigned_number, int generics_number, int method_generics_number, BOOL union_, BOOL anonymous, BOOL enum_, BOOL anonymous_var_name, BOOL user)
 {
     if(gNumClasses >= gSizeClasses/3 && !gInhibitsRehashClasses) {
         //rehash_classes();
@@ -207,6 +221,8 @@ static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, B
 
             p->mNumFields = 0;
 
+            p->mUser = user;
+
             gNumClasses++;
 
             return p;
@@ -239,6 +255,8 @@ static sCLClass* alloc_class(char* class_name_, BOOL primitive_, BOOL struct_, B
                 p->mFields = NULL;
 
                 p->mNumFields = 0;
+
+                p->mUser = user;
 
                 return p;
             }
@@ -286,16 +304,16 @@ sCLClass* get_class(char* class_name_)
     return NULL;
 }
 
-sCLClass* alloc_struct(char* class_name_, BOOL anonymous)
+sCLClass* alloc_struct(char* class_name_, BOOL anonymous, BOOL user)
 {
-    sCLClass* klass = alloc_class(class_name_, FALSE, TRUE, FALSE, FALSE, -1, -1, FALSE, anonymous, FALSE, FALSE);
+    sCLClass* klass = alloc_class(class_name_, FALSE, TRUE, FALSE, FALSE, -1, -1, FALSE, anonymous, FALSE, FALSE, user);
 
     return klass;
 }
 
 sCLClass* alloc_enum(char* class_name_, int num_element, char** element_names, int* element_values)
 {
-    sCLClass* klass = alloc_class(class_name_, FALSE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, TRUE, FALSE);
+    sCLClass* klass = alloc_class(class_name_, FALSE, FALSE, FALSE, FALSE, -1, -1, FALSE, FALSE, TRUE, FALSE, TRUE);
 
     klass->mNumElementNum = num_element;
 
@@ -310,7 +328,7 @@ sCLClass* alloc_enum(char* class_name_, int num_element, char** element_names, i
 
 sCLClass* alloc_union(char* class_name_, BOOL anonymous, BOOL anonymous_var_name)
 {
-    sCLClass* klass = alloc_class(class_name_, FALSE, FALSE, FALSE, FALSE, -1, -1, TRUE, anonymous, FALSE, anonymous_var_name);
+    sCLClass* klass = alloc_class(class_name_, FALSE, FALSE, FALSE, FALSE, -1, -1, TRUE, anonymous, FALSE, anonymous_var_name, TRUE);
 
     return klass;
 }

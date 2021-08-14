@@ -4,6 +4,7 @@ struct sTypeDefTable
 {
     char* mName;
     sNodeType* mItem;
+    BOOL mUser;
 };
 
 static struct sTypeDefTable* gTypeDefTable;
@@ -26,6 +27,17 @@ void free_typedef()
         }
     }
     free(gTypeDefTable);
+}
+
+void show_typedefs()
+{
+    int i;
+    for(i=0; i<gSizeTypeDef; i++) {
+        if(gTypeDefTable[i].mName && gTypeDefTable[i].mUser) {
+            printf("%s ", gTypeDefTable[i].mName);
+            show_node_type(gTypeDefTable[i].mItem);
+        }
+    }
 }
 
 void final_typedef()
@@ -74,7 +86,7 @@ void rehash_typedef()
     gSizeTypeDef = new_size_typedef_table;
 }
 
-void add_typedef(char* name, sNodeType* node_type)
+void add_typedef(char* name, sNodeType* node_type, BOOL user)
 {
     if(gNumTypeDef >= gSizeTypeDef/3) {
         rehash_typedef();
@@ -88,6 +100,7 @@ void add_typedef(char* name, sNodeType* node_type)
         if(p->mName == NULL) {
             p->mName = strdup(name);
             p->mItem = clone_node_type(node_type);
+            p->mUser = user;
 
             gNumTypeDef++;
             break;
