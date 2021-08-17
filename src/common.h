@@ -794,7 +794,8 @@ BOOL is_right_values(LLVMValueRef obj, sCompileInfo* info);
 void show_node(unsigned int node);
 BOOL compile(unsigned int node, sCompileInfo* info);
 
-struct sFunctionStruct {
+struct sFunctionStruct 
+{
     char* mName;
     int mNumParams;
     char* mParamNames[PARAMS_MAX];
@@ -809,6 +810,7 @@ struct sFunctionStruct {
     char* mGenericsTypeNames[GENERICS_TYPES_MAX];
     char* mAsmFunName;
     BOOL mUser;
+    char* mSource;
 };
 
 typedef struct sFunctionStruct sFunction;
@@ -1062,7 +1064,7 @@ void node_function_final();
 void show_funcs();
 void show_func(sFunction* fun, BOOL code);
 
-BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name, BOOL user);
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name, BOOL user, char* source);
 sFunction* get_function_from_table(char* name);
 
 unsigned int sNodeTree_create_lambda_call(unsigned int lambda_node, unsigned int* params, int num_params, sParserInfo* info);

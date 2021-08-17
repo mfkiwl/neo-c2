@@ -29,6 +29,10 @@ void free_funcs()
             for(j=0; j<gFuncs[i].mNumGenerics; j++) {
                 free(gFuncs[i].mGenericsTypeNames[j]);
             }
+
+            if(gFuncs[i].mSource) {
+                free(gFuncs[i].mSource);
+            }
         }
     }
     free(gFuncs);
@@ -59,6 +63,10 @@ void show_func(sFunction* fun, BOOL code)
         for(j=0; j<fun->mNumGenerics; j++) {
             puts(fun->mGenericsTypeNames[j]);
         }
+    }
+
+    if(fun->mSource) {
+        printf("{\n%s\n}\n", fun->mSource);
     }
 }
 
@@ -139,7 +147,7 @@ void rehash_funcs()
     gSizeFuncs = new_size_funcs;
 }
 
-BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name, BOOL user)
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name, BOOL user, char* source)
 {
     if(gNumFuncs >= gSizeFuncs/3) {
         rehash_funcs();
@@ -168,6 +176,12 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
             p->mNumGenerics = num_generics;
             p->mExtern = extern_;
             p->mUser = user;
+            if(source) {
+                p->mSource = strdup(source);
+            }
+            else {
+                p->mSource = NULL;
+            }
 
             for(i=0; i<num_generics; i++) {
                 p->mGenericsTypeNames[i] = strdup(generics_type_names[i]);
@@ -218,6 +232,12 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
                 p->mNumGenerics = num_generics;
                 p->mExtern = extern_;
                 p->mUser = user;
+                if(source) {
+                    p->mSource = strdup(source);
+                }
+                else {
+                    p->mSource = NULL;
+                }
 
                 for(i=0; i<num_generics; i++) {
                     p->mGenericsTypeNames[i] = strdup(generics_type_names[i]);

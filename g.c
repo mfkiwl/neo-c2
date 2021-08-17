@@ -17,3 +17,8 @@ ruby <<EOS
     puts(type + " gGlobal2;");
 EOS
 ```
+
+int fun() 
+{
+    return 1 + 1;
+}
