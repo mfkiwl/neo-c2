@@ -143,9 +143,9 @@ void show_classes();
 sCLClass* get_class(char* class_name);
 sCLClass* alloc_struct(char* class_name, BOOL anonymous, BOOL user);
 sCLClass* alloc_enum(char* class_name_, int num_element, char** element_names, int* element_values);
-void add_fields_to_struct(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct** fields);
+void add_fields_to_struct(sCLClass* klass, int num_fields, char** field_names, struct sNodeTypeStruct** fields);
 sCLClass* alloc_union(char* class_name, BOOL anonymous, BOOL anonymous_var_name);
-void add_fields_to_union(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct** fields);
+void add_fields_to_union(sCLClass* klass, int num_fields, char** field_names, struct sNodeTypeStruct** fields);
 unsigned int get_hash_key(char* name, unsigned int max);
 int get_field_index(sCLClass* klass, char* var_name, int* parent_field_index);
 sCLClass* clone_class(sCLClass* klass);
@@ -225,6 +225,8 @@ BOOL is_typeof_type(sNodeType* node_type);
 BOOL included_generics_type(sNodeType* node_type, sCLClass* checked_class[], int* num_checked_class);
 BOOL get_type_of_method_generics(sNodeType* method_generics_types[GENERICS_TYPES_MAX], sNodeType* fun_param_type, sNodeType* param_type);
 void create_type_name_from_node_type(char* type_name, int type_name_max, sNodeType* node_type, BOOL neo_c);
+
+sCLClass* get_same_current_stack(int num_fields, char** field_names, sNodeType** fields);
   
 //////////////////////////////
 /// vtable.c
@@ -268,6 +270,7 @@ sVarTable* init_block_vtable(sVarTable* lv_table, BOOL no_increment_block_level)
 sVarTable* init_var_table();
 sVarTable* clone_var_table(sVarTable* lv_table);
 void restore_var_table(sVarTable* left, sVarTable* right);
+void create_current_stack_frame_struct(char* type_name, sVarTable* lv_table);
 
 void set_max_block_var_num(sVarTable* new_table, sVarTable* lv_table);
 
@@ -514,7 +517,7 @@ struct sCompileInfoStruct
 typedef struct sCompileInfoStruct sCompileInfo;
 extern LLVMBuilderRef gBuilder;
 
-enum eNodeType { kNodeTypeIntValue, kNodeTypeUIntValue, kNodeTypeLongValue, kNodeTypeULongValue, kNodeTypeAdd, kNodeTypeSub, kNodeTypeStoreVariable, kNodeTypeLoadVariable, kNodeTypeLoadChannelElement, kNodeTypeDefineVariable, kNodeTypeCString, kNodeTypeFunction, kNodeTypeExternalFunction, kNodeTypeFunctionCall, kNodeTypeComeFunctionCall, kNodeTypeIf, kNodeTypeEquals, kNodeTypeNotEquals, kNodeTypeStruct, kNodeTypeObject, kNodeTypeStackObject, kNodeTypeStoreField, kNodeTypeLoadField, kNodeTypeWhile, kNodeTypeDoWhile, kNodeTypeGteq, kNodeTypeLeeq, kNodeTypeGt, kNodeTypeLe, kNodeTypeLogicalDenial, kNodeTypeTrue, kNodeTypeFalse, kNodeTypeAndAnd, kNodeTypeOrOr, kNodeTypeFor, kNodeTypeLambdaCall, kNodeTypeDerefference, kNodeTypeRefference, kNodeTypeNull, kNodeTypeClone, kNodeTypeLoadElement, kNodeTypeStoreElement, kNodeTypeChar, kNodeTypeMult, kNodeTypeDiv, kNodeTypeMod, kNodeTypeCast, kNodeTypeGenericsFunction, kNodeTypeInlineFunction, kNodeTypeTypeDef, kNodeTypeUnion, kNodeTypeLeftShift, kNodeTypeRightShift, kNodeTypeAnd, kNodeTypeXor, kNodeTypeOr, kNodeTypeReturn, kNodeTypeSizeOf, kNodeTypeSizeOfExpression, kNodeTypeNodes, kNodeTypeLoadFunction, kNodeTypeArrayWithInitialization, kNodeTypeStructWithInitialization, kNodeTypeNormalBlock, kNodeTypeSelect, kNodeTypePSelect, kNodeTypeSwitch, kNodeTypeBreak, kNodeTypeContinue, kNodeTypeCase, kNodeTypeLabel, kNodeTypeGoto, kNodeTypeIsHeap, kNodeTypeDelete, kNodeTypeConditional, kNodeTypeAlignOf, kNodeTypeAlignOfExpression, kNodeTypeBorrow, kNodeTypeDummyHeap, kNodeTypeManaged, kNodeTypeComplement, kNodeTypeStoreAddress, kNodeTypeLoadAddressValue, kNodeTypePlusPlus, kNodeTypeMinusMinus, kNodeTypeEqualPlus, kNodeTypeEqualMinus, kNodeTypeEqualMult, kNodeTypeEqualDiv, kNodeTypeEqualMod, kNodeTypeEqualLShift, kNodeTypeEqualRShift, kNodeTypeEqualAnd, kNodeTypeEqualXor, kNodeTypeEqualOr, kNodeTypeComma, kNodeTypeFunName, kNodeTypeNoMove, kNodeTypeJoin, kNodeTypeWriteChannel, kNodeTypeReadChannel };
+enum eNodeType { kNodeTypeIntValue, kNodeTypeUIntValue, kNodeTypeLongValue, kNodeTypeULongValue, kNodeTypeAdd, kNodeTypeSub, kNodeTypeStoreVariable, kNodeTypeLoadVariable, kNodeTypeLoadChannelElement, kNodeTypeDefineVariable, kNodeTypeCString, kNodeTypeFunction, kNodeTypeExternalFunction, kNodeTypeFunctionCall, kNodeTypeComeFunctionCall, kNodeTypeIf, kNodeTypeEquals, kNodeTypeNotEquals, kNodeTypeStruct, kNodeTypeObject, kNodeTypeStackObject, kNodeTypeStoreField, kNodeTypeLoadField, kNodeTypeWhile, kNodeTypeDoWhile, kNodeTypeGteq, kNodeTypeLeeq, kNodeTypeGt, kNodeTypeLe, kNodeTypeLogicalDenial, kNodeTypeTrue, kNodeTypeFalse, kNodeTypeAndAnd, kNodeTypeOrOr, kNodeTypeFor, kNodeTypeLambdaCall, kNodeTypeDerefference, kNodeTypeRefference, kNodeTypeNull, kNodeTypeClone, kNodeTypeLoadElement, kNodeTypeStoreElement, kNodeTypeChar, kNodeTypeMult, kNodeTypeDiv, kNodeTypeMod, kNodeTypeCast, kNodeTypeGenericsFunction, kNodeTypeInlineFunction, kNodeTypeTypeDef, kNodeTypeUnion, kNodeTypeLeftShift, kNodeTypeRightShift, kNodeTypeAnd, kNodeTypeXor, kNodeTypeOr, kNodeTypeReturn, kNodeTypeSizeOf, kNodeTypeSizeOfExpression, kNodeTypeNodes, kNodeTypeLoadFunction, kNodeTypeArrayWithInitialization, kNodeTypeStructWithInitialization, kNodeTypeNormalBlock, kNodeTypeSelect, kNodeTypePSelect, kNodeTypeSwitch, kNodeTypeBreak, kNodeTypeContinue, kNodeTypeCase, kNodeTypeLabel, kNodeTypeGoto, kNodeTypeIsHeap, kNodeTypeDelete, kNodeTypeConditional, kNodeTypeAlignOf, kNodeTypeAlignOfExpression, kNodeTypeBorrow, kNodeTypeDummyHeap, kNodeTypeManaged, kNodeTypeComplement, kNodeTypeStoreAddress, kNodeTypeLoadAddressValue, kNodeTypePlusPlus, kNodeTypeMinusMinus, kNodeTypeEqualPlus, kNodeTypeEqualMinus, kNodeTypeEqualMult, kNodeTypeEqualDiv, kNodeTypeEqualMod, kNodeTypeEqualLShift, kNodeTypeEqualRShift, kNodeTypeEqualAnd, kNodeTypeEqualXor, kNodeTypeEqualOr, kNodeTypeComma, kNodeTypeFunName, kNodeTypeNoMove, kNodeTypeJoin, kNodeTypeWriteChannel, kNodeTypeReadChannel, kNodeTypeStack };
 
 struct sNodeTreeStruct 
 {
@@ -741,6 +744,10 @@ struct sNodeTreeStruct
             unsigned int mIndex[ARRAY_DIMENTION_MAX];
             int mArrayDimentionNum;
         } sLoadElement;
+
+        struct {
+            sVarTable* mVarTable;
+        } sStack;
     } uValue;
 };
 
@@ -953,6 +960,8 @@ void node_var_final();
 BOOL add_struct_to_table(char* name, sNodeType* node_type, LLVMTypeRef llvm_type, BOOL undefined_body);
 sStruct* get_struct_from_table(char* name);
 
+unsigned int sNodeTree_create_stack(sParserInfo* info);
+
 unsigned int sNodeTree_create_load_channel_element(unsigned int array, unsigned int num_chanel, sParserInfo* info);
 unsigned int sNodeTree_create_stack_object(sNodeType* node_type, unsigned int object_num, char* sname, int sline, sParserInfo* info);
 unsigned int sNodeTree_create_dereffernce(unsigned int left_node, sParserInfo* info);
@@ -1029,6 +1038,7 @@ BOOL compile_load_element(unsigned int node, sCompileInfo* info);
 BOOL compile_store_element(unsigned int node, sCompileInfo* info);
 BOOL compile_cast(unsigned int node, sCompileInfo* info);
 BOOL compile_typedef(unsigned int node, sCompileInfo* info);
+BOOL compile_stack(unsigned int node, sCompileInfo* info);
 
 //////////////////////////////
 /// node_value.c ///

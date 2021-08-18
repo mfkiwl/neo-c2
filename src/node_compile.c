@@ -672,6 +672,13 @@ BOOL compile(unsigned int node, sCompileInfo* info)
                 return FALSE;
             }
             break;
+
+        case kNodeTypeStack:
+            if(!compile_stack(node, info)) {
+                return FALSE;
+            }
+            break;
+
     }
 
     return node;

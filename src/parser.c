@@ -1378,7 +1378,7 @@ static BOOL parse_lambda(unsigned int* node, sNodeType* result_type, sParserInfo
     }
 
     sNodeBlock* node_block = ALLOC sNodeBlock_alloc();
-    expect_next_character_with_one_forward("{", info);
+
     sVarTable* old_table = info->lv_table;
 
     info->lv_table = init_block_vtable(NULL, FALSE);
@@ -1395,14 +1395,9 @@ static BOOL parse_lambda(unsigned int* node, sNodeType* result_type, sParserInfo
         }
     }
 
-    BOOL single_expression = FALSE;
-    if(*info->p == '{') {
-        info->p++;
-    }
-    else {
-        single_expression = TRUE;
-    }
+    expect_next_character_with_one_forward("{", info);
 
+    BOOL single_expression = FALSE;
     if(!parse_block(node_block, FALSE, single_expression, info)) {
         sNodeBlock_free(node_block);
         return FALSE;
@@ -1419,14 +1414,6 @@ static BOOL parse_lambda(unsigned int* node, sNodeType* result_type, sParserInfo
         }
     }
 
-    if(gNCType) {
-        if(*info->p != '\0') {
-            expect_next_character_with_one_forward("}", info);
-        }
-    }
-    else {
-        expect_next_character_with_one_forward("}", info);
-    }
     info->lv_table = old_table;
 
     char fun_name[VAR_NAME_MAX];
@@ -1624,7 +1611,6 @@ static BOOL is_premitive_type(char* buf, sParserInfo* info)
 
     return klass->mFlags & CLASS_FLAGS_PRIMITIVE;
 }
-
 
 static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_name, BOOL definition_typedef, BOOL definition_struct)
 {
@@ -2082,9 +2068,17 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                 *result_type = create_node_type_with_class_name(type_name);
             }
             else {
+                if(strcmp(type_name, "__current__") == 0) {
+                    create_current_stack_frame_struct(type_name, info->lv_table);
+                }
+
                 *result_type = get_typedef(type_name);
             }
 #else
+            if(strcmp(type_name, "__current__") == 0) {
+                create_current_stack_frame_struct(type_name, info->lv_table);
+            }
+
             *result_type = get_typedef(type_name);
 #endif
 
@@ -6214,6 +6208,9 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             if(!parse_return(node, info)) {
                 return FALSE;
             }
+        }
+        else if(strcmp(buf, "__stack__") == 0) {
+            *node = sNodeTree_create_stack(info);
         }
         else if(strcmp(buf, "struct") == 0 && *info->p != '{' && define_struct) {
             char struct_name[VAR_NAME_MAX];

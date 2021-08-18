@@ -531,3 +531,66 @@ void free_objects_on_return(struct sNodeBlockStruct* current_node_block, struct 
         }
     }
 }
+
+void create_current_stack_frame_struct(char* type_name, sVarTable* lv_table)
+{
+    static int n = 0;
+
+    int num_fields = 0;
+    char field_names[STRUCT_FIELD_MAX][VAR_NAME_MAX];
+    sNodeType* fields[STRUCT_FIELD_MAX];
+
+    sVarTable* it = lv_table;
+
+    while(it) {
+        sVar* p = it->mLocalVariables;
+
+        while(1) {
+            if(p->mName[0] != 0 && p->mType) {
+                xstrncpy(field_names[num_fields], p->mName, VAR_NAME_MAX);
+                fields[num_fields] = clone_node_type(p->mType);
+                fields[num_fields]->mPointerNum++;
+                num_fields++;
+            }
+
+            p++;
+
+            if(p == it->mLocalVariables + LOCAL_VARIABLE_MAX) {
+                break;
+            }
+        }
+
+        if(it->mBlockLevel == 1) {
+            break;
+        }
+
+        it = it->mParent;
+    }
+
+    char* field_names2[STRUCT_FIELD_MAX];
+
+    int i;
+    for(i=0; i<num_fields; i++) {
+        field_names2[i] = field_names[i];
+    }
+
+    sCLClass* current_stack = get_same_current_stack(num_fields, field_names2, fields);
+
+    if(current_stack) {
+        snprintf(type_name, VAR_NAME_MAX, "%s", CLASS_NAME(current_stack));
+    }
+    else {
+        snprintf(type_name, VAR_NAME_MAX, "__current_stack_frame__%d", n);
+        sCLClass* klass = alloc_struct(type_name, FALSE, FALSE);
+
+        add_fields_to_struct(klass, num_fields, field_names2, fields);
+
+        sNodeType* node_type = create_node_type_with_class_pointer(klass);
+
+        char* struct_name = CLASS_NAME(node_type->mClass);
+        BOOL undefined_body = FALSE;
+        (void)create_llvm_struct_type(struct_name, node_type, NULL, undefined_body);
+
+        n++;
+    }
+}

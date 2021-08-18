@@ -4166,3 +4166,80 @@ BOOL compile_load_element(unsigned int node, sCompileInfo* info)
 
     return TRUE;
 }
+
+unsigned int sNodeTree_create_stack(sParserInfo* info)
+{
+    unsigned node = alloc_node();
+
+    gNodes[node].mNodeType = kNodeTypeStack;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    gNodes[node].uValue.sStack.mVarTable = clone_var_table(info->lv_table);
+
+    gNodes[node].mLeft = 0;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    return node;
+}
+
+BOOL compile_stack(unsigned int node, sCompileInfo* info)
+{
+    sVarTable* lv_table = gNodes[node].uValue.sStack.mVarTable;
+
+    char type_name[VAR_NAME_MAX];
+
+    create_current_stack_frame_struct(type_name, lv_table);
+
+    sNodeType* node_type = create_node_type_with_class_name(type_name);
+
+    LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
+
+    LLVMValueRef stack = LLVMBuildAlloca(gBuilder, llvm_type, "current_stack");
+
+    sVarTable* it = lv_table;
+    int field_index = 0;
+
+    while(it) {
+        sVar* p = it->mLocalVariables;
+
+        while(1) {
+            if(p->mName[0] != 0 && p->mType) {
+                sVar* var = get_variable_from_table(info->pinfo->lv_table, p->mName);
+                
+                LLVMValueRef field_address = LLVMBuildStructGEP(gBuilder, stack, field_index, "field");
+
+                LLVMBuildStore(gBuilder, var->mLLVMValue, field_address);
+
+                field_index++;
+            }
+
+            p++;
+
+            if(p == it->mLocalVariables + LOCAL_VARIABLE_MAX) {
+                break;
+            }
+        }
+
+        if(it->mBlockLevel == 1) {
+            break;
+        }
+
+        it = it->mParent;
+    }
+
+    LVALUE llvm_value;
+    llvm_value.value = stack;
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = clone_node_type(node_type);
+
+    return TRUE;
+}

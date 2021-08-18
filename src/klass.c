@@ -333,7 +333,7 @@ sCLClass* alloc_union(char* class_name_, BOOL anonymous, BOOL anonymous_var_name
     return klass;
 }
 
-void add_fields_to_struct(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct** fields)
+void add_fields_to_struct(sCLClass* klass, int num_fields, char** field_names, struct sNodeTypeStruct** fields)
 {
     if(klass->mNumFields > 0) {
         int i;
@@ -351,14 +351,14 @@ void add_fields_to_struct(sCLClass* klass, int num_fields, char** field_name, st
 
     int i;
     for(i=0; i<num_fields; i++) {
-        klass->mFieldName[i] = strdup(field_name[i]);
+        klass->mFieldName[i] = strdup(field_names[i]);
         klass->mFields[i] = clone_node_type(fields[i]);
     }
 
     klass->mNumFields = num_fields;
 }
 
-void add_fields_to_union(sCLClass* klass, int num_fields, char** field_name, struct sNodeTypeStruct** fields)
+void add_fields_to_union(sCLClass* klass, int num_fields, char** field_names, struct sNodeTypeStruct** fields)
 {
     if(klass->mNumFields > 0) {
         int i;
@@ -376,7 +376,7 @@ void add_fields_to_union(sCLClass* klass, int num_fields, char** field_name, str
 
     int i;
     for(i=0; i<num_fields; i++) {
-        klass->mFieldName[i] = strdup(field_name[i]);
+        klass->mFieldName[i] = strdup(field_names[i]);
         klass->mFields[i] = clone_node_type(fields[i]);
     }
 
@@ -416,3 +416,34 @@ int get_field_index(sCLClass* klass, char* var_name, int* parent_field_index)
     return -1;
 }
 
+sCLClass* get_same_current_stack(int num_fields, char** field_names, sNodeType** fields)
+{
+    int i;
+    for(i=0; i<gSizeClasses; i++) {
+        if(gClasses[i].mName) {
+            sCLClass* klass = gClasses + i;
+            if(klass->mNumFields == num_fields) {
+                BOOL same = TRUE;
+
+                int i;
+                for(i=0; i<num_fields; i++) {
+                    if(strcmp(klass->mFieldName[i], field_names[i]) != 0) {
+                        same = FALSE;
+                    }
+
+                    if(!type_identify(klass->mFields[i], fields[i]) 
+                        || klass->mFields[i]->mPointerNum != fields[i]->mPointerNum)
+                    {
+                        same = FALSE;
+                    }
+                }
+
+                if(same) {
+                    return klass;
+                }
+            }
+        }
+    }
+
+    return NULL;
+}
