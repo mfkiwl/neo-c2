@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.1.8
+version 1.1.9
 
 ```
 #include <come.h>
@@ -59,6 +59,8 @@ int main()
 
 7. Macro and Reflection. Combination using with its can generate code on compile time. Compile time reflection.
 
+8. method block like Ruby
+
 1. C言語とある程度互換性があります。Cプリプロセッサーも動きます。
 
 2. 独自のヒープシステムを備えます。一時的に生成されたヒープ（右辺値）の自動freeと変数に代入されたヒープの自動freeを備えます。
@@ -72,6 +74,8 @@ int main()
 6. Goのような関数の並列実行の機能があります。チャネルも備えます。
 
 7. マクロとリフレクションを備えます。コンパイルタイムにリフレクションとコード生成が行えます。
+
+8. Rubyのようなメソッドブロックがあります。
 
 0. INSTALL
 
@@ -2503,6 +2507,52 @@ gGlobal int
 gGlobal2 int
 ~~~
 
+10. METHOD BLOCK
+
+```
+void times(int n, void* parent, void (*fun)(void* parent))
+{
+    int i;
+    for(i=0; i<n; i++) {
+        fun(parent);
+    }
+}
+
+int main(int argc, char** argv)
+{
+    int a = 1;
+
+    auto fun = int lambda(__current__* parent, int b, int c) {
+        *parent.a = 4;
+        return (*parent.a + b + c);
+    }
+
+    printf("%d\n", fun(__stack__, 1, 2));
+    printf("a %d\n", a);
+
+    times(3, __stack__, void lambda(__current__* parent) {
+        puts("HELLO LAMBDA");
+        printf("a %d\n", *parent.a);
+    });
+
+    times(3) {
+        puts("HELLO METHOD BLOCK");
+        printf("a %d\n", *parent.a);
+    }
+}
+```
+
+__current__ defines a structure that contains pointers to all variables in the current stack frame. __stack__ returns the pointer of the structure in which the pointer of the stack frame is assigned to the structure that stores the pointers of all variables of the current stack frame. In this case, the structure struct {int * a, int * argc, char *** argv}; is defined.
+
+__current__は現在のスタックフレームのすべての変数のポインタを格納している構造体を定義します。
+__stack__は現在のスタックフレームのすべての変数のポインタを格納している構造体にスタックフレームのポインタを代入した構造体のポインタを返します。
+この場合はstruct { int* a, int* argc, char*** argv };という構造体が定義されます。
+
+The method block arguments are assigned to the structure parent for access to the parent stack, and the subsequent arguments are assigned to the variables it, it2, it3, ....
+
+メソッドブロックの引数は親スタックへのアクセスはparentという構造体、その後の引数はit, it2, it3,... という変数に代入されます。
+
+
 # CHANGELOG
 
 addition from version 1.0.9
@@ -2561,3 +2611,7 @@ Added refrection. come global file-name outputs the type and the name of global 
 addition from version 1.1.8
 
 Added macro. Compile time reflection
+
+addition from version 1.1.9
+
+Added method block.

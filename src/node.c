@@ -1460,6 +1460,10 @@ void free_nodes(char* sname)
                     sNodeBlock_free(gNodes[i].uValue.sFunction.mNodeBlock);
                     break;
 
+                case kNodeTypeMethodBlock:
+                    free(gNodes[i].uValue.sMethodBlock.mBlockText);
+                    break;
+
                 case kNodeTypeIf:
                     {
                     if(gNodes[i].uValue.sIf.mIfNodeBlock) {

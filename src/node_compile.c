@@ -679,6 +679,12 @@ BOOL compile(unsigned int node, sCompileInfo* info)
             }
             break;
 
+        case kNodeTypeMethodBlock:
+            if(!compile_method_block(node, info)) {
+                return FALSE;
+            }
+            break;
+
     }
 
     return node;

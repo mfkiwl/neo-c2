@@ -1349,7 +1349,7 @@ static BOOL parse_union(unsigned int* node, char* union_name, int size_union_nam
 
 static BOOL parse_params(sParserParam* params, int* num_params, sParserInfo* info, int character_type, BOOL* var_arg);
 
-static void create_lambda_name(char* lambda_name, size_t size_lambda_name, char* module_name)
+void create_lambda_name(char* lambda_name, size_t size_lambda_name, char* module_name)
 {
     static int num_lambda_name = 0;
     xstrncpy(lambda_name, "lambda", size_lambda_name);
@@ -3578,6 +3578,37 @@ static BOOL parse_funcation_call_params(int* num_params, unsigned int* params, s
     }
 
     skip_spaces_and_lf(info);
+
+    if(*info->p == '{') {
+        params[*num_params] = sNodeTree_create_stack(info);
+        (*num_params)++;
+        
+        if(*num_params >= PARAMS_MAX) {
+            parser_err_msg(info, "overflow parametor number for method call");
+            return FALSE;
+        }
+
+        char* p = info->p;
+        if(!skip_block(info)) {
+            return FALSE;
+        }
+
+        char* p2 = info->p;
+
+        sBuf buf;
+        sBuf_init(&buf);
+
+        sBuf_append(&buf, p, p2-p);
+
+        params[*num_params] = sNodeTree_create_method_block(MANAGED buf.mBuf, info);
+
+        (*num_params)++;
+        
+        if(*num_params >= PARAMS_MAX) {
+            parser_err_msg(info, "overflow parametor number for method call");
+            return FALSE;
+        }
+    }
 
     return TRUE;
 }
@@ -6813,7 +6844,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                     return FALSE;
                 }
             }
-            else if(*info->p == '(') {
+            else if(*info->p == '(' || *info->p == '{') {
                 char* fun_name = buf_before;
 
                 unsigned int params[PARAMS_MAX];

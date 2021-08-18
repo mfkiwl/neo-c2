@@ -657,6 +657,8 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         xstrncpy(fun_name, method_name, VAR_NAME_MAX);
     }
 
+    xstrncpy(info->calling_fun_name, fun_name, VAR_NAME_MAX);
+
     sFunction* fun = get_function_from_table(fun_name);
 
     if(fun == NULL) {
@@ -2258,3 +2260,117 @@ BOOL compile_join(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
+unsigned int sNodeTree_create_method_block(MANAGED char* block, sParserInfo* info)
+{
+    unsigned int node = alloc_node();
+    
+    gNodes[node].mNodeType = kNodeTypeMethodBlock;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    gNodes[node].uValue.sMethodBlock.mBlockText = MANAGED block;
+    gNodes[node].uValue.sMethodBlock.mVarTable = clone_var_table(info->lv_table);
+
+    gNodes[node].mLeft = 0;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    return node;
+}
+
+BOOL compile_method_block(unsigned int node, sCompileInfo* info)
+{
+    char* block_text = gNodes[node].uValue.sMethodBlock.mBlockText;
+    sVarTable* lv_table = gNodes[node].uValue.sMethodBlock.mVarTable;
+
+    sFunction* fun = get_function_from_table(info->calling_fun_name);
+
+    int sline = info->sline;
+
+    /// params ///
+    if(fun->mNumParams < 2) {
+        compile_err_msg(info, "unexpected method block");
+        return FALSE;
+    }
+
+    sParserParam params[PARAMS_MAX];
+    memset(params, 0, sizeof(sParserParam)*PARAMS_MAX);
+    sNodeType* lambda_type = fun->mParamTypes[fun->mNumParams-1];
+
+    int num_params = lambda_type->mNumParams;
+    sNodeType* result_type = clone_node_type(lambda_type->mResultType);
+
+    if(num_params == 0) {
+        compile_err_msg(info, "require parent stack parametor");
+        return FALSE;
+    }
+
+    char type_name[VAR_NAME_MAX];
+    create_current_stack_frame_struct(type_name, lv_table);
+
+    sNodeType* current_stack_frame_type = create_node_type_with_class_name(type_name);
+    current_stack_frame_type->mPointerNum++;
+
+    xstrncpy(params[0].mName, "parent", VAR_NAME_MAX);
+    params[0].mType = current_stack_frame_type;
+
+    int i;
+    for(i=1; i<num_params; i++) {
+        char param_name[VAR_NAME_MAX];
+        snprintf(param_name, VAR_NAME_MAX, "it%d", i-1);
+
+        if(strcmp(param_name, "it0") == 0) {
+            xstrncpy(param_name, "it", VAR_NAME_MAX);
+        }
+
+        xstrncpy(params[i].mName, param_name, VAR_NAME_MAX);
+        params[i].mType = lambda_type->mParamTypes[i];
+    }
+
+    sNodeBlock* node_block = ALLOC sNodeBlock_alloc();
+
+    sParserInfo pinfo;
+    pinfo = *info->pinfo;
+    pinfo.p = block_text;
+    pinfo.sline = 1;
+
+    xstrncpy(pinfo.sname, "method_block", VAR_NAME_MAX);
+
+    sVarTable* block_var_table = init_block_vtable(NULL, FALSE);
+    pinfo.lv_table = block_var_table;
+
+    for(i=0; i<num_params; i++) {
+        sParserParam* param = params + i;
+
+        BOOL readonly = TRUE;
+        if(!add_variable_to_table(pinfo.lv_table, param->mName, param->mType, readonly, NULL, -1, FALSE, param->mType->mConstant))
+        {
+            return FALSE;
+        }
+    }
+
+    expect_next_character_with_one_forward("{", &pinfo);
+
+    BOOL single_expression = FALSE;
+    if(!parse_block(node_block, FALSE, single_expression, &pinfo)) {
+        sNodeBlock_free(node_block);
+        return FALSE;
+    }
+
+    expect_next_character_with_one_forward("}", &pinfo);
+
+    char fun_name[VAR_NAME_MAX];
+    create_lambda_name(fun_name, VAR_NAME_MAX, pinfo.module_name);
+
+    BOOL lambda_ = TRUE;
+    BOOL simple_lambda_param = FALSE;
+    BOOL construct_fun = FALSE;
+    BOOL operator_fun = FALSE;
+
+    result_type->mStatic = TRUE;
+
+    unsigned int node2 = sNodeTree_create_function(fun_name, "", params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, NULL, operator_fun, construct_fun, simple_lambda_param, &pinfo, FALSE, FALSE, 0, FALSE, -1, fun_name, sline);
+
+    return compile(node2, info);
+}
