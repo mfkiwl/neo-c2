@@ -467,6 +467,25 @@ BOOL check_the_same_fields(sNodeType* left_node, sNodeType* right_node)
     return TRUE;
 }
 
+BOOL lambda_posibility(sNodeType* left_type, sNodeType* right_type)
+{
+    if(left_type->mNumParams != right_type->mNumParams) {
+        return FALSE;
+    }
+
+    int i;
+    for(i=0; i<left_type->mNumParams; i++) {
+        sNodeType* left_param = left_type->mParamTypes[i];
+        sNodeType* right_param = right_type->mParamTypes[i];
+
+        if(!cast_posibility(left_param, right_param)) {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
 BOOL auto_cast_posibility(sNodeType* left_type, sNodeType* right_type)
 {
     sCLClass* left_class = left_type->mClass;
@@ -502,6 +521,10 @@ BOOL auto_cast_posibility(sNodeType* left_type, sNodeType* right_type)
     }
     //else if(left_type->mNullable && type_identify_with_class_name(left_type, "lambda") && type_identify_with_class_name(right_type, "void*")) 
     else if(type_identify_with_class_name(left_type, "lambda") && type_identify_with_class_name(right_type, "void*")) 
+    {
+        return TRUE;
+    }
+    else if(type_identify_with_class_name(left_type, "lambda") && type_identify_with_class_name(right_type, "lambda") && lambda_posibility(left_type, right_type)) 
     {
         return TRUE;
     }

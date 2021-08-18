@@ -1,5 +1,13 @@
 #include <stdio.h>
 
+void three_times(void* parent, void (*fun)(void* parent))
+{
+    int i;
+    for(i=0; i<3; i++) {
+        fun(parent);
+    }
+}
+
 int main(int argc, char** argv)
 {
     int a = 1;
@@ -8,11 +16,11 @@ int main(int argc, char** argv)
         return (*parent.a + b + c);
     }
 
-    auto fun2 = int lambda(int x, int y) {
-        y = 1;
-        return x;
-    }
-
     printf("%d\n", fun(__stack__, 1, 2));
     printf("a %d\n", a);
+
+    three_times(__stack__, void lambda(__current__* parent) {
+        puts("HELLO LAMBDA");
+        printf("a %d\n", *parent.a);
+    });
 }

@@ -4230,12 +4230,16 @@ BOOL compile_stack(unsigned int node, sCompileInfo* info)
         it = it->mParent;
     }
 
+    node_type->mPointerNum++;
+
     LVALUE llvm_value;
     llvm_value.value = stack;
+    llvm_value.type = clone_node_type(node_type);
     llvm_value.address = NULL;
     llvm_value.var = NULL;
     llvm_value.binded_value = FALSE;
     llvm_value.load_field = FALSE;
+    llvm_value.type = FALSE;
 
     push_value_to_stack_ptr(&llvm_value, info);
 
