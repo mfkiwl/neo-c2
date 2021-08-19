@@ -657,6 +657,11 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         xstrncpy(fun_name, method_name, VAR_NAME_MAX);
     }
 
+    sNodeType* method_block_generics_type = info->method_block_generics_type;
+    if(generics_type) {
+        info->method_block_generics_type = clone_node_type(generics_type);
+    }
+
     xstrncpy(info->calling_fun_name, fun_name, VAR_NAME_MAX);
 
     sFunction* fun = get_function_from_table(fun_name);
@@ -1254,6 +1259,8 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
             return FALSE;
         }
     }
+
+    info->method_block_generics_type = method_block_generics_type;
 
     return TRUE;
 }
@@ -2301,6 +2308,16 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
     int num_params = lambda_type->mNumParams;
     sNodeType* result_type = clone_node_type(lambda_type->mResultType);
 
+    if(info->method_block_generics_type) {
+        if(!solve_generics(&result_type, info->method_block_generics_type)) 
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(result_type);
+            show_node_type(info->generics_type);
+            return FALSE;
+        }
+    }
+
     if(num_params == 0) {
         compile_err_msg(info, "require parent stack parametor");
         return FALSE;
@@ -2325,7 +2342,17 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
         }
 
         xstrncpy(params[i].mName, param_name, VAR_NAME_MAX);
-        params[i].mType = lambda_type->mParamTypes[i];
+        params[i].mType = clone_node_type(lambda_type->mParamTypes[i]);
+
+        if(info->method_block_generics_type) {
+            if(!solve_generics(&params[i].mType, info->method_block_generics_type)) 
+            {
+                compile_err_msg(info, "Can't solve generics types(3)");
+                show_node_type(result_type);
+                show_node_type(info->generics_type);
+                return FALSE;
+            }
+        }
     }
 
     sNodeBlock* node_block = ALLOC sNodeBlock_alloc();

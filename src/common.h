@@ -515,6 +515,8 @@ struct sCompileInfoStruct
     BOOL in_thread_function;
 
     char calling_fun_name[VAR_NAME_MAX];
+
+    sNodeType* method_block_generics_type;
 };
 
 typedef struct sCompileInfoStruct sCompileInfo;
