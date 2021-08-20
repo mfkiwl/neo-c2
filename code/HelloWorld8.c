@@ -1,13 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-void int::times(int n, void* parent, void (*fun)(void* parent))
-{
-    int i;
-    for(i=0; i<n; i++) {
-        fun(parent);
-    }
-}
+#include <come.h>
 
 struct sStruct<T>
 {
@@ -51,6 +42,16 @@ int main(int argc, char** argv)
     });
     data.fun(123) {
         puts("HELLO GENERICS METHOD BLOCK");
+        printf("%d\n", it);
+    }
+
+    auto list2 = new list<int>.initialize();
+
+    list2.push_back(1);
+    list2.push_back(2);
+    list2.push_back(3);
+
+    foreach(it, list2.filter { return it > 1 }) {
         printf("%d\n", it);
     }
 }

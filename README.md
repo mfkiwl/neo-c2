@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.1.9
+version 1.2.0
 
 ```
 #include <come.h>
@@ -40,6 +40,25 @@ int main()
     auto str = string("ABC");
 
     puts(str.substring(0,1));
+
+    int fd = open("ABC", O_RDONLY).expect {
+        fprintf(stderr, "can't open ABC");
+        exit(1);
+    }
+
+    3.times {
+        puts("HELLO METHOD BLOCK");
+    }
+
+    auto li = new list<int>.initialize();
+
+    li.push_back(1);
+    li.push_back(2);
+    li.push_back(3);
+
+    foreach(it, li.filter { return it > 1; }) {
+        printf("%d\n", it);
+    }
 
     return 0;
 }
@@ -2552,6 +2571,71 @@ The method block arguments are assigned to the structure parent for access to th
 
 メソッドブロックの引数は親スタックへのアクセスはparentという構造体、その後の引数はit, it2, it3,... という変数に代入されます。
 
+```
+static int int::expect(int self, void* parent, void (*block)(void* parent))
+{
+    if(self < 0) {
+        block(parent);
+    }
+
+    return self;
+}
+
+static void int::times(int self, void* parent, void (*block)(void* parent))
+{
+    int i;
+    for(i=0; i<self; i++) {
+        block(parent);
+    }
+}
+
+impl list<T>
+{
+    list<T>*% filter(list<T>* self, void* parent, bool (*block)(void*, T&))
+    {
+        auto result = new list<T>.initialize();
+
+        list_item<T>?* it = self.head;
+        while(it != null) {
+            if(block(parent, it.item)) {
+                if(isheap(T)) {
+                    result.push_back(clone it.item);
+                }
+                else {
+                    result.push_back(dummy_heap it.item);
+                }
+            }
+
+            it = it.next;
+        }
+
+        return result;
+    } 
+}
+```
+
+```
+int fd = open("ABC", O_RDONLY).expect {
+    fprintf(stderr, "can't open ABC");
+    exit(1);
+}
+
+3.times {
+    puts("HELLO METHOD BLOCK");
+}
+
+auto li = new list<int>.initialize();
+
+li.push_back(1);
+li.push_back(2);
+li.push_back(3);
+
+foreach(it, li.filter { return it > 1; }) {
+    printf("%d\n", it);
+}
+// result is 2\n3\n
+```
+
 
 # CHANGELOG
 
@@ -2615,3 +2699,7 @@ Added macro. Compile time reflection
 addition from version 1.1.9
 
 Added method block.
+
+addition from version 1.2.0
+
+Added int::times, int::expect, list::filter

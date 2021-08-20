@@ -1618,3 +1618,44 @@ static int come_fd_isset(int fd, fd_set* fds)
     return FD_ISSET(fd, fds);
 }
 
+/// additional libraries ///
+static int int::expect(int self, void* parent, void (*block)(void* parent))
+{
+    if(self < 0) {
+        block(parent);
+    }
+
+    return self;
+}
+
+static void int::times(int self, void* parent, void (*block)(void* parent))
+{
+    int i;
+    for(i=0; i<self; i++) {
+        block(parent);
+    }
+}
+
+impl list<T>
+{
+    list<T>*% filter(list<T>* self, void* parent, bool (*block)(void*, T&))
+    {
+        auto result = new list<T>.initialize();
+
+        list_item<T>?* it = self.head;
+        while(it != null) {
+            if(block(parent, it.item)) {
+                if(isheap(T)) {
+                    result.push_back(clone it.item);
+                }
+                else {
+                    result.push_back(dummy_heap it.item);
+                }
+            }
+
+            it = it.next;
+        }
+
+        return result;
+    } 
+}
