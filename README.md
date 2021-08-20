@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.2.0
+version 1.2.1
 
 ```
 #include <come.h>
@@ -56,7 +56,7 @@ int main()
     li.push_back(2);
     li.push_back(3);
 
-    foreach(it, li.filter { return it > 1; }) {
+    li.filter { return it > 1; }.each {
         printf("%d\n", it);
     }
 
@@ -2611,6 +2611,22 @@ impl list<T>
 
         return result;
     } 
+    list<T>* each(list<T>* self, void* parent, void (*block_)(void*, T&,int,bool*)) {
+        list_item<T>?* it = self.head;
+        int i = 0;
+        while(it != null) {
+            bool end_flag = false;
+            block_(parent, it.item, i, &end_flag);
+
+            if(end_flag == true) {
+                break;
+            }
+            it = it.next;
+            i++;
+        }
+
+        return self;
+    }
 }
 ```
 
@@ -2630,7 +2646,7 @@ li.push_back(1);
 li.push_back(2);
 li.push_back(3);
 
-foreach(it, li.filter { return it > 1; }) {
+li.filter { return it > 1; }.each {
     printf("%d\n", it);
 }
 // result is 2\n3\n
@@ -2703,3 +2719,7 @@ Added method block.
 addition from version 1.2.0
 
 Added int::times, int::expect, list::filter
+
+addition from version 1.2.1
+
+Added list::each

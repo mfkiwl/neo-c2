@@ -51,7 +51,7 @@ int main(int argc, char** argv)
     list2.push_back(2);
     list2.push_back(3);
 
-    foreach(it, list2.filter { return it > 1 }) {
+    list2.filter { return it > 1 }.each {
         printf("%d\n", it);
     }
 }

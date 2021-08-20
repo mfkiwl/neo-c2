@@ -1658,4 +1658,20 @@ impl list<T>
 
         return result;
     } 
+    list<T>* each(list<T>* self, void* parent, void (*block_)(void*, T&,int,bool*)) {
+        list_item<T>?* it = self.head;
+        int i = 0;
+        while(it != null) {
+            bool end_flag = false;
+            block_(parent, it.item, i, &end_flag);
+
+            if(end_flag == true) {
+                break;
+            }
+            it = it.next;
+            i++;
+        }
+
+        return self;
+    }
 }
