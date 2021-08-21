@@ -2079,6 +2079,29 @@ The above code will result in a compilation error.
 
 上記のコードはコンパイルエラーとなります。
 
+From vresion 1.2.1, comelang can access the variables of parent stack frame.
+
+version 1.2.1より親のスタックの変数にアクセスできるようになりました。
+
+```
+int main(int argc, char** argv)
+{
+    int a;
+    auto fun = int lambda(__current__* parent, int b, int c) {
+        *parent.a = 4;
+        return (*parent.a + b + c);
+    }
+
+    printf("%d\n", fun(__stack__, 1, 2));
+    printf("a %d\n", a);
+}
+```
+
+__current__ defines a structure that contains pointers to all variables in the current stack frame. __stack__ returns the pointer of the structure in which the pointer of the stack frame is assigned to the structure that stores the pointers of all variables of the current stack frame. In this case, the structure struct {int * a, int * argc, char *** argv}; is defined.
+
+__current__は現在のスタックフレームのすべての変数のポインタを格納している構造体を定義します。
+__stack__は現在のスタックフレームのすべての変数のポインタを格納している構造体にスタックフレームのポインタを代入した構造体のポインタを返します。
+この場合はstruct { int* a, int* argc, char*** argv };という構造体が定義されます。
 
 7. buffer
 
@@ -2526,7 +2549,7 @@ gGlobal int
 gGlobal2 int
 ~~~
 
-10. METHOD BLOCK
+10. Method block
 
 ```
 void times(int n, void* parent, void (*fun)(void* parent))
@@ -2540,14 +2563,6 @@ void times(int n, void* parent, void (*fun)(void* parent))
 int main(int argc, char** argv)
 {
     int a = 1;
-
-    auto fun = int lambda(__current__* parent, int b, int c) {
-        *parent.a = 4;
-        return (*parent.a + b + c);
-    }
-
-    printf("%d\n", fun(__stack__, 1, 2));
-    printf("a %d\n", a);
 
     times(3, __stack__, void lambda(__current__* parent) {
         puts("HELLO LAMBDA");
