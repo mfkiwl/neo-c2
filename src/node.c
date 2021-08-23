@@ -118,7 +118,6 @@ void free_right_value_objects(sCompileInfo* info)
 
 LLVMTypeRef create_llvm_type_with_class_name(char* class_name);
 sFunction* get_function_from_table(char* name);
-BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_name, sNodeType* generics_type, sCompileInfo* info);
 
 void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
 {
@@ -136,7 +135,7 @@ void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
             if(finalizer->mGenericsFunction) {
                 LLVMValueRef llvm_fun = NULL;
 
-                if(!create_generics_function(&llvm_fun, finalizer, fun_name, node_type, info)) {
+                if(!create_generics_function(&llvm_fun, finalizer, fun_name, node_type, 0, NULL, info)) {
                     fprintf(stderr, "can't craete generics finalizer %s\n", fun_name);
                     return;
                 }
@@ -209,7 +208,7 @@ LLVMValueRef clone_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* 
             if(cloner->mGenericsFunction) {
                 LLVMValueRef llvm_fun = NULL;
 
-                if(!create_generics_function(&llvm_fun, cloner, fun_name, node_type, info)) {
+                if(!create_generics_function(&llvm_fun, cloner, fun_name, node_type, 0, NULL, info)) {
                     fprintf(stderr, "can't craete generics finalizer %s\n", fun_name);
                     exit(1);
                 }

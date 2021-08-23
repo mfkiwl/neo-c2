@@ -68,7 +68,7 @@ int main()
 
 2. It has its own heap system. It has an automatic free of the temporarily generated heap (rvalue) and an automatic free of the heap assigned to the variable.
 
-3. It has Generics, inline function, debug info (-g option), and lambda.
+3. It has Generics, Method Generics, inline function, debug info (-g option), and lambda.
 
 4. The library is written in come.h and you don't need to link any library. The library is minimal and keeps learning costs down. It has a collection library> and a string library.
 
@@ -84,7 +84,7 @@ int main()
 
 2. 独自のヒープシステムを備えます。一時的に生成されたヒープ（右辺値）の自動freeと変数に代入されたヒープの自動freeを備えます。
 
-3. Generics, inline function, debug info(-g option), lambdaを備えます。
+3. Generics, Method Generics, inline function, debug info(-g option), lambdaを備えます。
 
 4. ライブラリはcome.hに書かれてあり、何もライブラリをリンクする必要はありません。ライブラリは最小限となっており学習コストを抑えています。コレクションライブラリと文字列ライブラリを備えます。
 

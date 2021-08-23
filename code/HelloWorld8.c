@@ -11,6 +11,15 @@ impl sStruct<T>
     void fun(sStruct<T>* self, T xxx, void* parent, void (*fun)(void* parent, T a)) {
         fun(parent, xxx);
     }
+
+    template <R> R fun2(sStruct<T>* self, R a, R b) {
+        return a + b;
+    }
+}
+
+template <R> R fun(R a, int b)
+{
+    return a + b;
 }
 
 int main(int argc, char** argv)
@@ -54,5 +63,11 @@ int main(int argc, char** argv)
     list2.filter { return it > 1 }.each {
         printf("%d\n", it);
     }
+
+    xassert("method generics test", fun(1,2) == 3);
+    xassert("method generics test", data.fun2(1,2) == 3);
+
+    return 0;
 }
+
 

@@ -2063,6 +2063,18 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
         }
 
         if(*result_type == NULL) {
+            for(i=0; i<info->mNumMethodGenerics; i++) {
+                if(strcmp(type_name, info->mMethodGenericsTypeNames[i]) == 0)
+                {
+                    char buf[VAR_NAME_MAX+1];
+                    snprintf(buf, VAR_NAME_MAX, "mgenerics%d", i);
+
+                    *result_type = create_node_type_with_class_name(buf);
+                }
+            }
+        }
+
+        if(*result_type == NULL) {
 #ifdef __DARWIN__
             if(strcmp(type_name, "va_list") == 0) {
                 *result_type = create_node_type_with_class_name(type_name);
@@ -3260,6 +3272,120 @@ static BOOL parse_generics_function(unsigned int* node, sNodeType* result_type, 
     *node = sNodeTree_create_generics_function(fun_name, params, num_params, result_type, MANAGED buf.mBuf, struct_name, sname, sline, var_arg, 0, info);
 
     //info->mNumMethodGenerics = 0;
+
+    return TRUE;
+}
+
+static BOOL parse_method_generics_function(unsigned int* node, char* struct_name, sParserInfo* info)
+{
+    char* function_head = info->p;
+
+    /// method generics ///
+    info->mNumMethodGenerics = 0;
+
+    if(*info->p == '<') {
+        info->p++;
+        skip_spaces_and_lf(info);
+
+        int num_generics = 0;
+
+        while(TRUE) {
+            char buf[VAR_NAME_MAX];
+            if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE)) {
+                return FALSE;
+            }
+
+            info->mMethodGenericsTypeNames[num_generics] = strdup(buf);
+            num_generics++;
+
+            if(num_generics >= GENERICS_TYPES_MAX)
+            {
+                parser_err_msg(info, "overflow generics types");
+                return FALSE;
+            }
+
+            info->mNumMethodGenerics = num_generics;
+
+            if(*info->p == ',') {
+                info->p++;
+                skip_spaces_and_lf(info);
+            }
+            else if(*info->p == '>') {
+                info->p++;
+                skip_spaces_and_lf(info);
+                break;
+            }
+            else {
+                parser_err_msg(info, "require , or > character");
+                info->err_num++;
+                break;
+            }
+        }
+    }
+
+    sNodeType* result_type = NULL;
+    if(!parse_type(&result_type, info, NULL, FALSE, FALSE))
+    {
+        return FALSE;
+    }
+
+    char fun_name[VAR_NAME_MAX+1];
+    if(!parse_word(fun_name, VAR_NAME_MAX, info, TRUE, FALSE))
+    {
+        return FALSE;
+    }
+
+    xstrncpy(info->fun_name, fun_name, VAR_NAME_MAX);
+
+    expect_next_character_with_one_forward("(", info);
+
+    /// params ///
+    sParserParam params[PARAMS_MAX];
+    memset(params, 0, sizeof(sParserParam)*PARAMS_MAX);
+    int num_params = 0;
+
+    /// parse_params ///
+    BOOL var_arg = FALSE;
+    if(!parse_params(params, &num_params, info, 0, &var_arg))
+    {
+        return FALSE;
+    }
+
+    int i;
+    for(i=0; i<num_params; i++) {
+        char* name = params[i].mName;
+
+        if(name[0] == '\0') {
+            parser_err_msg(info, "Require parametor variable names");
+            info->err_num++;
+        }
+    }
+
+    char asm_fname[VAR_NAME_MAX];
+    if(!parse_attribute(info, asm_fname)) {
+        return FALSE;
+    }
+
+    char sname[PATH_MAX];
+    xstrncpy(sname, info->sname, PATH_MAX);
+
+    skip_spaces_and_lf(info);
+
+    int sline = info->sline;
+
+    if(*info->p == '{') {
+        info->p++;
+    }
+
+    sBuf buf;
+    sBuf_init(&buf);
+
+    if(!get_block_text(&buf, info, TRUE)) {
+        free(buf.mBuf);
+        return FALSE;
+    };
+
+    *node = sNodeTree_create_generics_function(fun_name, params, num_params, result_type, MANAGED buf.mBuf, struct_name, sname, sline, var_arg, 0, info);
 
     return TRUE;
 }
@@ -6278,6 +6404,19 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
                 xstrncpy(enum_name, "", VAR_NAME_MAX);
 
                 if(!parse_enum(node, enum_name, VAR_NAME_MAX, NULL, info)) {
+                    return FALSE;
+                }
+            }
+        }
+        else if(strcmp(buf, "template") == 0) {
+            if(strcmp(info->impl_struct_name, "") == 0)
+            {
+                if(!parse_method_generics_function(node, NULL, info)) {
+                    return FALSE;
+                }
+            }
+            else {
+                if(!parse_method_generics_function(node, info->impl_struct_name, info)) {
                     return FALSE;
                 }
             }

@@ -1102,8 +1102,7 @@ unsigned int sNodeTree_create_method_block(MANAGED char* block, sParserInfo* inf
 
 void create_real_fun_name(char* real_fun_name, size_t size_real_fun_name, char* fun_name, char* struct_name);
 void llvm_change_block(LLVMBasicBlockRef current_block, sCompileInfo* info);
-void create_generics_fun_name(char* real_fun_name, int size_real_fun_name, char* fun_name,  sNodeType* generics_type);
-BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_name, sNodeType* generics_type, sCompileInfo* info);
+BOOL create_generics_function(LLVMValueRef* llvm_fun, sFunction* fun, char* fun_name, sNodeType* generics_type, int num_method_generics_types, sNodeType** method_generics_types, sCompileInfo* info);
 
 
 BOOL compile_external_function(unsigned int node, sCompileInfo* info);
