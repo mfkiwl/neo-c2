@@ -2695,6 +2695,8 @@ template <R> R fun(R a, int b)
 
 int main() 
 {
+    sStruct<int>*% data = new sStruct<int>;
+
     xassert("method generics test", fun(1,2) == 3);
     xassert("method generics test", data.fun2(1,2) == 3);
 
