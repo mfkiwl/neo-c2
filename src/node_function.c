@@ -2333,7 +2333,6 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
     sNodeType* result_type2 = clone_node_type(lambda_type->mResultType);
 
     if(result_type) {
-puts("AA");
         result_type2 = clone_node_type(result_type);
     }
 
@@ -2425,9 +2424,6 @@ puts("AA");
     BOOL operator_fun = FALSE;
 
     result_type2->mStatic = TRUE;
-
-puts(fun_name);
-show_node_type(result_type2);
 
     unsigned int node2 = sNodeTree_create_function(fun_name, "", params, num_params, result_type2, MANAGED node_block, lambda_, block_var_table, NULL, operator_fun, construct_fun, simple_lambda_param, &pinfo, FALSE, FALSE, 0, FALSE, -1, fun_name, sline);
 
