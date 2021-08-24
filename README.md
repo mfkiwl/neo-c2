@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.2.1
+version 1.2.2
 
 ```
 #include <come.h>
@@ -2668,6 +2668,73 @@ li.filter { return it > 1; }.each {
 ```
 
 
+11. Method Generics
+
+```
+struct sStruct<T>
+{
+    T a;
+    T b;
+};
+
+impl sStruct<T>
+{
+    void fun(sStruct<T>* self, T xxx, void* parent, void (*fun)(void* parent, T a)) {
+        fun(parent, xxx);
+    }
+
+    template <R> R fun2(sStruct<T>* self, R a, R b) {
+        return a + b;
+    }
+}
+
+template <R> R fun(R a, int b)
+{
+    return a + b;
+}
+
+int main() 
+{
+    xassert("method generics test", fun(1,2) == 3);
+    xassert("method generics test", data.fun2(1,2) == 3);
+
+    return 0;
+}
+```
+
+```
+impl list<T>
+    template <R> list<R>*% map(list<T>* self, void* parent, R (*block)(void*, T&))
+    {
+        auto result = new list<R>.initialize();
+
+        list_item<T>?* it = self.head;
+        while(it != null) {
+            result.push_back(block(parent, it.item));
+
+            it = it.next;
+        }
+
+        return result;
+    }
+}
+
+int main()
+{
+    auto list3 = new list<char*>.initialize();
+
+    list3.push_back("1");
+    list3.push_back("2");
+    list3.push_back("3");
+
+    auto list4 = list3.map int { return atoi(it); }
+
+    xassert("map test", list4.item(0, -1) == 1 && list4.item(1, -1) == 2 && list4.item(2, -1) == 3);
+
+    return 0;
+}
+```
+
 # CHANGELOG
 
 addition from version 1.0.9
@@ -2738,3 +2805,7 @@ Added int::times, int::expect, list::filter
 addition from version 1.2.1
 
 Added list::each
+
+addition from version 1.2.2
+
+Added MethodBlock list::map

@@ -105,6 +105,9 @@ BOOL parse_word(char* buf, int buf_size, sParserInfo* info, BOOL print_out_err_m
     if(*info->p == 0 && buf[0] == 0) {
         if(print_out_err_msg) {
             parser_err_msg(info, "require word(alphabet or number). this is the end of source");
+            int a = 0;
+            int b = 1;
+            int c = b/a;
         }
         return FALSE;
     }
@@ -115,6 +118,9 @@ BOOL parse_word(char* buf, int buf_size, sParserInfo* info, BOOL print_out_err_m
             snprintf(buf, 1024, "require word(alphabet or _ or number). this is (%c)", *info->p);
             parser_err_msg(info, buf);
             info->err_num++;
+            int a = 0;
+            int b = 1;
+            int c = b/a;
         }
 
         if(*info->p == '\n') info->sline++;
@@ -3705,6 +3711,30 @@ static BOOL parse_funcation_call_params(int* num_params, unsigned int* params, s
 
     skip_spaces_and_lf(info);
 
+    sNodeType* result_type = NULL;
+
+    char* p = info->p;
+    int sline = info->sline;
+
+    char buf[VAR_NAME_MAX];
+
+    if(!parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE)) {
+        return FALSE;
+    }
+
+    if(is_type_name(buf, info)) {
+        info->p = p;
+        info->sline = sline;
+
+        if(!parse_type(&result_type, info, NULL, FALSE, FALSE)) {
+            return FALSE;
+        }
+    }
+    else {
+        info->p = p;
+        info->sline = sline;
+    }
+
     if(*info->p == '{') {
         params[*num_params] = sNodeTree_create_stack(info);
         (*num_params)++;
@@ -3726,7 +3756,7 @@ static BOOL parse_funcation_call_params(int* num_params, unsigned int* params, s
 
         sBuf_append(&buf, p, p2-p);
 
-        params[*num_params] = sNodeTree_create_method_block(MANAGED buf.mBuf, info);
+        params[*num_params] = sNodeTree_create_method_block(MANAGED buf.mBuf, result_type, info);
 
         (*num_params)++;
         
@@ -3882,9 +3912,26 @@ static BOOL postposition_operator(unsigned int* node, BOOL enable_assginment, sP
                     return FALSE;
                 }
 
+                BOOL type_name_after_word = FALSE;
+
+                char* p = info->p;
+                int sline = info->sline;
+
+                char buf2[VAR_NAME_MAX];
+
+                if(!parse_word(buf2, VAR_NAME_MAX, info, FALSE, FALSE)) {
+                    return FALSE;
+                }
+
+                if(is_type_name(buf2, info)) {
+                    type_name_after_word = TRUE;
+                }
+
+                info->p = p;
+                info->sline = sline;
+
                 /// call methods ///
-                if(*info->p == '(' || *info->p == '{') 
-                {
+                if(*info->p == '(' || *info->p == '{' || type_name_after_word) {
                     char* fun_name = buf;
 
                     unsigned int params[PARAMS_MAX];

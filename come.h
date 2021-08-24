@@ -1674,4 +1674,17 @@ impl list<T>
 
         return self;
     }
+    template <R> list<R>*% map(list<T>* self, void* parent, R (*block)(void*, T&))
+    {
+        auto result = new list<R>.initialize();
+
+        list_item<T>?* it = self.head;
+        while(it != null) {
+            result.push_back(block(parent, it.item));
+
+            it = it.next;
+        }
+
+        return result;
+    }
 }

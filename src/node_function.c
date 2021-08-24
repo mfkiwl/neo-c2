@@ -812,6 +812,8 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
                 }
             }
 
+            solve_method_generics2(&fun_param_type, param_types[i]);
+
 #ifdef __ISH__
 if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_with_class_name(param_types[i], "__va_list"))
 {
@@ -918,7 +920,14 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
     for(i=0; i<fun->mNumParams; i++) {
         LVALUE param = lvalue_params[i];
 
-        if(fun->mParamTypes[i]->mHeap && param.type->mHeap) {
+        sNodeType* fun_param_type = clone_node_type(fun->mParamTypes[i]);
+        sNodeType* param_type = param_types[i];
+
+        if(!solve_type(&fun_param_type, generics_type, num_method_generics_types, method_generics_types, info)) {
+            return FALSE;
+        }
+
+        if(fun_param_type->mHeap && param.type->mHeap) {
             sVar* var = param.var;
             if(var) {
                 var->mLLVMValue = NULL;
@@ -1003,13 +1012,15 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
     /// call generics function ///
     if(fun->mGenericsFunction) {
         for(i=0; i<num_params; i++) {
-            sNodeType* node_type = clone_node_type(fun->mParamTypes[i]);
+            sNodeType* fun_param_type = clone_node_type(fun->mParamTypes[i]);
+            sNodeType* param_type = param_types[i];
 
-            if(!solve_type(&node_type, generics_type, num_method_generics_types, method_generics_types, info)) {
+            if(!solve_type(&fun_param_type, generics_type, num_method_generics_types, method_generics_types, info))
+            {
                 return FALSE;
             }
 
-            if(node_type->mHeap) {
+            if(fun_param_type->mHeap) {
                 remove_object_from_right_values(llvm_params[i], info);
             }
         }
@@ -1519,6 +1530,9 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         var->mConstant = FALSE;
     }
 
+    sNodeType* return_result_type = info->return_result_type;
+    info->return_result_type = create_node_type_with_class_name("void");
+
     if(!compile_block(node_block, info)) {
         info->function_node_block = function_node_block;
         return FALSE;
@@ -1607,6 +1621,8 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     }
 
     gThreadNum = thread_num;
+
+    info->return_result_type = return_result_type;
 
     return TRUE;
 }
@@ -2273,7 +2289,7 @@ BOOL compile_join(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-unsigned int sNodeTree_create_method_block(MANAGED char* block, sParserInfo* info)
+unsigned int sNodeTree_create_method_block(MANAGED char* block, sNodeType* result_type, sParserInfo* info)
 {
     unsigned int node = alloc_node();
     
@@ -2284,6 +2300,7 @@ unsigned int sNodeTree_create_method_block(MANAGED char* block, sParserInfo* inf
 
     gNodes[node].uValue.sMethodBlock.mBlockText = MANAGED block;
     gNodes[node].uValue.sMethodBlock.mVarTable = clone_var_table(info->lv_table);
+    gNodes[node].uValue.sMethodBlock.mResultType = result_type;
 
     gNodes[node].mLeft = 0;
     gNodes[node].mRight = 0;
@@ -2296,6 +2313,7 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
 {
     char* block_text = gNodes[node].uValue.sMethodBlock.mBlockText;
     sVarTable* lv_table = gNodes[node].uValue.sMethodBlock.mVarTable;
+    sNodeType* result_type = gNodes[node].uValue.sMethodBlock.mResultType;
 
     sFunction* fun = get_function_from_table(info->calling_fun_name);
 
@@ -2312,13 +2330,18 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
     sNodeType* lambda_type = fun->mParamTypes[fun->mNumParams-1];
 
     int num_params = lambda_type->mNumParams;
-    sNodeType* result_type = clone_node_type(lambda_type->mResultType);
+    sNodeType* result_type2 = clone_node_type(lambda_type->mResultType);
+
+    if(result_type) {
+puts("AA");
+        result_type2 = clone_node_type(result_type);
+    }
 
     if(info->method_block_generics_type) {
-        if(!solve_generics(&result_type, info->method_block_generics_type)) 
+        if(!solve_generics(&result_type2, info->method_block_generics_type)) 
         {
             compile_err_msg(info, "Can't solve generics types(3)");
-            show_node_type(result_type);
+            show_node_type(result_type2);
             show_node_type(info->generics_type);
             return FALSE;
         }
@@ -2354,7 +2377,7 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
             if(!solve_generics(&params[i].mType, info->method_block_generics_type)) 
             {
                 compile_err_msg(info, "Can't solve generics types(3)");
-                show_node_type(result_type);
+                show_node_type(params[i].mType);
                 show_node_type(info->generics_type);
                 return FALSE;
             }
@@ -2397,13 +2420,16 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
     create_lambda_name(fun_name, VAR_NAME_MAX, pinfo.module_name);
 
     BOOL lambda_ = TRUE;
-    BOOL simple_lambda_param = FALSE;
+    BOOL simple_lambda_param = TRUE;
     BOOL construct_fun = FALSE;
     BOOL operator_fun = FALSE;
 
-    result_type->mStatic = TRUE;
+    result_type2->mStatic = TRUE;
 
-    unsigned int node2 = sNodeTree_create_function(fun_name, "", params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, NULL, operator_fun, construct_fun, simple_lambda_param, &pinfo, FALSE, FALSE, 0, FALSE, -1, fun_name, sline);
+puts(fun_name);
+show_node_type(result_type2);
+
+    unsigned int node2 = sNodeTree_create_function(fun_name, "", params, num_params, result_type2, MANAGED node_block, lambda_, block_var_table, NULL, operator_fun, construct_fun, simple_lambda_param, &pinfo, FALSE, FALSE, 0, FALSE, -1, fun_name, sline);
 
     return compile(node2, info);
 }

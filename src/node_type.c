@@ -846,6 +846,35 @@ BOOL solve_method_generics(sNodeType** node_type, int num_method_generics_types,
     return TRUE;
 }
 
+void solve_method_generics2(sNodeType** left_type, sNodeType* right_type)
+{
+    sCLClass* klass = (*left_type)->mClass;
+
+    if(type_identify_with_class_name(*left_type, "lambda") && type_identify_with_class_name(right_type, "lambda")) 
+    {
+        solve_method_generics2(&(*left_type)->mResultType, right_type->mResultType);
+
+        int i;
+        for(i=0; i<(*left_type)->mNumParams; i++)
+        {
+            solve_method_generics2(&(*left_type)->mParamTypes[i], right_type->mParamTypes[i]);
+        }
+    }
+    else if(klass->mFlags & CLASS_FLAGS_METHOD_GENERICS)
+    {
+        *left_type = clone_node_type(right_type);
+    }
+    else {
+        int i;
+        for(i=0; i<(*left_type)->mNumGenericsTypes; i++)
+        {
+            if(i < right_type->mNumGenericsTypes) {
+                solve_method_generics2(&(*left_type)->mGenericsTypes[i], right_type->mGenericsTypes[i]);
+            }
+        }
+    }
+}
+
 BOOL is_typeof_type(sNodeType* node_type)
 {
     BOOL result = FALSE;

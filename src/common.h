@@ -220,6 +220,7 @@ BOOL is_number_type(sNodeType* node_type);
 void show_node_type(sNodeType* node_type);
 BOOL solve_generics(sNodeType** node_type, sNodeType* generics_type);
 BOOL solve_method_generics(sNodeType** node_type, int num_method_generics_types, sNodeType* method_generics_types[GENERICS_TYPES_MAX]);
+void solve_method_generics2(sNodeType** left_type, sNodeType* right_type);
 BOOL solve_typeof(sNodeType** node_type, struct sCompileInfoStruct* info);
 BOOL is_typeof_type(sNodeType* node_type);
 BOOL included_generics_type(sNodeType* node_type, sCLClass* checked_class[], int* num_checked_class);
@@ -517,6 +518,8 @@ struct sCompileInfoStruct
     char calling_fun_name[VAR_NAME_MAX];
 
     sNodeType* method_block_generics_type;
+
+    sNodeType* return_result_type;
 };
 
 typedef struct sCompileInfoStruct sCompileInfo;
@@ -757,6 +760,7 @@ struct sNodeTreeStruct
         struct {
             char* mBlockText;
             sVarTable* mVarTable;
+            sNodeType* mResultType;
         } sMethodBlock;
     } uValue;
 };
@@ -1098,7 +1102,7 @@ unsigned int sNodeTree_create_come_function_call(char* fun_name, unsigned int* p
 unsigned int sNodeTree_create_join(sParserInfo* info);
 unsigned int sNodeTree_create_generics_function(char* fun_name, sParserParam* params, int num_params, sNodeType* result_type, MANAGED char* block_text, char* struct_name, char* sname, int sline, BOOL va_arg, int version, sParserInfo* info);
 unsigned int sNodeTree_create_inline_function(char* fun_name, sParserParam* params, int num_params, sNodeType* result_type, MANAGED char* block_text, char* struct_name, char* sname, int sline, BOOL var_arg, sParserInfo* info);
-unsigned int sNodeTree_create_method_block(MANAGED char* block, sParserInfo* info);
+unsigned int sNodeTree_create_method_block(MANAGED char* block, sNodeType* result_type, sParserInfo* info);
 
 void create_real_fun_name(char* real_fun_name, size_t size_real_fun_name, char* fun_name, char* struct_name);
 void llvm_change_block(LLVMBasicBlockRef current_block, sCompileInfo* info);

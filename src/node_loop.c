@@ -1074,6 +1074,8 @@ BOOL compile_return(unsigned int node, sCompileInfo* info)
             return FALSE;
         }
 
+        info->return_result_type = clone_node_type(info->type);
+
         LVALUE llvm_value = *get_value_from_stack(-1);
 
         sNodeType* right_type = clone_node_type(info->type);
@@ -1114,6 +1116,8 @@ BOOL compile_return(unsigned int node, sCompileInfo* info)
             free_objects_on_return(info->function_node_block, info, NULL, TRUE);
             LLVMBuildRet(gBuilder, NULL);
         }
+
+        info->return_result_type = create_node_type_with_class_name("void");
 
         info->type = create_node_type_with_class_name("void");
     }
