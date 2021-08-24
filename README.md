@@ -2540,7 +2540,7 @@ int gGlobal;
 
 ```
 ruby <<EOS
-    type = "`./come -n global g.c | grep gGlobal`".split()[1];
+    type = "`./come -n global $SOURCE_NAME | grep gGlobal`".split()[1];
     puts(type + " gGlobal2;");
 EOS
 ```
@@ -2548,6 +2548,8 @@ EOS
 gGlobal int
 gGlobal2 int
 ~~~
+
+SOURCE_NAMEという環境変数にコンパイル中のソースファイル名が入ってます。
 
 10. Method block
 

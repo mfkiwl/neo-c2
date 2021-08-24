@@ -13,7 +13,7 @@ enum eEnumA { kA, kB };
 
 ```
 ruby <<EOS
-    type = "`./come -n global g.c | grep gGlobal`".split()[1];
+    type = "`./come -n global $SOURCE_NAME | grep gGlobal`".split()[1];
     puts(type + " gGlobal2;");
 EOS
 ```

@@ -1603,6 +1603,15 @@ static int buffer_compare(buffer* left, buffer* right)
     return strcmp(left.buf, right.buf);
 }
 
+static buffer*% char::to_buffer(char* self) 
+{
+    auto result = new buffer.initialize();
+
+    result.append_str(self);
+
+    return result;
+}
+
 static void come_fd_zero(fd_set* fds)
 {
     FD_ZERO(fds);

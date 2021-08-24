@@ -207,6 +207,8 @@ int main(int argc, char** argv)
 
     xstrncpy(gFName, sname, PATH_MAX);
 
+    setenv("SOURCE_NAME", sname, 1);
+
     compiler_init(sname);
 
     gModuleVarTable = init_var_table();
