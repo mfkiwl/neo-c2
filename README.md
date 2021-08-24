@@ -2705,7 +2705,7 @@ int main()
 ```
 
 ```
-impl list<T>
+impl list<T> {
     template <R> list<R>*% map(list<T>* self, void* parent, R (*block)(void*, T&))
     {
         auto result = new list<R>.initialize();
