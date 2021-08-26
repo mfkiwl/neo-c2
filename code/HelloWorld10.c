@@ -40,9 +40,12 @@ int main()
 
     xassert("macro test", v.item(0, -1) == 1 && v.item(1, -1) == 2 && v.item(2, -1) == 3);
 
+puts("before fun");
     fun();
 
+puts("before fun2");
     fun2();
+puts("after fun2");
 
     return 0;
 }
