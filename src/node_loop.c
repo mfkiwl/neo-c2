@@ -1096,14 +1096,16 @@ BOOL compile_return(unsigned int node, sCompileInfo* info)
         if(info->in_inline_function) {
             free_objects_on_return(info->function_node_block, info, llvm_value.address, FALSE);
             LLVMBuildStore(gBuilder, llvm_value.value, info->inline_result_variable);
-            //LLVMBuildBr(gBuilder, info->defer_block);
-            //llvm_change_block(info->defer_block, info);
             LLVMBuildBr(gBuilder, info->inline_func_end);
         }
         else {
             free_objects_on_return(info->function_node_block, info, llvm_value.address, TRUE);
-            LLVMBuildBr(gBuilder, info->defer_block);
-            llvm_change_block(info->defer_block, info);
+
+            if(info->defer_block) {
+                LLVMBuildBr(gBuilder, info->defer_block);
+                llvm_change_block(info->defer_block, info);
+            }
+
             LLVMBuildRet(gBuilder, llvm_value.value);
         }
 
@@ -1114,12 +1116,16 @@ BOOL compile_return(unsigned int node, sCompileInfo* info)
 
         if(info->in_inline_function) {
             free_objects_on_return(info->function_node_block, info, NULL, FALSE);
-            //llvm_change_block(info->defer_block, info);
             LLVMBuildBr(gBuilder, info->inline_func_end);
         }
         else {
             free_objects_on_return(info->function_node_block, info, NULL, TRUE);
-            llvm_change_block(info->defer_block, info);
+
+            if(info->defer_block) {
+                LLVMBuildBr(gBuilder, info->defer_block);
+                llvm_change_block(info->defer_block, info);
+            }
+
             LLVMBuildRet(gBuilder, NULL);
         }
 
@@ -2112,6 +2118,10 @@ unsigned int sNodeTree_create_defer(unsigned int expression_node, sParserInfo* i
 BOOL compile_defer(unsigned int node, sCompileInfo* info)
 {
     unsigned int expression_node = gNodes[node].uValue.sDefer.mExpressionNode;
+
+    if(info->defer_block == NULL) {
+        info->defer_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "defer_block");
+    }
 
     LLVMBasicBlockRef current_block = info->current_block;
 
