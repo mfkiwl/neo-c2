@@ -1479,6 +1479,9 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     LLVMBasicBlockRef entry = LLVMAppendBasicBlockInContext(gContext, llvm_fun, "entry");
     llvm_change_block(entry, info);
 
+    LLVMBasicBlockRef defer_block = info->defer_block;
+    info->defer_block = LLVMAppendBasicBlockInContext(gContext, llvm_fun, "defer_block");
+
     BOOL empty_function = node_block->mNumNodes == 0;
 
     char* block_text = NULL;
@@ -1551,6 +1554,8 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     }
 
     if(type_identify_with_class_name(result_type, "void") && result_type->mPointerNum == 0) {
+        LLVMBuildBr(gBuilder, info->defer_block);
+        llvm_change_block(info->defer_block, info);
         LLVMBuildRet(gBuilder, NULL);
     }
     else {
@@ -1579,6 +1584,8 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
                 return TRUE;
             }
 
+            LLVMBuildBr(gBuilder, info->defer_block);
+            llvm_change_block(info->defer_block, info);
             LLVMBuildRet(gBuilder, llvm_value.value);
         }
     }
@@ -1624,6 +1631,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     gThreadNum = thread_num;
 
     info->return_result_type = return_result_type;
+    info->defer_block = defer_block;
 
     return TRUE;
 }

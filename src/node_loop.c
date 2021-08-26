@@ -1096,10 +1096,14 @@ BOOL compile_return(unsigned int node, sCompileInfo* info)
         if(info->in_inline_function) {
             free_objects_on_return(info->function_node_block, info, llvm_value.address, FALSE);
             LLVMBuildStore(gBuilder, llvm_value.value, info->inline_result_variable);
+            //LLVMBuildBr(gBuilder, info->defer_block);
+            //llvm_change_block(info->defer_block, info);
             LLVMBuildBr(gBuilder, info->inline_func_end);
         }
         else {
             free_objects_on_return(info->function_node_block, info, llvm_value.address, TRUE);
+            LLVMBuildBr(gBuilder, info->defer_block);
+            llvm_change_block(info->defer_block, info);
             LLVMBuildRet(gBuilder, llvm_value.value);
         }
 
@@ -1110,10 +1114,12 @@ BOOL compile_return(unsigned int node, sCompileInfo* info)
 
         if(info->in_inline_function) {
             free_objects_on_return(info->function_node_block, info, NULL, FALSE);
+            //llvm_change_block(info->defer_block, info);
             LLVMBuildBr(gBuilder, info->inline_func_end);
         }
         else {
             free_objects_on_return(info->function_node_block, info, NULL, TRUE);
+            llvm_change_block(info->defer_block, info);
             LLVMBuildRet(gBuilder, NULL);
         }
 
@@ -2081,6 +2087,41 @@ BOOL compile_pselect(unsigned int node, sCompileInfo* info)
     sNodeBlock_free(node_block);
 
     info->type = create_node_type_with_class_name("void");
+
+    return TRUE;
+}
+
+unsigned int sNodeTree_create_defer(unsigned int expression_node, sParserInfo* info)
+{
+    unsigned node = alloc_node();
+
+    gNodes[node].mNodeType = kNodeTypeDefer;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    gNodes[node].uValue.sDefer.mExpressionNode = expression_node;
+
+    gNodes[node].mLeft = 0;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    return node;
+}
+
+BOOL compile_defer(unsigned int node, sCompileInfo* info)
+{
+    unsigned int expression_node = gNodes[node].uValue.sDefer.mExpressionNode;
+
+    LLVMBasicBlockRef current_block = info->current_block;
+
+    llvm_change_block(info->defer_block, info);
+
+    if(!compile(expression_node, info)) {
+        return FALSE;
+    }
+
+    llvm_change_block(current_block, info);
 
     return TRUE;
 }

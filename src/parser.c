@@ -5591,7 +5591,7 @@ static BOOL parse_come(unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
-static BOOL get_command_result(sBuf* command_result, char* cmdline)
+static BOOL get_command_result2(sBuf* command_result, char* cmdline)
 {
     char buf[BUFSIZ];
 
@@ -5618,7 +5618,7 @@ static BOOL get_command_result(sBuf* command_result, char* cmdline)
     return TRUE;
 }
 
-static BOOL parse_macro(unsigned int* node, sParserInfo* info)
+static BOOL parse_compiletime_macro(unsigned int* node, sParserInfo* info)
 {
     sBuf cmdline;
 
@@ -5646,7 +5646,7 @@ static BOOL parse_macro(unsigned int* node, sParserInfo* info)
         sBuf command_result;
         sBuf_init(&command_result);
 
-        if(!get_command_result(&command_result, cmdline.mBuf))
+        if(!get_command_result2(&command_result, cmdline.mBuf))
         {
             return FALSE;
         }
@@ -5721,6 +5721,102 @@ static BOOL parse_macro(unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
+BOOL parse_macro(unsigned int* node, sParserInfo* info)
+{
+    char buf[VAR_NAME_MAX+1];
+    if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE))
+    {
+        return FALSE;
+    }
+
+    char* p = info->p + 1;
+
+    if(!skip_block(info)) {
+        return FALSE;
+    }
+
+    sBuf body;
+    sBuf_init(&body);
+
+    sBuf_append(&body, p, info->p-p-3);
+
+    append_macro(buf, body.mBuf);
+
+    free(body.mBuf);
+
+    *node = sNodeTree_create_null(info);
+
+    skip_spaces_and_lf(info);
+
+    return TRUE;
+}
+
+BOOL parse_defer(unsigned int* node, sParserInfo* info)
+{
+    unsigned int node2 = 0;
+    if(!expression(&node2, TRUE, info)) {
+        return FALSE;
+    }
+
+    if(node2 == 0) {
+        parser_err_msg(info, "require defer expression");
+        info->err_num++;
+    }
+
+    *node = sNodeTree_create_defer(node2, info);
+
+    return TRUE;
+}
+
+BOOL parse_call_macro(unsigned int* node, char* name, sParserInfo* info)
+{
+    char name2[VAR_NAME_MAX];
+    xstrncpy(name2, name, VAR_NAME_MAX);
+
+    char* p = info->p + 1;
+
+    if(*info->p == '(') {
+        if(!skip_paren('(', ')', info)) {
+            return FALSE;
+        }
+    }
+    else if(*info->p == '{') {
+        if(!skip_paren('{', '}', info)) {
+            return FALSE;
+        }
+    }
+    else if(*info->p == '[') {
+        if(!skip_paren('[', ']', info)) {
+            return FALSE;
+        }
+    }
+    else if(*info->p == '<') {
+        if(!skip_paren('<', '>', info)) {
+            return FALSE;
+        }
+    }
+    else {
+        parser_err_msg(info, "Require (,{,[ or <");
+        info->err_num++;
+        return TRUE;
+    }
+
+    sBuf params;
+    sBuf_init(&params);
+
+    sBuf_append(&params, p, info->p-p-1);
+
+    skip_spaces_and_lf(info);
+
+    if(!call_macro(node, name2, params.mBuf, info)) {
+        return FALSE;
+    }
+
+    free(params.mBuf);
+
+    return TRUE;
+}
+
 static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* info)
 {
     if(!parse_sharp(info)) {
@@ -5784,7 +5880,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         info->p += 3;
         skip_spaces_and_lf(info);
 
-        if(!parse_macro(node, info)) {
+        if(!parse_compiletime_macro(node, info)) {
             return FALSE;
         }
     }
@@ -6422,6 +6518,18 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         else if(strcmp(buf, "__stack__") == 0) {
             *node = sNodeTree_create_stack(info);
         }
+        else if(strcmp(buf, "macro") == 0) {
+            if(!parse_macro(node, info))
+            {
+                return FALSE;
+            }
+        }
+        else if(strcmp(buf, "defer") == 0) {
+            if(!parse_defer(node, info))
+            {
+                return FALSE;
+            }
+        }
         else if(strcmp(buf, "struct") == 0 && *info->p != '{' && define_struct) {
             char struct_name[VAR_NAME_MAX];
 
@@ -6691,6 +6799,15 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
         }
         else if(*info->p == ':' && !info->in_case && !info->in_conditional_operator) {
             if(!parse_label(node, buf, info)) {
+                return FALSE;
+            }
+        }
+        else if(*info->p == '!' && (*(info->p+1) == '(' || *(info->p+1) == '{' || *(info->p+1) == '[' || *(info->p+1) == '<'))
+        {
+            info->p++;
+            skip_spaces_and_lf(info);
+
+            if(!parse_call_macro(node, buf, info)) {
                 return FALSE;
             }
         }

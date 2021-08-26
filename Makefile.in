@@ -38,7 +38,7 @@ come: config.h src/main.o $(OBJS)
 	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
 	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
 
-self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c src/node_function.c src/node_function2.c src/node_loop.c src/node_op.c src/node_value.c src/node_var.c
+self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c src/node_function.c src/node_function2.c src/node_loop.c src/node_op.c src/node_value.c src/node_var.c src/macro.c
 	./come src/parser.c $(CFLAGS) 
 	$(CC) -c -o src/parser.c.o src/parser.c.ll -fPIC
 
@@ -96,12 +96,15 @@ self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/
 	./come src/compiler.c $(CFLAGS)
 	$(CC) -c -o src/compiler.c.o src/compiler.c.ll -fPIC
 
+	./come src/macro.c $(CFLAGS)
+	$(CC) -c -o src/macro.c.o src/macro.c.ll -fPIC
+
 	./come src/main.c $(CFLAGS)
 	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC
 
-	$(CXX) -o come src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o $(CXXFLAGS) -fPIC
+	$(CXX) -o come src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o src/macro.c.o $(CXXFLAGS) -fPIC
 
-debug-self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c src/node_function.c src/node_function2.c src/node_loop.c src/node_op.c src/node_value.c src/node_var.c
+debug-self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c src/node_function.c src/node_function2.c src/node_loop.c src/node_op.c src/node_value.c src/node_var.c src/macro.c
 	./come src/parser.c $(CFLAGS) -g
 	$(CC) -c -o src/parser.c.o src/parser.c.ll -fPIC -g
 
@@ -159,10 +162,13 @@ debug-self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.
 	./come src/compiler.c $(CFLAGS) -g
 	$(CC) -c -o src/compiler.c.o src/compiler.c.ll -fPIC -g
 
+	./come src/macro.c $(CFLAGS) -g
+	$(CC) -c -o src/macro.c.o src/macro.c.ll -fPIC -g
+
 	./come src/main.c $(CFLAGS) -g
 	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC -g
 
-	$(CXX) -o come src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o $(CXXFLAGS2) -fPIC
+	$(CXX) -o come src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o src/macro.c.o $(CXXFLAGS2) -fPIC
 
 #########################################
 # Object files
@@ -199,7 +205,7 @@ permission:
 # clean
 #########################################
 clean:
-	rm -fR come src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.c.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM come.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8 code/HelloWorld9
+	rm -fR come src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.c.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM come.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8 code/HelloWorld9 code/HelloWorld10
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache 
@@ -230,6 +236,8 @@ test:
 	./code/HelloWorld8
 	PWD=`pwd` ./come code/HelloWorld9.c && $(CC) -o code/HelloWorld9 code/HelloWorld9.c.ll -lpcre
 	./code/HelloWorld9
+	PWD=`pwd` ./come code/HelloWorld10.c && $(CC) -o code/HelloWorld10 code/HelloWorld10.c.ll
+	./code/HelloWorld10
 
 debug-test: 
 	@echo "Compile to test code..."
@@ -254,6 +262,8 @@ debug-test:
 	./code/HelloWorld8
 	PWD=`pwd` ./come -g code/HelloWorld9.c && $(CC) -g -o code/HelloWorld9 code/HelloWorld9.c.ll -lpcre
 	./code/HelloWorld9
+	PWD=`pwd` ./come -g code/HelloWorld10.c && $(CC) -g -o code/HelloWorld10 code/HelloWorld10.c.ll
+	./code/HelloWorld10
 
 #########################################
 # uninstall
