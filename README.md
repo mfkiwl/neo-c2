@@ -2902,9 +2902,12 @@ int main()
 {
     defer puts("main FINISH");
 
+puts("before fun");
     fun();
 
+puts("before fun2");
     fun2();
+puts("after fun2");
 
     return 0;
 }
@@ -2913,9 +2916,12 @@ int main()
 result is below:
 
 ```
+before fun
 in fun
+before fun2
 in fun2
 fun2 finish
+after fun2
 main FINISH
 fun finish
 ```
