@@ -2807,6 +2807,7 @@ wstring int::multiply(wchar_t* str, int n);
 sample
 
 ```
+#include <come-pcre.h>
 
 int main()
 {
@@ -2843,6 +2844,7 @@ int main()
 
     return 0;
 }
+```
 
 If you use these functions, use #include <come-pcre.h>.
 When linking object files, append -lpcre option for linker.
