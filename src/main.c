@@ -208,6 +208,7 @@ int main(int argc, char** argv)
     xstrncpy(gFName, sname, PATH_MAX);
 
     setenv("SOURCE_NAME", sname, 1);
+    setenv("PREFIX", PREFIX, 1);
 
     compiler_init(sname);
 

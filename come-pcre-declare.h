@@ -1,4 +1,3 @@
-puts <<'EOL'
 #include <come.h>
 #include <limits.h>
 #include <wchar.h>
@@ -53,4 +52,3 @@ int int::index(wchar_t* str, wchar_t* search_str, int default_value);
 int int::rindex(wchar_t* str, wchar_t* search_str, int default_value);
 wstring int::reverse(whar_t* str) ;
 wstring int::multiply(wchar_t* str, int n);
-EOL

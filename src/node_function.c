@@ -718,7 +718,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
 
     if(fun == NULL) {
         compile_err_msg(info, "function not found(%s)\n", fun_name);
-        return FALSE;
+        return TRUE;
     }
 
     if(method) {
@@ -1506,6 +1506,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         xstrncpy(fname, gNodes[node].mSName, PATH_MAX);
         createDebugFunctionInfo(fname, sline, fun_name, fun, llvm_fun, gFName, info);
     }
+
 
     for(i=0; i<num_params; i++) {
         LLVMValueRef param = LLVMGetParam(llvm_fun, i);

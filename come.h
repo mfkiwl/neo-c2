@@ -166,6 +166,11 @@ static string char::substring(char* str, int head, int tail)
     return result;
 }
 
+static int char::length(char* str)
+{
+    return strlen(str);
+}
+
 /// int methods ///
 static int int::get_hash_key(int value)
 {
@@ -1697,3 +1702,57 @@ impl list<T>
         return result;
     }
 }
+
+static bool xiswalpha(wchar_t c)
+{
+    bool result = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    return result;
+}
+
+static bool xiswblank(wchar_t c)
+{
+    return c == ' ' || c == '\t';
+}
+
+static bool xiswdigit(wchar_t c)
+{
+    return (c >= '0' && c <= '9');
+}
+
+static bool xiswalnum(wchar_t c)
+{
+    return xiswalpha(c) || xiswdigit(c);
+}
+
+static string xbasename(char* path)
+{
+    char* p = path + strlen(path);
+    
+    while(p >= path) {
+        if(*p == '/') {
+            break;
+        }
+        else {
+            p--;
+        }
+    }
+    
+    if(p < path) {
+        return string(path);
+    }
+    else {
+        return string(p+1);  
+    }
+}
+
+static string xrealpath(char* path)
+{
+    char* result = realpath(path, null);
+
+    string result2 = string(result);
+
+    free(result);
+
+    return result2;
+}
+

@@ -175,6 +175,9 @@ $(OBJS): src/*.h Makefile configure
 install:
 	mkdir -p $(DESTDIR)/include
 	$(INSTALL) -m 644 ./come.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./come-pcre.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./come-pcre-declare.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./come-pcre-main.h $(DESTDIR)/include
 
 	mkdir -p "$(DESTDIR)/bin"
 	$(INSTALL) -m 755 ./come "$(DESTDIR)/bin"
@@ -196,7 +199,7 @@ permission:
 # clean
 #########################################
 clean:
-	rm -fR come src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.c.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM come.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8
+	rm -fR come src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.c.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM come.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8 code/HelloWorld9
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache 
@@ -225,6 +228,8 @@ test:
 	./come function f.c
 	PWD=`pwd` ./come code/HelloWorld8.c && $(CC) -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread
 	./code/HelloWorld8
+	PWD=`pwd` ./come code/HelloWorld9.c && $(CC) -o code/HelloWorld9 code/HelloWorld9.c.ll -lpcre
+	./code/HelloWorld9
 
 debug-test: 
 	@echo "Compile to test code..."
@@ -247,14 +252,20 @@ debug-test:
 	./come function f.c
 	PWD=`pwd` ./come -g code/HelloWorld8.c && $(CC) -g -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread
 	./code/HelloWorld8
+	PWD=`pwd` ./come -g code/HelloWorld9.c && $(CC) -g -o code/HelloWorld9 code/HelloWorld9.c.ll -lpcre
+	./code/HelloWorld9
 
 #########################################
 # uninstall
 #########################################
 uninstall:
 	rm -f "$(DESTDIR)"/bin/come
+	rm -f "$(DESTDIR)"/include/come.h
+	rm -f "$(DESTDIR)"/include/come-pcre.h
+	rm -f "$(DESTDIR)"/include/come-pcre-declare.h
+	rm -f "$(DESTDIR)"/include/come-pcre-main.h
+	rm -f "$(DESTDIR)/share/doc/come/README.md "
 #	rm -rf "$(DESTDIR)"/share/doc/come/
-#	rm -f "$(DESTDIR)"/include/come.h
 #	rm -f "$(DESTDIR)"/include/pre-come.h
 #	rm -f "$(DESTDIR)"/share/man/man1/come.1.gz
 #	rm -f "$(DESTDIR)/lib/libcome.a"

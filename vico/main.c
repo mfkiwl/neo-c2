@@ -1,26 +1,5 @@
 #include "common.h"
 
-bool xiswalpha(wchar_t c)
-{
-    bool result = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-    return result;
-}
-
-bool xiswblank(wchar_t c)
-{
-    return c == ' ' || c == '\t';
-}
-
-bool xiswalnum(wchar_t c)
-{
-    return xiswalpha(c) || xiswdigit(c);
-}
-
-bool xiswdigit(wchar_t c)
-{
-    return (c >= '0' && c <= '9');
-}
-
 int xgetmaxx()
 {
     auto ws = new winsize;
@@ -49,38 +28,6 @@ int xgetmaxy()
     else {
         return result;
     }
-}
-
-string xbasename(char* path)
-{
-    char* p = path + strlen(path);
-    
-    while(p >= path) {
-        if(*p == '/') {
-            break;
-        }
-        else {
-            p--;
-        }
-    }
-    
-    if(p < path) {
-        return string(path);
-    }
-    else {
-        return string(p+1);  
-    }
-}
-
-string xrealpath(char* path)
-{
-    char* result = realpath(path, null);
-
-    string result2 = string(result);
-
-    free(result);
-
-    return result2;
 }
 
 wstring wstring(char* str)

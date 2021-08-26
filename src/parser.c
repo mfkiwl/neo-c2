@@ -5659,9 +5659,12 @@ static BOOL parse_macro(unsigned int* node, sParserInfo* info)
         xstrncpy(pinfo.sname, "macro", PATH_MAX);
         pinfo.sline = 1;
 
-        int num_nodes = 0;
-        unsigned int nodes[NODES_MAX];
-        memset(nodes, 0, sizeof(unsigned int)*NODES_MAX);
+        sCompileInfo cinfo;
+        memset(&cinfo, 0, sizeof(sCompileInfo));
+
+        xstrncpy(cinfo.fun_name, "macro", VAR_NAME_MAX);
+
+        cinfo.pinfo = &pinfo;
 
         while(*pinfo.p) {
             skip_spaces_and_lf(&pinfo);
@@ -5688,6 +5691,18 @@ static BOOL parse_macro(unsigned int* node, sParserInfo* info)
                     pinfo.err_num++;
                     break;
                 }
+
+                if(pinfo.err_num == 0)
+                {
+                    cinfo.sline = gNodes[node].mLine;
+                    xstrncpy(cinfo.sname, gNodes[node].mSName, PATH_MAX);
+
+                    if(!compile(node, &cinfo)) {
+                        return FALSE;
+                    }
+
+                    arrange_stack(&cinfo, 0);
+                }
             }
 
             if(*pinfo.p == ';') {
@@ -5695,18 +5710,9 @@ static BOOL parse_macro(unsigned int* node, sParserInfo* info)
                 skip_spaces_and_lf(&pinfo);
             }
             skip_spaces_and_lf(&pinfo);
-
-            nodes[num_nodes] = node;
-
-            num_nodes++;
-
-            if(num_nodes >= NODES_MAX) {
-                fprintf(stderr, "overflow macro expression\n");
-                exit(1);
-            }
         }
 
-        *node = sNodeTree_create_nodes(nodes, num_nodes, info);
+        *node = sNodeTree_create_null(info);
 
         free(command_result.mBuf);
         free(cmdline.mBuf);

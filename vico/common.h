@@ -52,16 +52,8 @@ wstring int::multiply(wchar_t* str, int n);
 int char::index_regex(char* self, regex_struct* reg, int default_value);
 
 /// main.c ///
-bool xiswalpha(wchar_t c);
-bool xiswalnum(wchar_t c);
-bool xiswdigit(wchar_t c);
-bool xiswblank(wchar_t c);
-
 int xgetmaxx();
 int xgetmaxy();
-
-string xbasename(char* path);
-string xrealpath(char* path);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 01init.h
