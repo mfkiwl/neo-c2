@@ -119,6 +119,10 @@ int main(int argc, char** argv)
 
     macro_definition[0] = '\0';
 
+    char optiones[1024];
+
+    optiones[0] = '\0';
+
     int i;
     for(i=1; i<argc; i++) {
         if(strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-version") == 0 || strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "-V") == 0)
@@ -129,45 +133,62 @@ int main(int argc, char** argv)
         else if(strcmp(argv[i], "-g") == 0)
         {
             gNCDebug = TRUE;
+            xstrncat(optiones, "-g ", 1024);
         }
         else if(strcmp(argv[i], "type") == 0)
         {
             gNCType = TRUE;
+            xstrncat(optiones, "type ", 1024);
         }
         else if(strcmp(argv[i], "global") == 0)
         {
             gNCGlobal = TRUE;
             gNCType = TRUE;
+            xstrncat(optiones, "global ", 1024);
         }
         else if(strcmp(argv[i], "class") == 0)
         {
             gNCClass = TRUE;
             gNCType = TRUE;
+
+            xstrncat(optiones, "class ", 1024);
         }
         else if(strcmp(argv[i], "typedef") == 0)
         {
             gNCTypedef = TRUE;
             gNCType = TRUE;
+
+            xstrncat(optiones, "typedef ", 1024);
         }
         else if(strcmp(argv[i], "function") == 0)
         {
             gNCFunction = TRUE;
             gNCType = TRUE;
+
+            xstrncat(optiones, "function ", 1024);
         }
         else if(strcmp(argv[i], "-n") == 0) 
         {
             gNCNoMacro = TRUE;
+
+            xstrncat(optiones, "-n ", 1024);
         }
         else if(strstr(argv[i], "-I") == argv[i])
         {
             xstrncat(c_include_path, ":", max_c_include_path);
             xstrncat(c_include_path, argv[i]+2, max_c_include_path);
+
+            xstrncat(optiones, "-I ", 1024);
         }
         else if(strcmp(argv[i], "-I") == 0)
         {
             if(i + 1 < argc) {
                 xstrncat(c_include_path, ":", max_c_include_path);
                 xstrncat(c_include_path, argv[i+1], max_c_include_path);
+
+                xstrncat(optiones, "-I ", 1024);
+                xstrncat(optiones, argv[i+1], 1024);
+                xstrncat(optiones, " ", 1024);
                 i++;
             }
         }
@@ -194,6 +215,8 @@ int main(int argc, char** argv)
             }
             *p++ = '\0';
 
+            xstrncat(optiones, argv[i], 1024);
+
             xstrncat(macro_definition, dquort_argv, max_c_include_path);
             xstrncat(macro_definition, " ", max_c_include_path);
             i++;
@@ -204,6 +227,8 @@ int main(int argc, char** argv)
     }
     
     setenv("C_INCLUDE_PATH", c_include_path, 1);
+    
+    setenv("ARG", optiones, 1);
 
     xstrncpy(gFName, sname, PATH_MAX);
 
