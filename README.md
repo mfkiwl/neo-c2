@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.2.3
+version 1.2.4
 
 ```
 #include <come.h>
@@ -3006,3 +3006,7 @@ Added MethodBlock list::map
 addition from version 1.2.3
 
 Added String libraries, fixed compiletime macro bugs. Added Macro. Added Defer
+
+version 1.2.4
+
+Fixed a bug with automatically free

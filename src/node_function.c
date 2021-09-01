@@ -927,7 +927,7 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
             return FALSE;
         }
 
-        if(fun_param_type->mHeap && param.type->mHeap) {
+        if(fun_param_type->mHeap && param.type->mHeap && !param.type->mDummyHeap) {
             sVar* var = param.var;
             if(var) {
                 var->mLLVMValue = NULL;

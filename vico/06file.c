@@ -105,7 +105,7 @@ void ViWin::openFile(ViWin* self, char* file_name, int line_num) version 2
         
         snprintf(cmd, PATH_MAX+128, "echo \"\" > %s", file_name);
 
-        self.texts.push_back(wstring(""))
+        self.texts.push_back(wstring(""));
         
         int rc = system(cmd);
         

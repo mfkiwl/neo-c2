@@ -2823,6 +2823,7 @@ BOOL compile_dummy_heap(unsigned int node, sCompileInfo* info)
     dec_stack_ptr(1, info);
 
     llvm_value.type->mHeap = TRUE;
+    llvm_value.type->mDummyHeap = TRUE;
 
     push_value_to_stack_ptr(&llvm_value, info);
 
