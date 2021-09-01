@@ -736,7 +736,15 @@ int int::rindex(wchar_t* str, wchar_t* search_str, int default_value)
     wchar_t* p = str + wcslen(str) - len;
 
     while(p >= str) {
-        if(wcsncmp(p, search_str, len) == 0) {
+        int len2 = wcslen(p);
+        bool result = true;
+        int i;
+        for(i=0; i<len && i < len2; i++) {
+            if(p[i] != search_str[i]) {
+                result = false;
+            }
+        }
+        if(result) {
             return (p - str);
         }
 
