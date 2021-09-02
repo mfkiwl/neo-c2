@@ -411,7 +411,7 @@ Vi*% Vi::initialize(Vi*% self) version 9
             self.activeWin.search(self);
         }
         self.activeWin.saveInputedKeyOnTheMovingCursor();
-        self.activeWin.saveInputedKey();
+        //self.activeWin.saveInputedKey();
     });
     result.events.replace('N', void lambda(Vi* self, int key) 
     {
@@ -422,7 +422,7 @@ Vi*% Vi::initialize(Vi*% self) version 9
             self.activeWin.searchReverse(self);
         }
         self.activeWin.saveInputedKeyOnTheMovingCursor();
-        self.activeWin.saveInputedKey();
+        //self.activeWin.saveInputedKey();
     });
     result.events.replace('*', void lambda(Vi* self, int key) 
     {
