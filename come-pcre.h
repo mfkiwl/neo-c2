@@ -5,7 +5,7 @@ then
 elif [ -z "$COME_FLAG" ]
 then
     export COME_FLAG=1
-    main_module=`come function code/HelloWorld9.c | egrep ^main\\ `
+    main_module=`come function $SOURCE_NAME | egrep ^main\\ `
 
     if [ -z "$main_module" ]
     then

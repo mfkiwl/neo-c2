@@ -7,6 +7,7 @@
 #include <limits.h>
 #include <wchar.h>
 #include <pcre.h>
+#include <come-pcre.h>
 #include "config.h"
 
 typedef wchar_t*% wstring;

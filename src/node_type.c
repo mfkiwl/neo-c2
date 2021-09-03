@@ -183,11 +183,13 @@ void show_type_core(sNodeType* type, int num_classes, char** classes, BOOL no_ou
     }
     
     if(type->mNumParams > 0) printf("(");
+/*
     for(i=0; i<type->mNumParams; i++)
     {
-        show_node_type(type->mParamTypes[i]);
+        show_node_type_core(type->mParamTypes[i]);
         puts(" ");
     }
+*/
     if(type->mNumParams > 0) printf(")");
     if(!no_output_fields && ((klass->mFlags & CLASS_FLAGS_STRUCT) || (klass->mFlags & CLASS_FLAGS_UNION))) {
         puts("");

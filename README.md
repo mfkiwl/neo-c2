@@ -3010,3 +3010,7 @@ Added String libraries, fixed compiletime macro bugs. Added Macro. Added Defer
 version 1.2.4
 
 Fixed a bug with automatically free
+
+version 1.2.5
+
+Fixed a bug with come-pcre.h

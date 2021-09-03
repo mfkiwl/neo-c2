@@ -782,3 +782,28 @@ wstring int::multiply(wchar_t* str, int n)
 
     return result;
 }
+
+wstring int::printable(wchar_t* str)
+{
+    int len = str.length();
+    wstring result = new wchar_t[len*2+1];
+
+    int n = 0;
+    for(int i=0; i<len; i++) {
+        wchar_t c = str[i];
+
+        if((c >= 0 && c < ' ') 
+            || c == 127)
+        {
+            result[n++] = '^';
+            result[n++] = c + 'A' - 1;
+        }
+        else {
+            result[n++] = c;
+        }
+    }
+
+    result[n] = '\0'
+
+    return result;
+}
