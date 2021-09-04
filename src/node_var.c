@@ -2430,7 +2430,7 @@ BOOL compile_union(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-unsigned int sNodeTree_create_object(sNodeType* node_type, unsigned int object_num, int num_params, unsigned int* params, char* sname, int sline, sParserInfo* info)
+unsigned int sNodeTree_create_object(sNodeType* node_type, unsigned int object_num, int num_params, unsigned int* params, char* sname, int sline, BOOL gc, sParserInfo* info)
 {
     unsigned node = alloc_node();
 
@@ -2441,6 +2441,7 @@ unsigned int sNodeTree_create_object(sNodeType* node_type, unsigned int object_n
 
     gNodes[node].uValue.sObject.mType = clone_node_type(node_type);
     gNodes[node].uValue.sObject.mNumParams = num_params;
+    gNodes[node].uValue.sObject.mGC = gc;
 
     int i;
     if(num_params > 0) {
@@ -2461,6 +2462,7 @@ BOOL compile_object(unsigned int node, sCompileInfo* info)
     sNodeType* node_type = gNodes[node].uValue.sObject.mType;
     int num_params = gNodes[node].uValue.sObject.mNumParams;
     unsigned int params[PARAMS_MAX];
+    BOOL gc = gNodes[node].uValue.sObject.mGC;
 
     int i;
     if(num_params > 0) {
@@ -2505,8 +2507,6 @@ BOOL compile_object(unsigned int node, sCompileInfo* info)
 
         return FALSE;
     }
-
-
 
     if(!create_generics_struct_type(node_type2)) {
         compile_err_msg(info, "invalid type %s(6)", CLASS_NAME(node_type2->mClass));
@@ -2571,6 +2571,60 @@ BOOL compile_object(unsigned int node, sCompileInfo* info)
         }
 
         return TRUE;
+    }
+    else if(gc) {
+        /// calloc ///
+        int num_params = 1;
+
+        LLVMValueRef llvm_params[PARAMS_MAX];
+        memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
+
+        char* fun_name = "GC_malloc";
+
+        LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type2);
+
+        int alignment = 0;
+        uint64_t alloc_size = get_size_from_node_type(node_type2, &alignment);
+
+#ifdef __32BIT_CPU__
+        LLVMTypeRef long_type = create_llvm_type_with_class_name("int");
+#else
+        LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
+#endif
+        llvm_params[0] = LLVMConstInt(long_type, alloc_size, FALSE);
+
+        llvm_params[0] = LLVMBuildMul(gBuilder, llvm_params[0], object_num, "mul");
+
+        LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
+
+        if(llvm_fun == NULL) {
+            compile_err_msg(info, "require calloc difinition to create object");
+            return FALSE;
+        }
+
+        LLVMValueRef address = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "fun_result");
+
+        node_type2->mPointerNum++;
+        node_type2->mHeap = FALSE;
+
+        LLVMTypeRef llvm_type2 = create_llvm_type_from_node_type(node_type2);
+
+        address = LLVMBuildPointerCast(gBuilder, address, llvm_type2, "obj");
+
+        /// result ///
+        LVALUE llvm_value;
+        llvm_value.value = address;
+        llvm_value.type = clone_node_type(node_type2);
+        llvm_value.address = NULL;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = FALSE;
+        llvm_value.load_field = FALSE;
+
+        push_value_to_stack_ptr(&llvm_value, info);
+
+        //append_object_to_right_values(address, node_type2, info);
+
+        info->type = clone_node_type(node_type2);
     }
     else {
         /// calloc ///

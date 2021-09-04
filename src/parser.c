@@ -2243,6 +2243,11 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                 }
             }
 
+            if(*info->p == '*') {
+                info->p++;
+                skip_spaces_and_lf(info);
+            }
+
             if(*info->p == ')') {
                 xstrncpy(func_pointer_name, "fun", VAR_NAME_MAX);
             }
@@ -2360,7 +2365,110 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                 info->p++;
                 skip_spaces_and_lf(info);
 
-                if(*info->p == ')') {
+                if(xisalpha(*info->p) || *info->p == '_')
+                {
+                    if(!parse_word(func_pointer_name, VAR_NAME_MAX, info, FALSE, FALSE))
+                    {
+                        return FALSE;
+                    }
+
+                    if(*info->p == ')') {
+                        info->p++;
+                        skip_spaces_and_lf(info);
+                    }
+
+                    if(*info->p == '(') {
+                        sNodeType* node_type = clone_node_type(*result_type);
+
+                        *result_type = create_node_type_with_class_name("lambda");
+                        pointer_num++;
+
+                        (*result_type)->mResultType = node_type;
+
+                        if(*info->p == '(') {
+                            info->p++;
+                            skip_spaces_and_lf(info);
+
+                            if(parse_cmp(info->p, "void") == 0) {
+                                char* p_before = info->p;
+                                int sline_before = info->sline;
+
+                                char buf[VAR_NAME_MAX];
+                                if(!parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE))
+                                {
+                                    return FALSE;
+                                }
+
+                                if(*info->p == ')') {
+                                }
+                                else {
+                                    info->p = p_before;
+                                    info->sline = sline_before;
+                                }
+                            }
+
+                            if(*info->p == ')') {
+                                info->p++;
+                                skip_spaces_and_lf(info);
+                            }
+                            else {
+                                while(1) {
+                                    sNodeType* node_type = NULL;
+                                    if(!parse_type(&node_type, info, NULL,  FALSE, FALSE)) {
+                                        return FALSE;
+                                    }
+
+                                    (*result_type)->mParamTypes[(*result_type)->mNumParams] = node_type;
+
+                                    (*result_type)->mNumParams++;
+
+                                    if((*result_type)->mNumParams >= PARAMS_MAX) {
+                                        parser_err_msg(info, "oveflow type params");
+                                        return FALSE;
+                                    }
+
+                                    if(xisalpha(*info->p) || *info->p == '_') {
+                                        char buf[VAR_NAME_MAX];
+
+                                        (void)parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE);
+                                    }
+
+                                    if(*info->p == ')') {
+                                        info->p++;
+                                        skip_spaces_and_lf(info);
+                                        break;
+                                    }
+                                    else if(*info->p == ',') {
+                                        info->p++;
+                                        skip_spaces_and_lf(info);
+
+                                        if(*info->p == '.' && *(info->p+1) == '.' && *(info->p+2) == '.') {
+                                            info->p += 3;
+                                            skip_spaces_and_lf(info);
+
+                                            expect_next_character_with_one_forward(")", info);
+
+                                            (*result_type)->mVarArgs = TRUE;
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        char msg[1024];
+                                        snprintf(msg, 1024, "invalid character in lambda type name(%c) aaa", *info->p);
+                                        parser_err_msg(info, msg);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        info->p = p;
+                        info->sline = sline;
+                        func_pointer_name[0] = '\0';
+                    }
+                }
+                else if(*info->p == ')') {
                     info->p++;
                     skip_spaces_and_lf(info);
 
@@ -5424,6 +5532,25 @@ static BOOL parse_new(unsigned int* node, sParserInfo* info)
 {
     sNodeType* node_type = NULL;
 
+    BOOL gc = FALSE;
+
+    if(*info->p == '(') {
+        info->p++;
+        skip_spaces_and_lf(info);
+
+        if(*info->p == 'G' && *(info->p+1) == 'C') {
+            info->p+=2;
+            skip_spaces_and_lf(info);
+        }
+
+        if(*info->p == ')') {
+            info->p++;
+            skip_spaces_and_lf(info);
+        }
+
+        gc = TRUE;
+    }
+
     if(!parse_type(&node_type, info, NULL, FALSE, FALSE)) {
         return FALSE;
     }
@@ -5443,7 +5570,7 @@ static BOOL parse_new(unsigned int* node, sParserInfo* info)
             expect_next_character_with_one_forward("]", info);
         }
 
-        *node = sNodeTree_create_object(node_type, object_num, 0, NULL, info->sname, info->sline, info);
+        *node = sNodeTree_create_object(node_type, object_num, 0, NULL, info->sname, info->sline, gc, info);
     }
     else {
         parser_err_msg(info, "Invalid type name");

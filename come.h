@@ -9,6 +9,7 @@
 #include <malloc.h>
 #endif
 
+#include <gc.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/select.h>

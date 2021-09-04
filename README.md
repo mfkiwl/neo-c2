@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.2.4
+version 1.2.6
 
 ```
 #include <come.h>
@@ -623,6 +623,35 @@ int main(int argc, char** argv)
 This should work fine.
 
 これで不具合なく動くはずです。
+
+You can also new using Boehm GC from version 1.2.6. In this case, assign it to an ordinary pointer. Since it is a conservative GC, it seems that the memory may not be released, but for the time being, I think that the memory will not be exhausted. finalize is not called. The usage is as follows.
+
+version 1.2.6からBoehmGCを使ったnewもできます。この場合は普通のポインタに代入してください。保守的GCなのでメモリが解放されない場合もある様子ですが、とりあえずは、メモリは枯渇しないと思います。finalizeは呼ばれません。使い方は以下です。
+
+```
+#include <come.h>
+
+struct sObj {
+    int a;
+    int b;
+};
+
+int main()
+{
+    sObj* obj = new (GC) sObj;
+
+    obj.a = 1;
+    obj.b = 2;
+
+    xassert("gc test", obj.a == 1 && obj.b == 2);
+
+    return 0;
+}
+```
+
+However, in this example, it seems that memory is leaking when valgrind is applied. Isn't it free at the end? I prepared it for the time being. If you use this feature, please -lgc the linker.
+
+ただ、この例ではvalgrindをかけるとメモリがリークしている様子です。終了時にはfreeしないんですかね。とりあえず用意しました。この機能を使った場合はリンカーに-lgcしてください。
 
 4. Generics
 
@@ -3014,3 +3043,7 @@ Fixed a bug with automatically free
 version 1.2.5
 
 Fixed a bug with come-pcre.h
+
+version 1.2.6
+
+Appended Boehm GC version memory allocation

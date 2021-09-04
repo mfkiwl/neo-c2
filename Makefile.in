@@ -32,6 +32,8 @@ OBJS=@OBJS@
 #########################################
 all: come self-host
 
+debug: come debug-self-host
+
 no-self-host: come
 
 come: config.h src/main.o $(OBJS)
@@ -205,7 +207,7 @@ permission:
 # clean
 #########################################
 clean:
-	rm -fR come src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.c.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM come.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8 code/HelloWorld9 code/HelloWorld10
+	rm -fR come src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.c.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM come.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8 code/HelloWorld9 code/HelloWorld10 code/HelloWorld11
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache 
@@ -238,6 +240,8 @@ test:
 	./code/HelloWorld9
 	PWD=`pwd` ./come code/HelloWorld10.c && $(CC) -o code/HelloWorld10 code/HelloWorld10.c.ll
 	./code/HelloWorld10
+	PWD=`pwd` ./come code/HelloWorld11.c && $(CC) -o code/HelloWorld11 code/HelloWorld11.c.ll -lgc
+	./code/HelloWorld11
 
 debug-test: 
 	@echo "Compile to test code..."
@@ -264,6 +268,8 @@ debug-test:
 	./code/HelloWorld9
 	PWD=`pwd` ./come -g code/HelloWorld10.c && $(CC) -g -o code/HelloWorld10 code/HelloWorld10.c.ll
 	./code/HelloWorld10
+	PWD=`pwd` ./come -g code/HelloWorld11.c && $(CC) -g -o code/HelloWorld11 code/HelloWorld11.c.ll -lgc
+	./code/HelloWorld11
 
 #########################################
 # uninstall

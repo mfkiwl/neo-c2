@@ -1,15 +1,13 @@
-#include <come.h>
 
+int xcomp(int a, int b) {
+    return 1;
+}
+
+void xsort(int (*compare)(int,int)) {
+}
 
 int main()
 {
-    auto v = new vector<string>.initialize();
-
-    v.push_back(string("C"));
-    v.push_back(string("A"));
-    v.push_back(string("B"));
-
-    auto l = v.to_list().sort(int lambda(char* left, char* right) { return strcmp(left, right); });
-
+    xsort(xcomp);
     return 0;
 }

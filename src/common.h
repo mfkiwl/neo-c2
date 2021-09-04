@@ -661,6 +661,7 @@ struct sNodeTreeStruct
             sNodeType* mType;
             unsigned int mParams[PARAMS_MAX];
             int mNumParams;
+            BOOL mGC;
         } sObject;
 
         struct {
@@ -1007,7 +1008,7 @@ unsigned int sNodeTree_create_define_variable(char* var_name, BOOL extern_, BOOL
 unsigned int sNodeTree_create_store_variable(char* var_name, int right, BOOL alloc, BOOL global, sParserInfo* info);
 unsigned int sNodeTree_struct(sNodeType* struct_type, sParserInfo* info, char* sname, int sline, BOOL undefined_body);
 unsigned int sNodeTree_union(sNodeType* struct_type, sParserInfo* info, char* sname, int sline, BOOL undefined_body);
-unsigned int sNodeTree_create_object(sNodeType* node_type, unsigned int object_num, int num_params, unsigned int* params, char* sname, int sline, sParserInfo* info);
+unsigned int sNodeTree_create_object(sNodeType* node_type, unsigned int object_num, int num_params, unsigned int* params, char* sname, int sline, BOOL gc, sParserInfo* info);
 unsigned int sNodeTree_create_delete(unsigned int object_node, sParserInfo* info);
 unsigned int sNodeTree_create_borrow(unsigned int object_node, sParserInfo* info);
 unsigned int sNodeTree_create_nomove(unsigned int object_node, sParserInfo* info);

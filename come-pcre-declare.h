@@ -1,4 +1,3 @@
-#include <come.h>
 #include <limits.h>
 #include <wchar.h>
 #include <pcre.h>

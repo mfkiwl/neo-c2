@@ -1,3 +1,4 @@
+#include <come.h>
 #include <come-pcre.h>
 
 int main()
