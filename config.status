@@ -610,7 +610,7 @@ S["CXXFLAGS2"]="-I/usr/lib/llvm-11/include -std=c++14   -fno-exceptions -D_GNU_S
 "ib/llvm-11/lib  -lLLVM-11   -O3 -I . -I src -DPREFIX=\"\\\"${DESTDIR}/\\\" -L/usr/local/lib\""
 S["CXXFLAGS"]="-I/usr/lib/llvm-11/include -std=c++14   -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/l"\
 "ib/llvm-11/lib  -lLLVM-11   -O3 -I . -I src -DPREFIX=\"\\\"${DESTDIR}/\\\" -L/usr/local/lib\""
-S["CXX"]="g++"
+S["CXX"]="clang++"
 S["DESTDIR"]="/usr/local"
 S["OS"]="LINUX"
 S["EGREP"]="/bin/grep -E"

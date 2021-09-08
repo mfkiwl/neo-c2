@@ -6,7 +6,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.2.6
+version 1.2.7
 
 ```
 #include <come.h>
@@ -70,7 +70,7 @@ int main()
 
 3. It has Generics, Method Generics, inline function, debug info (-g option), and lambda.
 
-4. The library is written in come.h and you don't need to link any library. The library is minimal and keeps learning costs down. It has a collection library> and a string library.
+4. The library is written in come.h and you don't need to link any library. The library is minimal and keeps learning costs down. It has a collection library and a string library.
 
 5. It has a mixin-layers system. You can implement your application in layers. Each layer is complete and useful for debugging and porting. A vi clone called vico is implemented as an editor implemented in mixin-layers. Please refer to it because it is in a directory called vico.
 
@@ -79,8 +79,6 @@ int main()
 7. Macro and Reflection. Combination using with its can generate code on compile time. Compile time reflection.
 
 8. method block like Ruby
-
-9. String libraries using pcre and regex.
 
 10. Macro
 
@@ -110,12 +108,12 @@ int main()
 
 0. INSTALL
 
-Required libraries are LLVM, clang(with LLVM-C), g++, libxml2-dev, gcc, make, autoconf, valgrind, gdb 
+Required libraries are LLVM, clang(with LLVM-C), clang++,  gcc, make, autoconf, valgrind, gdb 
 
 Examples
 
 ```
-sudo apt-get install clang make autoconf llvm-dev git gdb valgrind ctags libxml2-dev g++ gcc 
+sudo apt-get install clang clang++ make autoconf llvm-dev git gdb valgrind gcc 
 ```
 
 For PC, WSL, Raspberry PI OS and iSH(iPhone)
@@ -2780,107 +2778,6 @@ int main()
 }
 ```
 
-# String libraries
-
-```
-typedef wchar_t*% wstring;
-
-struct regex_struct 
-{
-    char str[128];
-    pcre* regex;
-
-    bool ignore_case;
-    bool multiline;
-    bool global;
-    bool extended;
-    bool dotall;
-    bool anchored;
-    bool dollar_endonly;
-    bool ungreedy;
-
-    int options;
-
-    pcre* re;
-};
-
-typedef regex_struct*% nregex;
-
-regex_struct*% regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy);
-bool char::match(char* self, regex_struct* reg, list<string>?* group_strings);
-int char::index(char* str, char* search_str, int default_value);
-int char::rindex(char* str, char* search_str, int default_value);
-int char::index_regex(char* self, regex_struct* reg, int default_value);
-int char::rindex_regex(char* self, regex_struct* reg, int default_value);
-void char::replace(char* self, int index, char c);
-string char::multiply(char* str, int n);
-string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings);
-list<string>*% char::scan(char* self, regex_struct* reg);
-list<string>*% char::split(char* self, regex_struct* reg);
-list<string>*% char::split_char(string& self, char c) ;
-nregex char::to_regex(char* self) ;
-string char::printable(char* str);
-char* char::delete(char* str, int head, int tail) ;
-string int::to_string(wchar_t* wstr);
-wstring wstring(char* str);
-wstring char::to_wstring(char* str);
-wstring int::substring(wchar_t* str, int head, int tail);
-int int::length(wchar_t* str);
-wchar_t* int::delete(wchar_t* str, int head, int tail) ;
-int int::index(wchar_t* str, wchar_t* search_str, int default_value);
-int int::rindex(wchar_t* str, wchar_t* search_str, int default_value);
-wstring int::reverse(whar_t* str) ;
-wstring int::multiply(wchar_t* str, int n);
-```
-
-sample
-
-```
-#include <come-pcre.h>
-
-int main()
-{
-    xassert("char_match test", "ABC".match("A".to_regex(), null));
-    xassert("char_index test", "ABC".index("B", -1) == 1);
-    xassert("char_rindex test", "ABCABC".rindex("B", -1) == 4);
-    xassert("char_index_regex", "ABC".index_regex("B".to_regex(), -1) == 1);
-    xassert("char_rindex_regex", "ABCABC".rindex_regex("B".to_regex(), -1) == 4);
-
-    string str = string("ABC");
-
-    str.replace(1, 'C');
-
-    xassert("char_replace", strcmp(str, "ACC") == 0);
-    xassert("char_multiply", strcmp(string("ABC").multiply(2), "ABCABC") == 0);
-
-    xassert("char_sub", strcmp("ABC".sub("B".to_regex(), "C", null), "ACC") == 0);
-
-    auto li = "ABC".scan(".".to_regex());
-
-    xassert("char_scan", strcmp(li.item(0, null), "A") == 0 && strcmp(li.item(1, null), "B") == 0 && strcmp(li.item(2, null), "C") == 0);
-
-    auto li2 = "A,B,C".split(",".to_regex());
-
-    xassert("char_split", strcmp(li2.item(0, null), "A") == 0 && strcmp(li2.item(1, null), "B") == 0 && strcmp(li2.item(2, null), "C") == 0);
-
-    auto li3 = "A,B,C".split_char(',');
-
-    xassert("char_split_char", strcmp(li3.item(0, null), "A") == 0 && strcmp(li3.item(1, null), "B") == 0 && strcmp(li3.item(2, null), "C") == 0);
-
-    xassert("char_delete", string("ABC").delete(0,1).equals("BC"));
-
-    xassert("wchar_substring", wcscmp(wstring("ABC").substring(0,1), wstring("A")) == 0);
-
-    return 0;
-}
-```
-
-If you use these functions, use #include <come-pcre.h>.
-When linking object files, append -lpcre option for linker.
-
-もしこれらの関数を使うときは#include <come-pcre.h>をつけてください。
-リンクするときに-lpcreを付けてください。
-
 # Macro
 
 ```
@@ -3047,3 +2944,7 @@ Fixed a bug with come-pcre.h
 version 1.2.6
 
 Appended Boehm GC version memory allocation
+
+version 1.2.7
+
+delete pcre libraries

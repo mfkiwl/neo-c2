@@ -4024,9 +4024,6 @@ then
     LIBS="$LIBS -liconv"
 fi
 
-#AC_CHECK_HEADER(pcre.h, [AC_DEFINE(HAVE_PCRE_H,1)], [])
-#AC_HAVE_LIBRARY(pcre, [ LIBS="$LIBS -lpcre"; ], [ exit ])
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lrt" >&5
 $as_echo_n "checking for main in -lrt... " >&6; }
 if ${ac_cv_lib_rt_main+:} false; then :
@@ -4075,11 +4072,11 @@ CXXFLAGS='-DPREFIX="\"${DESTDIR}/\" -L/usr/local/lib"'
 CXXFLAGS="-I . -I src $CXXFLAGS"
 #CXXFLAGS="-fPIC -rdynamic $CXXFLAGS"
 
-if which g++ > /dev/null
+if which clang++ > /dev/null
 then
-    CXX=g++
+    CXX=clang++
 else
-    echo "Require g++"
+    echo "Require clang++"
     exit 2
 fi
 
@@ -4115,21 +4112,22 @@ echo -n checking for llvm-config...
 if which llvm-config-11 1> /dev/null 2>/dev/null
 then
     CFLAGS=`llvm-config-11 --cflags | tr '\n' ' '`" $CFLAGS"
-    CXXFLAGS=`llvm-config-11 --cxxflags --ldflags --system-libs --libs all | tr '\n' ' '`" $CXXFLAGS"
+    CXXFLAGS=`llvm-config-11 --cxxflags --ldflags --system-libs --libs core | tr '\n' ' '`" $CXXFLAGS"
+    #CXXFLAGS=`llvm-config-11 --cxxflags --ldflags --system-libs --libs all | tr '\n' ' '`" $CXXFLAGS"
     echo llvm-11 ok
     LLVM_VERSION=`llvm-config-11 --version | sed 's/\([0-9]*\)\.[0-9]*\.[0-9]*/\1/'`
     CFLAGS="$CFLAGS -DLLVM_VERSION=$LLVM_VERSION"
 elif which llvm-config-9 1> /dev/null 2>/dev/null
 then
     CFLAGS=`llvm-config-9 --cflags | tr '\n' ' '`" $CFLAGS"
-    CXXFLAGS=`llvm-config-9 --cxxflags --ldflags --system-libs --libs all | tr '\n' ' '`" $CXXFLAGS"
+    CXXFLAGS=`llvm-config-9 --cxxflags --ldflags --system-libs --libs core | tr '\n' ' '`" $CXXFLAGS"
     echo llvm-9 ok
     LLVM_VERSION=`llvm-config-9 --version | sed 's/\([0-9]*\)\.[0-9]*\.[0-9]*/\1/'`
     CFLAGS="$CFLAGS -DLLVM_VERSION=$LLVM_VERSION"
 elif which llvm-config 1> /dev/null 2>/dev/null
 then
     CFLAGS=`llvm-config --cflags | tr '\n' ' '`" $CFLAGS"
-    CXXFLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs all | tr '\n' ' '`" $CXXFLAGS"
+    CXXFLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs core | tr '\n' ' '`" $CXXFLAGS"
     LLVM_VERSION=`llvm-config --version | sed 's/\([0-9]*\)\.[0-9]*\.[0-9]*/\1/'`
     CFLAGS="$CFLAGS -DLLVM_VERSION=$LLVM_VERSION"
     echo ok

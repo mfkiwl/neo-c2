@@ -307,12 +307,12 @@ configure:3983: $? = 0
 configure:3983: result: yes
 configure:3983: checking for iconv.h
 configure:3983: result: yes
-configure:3999: checking for main in -lrt
-configure:4018: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c -lrt   -lutil -ldl -lm >&5
-configure:4018: $? = 0
-configure:4027: result: yes
-configure:4070: checking for lchmod
-configure:4070: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c  -lutil -ldl -lm -lrt >&5
+configure:3996: checking for main in -lrt
+configure:4015: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c -lrt   -lutil -ldl -lm >&5
+configure:4015: $? = 0
+configure:4024: result: yes
+configure:4067: checking for lchmod
+configure:4067: clang-11 -o conftest -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3   conftest.c  -lutil -ldl -lm -lrt >&5
 conftest.c:52:1: error: unknown type name 'choke'
 choke me
 ^
@@ -321,7 +321,7 @@ choke me
         ^
         ;
 2 errors generated.
-configure:4070: $? = 1
+configure:4067: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -384,12 +384,12 @@ configure: failed program was:
 |   ;
 |   return 0;
 | }
-configure:4070: result: no
-configure:4123: checking for execvpe
-configure:4123: clang-11 -o conftest -I/usr/lib/llvm-11/include  -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3 -DLLVM_VERSION=11   conftest.c  -lutil -ldl -lm -lrt >&5
-configure:4123: $? = 0
-configure:4123: result: yes
-configure:4244: creating ./config.status
+configure:4067: result: no
+configure:4121: checking for execvpe
+configure:4121: clang-11 -o conftest -I/usr/lib/llvm-11/include  -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3 -DLLVM_VERSION=11   conftest.c  -lutil -ldl -lm -lrt >&5
+configure:4121: $? = 0
+configure:4121: result: yes
+configure:4242: creating ./config.status
 
 ## ---------------------- ##
 ## Running config.status. ##
@@ -473,7 +473,7 @@ CC='clang-11'
 CFLAGS='-I/usr/lib/llvm-11/include  -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -Isrc/ -I. -DPREFIX="\"${DESTDIR}/\"" -fPIC -I/usr/local/include -O3 -DLLVM_VERSION=11'
 CPP='gcc -E'
 CPPFLAGS=''
-CXX='g++'
+CXX='clang++'
 CXXFLAGS2='-I/usr/lib/llvm-11/include -std=c++14   -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/lib/llvm-11/lib  -lLLVM-11   -O3 -I . -I src -DPREFIX="\"${DESTDIR}/\" -L/usr/local/lib"'
 CXXFLAGS='-I/usr/lib/llvm-11/include -std=c++14   -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/lib/llvm-11/lib  -lLLVM-11   -O3 -I . -I src -DPREFIX="\"${DESTDIR}/\" -L/usr/local/lib"'
 DEFS='-DHAVE_CONFIG_H'
