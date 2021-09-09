@@ -95,10 +95,10 @@ bool ViWin::saveDotToFile(ViWin* self, Vi* nvi) version 2
         return false;
     }
 
-    string path0 = xsprintf("%s/.vico", home);
+    string path0 = xsprintf("%s/.vin", home);
     (void)mkdir(path0, 0755);
 
-    string path = xsprintf("%s/.vico/dot.txt", home);
+    string path = xsprintf("%s/.vin/dot.txt", home);
     FILE* f = fopen(path, "w");
 
     if(f == null) {
@@ -125,7 +125,7 @@ bool ViWin::loadDotFromFile(ViWin* self, Vi* nvi)
         return false;
     }
 
-    string path = xsprintf("%s/.vico/dot.txt", home);
+    string path = xsprintf("%s/.vin/dot.txt", home);
     FILE* f = fopen(path, "r");
 
     if(f == null) {

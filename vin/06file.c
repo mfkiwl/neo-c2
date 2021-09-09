@@ -35,13 +35,13 @@ void ViWin::saveCursorPosition(ViWin* self, char* file_name)
     
     char file_name2[PATH_MAX];
     
-    snprintf(file_name2, PATH_MAX, "%s/.vico", home);
+    snprintf(file_name2, PATH_MAX, "%s/.vin", home);
     
     (void)mkdir(file_name2, 0755);
     
     auto bname = xbasename(file_name);  
 
-    snprintf(file_name2, PATH_MAX, "%s/.vico/%s.pos", home, bname);
+    snprintf(file_name2, PATH_MAX, "%s/.vin/%s.pos", home, bname);
     
     FILE* f = fopen(file_name2, "w");
 
@@ -67,7 +67,7 @@ void ViWin::readCursorPosition(ViWin* self, char* file_name)
     char file_name2[PATH_MAX];
     
     auto bname = xbasename(file_name); 
-    snprintf(file_name2, PATH_MAX, "%s/.vico/%s.pos", home, bname);
+    snprintf(file_name2, PATH_MAX, "%s/.vin/%s.pos", home, bname);
     
     FILE* f = fopen(file_name2, "r");
 
@@ -162,17 +162,17 @@ void ViWin::writeFile(ViWin* self)
     
     char path[PATH_MAX];
     
-    snprintf(path, PATH_MAX, "%s/.vico", home);
+    snprintf(path, PATH_MAX, "%s/.vin", home);
     
     (void)mkdir(path, 0755);
     
-    snprintf(path, PATH_MAX, "%s/.vico/backup", home);
+    snprintf(path, PATH_MAX, "%s/.vin/backup", home);
     
     (void)mkdir(path, 0755);
     
     char cmd[BUFSIZ];
     
-    snprintf(cmd, BUFSIZ, "cp %s %s/.vico/backup", self.fileName, home);
+    snprintf(cmd, BUFSIZ, "cp %s %s/.vin/backup", self.fileName, home);
     
     (void)system(cmd);
     
@@ -333,11 +333,11 @@ void Vi::saveLastOpenFile(Vi* self, char* file_name)
     
     char file_name2[PATH_MAX];
     
-    snprintf(file_name2, PATH_MAX, "%s/.vico", home);
+    snprintf(file_name2, PATH_MAX, "%s/.vin", home);
     
     (void)mkdir(file_name2, 0755);
     
-    snprintf(file_name2, PATH_MAX, "%s/.vico/last_open_file", home, file_name);
+    snprintf(file_name2, PATH_MAX, "%s/.vin/last_open_file", home, file_name);
     
     FILE* f = fopen(file_name2, "w");
 
@@ -360,7 +360,7 @@ string Vi::readLastOpenFile(Vi* self)
     
     char file_name2[PATH_MAX];
     
-    snprintf(file_name2, PATH_MAX, "%s/.vico/last_open_file", home);
+    snprintf(file_name2, PATH_MAX, "%s/.vin/last_open_file", home);
     
     FILE* f = fopen(file_name2, "r");
 

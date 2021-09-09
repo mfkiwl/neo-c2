@@ -9,7 +9,7 @@ if [ ! -e Makefile ]
 then
     git add .
     git commit 
-    git remote add origin https://github.com/ab25cq/vico.git
+    git remote add origin https://github.com/ab25cq/vin.git
     git push -f -u origin master
 fi
 

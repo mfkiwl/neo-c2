@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ -e vico/Makefile ]
+if [ -e vin/Makefile ]
 then
-    (cd vico && make distclean)
+    (cd vin && make distclean)
 fi
 
 

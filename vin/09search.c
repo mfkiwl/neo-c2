@@ -315,11 +315,11 @@ void Vi::saveSearchString(Vi* self, char* file_name)
     
     char file_name2[PATH_MAX];
     
-    snprintf(file_name2, PATH_MAX, "%s/.vico", home);
+    snprintf(file_name2, PATH_MAX, "%s/.vin", home);
     
     (void)mkdir(file_name2, 0755);
     
-    snprintf(file_name2, PATH_MAX, "%s/.vico/%s", home, file_name);
+    snprintf(file_name2, PATH_MAX, "%s/.vin/%s", home, file_name);
     
     FILE* f = fopen(file_name2, "w");
 
@@ -346,7 +346,7 @@ void Vi::readSearchString(Vi* self, char* file_name)
     
     char file_name2[PATH_MAX];
     
-    snprintf(file_name2, PATH_MAX, "%s/.vico/%s", home, file_name);
+    snprintf(file_name2, PATH_MAX, "%s/.vin/%s", home, file_name);
     
     FILE* f = fopen(file_name2, "r");
 
@@ -388,7 +388,7 @@ Vi*% Vi::initialize(Vi*% self) version 9
 {
     auto result = inherit(self);
     
-    result.readSearchString("searchString.vico");
+    result.readSearchString("searchString.vin");
 
     result.events.replace('/', void lambda(Vi* self, int key) 
     {
@@ -441,7 +441,7 @@ Vi*% Vi::initialize(Vi*% self) version 9
     
 void Vi::finalize(Vi* self) version 4
 {
-    self.saveSearchString("searchString.vico");
+    self.saveSearchString("searchString.vin");
     
     inherit(self);
 }

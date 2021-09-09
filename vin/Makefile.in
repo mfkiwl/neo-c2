@@ -28,10 +28,10 @@ DESTDIR=@DESTDIR@
 #########################################
 # main
 ##########################################
-all: vico
+all: vin
 
-vico: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c 03insert_mode.o 03insert_mode.c 04word.c 04word.o 05undo.c 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o
-	$(CC) -o vico main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
+vin: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c 03insert_mode.o 03insert_mode.c 04word.c 04word.o 05undo.c 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o
+	$(CC) -o vin main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
 
 main.o: configure Makefile config.h main.c common.h
 	neo-c2 main.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
@@ -114,15 +114,15 @@ main.o: configure Makefile config.h main.c common.h
 #########################################
 install:
 	mkdir -p "$(DESTDIR)/bin"
-	mkdir -p ~/.vico/backup
-	$(INSTALL) -m 755 ./vico "$(DESTDIR)/bin"
+	mkdir -p ~/.vin/backup
+	$(INSTALL) -m 755 ./vin "$(DESTDIR)/bin"
 
 #########################################
 # uninstall
 #########################################
 uninstall:
-	rm -f "$(DESTDIR)"/bin/vico
-	rm -Rf ~/.vico/
+	rm -f "$(DESTDIR)"/bin/vin
+	rm -Rf ~/.vin/
 
 #########################################
 # permission
@@ -137,13 +137,13 @@ permission:
 # clean
 #########################################
 clean:
-	rm -fR *.ll *.bc *.c.tmp *.out *.o valgrind.txt *.i aaa AAA BBB bbb vico.dSYM
-	rm -fR vico
+	rm -fR *.ll *.bc *.c.tmp *.out *.o valgrind.txt *.i aaa AAA BBB bbb vin.dSYM
+	rm -fR vin
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache 
 
 test:
 	rm -f valgrind.txt
-	valgrind ./vico a.txt 2> aaa
+	valgrind ./vin a.txt 2> aaa
 
