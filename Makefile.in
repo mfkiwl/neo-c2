@@ -228,9 +228,6 @@ test:
 	./code/HelloWorld6
 	PWD=`pwd` ./come code/HelloWorld7.c && $(CC) -o code/HelloWorld7 code/HelloWorld7.c.ll -lpthread
 	./code/HelloWorld7
-	./come type f.c
-	./come global f.c
-	./come function f.c
 	PWD=`pwd` ./come code/HelloWorld8.c && $(CC) -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread
 	./code/HelloWorld8
 	PWD=`pwd` ./come code/HelloWorld10.c && $(CC) -o code/HelloWorld10 code/HelloWorld10.c.ll
@@ -254,9 +251,6 @@ debug-test:
 	./code/HelloWorld6
 	PWD=`pwd` ./come -g code/HelloWorld7.c && $(CC) -g -o code/HelloWorld7 code/HelloWorld7.c.ll -lpthread
 	./code/HelloWorld7
-	./come type f.c
-	./come global f.c
-	./come function f.c
 	PWD=`pwd` ./come -g code/HelloWorld8.c && $(CC) -g -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread
 	./code/HelloWorld8
 	PWD=`pwd` ./come -g code/HelloWorld10.c && $(CC) -g -o code/HelloWorld10 code/HelloWorld10.c.ll
