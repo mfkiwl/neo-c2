@@ -7,9 +7,9 @@ bindir=@bindir@
 datadir=@datadir@
 mandir=@mandir@
 sharedstatedir=@sharedstatedir@
-sysconfdir=@sysconfdir@/come
-includedir=@includedir@/come
-datarootdir=@datarootdir@/come
+sysconfdir=@sysconfdir@/neo-c2
+includedir=@includedir@/neo-c2
+datarootdir=@datarootdir@/neo-c2
 docdir=@datadir@/doc
 libdir=@libdir@
 
@@ -30,147 +30,147 @@ OBJS=@OBJS@
 #########################################
 # main
 #########################################
-all: come self-host
+all: neo-c2 self-host
 
-debug: come debug-self-host
+debug: neo-c2 debug-self-host
 
-no-self-host: come
+no-self-host: neo-c2
 
-come: config.h src/main.o $(OBJS)
+neo-c2: config.h src/main.o $(OBJS)
 	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
-	$(CXX) -o come src/main.o $(OBJS) $(CXXFLAGS)
+	$(CXX) -o neo-c2 src/main.o $(OBJS) $(CXXFLAGS)
 
 self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c src/node_function.c src/node_function2.c src/node_loop.c src/node_op.c src/node_value.c src/node_var.c src/macro.c
-	./come src/parser.c $(CFLAGS) 
+	./neo-c2 src/parser.c $(CFLAGS) 
 	$(CC) -c -o src/parser.c.o src/parser.c.ll -fPIC
 
-	./come src/alignment.c $(CFLAGS)
+	./neo-c2 src/alignment.c $(CFLAGS)
 	$(CC) -c -o src/alignment.c.o src/alignment.c.ll -fPIC
 
-	./come src/buffer.c $(CFLAGS)
+	./neo-c2 src/buffer.c $(CFLAGS)
 	$(CC) -c -o src/buffer.c.o src/buffer.c.ll -fPIC
 
-	./come src/xfunc.c $(CFLAGS)
+	./neo-c2 src/xfunc.c $(CFLAGS)
 	$(CC) -c -o src/xfunc.c.o src/xfunc.c.ll -fPIC
 
-	./come src/node.c $(CFLAGS)
+	./neo-c2 src/node.c $(CFLAGS)
 	$(CC) -c -o src/node.c.o src/node.c.ll -fPIC
 
-	./come src/node_function.c $(CFLAGS)
+	./neo-c2 src/node_function.c $(CFLAGS)
 	$(CC) -c -o src/node_function.c.o src/node_function.c.ll -fPIC
 
-	./come src/node_function2.c $(CFLAGS)
+	./neo-c2 src/node_function2.c $(CFLAGS)
 	$(CC) -c -o src/node_function2.c.o src/node_function2.c.ll -fPIC
 
-	./come src/node_loop.c $(CFLAGS)
+	./neo-c2 src/node_loop.c $(CFLAGS)
 	$(CC) -c -o src/node_loop.c.o src/node_loop.c.ll -fPIC
 
-	./come src/node_op.c $(CFLAGS)
+	./neo-c2 src/node_op.c $(CFLAGS)
 	$(CC) -c -o src/node_op.c.o src/node_op.c.ll -fPIC
 
-	./come src/node_value.c $(CFLAGS)
+	./neo-c2 src/node_value.c $(CFLAGS)
 	$(CC) -c -o src/node_value.c.o src/node_value.c.ll -fPIC
 
-	./come src/node_var.c $(CFLAGS)
+	./neo-c2 src/node_var.c $(CFLAGS)
 	$(CC) -c -o src/node_var.c.o src/node_var.c.ll -fPIC
 
-	./come src/node_compile.c $(CFLAGS)
+	./neo-c2 src/node_compile.c $(CFLAGS)
 	$(CC) -c -o src/node_compile.c.o src/node_compile.c.ll -fPIC
 
-	./come src/vtable.c $(CFLAGS)
+	./neo-c2 src/vtable.c $(CFLAGS)
 	$(CC) -c -o src/vtable.c.o src/vtable.c.ll -fPIC
 
-	./come src/node_type.c $(CFLAGS)
+	./neo-c2 src/node_type.c $(CFLAGS)
 	$(CC) -c -o src/node_type.c.o src/node_type.c.ll -fPIC
 
-	./come src/klass.c $(CFLAGS)
+	./neo-c2 src/klass.c $(CFLAGS)
 	$(CC) -c -o src/klass.c.o src/klass.c.ll -fPIC
 
-	./come src/constant.c $(CFLAGS)
+	./neo-c2 src/constant.c $(CFLAGS)
 	$(CC) -c -o src/constant.c.o src/constant.c.ll -fPIC
 
-	./come src/node_block.c $(CFLAGS)
+	./neo-c2 src/node_block.c $(CFLAGS)
 	$(CC) -c -o src/node_block.c.o src/node_block.c.ll -fPIC
 
-	./come src/typedef.c $(CFLAGS)
+	./neo-c2 src/typedef.c $(CFLAGS)
 	$(CC) -c -o src/typedef.c.o src/typedef.c.ll -fPIC
 
-	./come src/compiler.c $(CFLAGS)
+	./neo-c2 src/compiler.c $(CFLAGS)
 	$(CC) -c -o src/compiler.c.o src/compiler.c.ll -fPIC
 
-	./come src/macro.c $(CFLAGS)
+	./neo-c2 src/macro.c $(CFLAGS)
 	$(CC) -c -o src/macro.c.o src/macro.c.ll -fPIC
 
-	./come src/main.c $(CFLAGS)
+	./neo-c2 src/main.c $(CFLAGS)
 	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC
 
-	$(CXX) -o come src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o src/macro.c.o $(CXXFLAGS) -fPIC
+	$(CXX) -o neo-c2 src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o src/macro.c.o $(CXXFLAGS) -fPIC
 
 debug-self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c src/node_function.c src/node_function2.c src/node_loop.c src/node_op.c src/node_value.c src/node_var.c src/macro.c
-	./come src/parser.c $(CFLAGS) -g
+	./neo-c2 src/parser.c $(CFLAGS) -g
 	$(CC) -c -o src/parser.c.o src/parser.c.ll -fPIC -g
 
-	./come src/alignment.c $(CFLAGS) -g
+	./neo-c2 src/alignment.c $(CFLAGS) -g
 	$(CC) -c -o src/alignment.c.o src/alignment.c.ll -fPIC -g
 
-	./come src/buffer.c $(CFLAGS) -g
+	./neo-c2 src/buffer.c $(CFLAGS) -g
 	$(CC) -c -o src/buffer.c.o src/buffer.c.ll -fPIC -g
 
-	./come src/xfunc.c $(CFLAGS) -g
+	./neo-c2 src/xfunc.c $(CFLAGS) -g
 	$(CC) -c -o src/xfunc.c.o src/xfunc.c.ll -fPIC -g
 
-	./come src/node.c $(CFLAGS) -g
+	./neo-c2 src/node.c $(CFLAGS) -g
 	$(CC) -c -o src/node.c.o src/node.c.ll -fPIC -g
 
-	./come src/node_function.c $(CFLAGS) -g
+	./neo-c2 src/node_function.c $(CFLAGS) -g
 	$(CC) -c -o src/node_function.c.o src/node_function.c.ll -fPIC -g
 
-	./come src/node_function2.c $(CFLAGS) -g
+	./neo-c2 src/node_function2.c $(CFLAGS) -g
 	$(CC) -c -o src/node_function2.c.o src/node_function2.c.ll -fPIC -g
 
-	./come src/node_loop.c $(CFLAGS) -g
+	./neo-c2 src/node_loop.c $(CFLAGS) -g
 	$(CC) -c -o src/node_loop.c.o src/node_loop.c.ll -fPIC -g
 
-	./come src/node_op.c $(CFLAGS) -g
+	./neo-c2 src/node_op.c $(CFLAGS) -g
 	$(CC) -c -o src/node_op.c.o src/node_op.c.ll -fPIC -g
 
-	./come src/node_value.c $(CFLAGS) -g
+	./neo-c2 src/node_value.c $(CFLAGS) -g
 	$(CC) -c -o src/node_value.c.o src/node_value.c.ll -fPIC -g
 
-	./come src/node_var.c $(CFLAGS) -g
+	./neo-c2 src/node_var.c $(CFLAGS) -g
 	$(CC) -c -o src/node_var.c.o src/node_var.c.ll -fPIC -g
 
-	./come src/node_compile.c $(CFLAGS) -g
+	./neo-c2 src/node_compile.c $(CFLAGS) -g
 	$(CC) -c -o src/node_compile.c.o src/node_compile.c.ll -fPIC -g
 
-	./come src/vtable.c $(CFLAGS) -g
+	./neo-c2 src/vtable.c $(CFLAGS) -g
 	$(CC) -c -o src/vtable.c.o src/vtable.c.ll -fPIC -g
 
-	./come src/node_type.c $(CFLAGS) -g
+	./neo-c2 src/node_type.c $(CFLAGS) -g
 	$(CC) -c -o src/node_type.c.o src/node_type.c.ll -fPIC -g
 
-	./come src/klass.c $(CFLAGS) -g
+	./neo-c2 src/klass.c $(CFLAGS) -g
 	$(CC) -c -o src/klass.c.o src/klass.c.ll -fPIC -g
 
-	./come src/constant.c $(CFLAGS) -g
+	./neo-c2 src/constant.c $(CFLAGS) -g
 	$(CC) -c -o src/constant.c.o src/constant.c.ll -fPIC -g
 
-	./come src/node_block.c $(CFLAGS) -g
+	./neo-c2 src/node_block.c $(CFLAGS) -g
 	$(CC) -c -o src/node_block.c.o src/node_block.c.ll -fPIC -g
 
-	./come src/typedef.c $(CFLAGS) -g
+	./neo-c2 src/typedef.c $(CFLAGS) -g
 	$(CC) -c -o src/typedef.c.o src/typedef.c.ll -fPIC -g
 
-	./come src/compiler.c $(CFLAGS) -g
+	./neo-c2 src/compiler.c $(CFLAGS) -g
 	$(CC) -c -o src/compiler.c.o src/compiler.c.ll -fPIC -g
 
-	./come src/macro.c $(CFLAGS) -g
+	./neo-c2 src/macro.c $(CFLAGS) -g
 	$(CC) -c -o src/macro.c.o src/macro.c.ll -fPIC -g
 
-	./come src/main.c $(CFLAGS) -g
+	./neo-c2 src/main.c $(CFLAGS) -g
 	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC -g
 
-	$(CXX) -o come src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o src/macro.c.o $(CXXFLAGS2) -fPIC
+	$(CXX) -o neo-c2 src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o src/macro.c.o $(CXXFLAGS2) -fPIC
 
 #########################################
 # Object files
@@ -182,13 +182,16 @@ $(OBJS): src/*.h Makefile configure
 #########################################
 install:
 	mkdir -p $(DESTDIR)/include
-	$(INSTALL) -m 644 ./come.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./neo-c2.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./neo-c2-pcre.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./neo-c2-pcre-main.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./neo-c2-pcre-declare.h $(DESTDIR)/include
 
 	mkdir -p "$(DESTDIR)/bin"
-	$(INSTALL) -m 755 ./come "$(DESTDIR)/bin"
+	$(INSTALL) -m 755 ./neo-c2 "$(DESTDIR)/bin"
 
-	mkdir -p $(DESTDIR)/share/doc/come
-	$(INSTALL) -m 644 ./README.md "$(DESTDIR)/share/doc/come"
+	mkdir -p $(DESTDIR)/share/doc/neo-c2
+	$(INSTALL) -m 644 ./README.md "$(DESTDIR)/share/doc/neo-c2"
 
 #########################################
 # permission
@@ -198,13 +201,13 @@ permission:
 	chmod 755 .git man src configure
 	chmod 644 src/*.c
 	chmod 644 src/*.h
-	chmod 755 update_come.sh
+	chmod 755 update_neo-c2.sh
 
 #########################################
 # clean
 #########################################
 clean:
-	rm -fR come src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.c.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM come.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8 code/HelloWorld9 code/HelloWorld10 code/HelloWorld11
+	rm -fR neo-c2 src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.c.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM neo-c2.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8 code/HelloWorld9 code/HelloWorld10 code/HelloWorld11
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache 
@@ -214,58 +217,59 @@ distclean: clean
 #########################################
 test: 
 	@echo "Compile to test code..."
-	PWD=`pwd` ./come code/HelloWorld.c && $(CC) -o code/HelloWorld code/HelloWorld.c.ll
+	PWD=`pwd` ./neo-c2 code/HelloWorld.c && $(CC) -o code/HelloWorld code/HelloWorld.c.ll
 	./code/HelloWorld
-	PWD=`pwd` ./come code/HelloWorld2.c && $(CC) -o code/HelloWorld2 code/HelloWorld2.c.ll
+	PWD=`pwd` ./neo-c2 code/HelloWorld2.c && $(CC) -o code/HelloWorld2 code/HelloWorld2.c.ll
 	./code/HelloWorld2
-	PWD=`pwd` ./come code/HelloWorld3.c && $(CC) -o code/HelloWorld3 code/HelloWorld3.c.ll
+	PWD=`pwd` ./neo-c2 code/HelloWorld3.c && $(CC) -o code/HelloWorld3 code/HelloWorld3.c.ll
 	./code/HelloWorld3
-	PWD=`pwd` ./come code/HelloWorld4.c && $(CC) -o code/HelloWorld4 code/HelloWorld4.c.ll -lpthread
+	PWD=`pwd` ./neo-c2 code/HelloWorld4.c && $(CC) -o code/HelloWorld4 code/HelloWorld4.c.ll -lpthread
 	./code/HelloWorld4
-	PWD=`pwd` ./come code/HelloWorld5.c && $(CC) -o code/HelloWorld5 code/HelloWorld5.c.ll -lpthread
+	PWD=`pwd` ./neo-c2 code/HelloWorld5.c && $(CC) -o code/HelloWorld5 code/HelloWorld5.c.ll -lpthread
 	./code/HelloWorld5
-	PWD=`pwd` ./come code/HelloWorld6.c && $(CC) -o code/HelloWorld6 code/HelloWorld6.c.ll -lpthread
+	PWD=`pwd` ./neo-c2 code/HelloWorld6.c && $(CC) -o code/HelloWorld6 code/HelloWorld6.c.ll -lpthread
 	./code/HelloWorld6
-	PWD=`pwd` ./come code/HelloWorld7.c && $(CC) -o code/HelloWorld7 code/HelloWorld7.c.ll -lpthread
+	PWD=`pwd` ./neo-c2 code/HelloWorld7.c && $(CC) -o code/HelloWorld7 code/HelloWorld7.c.ll -lpthread
 	./code/HelloWorld7
-	PWD=`pwd` ./come code/HelloWorld8.c && $(CC) -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread
+	PWD=`pwd` ./neo-c2 code/HelloWorld8.c && $(CC) -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread
 	./code/HelloWorld8
-	PWD=`pwd` ./come code/HelloWorld10.c && $(CC) -o code/HelloWorld10 code/HelloWorld10.c.ll
+	PWD=`pwd` ./neo-c2 code/HelloWorld9.c && $(CC) -o code/HelloWorld9 code/HelloWorld9.c.ll -lpcre
+	./code/HelloWorld9
+	PWD=`pwd` ./neo-c2 code/HelloWorld10.c && $(CC) -o code/HelloWorld10 code/HelloWorld10.c.ll
 	./code/HelloWorld10
-	PWD=`pwd` ./come code/HelloWorld11.c && $(CC) -o code/HelloWorld11 code/HelloWorld11.c.ll -lgc
+	PWD=`pwd` ./neo-c2 code/HelloWorld11.c && $(CC) -o code/HelloWorld11 code/HelloWorld11.c.ll -lgc
 	./code/HelloWorld11
 
 debug-test: 
 	@echo "Compile to test code..."
-	PWD=`pwd` ./come -g code/HelloWorld.c && $(CC) -g -o code/HelloWorld code/HelloWorld.c.ll
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld.c && $(CC) -g -o code/HelloWorld code/HelloWorld.c.ll
 	./code/HelloWorld
-	PWD=`pwd` ./come -g code/HelloWorld2.c && $(CC) -g -o code/HelloWorld2 code/HelloWorld2.c.ll
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld2.c && $(CC) -g -o code/HelloWorld2 code/HelloWorld2.c.ll
 	./code/HelloWorld2
-	PWD=`pwd` ./come -g code/HelloWorld3.c && $(CC) -g -o code/HelloWorld3 code/HelloWorld3.c.ll
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld3.c && $(CC) -g -o code/HelloWorld3 code/HelloWorld3.c.ll
 	./code/HelloWorld3
-	PWD=`pwd` ./come -g code/HelloWorld4.c && $(CC) -g -o code/HelloWorld4 code/HelloWorld4.c.ll -lpthread
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld4.c && $(CC) -g -o code/HelloWorld4 code/HelloWorld4.c.ll -lpthread
 	./code/HelloWorld4
-	PWD=`pwd` ./come -g code/HelloWorld5.c && $(CC) -g -o code/HelloWorld5 code/HelloWorld5.c.ll -lpthread
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld5.c && $(CC) -g -o code/HelloWorld5 code/HelloWorld5.c.ll -lpthread
 	./code/HelloWorld5
-	PWD=`pwd` ./come -g code/HelloWorld6.c && $(CC) -g -o code/HelloWorld6 code/HelloWorld6.c.ll -lpthread
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld6.c && $(CC) -g -o code/HelloWorld6 code/HelloWorld6.c.ll -lpthread
 	./code/HelloWorld6
-	PWD=`pwd` ./come -g code/HelloWorld7.c && $(CC) -g -o code/HelloWorld7 code/HelloWorld7.c.ll -lpthread
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld7.c && $(CC) -g -o code/HelloWorld7 code/HelloWorld7.c.ll -lpthread
 	./code/HelloWorld7
-	PWD=`pwd` ./come -g code/HelloWorld8.c && $(CC) -g -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld8.c && $(CC) -g -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread
 	./code/HelloWorld8
-	PWD=`pwd` ./come -g code/HelloWorld10.c && $(CC) -g -o code/HelloWorld10 code/HelloWorld10.c.ll
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld9.c && $(CC) -g -o code/HelloWorld9 code/HelloWorld9.c.ll -lpcre
+	./code/HelloWorld9
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld10.c && $(CC) -g -o code/HelloWorld10 code/HelloWorld10.c.ll
 	./code/HelloWorld10
-	PWD=`pwd` ./come -g code/HelloWorld11.c && $(CC) -g -o code/HelloWorld11 code/HelloWorld11.c.ll -lgc
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld11.c && $(CC) -g -o code/HelloWorld11 code/HelloWorld11.c.ll -lgc
 	./code/HelloWorld11
 
 #########################################
 # uninstall
 #########################################
 uninstall:
-	rm -f "$(DESTDIR)"/bin/come
-	rm -f "$(DESTDIR)"/include/come.h
-	rm -f "$(DESTDIR)/share/doc/come/README.md "
-#	rm -rf "$(DESTDIR)"/share/doc/come/
-#	rm -f "$(DESTDIR)"/include/pre-come.h
-#	rm -f "$(DESTDIR)"/share/man/man1/come.1.gz
-#	rm -f "$(DESTDIR)/lib/libcome.a"
+	rm -f "$(DESTDIR)"/bin/neo-c2
+	rm -f "$(DESTDIR)"/include/neo-c2.h
+	rm -f "$(DESTDIR)/share/doc/neo-c2/README.md "
+

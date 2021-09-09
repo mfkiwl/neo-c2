@@ -1,4 +1,4 @@
-#include <come.h>
+#include <neo-c2.h>
 
 static bool int_equals(int left, int right) 
 {

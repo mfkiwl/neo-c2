@@ -1,15 +1,13 @@
-# comelang
-
-come together!
+# neo-c2
 
 C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.2.7
+version 1.0.0
 
 ```
-#include <come.h>
+#include <neo-c2.h>
 
 int main() 
 {
@@ -70,7 +68,7 @@ int main()
 
 3. It has Generics, Method Generics, inline function, debug info (-g option), and lambda.
 
-4. The library is written in come.h and you don't need to link any library. The library is minimal and keeps learning costs down. It has a collection library and a string library.
+4. The library is written in neo-c2.h and you don't need to link any library. The library is minimal and keeps learning costs down. It has a collection library and a string library.
 
 5. It has a mixin-layers system. You can implement your application in layers. Each layer is complete and useful for debugging and porting. A vi clone called vico is implemented as an editor implemented in mixin-layers. Please refer to it because it is in a directory called vico.
 
@@ -90,7 +88,7 @@ int main()
 
 3. Generics, Method Generics, inline function, debug info(-g option), lambdaを備えます。
 
-4. ライブラリはcome.hに書かれてあり、何もライブラリをリンクする必要はありません。ライブラリは最小限となっており学習コストを抑えています。コレクションライブラリと文字列ライブラリを備えます。
+4. ライブラリはneo-c2.hに書かれてあり、何もライブラリをリンクする必要はありません。ライブラリは最小限となっており学習コストを抑えています。コレクションライブラリと文字列ライブラリを備えます。
 
 5. mixin-layersシステムを備えます。アプリケーションをレイヤーを重ねるように実装できます。各レイヤーは完結しており、デバッグや移植作業でも有効です。mixin-layersで実装されたエディッタとしてvicoというviクローンを実装しています。vicoというディレクトリの中に入っているので参考にしてください。
 
@@ -119,9 +117,9 @@ sudo apt-get install clang clang++ make autoconf llvm-dev git gdb valgrind gcc
 For PC, WSL, Raspberry PI OS and iSH(iPhone)
 
 ```
-git clone https://github.com/ab25cq/comelang
+git clone https://github.com/ab25cq/neo-c2
 
-cd comelang
+cd neo-c2
 
 ./configure --with-optimize
 make
@@ -136,9 +134,9 @@ bash all_build.sh
 Without self-host. 
 
 ```
-git clone https://github.com/ab25cq/comelang
+git clone https://github.com/ab25cq/neo-c2
 
-cd comelang
+cd neo-c2
 
 ./configure --with-optimize
 make no-self-host
@@ -153,9 +151,9 @@ bash no_self_host.sh
 Install to home directory. For termux(android), and MacOS(INTEL)
 
 ```
-git clone https://github.com/ab25cq/comelang
+git clone https://github.com/ab25cq/neo-c2
 
-cd comelang
+cd neo-c2
 
 ./configure --with-optimize --prefix=$HOME
 make
@@ -169,10 +167,10 @@ bash home_build.sh
 
 1. Language specifications
 
-It is almost the same as C language. Since it is not POSIX compliant, it is not compatible with C language in every detail, but I think that anyone who can use C language can use it immediately. If you don't use the heap system and do #include <come.h>, you can just use it as a C compiler.
+It is almost the same as C language. Since it is not POSIX compliant, it is not compatible with C language in every detail, but I think that anyone who can use C language can use it immediately. If you don't use the heap system and do #include <neo-c2.h>, you can just use it as a C compiler.
 
 C言語とほぼ一緒です。POSIX準拠じゃないため、あまり細部までC言語とは互換性がありませんが、C言語を使える人ならすぐ使えると思います。
-ヒープシステムを使わずに#include <come.h>をしなければ、単なるCコンパイラとして使えます。
+ヒープシステムを使わずに#include <neo-c2.h>をしなければ、単なるCコンパイラとして使えます。
 
 2. HELLO WORLD
 
@@ -185,7 +183,7 @@ int main()
     puts("HELLO WORLD");
     return 0;
 }
-> come a.c
+> neo-c2 a.c
 > clang a.c.ll
 > ./a.out
 HELLO WORLD
@@ -209,7 +207,7 @@ int main()
     puts("HELLO WORLD");
     return 0;
 }
-> come a.c
+> neo-c2 a.c
 > clang-11 a.c.ll
 > ./a.out
 HELLO WORLD
@@ -627,7 +625,7 @@ You can also new using Boehm GC from version 1.2.6. In this case, assign it to a
 version 1.2.6からBoehmGCを使ったnewもできます。この場合は普通のポインタに代入してください。保守的GCなのでメモリが解放されない場合もある様子ですが、とりあえずは、メモリは枯渇しないと思います。finalizeは呼ばれません。使い方は以下です。
 
 ```
-#include <come.h>
+#include <neo-c2.h>
 
 struct sObj {
     int a;
@@ -653,7 +651,7 @@ However, in this example, it seems that memory is leaking when valgrind is appli
 
 4. Generics
 
-Generics is a code generation method. I have implemented it, but basically I am making it for the collection library of the basic library. We do not recommend using Generics for your own application code. This is because the code becomes complicated. If you want to make your own library, you can use it. The vector is defined as follows.
+Generics is a code generation method. I have implemented it, but basically I am making it for the collection library of the basic library. We do not recommend using Generics for your own application code. This is because the code beneo-c2 complicated. If you want to make your own library, you can use it. The vector is defined as follows.
 
 Genericsはコード生成方式です。実装してますが、基本的に基本ライブラリのコレクションライブラリ用に作っています。
 自作のアプリケーションコードにGenericsを使うことはお勧めしません。コードが複雑になるためです。
@@ -2046,7 +2044,7 @@ impl tuple4 <T, T2, T3, T4>
 ```
 5. Collection and heap system
 
-All the elements added to the Collection are also released from memory and cloned on the collection side. When adding elements, do not add the heap managed by the variable table. This is because the heap managed by the variable table becomes double free because automatic free occurs when it exits the block and free also occurs on the collection side. For example:
+All the elements added to the Collection are also released from memory and cloned on the collection side. When adding elements, do not add the heap managed by the variable table. This is because the heap managed by the variable table beneo-c2 double free because automatic free occurs when it exits the block and free also occurs on the collection side. For example:
 
 Collectionに追加された要素は全てコレクション側でメモリの解放やcloneなども行われます。要素を追加する場合は変数テーブルで管理されたヒープを追加しないようにしてください。
 変数テーブルで管理されたヒープはブロックから出たときに自動freeが起こりコレクション側でもfreeが起こるので、2重freeとなるためです。例えば以下のようにします。
@@ -2118,7 +2116,7 @@ The above code will result in a compilation error.
 
 上記のコードはコンパイルエラーとなります。
 
-From vresion 1.2.1, comelang can access the variables of parent stack frame.
+From vresion 1.2.1, neo-c2 can access the variables of parent stack frame.
 
 version 1.2.1より親のスタックの変数にアクセスできるようになりました。
 
@@ -2485,22 +2483,22 @@ struct sB {
 int main() {
     sB b;
     b;
-> come type a.c
+> neo-c2 type a.c
 struct sB
 #0 int a
 #1 char* b
 #2 struct sB*
 ```
 
-come type file name outputs the type of last expression and the type inner contents. It's useful for reflection. You will make a program output a program with any script languaged or comelang its self.
+neo-c2 type file name outputs the type of last expression and the type inner contents. It's useful for reflection. You will make a program output a program with any script languaged or neo-c2 its self.
 
-come type ファイル名で最後の式の型とその内容を出力することができます。これはリフレクションで便利です。プログラムを生成するプログラムを任意のスクリプト言語やcomelang自身で作ることができるでしょう。
+neo-c2 type ファイル名で最後の式の型とその内容を出力することができます。これはリフレクションで便利です。プログラムを生成するプログラムを任意のスクリプト言語やneo-c2自身で作ることができるでしょう。
 
 ```
 > vim a.c
 int gGlobal1;
 int gGlobal2;
-> come global a.c
+> neo-c2 global a.c
 gGlobal1 int
 gGlobal2 int
 ```
@@ -2516,7 +2514,7 @@ int fun2()
 {
     return 123;
 }
-> come function a.c
+> neo-c2 function a.c
 fun extern 0 var args 0 gnerics function 0 num params 2
 a int
 b int
@@ -2534,7 +2532,7 @@ struct sA
 };
 
 enum eEnumA { kA, kB };
-> come class a.c
+> neo-c2 class a.c
 struct sA
 #0 int a
 #1 int b
@@ -2547,7 +2545,7 @@ kB 1
 > vim a.c
 typedef int tType;
 typedef int tType2;
-> come typedef a.c
+> neo-c2 typedef a.c
 tType int
 tType2 int
 ```
@@ -2579,11 +2577,11 @@ int gGlobal;
 
 ```
 ruby <<EOS
-    type = "`./come -n global $SOURCE_NAME | grep gGlobal`".split()[1];
+    type = "`./neo-c2 -n global $SOURCE_NAME | grep gGlobal`".split()[1];
     puts(type + " gGlobal2;");
 EOS
 ```
-> come global g.c
+> neo-c2 global g.c
 gGlobal int
 gGlobal2 int
 ~~~
@@ -2778,6 +2776,107 @@ int main()
 }
 ```
 
+# String libraries
+
+```
+typedef wchar_t*% wstring;
+
+struct regex_struct 
+{
+    char str[128];
+    pcre* regex;
+
+    bool ignore_case;
+    bool multiline;
+    bool global;
+    bool extended;
+    bool dotall;
+    bool anchored;
+    bool dollar_endonly;
+    bool ungreedy;
+
+    int options;
+
+    pcre* re;
+};
+
+typedef regex_struct*% nregex;
+
+regex_struct*% regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy);
+bool char::match(char* self, regex_struct* reg, list<string>?* group_strings);
+int char::index(char* str, char* search_str, int default_value);
+int char::rindex(char* str, char* search_str, int default_value);
+int char::index_regex(char* self, regex_struct* reg, int default_value);
+int char::rindex_regex(char* self, regex_struct* reg, int default_value);
+void char::replace(char* self, int index, char c);
+string char::multiply(char* str, int n);
+string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings);
+list<string>*% char::scan(char* self, regex_struct* reg);
+list<string>*% char::split(char* self, regex_struct* reg);
+list<string>*% char::split_char(string& self, char c) ;
+nregex char::to_regex(char* self) ;
+string char::printable(char* str);
+char* char::delete(char* str, int head, int tail) ;
+string int::to_string(wchar_t* wstr);
+wstring wstring(char* str);
+wstring char::to_wstring(char* str);
+wstring int::substring(wchar_t* str, int head, int tail);
+int int::length(wchar_t* str);
+wchar_t* int::delete(wchar_t* str, int head, int tail) ;
+int int::index(wchar_t* str, wchar_t* search_str, int default_value);
+int int::rindex(wchar_t* str, wchar_t* search_str, int default_value);
+wstring int::reverse(whar_t* str) ;
+wstring int::multiply(wchar_t* str, int n);
+```
+
+sample
+
+```
+#include <come-pcre.h>
+
+int main()
+{
+    xassert("char_match test", "ABC".match("A".to_regex(), null));
+    xassert("char_index test", "ABC".index("B", -1) == 1);
+    xassert("char_rindex test", "ABCABC".rindex("B", -1) == 4);
+    xassert("char_index_regex", "ABC".index_regex("B".to_regex(), -1) == 1);
+    xassert("char_rindex_regex", "ABCABC".rindex_regex("B".to_regex(), -1) == 4);
+
+    string str = string("ABC");
+
+    str.replace(1, 'C');
+
+    xassert("char_replace", strcmp(str, "ACC") == 0);
+    xassert("char_multiply", strcmp(string("ABC").multiply(2), "ABCABC") == 0);
+
+    xassert("char_sub", strcmp("ABC".sub("B".to_regex(), "C", null), "ACC") == 0);
+
+    auto li = "ABC".scan(".".to_regex());
+
+    xassert("char_scan", strcmp(li.item(0, null), "A") == 0 && strcmp(li.item(1, null), "B") == 0 && strcmp(li.item(2, null), "C") == 0);
+
+    auto li2 = "A,B,C".split(",".to_regex());
+
+    xassert("char_split", strcmp(li2.item(0, null), "A") == 0 && strcmp(li2.item(1, null), "B") == 0 && strcmp(li2.item(2, null), "C") == 0);
+
+    auto li3 = "A,B,C".split_char(',');
+
+    xassert("char_split_char", strcmp(li3.item(0, null), "A") == 0 && strcmp(li3.item(1, null), "B") == 0 && strcmp(li3.item(2, null), "C") == 0);
+
+    xassert("char_delete", string("ABC").delete(0,1).equals("BC"));
+
+    xassert("wchar_substring", wcscmp(wstring("ABC").substring(0,1), wstring("A")) == 0);
+
+    return 0;
+}
+```
+
+If you use these functions, use #include <come-pcre.h>.
+When linking object files, append -lpcre option for linker.
+
+もしこれらの関数を使うときは#include <come-pcre.h>をつけてください。
+リンクするときに-lpcreを付けてください。
+
 # Macro
 
 ```
@@ -2854,97 +2953,4 @@ main FINISH
 fun finish
 ```
 
-# CHANGELOG
 
-addition from version 1.0.9
-
-version 1.0.9からの追加の仕様
-
-```
-void int_show(int self)
-{
-    printf("%d\n", self);
-}
-
-```
-
-equals below:
-
-は
-
-```
-void int::show(int self)
-{
-    printf("%d\n", self);
-}
-```
-
-とも書けます。
-
-addition from version 1.1.0
-
-The debug info line number has been corrected.
-
-ソースファイルの行番号のエラーを修正しています。
-
-addition from version 1.1.2
-
-Added to parallel processing like Go
-
-Goのような並列処理を入れました。
-
-addition from version 1.1.3
-
-Added to pselect for polling-select
-
-addition from version 1.1.4
-
-Added anotation. `[a-ZA-Z0-9_]+ is comment.
-
-addition from version 1.1.6
-
-Added refrection. come type file-name outputs the type of last expression and its inner infomation.
-
-addition from version 1.1.7
-
-Added refrection. come global file-name outputs the type and the name of global variables. come function file-name outputs the type and the name of functions.
-
-addition from version 1.1.8
-
-Added macro. Compile time reflection
-
-addition from version 1.1.9
-
-Added method block.
-
-addition from version 1.2.0
-
-Added int::times, int::expect, list::filter
-
-addition from version 1.2.1
-
-Added list::each
-
-addition from version 1.2.2
-
-Added MethodBlock list::map
-
-addition from version 1.2.3
-
-Added String libraries, fixed compiletime macro bugs. Added Macro. Added Defer
-
-version 1.2.4
-
-Fixed a bug with automatically free
-
-version 1.2.5
-
-Fixed a bug with come-pcre.h
-
-version 1.2.6
-
-Appended Boehm GC version memory allocation
-
-version 1.2.7
-
-delete pcre libraries

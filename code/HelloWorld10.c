@@ -1,4 +1,4 @@
-#include <come.h>
+#include <neo-c2.h>
 
 macro vector
 {
