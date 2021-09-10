@@ -620,9 +620,9 @@ This should work fine.
 
 これで不具合なく動くはずです。
 
-You can also new using Boehm GC from version 1.2.6. In this case, assign it to an ordinary pointer. Since it is a conservative GC, it seems that the memory may not be released, but for the time being, I think that the memory will not be exhausted. finalize is not called. The usage is as follows.
+You can also new using Boehm GC. In this case, assign it to an ordinary pointer. Since it is a conservative GC, it seems that the memory may not be released, but for the time being, I think that the memory will not be exhausted. finalize is not called. The usage is as follows.
 
-version 1.2.6からBoehmGCを使ったnewもできます。この場合は普通のポインタに代入してください。保守的GCなのでメモリが解放されない場合もある様子ですが、とりあえずは、メモリは枯渇しないと思います。finalizeは呼ばれません。使い方は以下です。
+BoehmGCを使ったnewもできます。この場合は普通のポインタに代入してください。保守的GCなのでメモリが解放されない場合もある様子ですが、とりあえずは、メモリは枯渇しないと思います。finalizeは呼ばれません。使い方は以下です。
 
 ```
 #include <neo-c2.h>
@@ -671,151 +671,20 @@ struct vector<T>
 
 impl vector<T> 
 {
-    vector<T>*% initialize(vector<T>*% self) 
-    {
-        self.size = 16;
-        self.len = 0;
-        self.items = borrow new T[self.size];
+    vector<T>*% initialize(vector<T>*% self);
+    void finalize(vector<T>* self);
+    void push_back(vector<T>* self, T item);
+    T& item(vector<T>* self, int index, T& default_value);
+    bool equals(vector<T>* left, vector<T>* right);
+    bool replace(vector<T>* self, int index, T value);
+    int find(vector<T>* self, T& item, int default_value);
+    int length(vector<T>* self);
+    void reset(vector<T>* self);
+    T& begin(vector<T>* self);
+    T& next(vector<T>* self);
+    bool end(vector<T>* self);
 
-        return self;
-    }
-
-    void finalize(vector<T>* self)
-    {
-        if(isheap(T)) {
-            for(int i=0; i<self.len; i++) 
-            {
-                delete self.items[i];
-
-            }
-        }
-        delete self.items;
-    }
-    
-    void push_back(vector<T>* self, T item) {
-        managed item;
-
-        if(self.len == self.size) {
-            auto new_size = self.size * 2;
-            auto items = self.items;
-
-            self.items = calloc(1, sizeof(T)*new_size);
-
-            int i;
-            for(i=0; i<self.size; i++) {
-                self.items[i] = items[i];
-            }
-
-            self.size = new_size;
-
-            delete items;
-        }
-
-        self.items[self.len] = item;
-        self.len++;
-    }
-
-    T& item(vector<T>* self, int index, T& default_value) 
-    {
-        if(index < 0) {
-            index += self.len;
-        }
-
-        if(index >= 0 && index < self.len)
-        {
-            return self.items[index];
-        }
-
-        return default_value;
-    }
-
-    bool equals(vector<T>* left, vector<T>* right)
-    {
-        if(left.len != right.len) {
-            return false;
-        }
-
-        for(int i=0; i<left.len; i++) {
-            if(!(left.items[i].equals(right.items[i])))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    bool replace(vector<T>* self, int index, T value) 
-    {
-        if(index < 0) {
-            index += self.len;
-        }
-
-        if(index >= 0 && index < self.len)
-        {
-            if(isheap(T)) {
-                delete self.items[index];
-            }
-
-            self.items[index] = value;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    int find(vector<T>* self, T& item, int default_value) {
-        int it2 = 0;
-        foreach(it, self) {
-            if(it.equals(item)) {
-                return it2;
-            }
-            it2++;
-        }
-
-        return default_value;
-    }
-
-    int length(vector<T>* self)
-    {
-        return self.len;
-    }
-
-    void reset(vector<T>* self) {
-        self.len = 0;
-    }
-
-    T& begin(vector<T>* self) {
-        self.it = 0;
-
-        return self.item(0, NULL);
-    }
-
-    T& next(vector<T>* self) {
-        self.it++;
-
-        return self.item(self.it, NULL);
-    }
-
-    bool end(vector<T>* self) {
-        return self.it >= self.len;
-    }
-
-    list<T>*% to_list(vector<T>* self) {
-        auto result = new list<T>.initialize();
-        
-        foreach(it, self) {
-            if(isheap(T)) {
-                result.push_back(clone it);
-            }
-            else {
-                result.push_back(dummy_heap it);
-            }
-        }
-        
-        return result;
-    }
+    list<T>*% to_list(vector<T>* self);
 }
 
 #define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
@@ -850,623 +719,31 @@ itemの-1はデフォルト値でもしindexが範囲外ならデフォルト値
 listは以下です。
 
 ```
-struct list_item<T>
-{
-    T& item;
-    list_item<T>* prev;
-    list_item<T>* next;
-};
-
-struct list<T>
-{
-    list_item<T>* head;
-    list_item<T>* tail;
-    int len;
-
-    list_item<T>* it;
-};
-
-/// list ///
 impl list <T>
 {
-    list<T>*% initialize(list<T>*% self) {
-        self.head = null;
-        self.tail = null;
-        self.len = 0;
-
-        return self;
-    }
-
-    void finalize(list<T>* self) {
-        list_item<T>* it = self->head;
-        while(it != null) {
-            if(isheap(T)) {
-                delete it.item;
-            }
-            auto prev_it = it;
-            it = it.next;
-            delete prev_it;
-        }
-    }
-    list<T>*% clone(list<T>* self) {
-        auto result = new list<T>.initialize();
-
-        list_item<T>* it = self.head;
-        while(it != null) {
-            if(isheap(T)) {
-                result.push_back(clone it.item);
-            }
-            else {
-                result.push_back(dummy_heap it.item);
-            }
-
-            it = it.next;
-        }
-
-        return result;
-    }
-
-    int length(list<T>* self)
-    {
-        return self.len;
-    }
-    void push_back(list<T>* self, T item) 
-    {
-        managed item;
-
-        if(self.len == 0) {
-            list_item<T>* litem = borrow new list_item<T>;
-
-            litem.prev = null;
-            litem.next = null;
-            litem.item = item;
-            
-            self.tail = litem;
-            self.head = litem;
-        }
-        else if(self.len == 1) {
-            list_item<T>* litem = borrow new list_item<T>;
-
-            litem.prev = self.head;
-            litem.next = null;
-            litem.item = item;
-            
-            self.tail = litem;
-            self.head.next = litem;
-        }
-        else {
-            list_item<T>* litem = borrow new list_item<T>;
-
-            litem.prev = self.tail;
-            litem.next = null;
-            litem.item = item;
-            
-            self.tail.next = litem;
-            self.tail = litem;
-        }
-
-        self.len++;
-    }
-    
-    T& item(list<T>* self, int position, T& default_value) 
-    {
-        if(position < 0) {
-            position += self.len;
-        }
-
-        list_item<T>* it = self.head;
-        auto i = 0;
-        while(it != null) {
-            if(position == i) {
-                return it.item;
-            }
-            it = it.next;
-            i++;
-        };
-
-        return default_value;
-    }
-
-    void insert(list<T>* self, int position, T item)
-    {
-        if(position < 0) {
-            position += self.len + 1;
-        }
-        if(position < 0) {
-            position = 0;
-        }
-        if(self.len == 0 || position >= self.len) 
-        {
-            self.push_back(item);
-            return;
-        }
-
-        managed item;
-
-        if(position == 0) {
-            list_item<T>* litem = borrow new list_item<T>;
-
-            litem.prev = null;
-            litem.next = self.head;
-            litem.item = item;
-            
-            self.head.prev = litem;
-            self.head = litem;
-
-            self.len++;
-        }
-        else if(self.len == 1) {
-            auto litem = borrow new list_item<T>;
-
-            litem.prev = self.head;
-            litem.next = self.tail;
-            litem.item = item;
-            
-            self.tail.prev = litem;
-            self.head.next = litem;
-
-            self.len++;
-        }
-        else {
-            list_item<T>* it = self.head;
-            auto i = 0;
-            while(it != null) {
-                if(position == i) {
-                    list_item<T>* litem = borrow new list_item<T>;
-
-                    litem.prev = it.prev;
-                    litem.next = it;
-                    litem.item = item;
-
-                    it.prev.next = litem;
-                    it.prev = litem;
-
-                    self.len++;
-                }
-
-                it = it.next;
-                i++;
-            }
-        }
-    }
-
-    void reset(list<T>* self) {
-        list_item<T>* it = self.head;
-        while(it != null) {
-            if(isheap(T)) {
-                delete it.item;
-            }
-            auto prev_it = it;
-            it = it.next;
-            delete prev_it;
-        }
-
-        self.head = null;
-        self.tail = null;
-
-        self.len = 0;
-    }
-
-    void delete(list<T>* self, int head, int tail)
-    {
-        if(head < 0) {
-            head += self.len;
-        }
-        if(tail < 0) {
-            tail += self.len + 1;
-        }
-
-        if(head > tail) {
-            int tmp = tail;
-            tail = head;
-            head = tmp;
-        }
-
-        if(head < 0) {
-            head = 0;
-        }
-
-        if(tail > self.len) {
-            tail = self.len;
-        }
-
-        if(head == tail) {
-            return;
-        }
-
-        if(head == 0 && tail == self.len) 
-        {
-            self.reset();
-        }
-        else if(head == 0) {
-            list_item<T>* it = self.head;
-            auto i = 0;
-            while(it != null) {
-                if(i < tail) {
-                    if(isheap(T)) {
-                        delete it.item;
-                    }
-                    list_item<T>* prev_it = it;
-
-                    it = it.next;
-                    i++;
-
-                    delete prev_it;
-
-                    self.len--;
-                }
-                else if(i == tail) {
-                    self.head = it;
-                    self.head.prev = null;
-                    break;
-                }
-                else {
-                    it = it.next;
-                    i++;
-                }
-            }
-        }
-        else if(tail == self.len) {
-            list_item<T>* it = self.head;
-            auto i = 0;
-            while(it != null) {
-                if(i == head) {
-                    self.tail = it.prev;
-                    self.tail.next = null;
-                }
-
-                if(i >= head) {
-                    if(isheap(T)) {
-                        delete it.item;
-                    }
-                    list_item<T>* prev_it = it;
-
-                    it = it.next;
-                    i++;
-
-                    delete prev_it;
-
-                    self.len--;
-                }
-                else {
-                    it = it.next;
-                    i++;
-                }
-            }
-        }
-        else {
-            list_item<T>* it = self.head;
-
-            list_item<T>* head_prev_it = null;
-            list_item<T>* tail_it = null;
-
-
-            auto i = 0;
-            while(it != null) {
-                if(i == head) {
-                    head_prev_it = it.prev;
-                }
-                if(i == tail) {
-                    tail_it = it;
-                }
-
-                if(i >= head && i < tail) 
-                {
-                    if(isheap(T)) {
-                        delete it.item;
-                    }
-                    list_item<T>* prev_it = it;
-
-                    it = it.next;
-                    i++;
-
-                    delete prev_it;
-
-                    self.len--;
-                }
-                else {
-                    it = it.next;
-                    i++;
-                }
-            }
-
-            if(head_prev_it != null) {
-                head_prev_it.next = tail_it;
-            }
-            if(tail_it != null) {
-                tail_it.prev = head_prev_it;
-            }
-        }
-    }
-
-    void replace(list<T>* self, int position, T item)
-    {
-        managed item;
-
-        if(position < 0) {
-            position += self.len;
-        }
-
-        list_item<T>* it = self.head;
-        auto i = 0;
-        while(it != null) {
-            if(position == i) {
-                if(isheap(T)) {
-                    delete it.item;
-                }
-
-                it.item = item;
-                break;
-            }
-            it = it.next;
-            i++;
-        }
-    }
-
-    int find(list<T>* self, T& item, int default_value) {
-        int it2 = 0;
-        foreach(it, self) {
-            if(it.equals(item)) {
-                return it2;
-            }
-            it2++;
-        }
-
-        return default_value;
-    }
-
-    list<T>*% sublist(list<T>* self, int begin, int tail) {
-        list<T>%* result = new list<T>.initialize();
-
-        if(begin < 0) {
-            begin += self.len;
-        }
-
-        if(tail < 0) {
-            tail += self.len + 1;
-        }
-
-        if(begin < 0) {
-            begin = 0;
-        }
-
-        if(tail >= self.len) {
-            tail = self.len;
-        }
-
-        list_item<T>* it = self.head;
-        auto i = 0;
-        while(it != null) {
-            if(i >= begin && i < tail) {
-                if(isheap(T)) {
-                    result.push_back(clone it.item);
-                }
-                else {
-                    result.push_back(dummy_heap it.item);
-                }
-            }
-            it = it.next;
-            i++;
-        };
-
-        return result;
-    }
-
-    list<T>*% reverse(list<T>* self) {
-        list<T>%* result = new list<T>.initialize();
-
-        list_item<T>* it = self.tail;
-        while(it != null) {
-            if(isheap(T)) {
-                result.push_back(clone it.item);
-            }
-            else {
-                result.push_back(dummy_heap it.item);
-            }
-            it = it.prev;
-        };
-
-        return result;
-    }
-
-    list<T>*% merge_list(list<T>* left, list<T>* right, int (*compare)(T&,T&)) {
-        auto result = new list<T>.initialize();
-
-        list_item<T>*? it = left.head;
-        list_item<T>*? it2= right.head;
-
-        while(true) {
-            if(it && it2) {
-                if(it.item == null) {
-                    it = it.next;
-                }
-                else if(it2.item == null) {
-                    it2 = it2.next;
-                }
-                else if(compare(it.item, it2.item) <= 0) 
-                {
-                    if(isheap(T)) {
-                        result.push_back(clone it.item);
-                    }
-                    else {
-                        result.push_back(dummy_heap it.item);
-                    }
-
-                    it = it.next;
-                }
-                else {
-                    if(isheap(T)) {
-                        result.push_back(clone it2.item);
-                    }
-                    else {
-                        result.push_back(dummy_heap it2.item);
-                    }
-
-
-                    it2 = it2.next;
-                }
-            }
-
-            if(it == null) {
-                if(it2 != null) {
-                    while(it2 != null) {
-                        if(isheap(T)) {
-                            result.push_back(clone it2.item);
-                        }
-                        else {
-                            result.push_back(dummy_heap it2.item);
-                        }
-
-                        it2 = it2.next;
-                    }
-                }
-                break;
-            }
-            else if(it2 == null) {
-                if(it != null) {
-                    while(it != null) {
-                        if(isheap(T)) {
-                            result.push_back(clone it.item);
-                        }
-                        else {
-                            result.push_back(dummy_heap it.item);
-                        }
-
-                        it = it.next;
-                    }
-                }
-                break;
-            }
-        }
-
-        return result;
-    }
-    list<T>*% merge_sort(list<T>* self, int (*compare)(T&,T&)) {
-        if(self.head == null) {
-            return clone self;
-        }
-        if(self.head.next == null) {
-            return clone self;
-        }
-
-        auto list1 = new list<T>.initialize();
-        auto list2 = new list<T>.initialize();
-
-        list_item<T>* it = self.head;
-
-        while(true) {
-            if(isheap(T)) {
-                list1.push_back(clone it.item);
-            }
-            else {
-                list1.push_back(dummy_heap it.item);
-            }
-
-            if(isheap(T)) {
-                list2.push_back(clone it.next.item);
-            }
-            else {
-                list2.push_back(dummy_heap it.next.item);
-            }
-
-            if(it.next.next == null) {
-                break;
-            }
-
-            it = it.next.next;
-
-            if(it.next == null) {
-                if(isheap(T)) {
-                    list1.push_back(clone it.item);
-                }
-                else {
-                    list1.push_back(dummy_heap it.item);
-                }
-                break;
-            }
-        }
-
-        return list1.merge_sort(compare).merge_list( list2.merge_sort(compare), compare);
-    }
-    list<T>*% sort(list<T>* self, int (*compare)(T&,T&)) {
-        return self.merge_sort(compare);
-    }
-
-    list<T>*% uniq(list<T>* self) {
-        list<T>*% result = new list<T>.initialize();
-
-        if(self.length() > 0) {
-            T& item_before = self.item(0, null);
-
-            if(isheap(T)) {
-                result.push_back(clone item_before);
-            }
-            else {
-                result.push_back(dummy_heap item_before);
-            }
-
-            foearch(it, self.sublist(1,-1)) {
-                if(!it.equals(item_before)) {
-                    if(isheap(T)) {
-                        result.push_back(clone it);
-                    }
-                    else {
-                        result.push_back(dummy_heap it);
-                    }
-                }
-
-                item_before = it;
-            }
-        }
-
-
-    bool equals(list<T>* left, list<T>* right)
-    {
-        if(left.len != right.len) {
-            return false;
-        }
-
-        list_item<T>* it = left.head;
-        list_item<T>* it2 = right.head;
-
-        while(it != null) {
-            if(!it.item.equals(it2.item)) {
-                return false;
-            }
-
-            it = it.next;
-            it2 = it2.next;
-        }
-
-        return true;
-    }
-
-    T& begin(list<T>* self) {
-        self.it = self.head;
-
-        if(self.it) {
-            return self.it.item;
-        }
-        else {
-            return NULL;
-        }
-
-    }
-
-    T& next(list<T>* self) {
-        self.it = self.it.next;
-
-        if(self.it) {
-            return self.it.item;
-        }
-        else {
-            return NULL;
-        }
-    }
-
-    bool end(list<T>* self) {
-        return self.it == null;
-    }
+    list<T>*% initialize(list<T>*% self);
+    void finalize(list<T>* self);
+    list<T>*% clone(list<T>* self);
+    int length(list<T>* self);
+    void push_back(list<T>* self, T item) ;
+    T& item(list<T>* self, int position, T& default_value);
+    void insert(list<T>* self, int position, T item);
+    void reset(list<T>* self) ;
+    void delete(list<T>* self, int head, int tail);
+    void replace(list<T>* self, int position, T item);
+
+    int find(list<T>* self, T& item, int default_value) ;
+    list<T>*% sublist(list<T>* self, int begin, int tail) ;
+
+    list<T>*% reverse(list<T>* self);
+    list<T>*% merge_list(list<T>* left, list<T>* right, int (*compare)(T&,T&));
+    list<T>*% merge_sort(list<T>* self, int (*compare)(T&,T&));
+    list<T>*% sort(list<T>* self, int (*compare)(T&,T&));
+    list<T>*% uniq(list<T>* self);
+    bool equals(list<T>* left, list<T>* right);
+    T& begin(list<T>* self);
+    T& next(list<T>* self);
+    bool end(list<T>* self);
 }
 ```
 
@@ -1530,316 +807,19 @@ The map is below.
 mapは以下です。
 
 ```
-struct map<T, T2>
-{
-    T&* keys;
-    bool* item_existance;
-    T2&* items;
-    int size;
-    int len;
-
-    int it;
-};
-
-#define MAP_TABLE_DEFAULT_SIZE 128
-
 impl map <T, T2>
 {
-    map<T,T2>*% initialize(map<T,T2>*% self) {
-        self.keys = borrow new T[MAP_TABLE_DEFAULT_SIZE];
-        self.items = borrow new T2[MAP_TABLE_DEFAULT_SIZE];
-        self.item_existance = borrow new bool[MAP_TABLE_DEFAULT_SIZE];
-
-        for(int i=0; i<MAP_TABLE_DEFAULT_SIZE; i++)
-        {
-            self.item_existance[i] = false;
-        }
-
-        self.size = MAP_TABLE_DEFAULT_SIZE;
-        self.len = 0;
-
-        self.it = 0;
-
-        return self;
-    }
-
-    void finalize(map<T,T2>* self) {
-        for(int i=0; i<self.size; i++) {
-            if(self.item_existance[i]) {
-                if(isheap(T2)) {
-                    delete self.items[i];
-                }
-            }
-        }
-        delete self.items;
-
-        for(int i=0; i<self.size; i++) {
-            if(self.item_existance[i]) {
-                if(isheap(T)) {
-                    delete self.keys[i];
-                }
-            }
-        }
-        delete self.keys;
-
-        delete self.item_existance;
-    }
-
-    T2& at(map<T, T2>* self, T& key, T2& default_value) 
-    {
-        int hash = ((T)key).get_hash_key() % self.size;
-        int it = hash;
-
-        while(true) {
-            if(self.item_existance[it])
-            {
-                if(self.keys[it].equals(key))
-                {
-                    return self.items[it];
-                }
-
-                it++;
-
-                if(it >= self.size) {
-                    it = 0;
-                }
-                else if(it == hash) {
-                    return default_value;
-                }
-            }
-            else {
-                return default_value;
-            }
-        }
-
-        return default_value;
-    }
-
-    void rehash(map<T,T2>* self) {
-        int size = self.size * 3;
-        T&* keys = borrow new T[size];
-        T2&* items = borrow new T2[size];
-        bool* item_existance = borrow new bool[size];
-
-        int len = 0;
-
-        for(auto it = self.begin(); !self.end(); it = self.next()) {
-            T2& it2 = self.at(it, null);
-            int hash = it.get_hash_key() % size;
-            int n = hash;
-
-            while(true) {
-                if(item_existance[n])
-                {
-                    n++;
-
-                    if(n >= size) {
-                        n = 0;
-                    }
-                    else if(n == hash) {
-                        fprintf(stderr, "unexpected error in map.rehash(1)\n");
-                        exit(2);
-                    }
-                }
-                else {
-                    item_existance[n] = true;
-                    keys[n] = it;
-                    items[n] = self.at(it, null);
-
-                    len++;
-                    break;
-                }
-            }
-        }
-
-        delete self.items;
-        delete self.item_existance;
-        delete self.keys;
-
-        self.keys = keys;
-        self.items = items;
-        self.item_existance = item_existance;
-
-        self.size = size;
-        self.len = len;
-    }
-
-    void insert(map<T,T2>* self, T key, T2 item) 
-    {
-        managed key;
-        managed item;
-
-        if(self.len*2 >= self.size) {
-            self.rehash();
-        }
-
-        int hash = key.get_hash_key() % self.size;
-        int it = hash;
-
-        while(true) {
-            if(self.item_existance[it])
-            {
-                if(self.keys[it].equals(key)) 
-                {
-                    if(isheap(T)) {
-                        delete dummy_heap self.keys[it];
-                    }
-                    if(isheap(T2)) {
-                        delete dummy_heap self.items[it];
-                    }
-                    self.keys[it] = key;
-                    self.items[it] = item;
-
-                    break;
-                }
-
-                it++;
-
-                if(it >= self.size) {
-                    it = 0;
-                }
-                else if(it == hash) {
-                    fprintf(stderr, "unexpected error in map.insert\n");
-                    exit(2);
-                }
-            }
-            else {
-                self.item_existance[it] = true;
-                self.keys[it] = key;
-                self.items[it] = item;
-
-                self.len++;
-
-                break;
-            }
-        }
-    }
-
-    map<T, T2>*% clone(map<T, T2>* self)
-    {
-        auto result = new map<T,T2>.initialize();
-
-        for(auto it = self.begin(); !self.end(); it = self.next()) {
-            T2& default_value;
-            auto it2 = self.at(it, default_value);
-
-            if(isheap(T)) {
-                if(isheap(T2)) {
-                    result.insert(clone it, clone it2);
-                }
-                else {
-                    result.insert(clone it, dummy_heap it2);
-                }
-            }
-            else {
-                if(isheap(T2)) {
-                    result.insert(dummy_heap it, clone it2);
-                }
-                else {
-                    result.insert(dummy_heap it, dummy_heap it2);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    bool find(map<T, T2>* self, T& key) {
-        int hash = ((T)key).get_hash_key() % self.size;
-        int it = hash;
-
-        while(true) {
-            if(self.item_existance[it])
-            {
-                if(self.keys[it].equals(key))
-                {
-                    return true;
-                }
-
-                it++;
-
-                if(it >= self.size) {
-                    it = 0;
-                }
-                else if(it == hash) {
-                    return false;
-                }
-            }
-            else {
-                return false;
-            }
-        }
-
-        return false;
-    }
-
-    bool equals(map<T, T2>* left, map<T, T2>* right)
-    {
-        if(left.len != right.len) {
-            return false;
-        }
-
-        bool result = true;
-        foreach(it, left) {
-            T2& it2 = left.at(it, null);
-
-            if(right.find(it)) {
-                T2& default_value;
-                T2& item = right.at(it, default_value);
-                if(!it2.equals(item)) {
-                    result = false;
-                }
-            }
-            else {
-                result = false;
-            }
-        }
-
-        return result;
-    }
-
-    int length(map<T, T2>* self) {
-        return self.len;
-    }
-
-    T& begin(map<T, T2>* self) {
-        self.it = 0;
-        while(self.it < self.size) {
-            if(self.item_existance[self.it]) {
-                return self.keys[self.it++];
-            }
-            self.it++;
-        }
-
-        return null;
-    }
-
-    T& next(map<T, T2>* self) {
-        while(self.it < self.size) {
-            if(self.item_existance[self.it]) {
-                return self.keys[self.it++];
-            }
-            self.it++;
-        }
-
-        return null;
-    }
-
-    bool end(map<T, T2>* self) {
-        int count = 0;
-        for(int i=self.it-1; i<self.size; i++) {
-            if(self.item_existance[i]) {
-                count ++;
-            }
-        }
-
-        if(count == 0) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
+    map<T,T2>*% initialize(map<T,T2>*% self);
+    T2& at(map<T, T2>* self, T& key, T2& default_value);
+    void rehash(map<T,T2>* self) ;
+    void insert(map<T,T2>* self, T key, T2 item) ;
+    map<T, T2>*% clone(map<T, T2>* self);
+    bool find(map<T, T2>* self, T& key);
+    bool equals(map<T, T2>* left, map<T, T2>* right);
+    int length(map<T, T2>* self);
+    T& begin(map<T, T2>* self);
+    T& next(map<T, T2>* self);
+    bool end(map<T, T2>* self) ;
 }
 ```
 
@@ -1873,29 +853,9 @@ struct tuple1<T>
 
 impl tuple1 <T>
 {
-    tuple1<T>*% clone(tuple1<T>* self)
-    {
-        tuple1<T>*% result = new tuple1<T>;
-
-        result.v1 = clone self.v1;
-
-        return result;
-    }
-
+    tuple1<T>*% clone(tuple1<T>* self);
     void finalize(tuple1<T>* self)
-    {
-        if(isheap(T)) {
-            delete self.v1;
-        }
-    }
-    bool equals(tuple1<T>* left, tuple1<T>* right)
-    {
-        if(!left.v1.equals(right.v1)) {
-            return false;
-        }
-
-        return true;
-    }
+    bool equals(tuple1<T>* left, tuple1<T>* right);
 }
 
 struct tuple2<T, T2>
@@ -1906,36 +866,9 @@ struct tuple2<T, T2>
 
 impl tuple2 <T, T2>
 {
-    tuple2<T,T2>*% clone(tuple2<T, T2>* self)
-    {
-        tuple2<T,T2>*% result = new tuple2<T, T2>;
-
-        result.v1 = clone self.v1;
-        result.v2 = clone self.v2;
-
-        return result;
-    }
-
-    void finalize(tuple2<T, T2>* self)
-    {
-        if(isheap(T)) {
-            delete self.v1;
-        }
-        if(isheap(T2)) {
-            delete self.v2;
-        }
-    }
-    bool equals(tuple2<T, T2>* left, tuple2<T, T2>* right)
-    {
-        if(!left.v1.equals(right.v1)) {
-            return false;
-        }
-        if(!left.v2.equals(right.v2)) {
-            return false;
-        }
-
-        return true;
-    }
+    tuple2<T,T2>*% clone(tuple2<T, T2>* self);
+    void finalize(tuple2<T, T2>* self);
+    bool equals(tuple2<T, T2>* left, tuple2<T, T2>* right);
 }
 
 struct tuple3<T, T2, T3>
@@ -1947,43 +880,9 @@ struct tuple3<T, T2, T3>
 
 impl tuple3 <T, T2, T3>
 {
-    tuple3<T,T2, T3>*% clone(tuple3<T, T2, T3>* self)
-    {
-        tuple3<T,T2,T3>*% result = new tuple3<T, T2, T3>;
-
-        result.v1 = clone self.v1;
-        result.v2 = clone self.v2;
-        result.v3 = clone self.v3;
-
-        return result;
-    }
-
+    tuple3<T,T2, T3>*% clone(tuple3<T, T2, T3>* self);
     void finalize(tuple3<T, T2, T3>* self)
-    {
-        if(isheap(T)) {
-            delete self.v1;
-        }
-        if(isheap(T2)) {
-            delete self.v2;
-        }
-        if(isheap(T3)) {
-            delete self.v3;
-        }
-    }
-    bool equals(tuple3<T, T2, T3>* left, tuple3<T, T2, T3>* right)
-    {
-        if(!left.v1.equals(right.v1)) {
-            return false;
-        }
-        if(!left.v2.equals(right.v2)) {
-            return false;
-        }
-        if(!left.v3.equals(right.v3)) {
-            return false;
-        }
-
-        return true;
-    }
+    bool equals(tuple3<T, T2, T3>* left, tuple3<T, T2, T3>* right);
 }
 
 struct tuple4<T, T2, T3, T4>
@@ -1996,50 +895,9 @@ struct tuple4<T, T2, T3, T4>
 
 impl tuple4 <T, T2, T3, T4>
 {
-    tuple4<T,T2, T3, T4>*% clone(tuple4<T, T2, T3, T4>* self)
-    {
-        tuple4<T,T2,T3,T4>*% result = new tuple4<T, T2, T3, T4>;
-
-        result.v1 = clone self.v1;
-        result.v2 = clone self.v2;
-        result.v3 = clone self.v3;
-        result.v4 = clone self.v4;
-
-        return result;
-    }
-
-    void finalize(tuple4<T, T2, T3, T4>* self)
-    {
-        if(isheap(T)) {
-            delete self.v1;
-        }
-        if(isheap(T2)) {
-            delete self.v2;
-        }
-        if(isheap(T3)) {
-            delete self.v3;
-        }
-        if(isheap(T4)) {
-            delete self.v4;
-        }
-    }
-    bool equals(tuple4<T, T2, T3, T4>* left, tuple4<T, T2, T3, T4>* right)
-    {
-        if(!left.v1.equals(right.v1)) {
-            return false;
-        }
-        if(!left.v2.equals(right.v2)) {
-            return false;
-        }
-        if(!left.v3.equals(right.v3)) {
-            return false;
-        }
-        if(!left.v4.equals(right.v4)) {
-            return false;
-        }
-
-        return true;
-    }
+    tuple4<T,T2, T3, T4>*% clone(tuple4<T, T2, T3, T4>* self);
+    void finalize(tuple4<T, T2, T3, T4>* self);
+    bool equals(tuple4<T, T2, T3, T4>* left, tuple4<T, T2, T3, T4>* right);
 }
 ```
 5. Collection and heap system
@@ -2116,9 +974,9 @@ The above code will result in a compilation error.
 
 上記のコードはコンパイルエラーとなります。
 
-From vresion 1.2.1, neo-c2 can access the variables of parent stack frame.
+neo-c2 can access the variables of parent stack frame.
 
-version 1.2.1より親のスタックの変数にアクセスできるようになりました。
+親のスタックの変数にアクセスできるようになりました。
 
 ```
 int main(int argc, char** argv)
@@ -2147,105 +1005,19 @@ The definition is as follows.
 定義は以下です。
 
 ```
-struct buffer {
-    char* buf;
-    int len;
-    int size;
-};
-
-static buffer*% buffer_initialize(buffer*% self) 
-{
-    self.size = 128;
-    self.buf = calloc(1, self.size);
-    self.buf[0] = '\0'
-    self.len = 0;
-
-    return self;
-}
-
-static void buffer_finalize(buffer* self)
-{
-    free(self.buf);
-}
-
-static int buffer_length(buffer* self) 
-{
-    return self.len;
-}
-
-static void buffer_append(buffer* self, char* mem, size_t size)
-{
-    if(self.len + size + 1 + 1 >= self.size) {
-        int new_size = (self.size + size + 1) * 2;
-        self.buf = realloc(self.buf, new_size);
-        self.size = new_size;
-    }
-
-    memcpy(self.buf + self.len, mem, size);
-    self.len += size;
-
-    self.buf[self.len] = '\0';
-}
-
-static void buffer_append_char(buffer* self, char c)
-{
-    if(self.len + 1 + 1 + 1 >= self.size) {
-        int new_size = (self.size + 10 + 1) * 2;
-        self.buf = realloc(self.buf, new_size);
-        self.size = new_size;
-    }
-
-    self.buf[self.len] = c;
-    self.len++;
-
-    self.buf[self.len] = '\0';
-}
-
-static void buffer_append_str(buffer* self, char* str)
-{
-    self.append(str, strlen(str));
-}
-
-static void buffer_append_nullterminated_str(buffer* self, char* str)
-{
-    self.append(str, strlen(str));
-    self.append_char('\0');
-}
-
-static string buffer_to_string(buffer* self)
-{
-    return (string(self.buf));
-}
-
-static void buffer_append_int(buffer* self, int value) 
-{
-    self.append((char*)&value, sizeof(int));
-}
-
-static void buffer_append_long(buffer* self, long value) 
-{
-    self.append((char*)&value, sizeof(long));
-}
-
-static void buffer_append_short(buffer* self, short value) 
-{
-    self.append((char*)&value, sizeof(short));
-}
-
-static void buffer_alignment(buffer* self) 
-{
-    int len = self.len;
-    len = (len + 3) & ~3;
-
-    for(int i=self.len; i<len; i++) {
-        self.append_char('\0');
-    }
-}
-
-static int buffer_compare(buffer* left, buffer* right) 
-{
-    return strcmp(left.buf, right.buf);
-}
+buffer*% buffer_initialize(buffer*% self);
+void buffer_finalize(buffer* self);
+int buffer_length(buffer* self) 
+void buffer_append(buffer* self, char* mem, size_t size);
+void buffer_append_char(buffer* self, char c);
+void buffer_append_str(buffer* self, char* str);
+void buffer_append_nullterminated_str(buffer* self, char* str);
+string buffer_to_string(buffer* self);
+void buffer_append_int(buffer* self, int value) ;
+void buffer_append_long(buffer* self, long value) ;
+void buffer_append_short(buffer* self, short value);
+void buffer_alignment(buffer* self);
+int buffer_compare(buffer* left, buffer* right);
 ```
 
 使い方は以下です。
@@ -2645,42 +1417,8 @@ static void int::times(int self, void* parent, void (*block)(void* parent))
 
 impl list<T>
 {
-    list<T>*% filter(list<T>* self, void* parent, bool (*block)(void*, T&))
-    {
-        auto result = new list<T>.initialize();
-
-        list_item<T>?* it = self.head;
-        while(it != null) {
-            if(block(parent, it.item)) {
-                if(isheap(T)) {
-                    result.push_back(clone it.item);
-                }
-                else {
-                    result.push_back(dummy_heap it.item);
-                }
-            }
-
-            it = it.next;
-        }
-
-        return result;
-    } 
-    list<T>* each(list<T>* self, void* parent, void (*block_)(void*, T&,int,bool*)) {
-        list_item<T>?* it = self.head;
-        int i = 0;
-        while(it != null) {
-            bool end_flag = false;
-            block_(parent, it.item, i, &end_flag);
-
-            if(end_flag == true) {
-                break;
-            }
-            it = it.next;
-            i++;
-        }
-
-        return self;
-    }
+    list<T>*% filter(list<T>* self, void* parent, bool (*block)(void*, T&));
+    list<T>* each(list<T>* self, void* parent, void (*block_)(void*, T&,int,bool*));
 }
 ```
 
