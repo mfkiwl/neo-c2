@@ -6851,6 +6851,11 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             *node = sNodeTree_create_continue_expression(info);
         }
         else if(strcmp(buf, "extern") == 0) {
+            char asm_fname[VAR_NAME_MAX];
+            if(!parse_attribute(info, asm_fname)) {
+                return FALSE;
+            }
+            
             sNodeType* result_type = NULL;
             char name[VAR_NAME_MAX+1];
             if(!parse_type(&result_type, info, name, FALSE, FALSE))

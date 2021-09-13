@@ -1,5 +1,7 @@
 #define _GNU_SOURCE
 
+#define __attribute__(x)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
