@@ -1555,10 +1555,21 @@ BOOL compile_alignof(unsigned int node, sCompileInfo* info)
 
     LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type2);
 
+    int align_size = get_llvm_alignment_from_node_type(node_type2);
+
+#ifdef __32BIT_CPU__
+    LLVMTypeRef int_type = create_llvm_type_with_class_name("int");
+    LLVMValueRef value = LLVMConstInt(int_type, align_size, FALSE);
+#else
+    LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
+    LLVMValueRef value = LLVMConstInt(long_type, align_size, FALSE);
+#endif
+
 #ifdef __32BIT_CPU__
     /// result ///
     LVALUE llvm_value;
-    llvm_value.value = LLVMAlignOf(llvm_type);
+    llvm_value.value = value;
+    //llvm_value.value = LLVMAlignOf(llvm_type);
     llvm_value.type = create_node_type_with_class_name("int");
     llvm_value.address = NULL;
     llvm_value.var = NULL;
@@ -1571,7 +1582,8 @@ BOOL compile_alignof(unsigned int node, sCompileInfo* info)
 #else
     /// result ///
     LVALUE llvm_value;
-    llvm_value.value = LLVMAlignOf(llvm_type);
+    llvm_value.value = value;
+    //llvm_value.value = LLVMAlignOf(llvm_type);
     llvm_value.type = create_node_type_with_class_name("long");
     llvm_value.address = NULL;
     llvm_value.var = NULL;
@@ -1624,8 +1636,17 @@ BOOL compile_alignof_expression(unsigned int node, sCompileInfo* info)
 
     LLVMTypeRef llvm_type = create_llvm_type_from_node_type(llvm_value.type);
 
+    int align_size = get_llvm_alignment_from_node_type(llvm_value.type);
 
-    LLVMValueRef value = LLVMAlignOf(llvm_type);
+#ifdef __32BIT_CPU__
+    LLVMTypeRef int_type = create_llvm_type_with_class_name("int");
+    LLVMValueRef value = LLVMConstInt(int_type, align_size, FALSE);
+#else
+    LLVMTypeRef long_type = create_llvm_type_with_class_name("long");
+    LLVMValueRef value = LLVMConstInt(long_type, align_size, FALSE);
+#endif
+
+    //LLVMValueRef value = LLVMAlignOf(llvm_type);
 
 #ifdef __32BIT_CPU__
     LVALUE llvm_value2;

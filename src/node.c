@@ -1512,10 +1512,10 @@ void free_nodes(char* sname)
                     break;
 
                 case kNodeTypeSelect:{
-                    int i;
                     int num_pipes = gNodes[i].uValue.sSelect.mNumPipes;
-                    for(i=0; i<num_pipes; i++) {
-                        sNodeBlock_free(gNodes[i].uValue.sSelect.mPipeBlocks[i]);
+                    int j;
+                    for(j=0; j<num_pipes; j++) {
+                        sNodeBlock_free(gNodes[i].uValue.sSelect.mPipeBlocks[j]);
                     }
 
                     if(gNodes[i].uValue.sSelect.mDefaultBlock) {
@@ -2739,6 +2739,45 @@ uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment)
                 result *= node_type2->mArrayNum[i];
             }
         }
+    }
+
+    return result;
+}
+
+int get_llvm_alignment_from_node_type(sNodeType* node_type)
+{
+    int result = 0;
+
+    sCLClass* klass = node_type->mClass;
+
+    if(klass->mFlags & CLASS_FLAGS_STRUCT) {
+        result = 8;
+    }
+    else if(klass->mFlags & CLASS_FLAGS_UNION) {
+        result = 8;
+    }
+    else if(node_type->mPointerNum > 0) {
+        result = 8;
+    }
+    else if(type_identify_with_class_name(node_type, "char"))
+    {
+        result = 1;
+    }
+    else if(type_identify_with_class_name(node_type, "short"))
+    {
+        result = 2;
+    }
+    else if(type_identify_with_class_name(node_type, "int"))
+    {
+        result = 4;
+    }
+    else if(type_identify_with_class_name(node_type, "bool"))
+    {
+        result = 1;
+    }
+    else if(type_identify_with_class_name(node_type, "lambda"))
+    {
+        result = 8;
     }
 
     return result;

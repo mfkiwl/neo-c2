@@ -886,6 +886,7 @@ uint64_t get_struct_size(sCLClass* klass, sNodeType* generics_type, int* alignme
 uint64_t get_union_size(sCLClass* klass, sNodeType* generics_type, int* alignment);
 uint64_t get_size_from_node_type(sNodeType* node_type, int* alignment);
 BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL undefined_body, sCompileInfo* info);
+int get_llvm_alignment_from_node_type(sNodeType* node_type);
 void compile_err_msg(sCompileInfo* info, const char* msg, ...);
 BOOL compile_block(sNodeBlock* block, sCompileInfo* info);
 

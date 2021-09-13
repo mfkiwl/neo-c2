@@ -39,6 +39,136 @@ BOOL read_source(char* fname, sBuf* source)
     return TRUE;
 }
 
+static BOOL get_command_result2(sBuf* command_result, char* cmdline)
+{
+    char buf[BUFSIZ];
+
+    FILE* f = popen(cmdline, "r");
+    if(f == NULL) {
+        perror("popen");
+        fprintf(stderr, "popen(2) is failed at %s\n", cmdline);
+        return FALSE;
+    }
+
+    while(1) {
+        int size = fread(buf, 1, BUFSIZ, f);
+        sBuf_append(command_result, buf, size);
+
+        if(size < BUFSIZ) {
+            break;
+        }
+    }
+    if(pclose(f) < 0) {
+        fprintf(stderr, "pclose(2) is failed at %s\n", cmdline);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static BOOL parse_compiletime_macro(unsigned int* node, sParserInfo* info)
+{
+    sBuf cmdline;
+
+    sBuf_init(&cmdline);
+    while(TRUE) {
+        if(*info->p == '`' && *(info->p+1) == '`' && *(info->p+2) == '`') {
+            info->p+=3;
+            skip_spaces_and_lf(info);
+            break;
+        }
+        else if(*info->p == '\0') {
+            fprintf(stderr, "unclosed macro\n");
+            exit(2);
+        }
+        else {
+            sBuf_append_char(&cmdline, *info->p);
+            info->p++;
+        }
+    }
+
+    if(gNCNoMacro) {
+        *node = sNodeTree_create_null(info);
+    }
+    else {
+        sBuf command_result;
+        sBuf_init(&command_result);
+
+        if(!get_command_result2(&command_result, cmdline.mBuf))
+        {
+            return FALSE;
+        }
+
+        sParserInfo pinfo;
+
+        pinfo = *info;
+
+        pinfo.p = command_result.mBuf;
+        xstrncpy(pinfo.sname, "macro", PATH_MAX);
+        pinfo.sline = 1;
+
+        sCompileInfo cinfo;
+        memset(&cinfo, 0, sizeof(sCompileInfo));
+
+        xstrncpy(cinfo.fun_name, "macro", VAR_NAME_MAX);
+
+        cinfo.pinfo = &pinfo;
+
+        while(*pinfo.p) {
+            skip_spaces_and_lf(&pinfo);
+
+            unsigned int node = 0;
+
+            if(*pinfo.p == '#') {
+                if(!parse_sharp(&pinfo)) {
+                    return FALSE;
+                }
+            }
+            else if(parse_cmp(pinfo.p, "__extension__") == 0)
+            {
+                pinfo.p += 13;
+                skip_spaces_and_lf(&pinfo);
+            }
+            else {
+                if(!expression(&node, TRUE, &pinfo)) {
+                    return FALSE;
+                }
+
+                if(node == 0) {
+                    parser_err_msg(&pinfo, "require an expression");
+                    pinfo.err_num++;
+                    break;
+                }
+
+                if(pinfo.err_num == 0)
+                {
+                    cinfo.sline = gNodes[node].mLine;
+                    xstrncpy(cinfo.sname, gNodes[node].mSName, PATH_MAX);
+
+                    if(!compile(node, &cinfo)) {
+                        return FALSE;
+                    }
+
+                    arrange_stack(&cinfo, 0);
+                }
+            }
+
+            if(*pinfo.p == ';') {
+                pinfo.p++;
+                skip_spaces_and_lf(&pinfo);
+            }
+            skip_spaces_and_lf(&pinfo);
+        }
+
+        *node = sNodeTree_create_null(info);
+
+        free(command_result.mBuf);
+        free(cmdline.mBuf);
+    }
+
+    return TRUE;
+}
+
 BOOL compile_source(char* fname, char** source, BOOL optimize, sVarTable* module_var_table)
 {
     sParserInfo info;
@@ -80,6 +210,11 @@ BOOL compile_source(char* fname, char** source, BOOL optimize, sVarTable* module
 
     cinfo.pinfo = &info;
 
+    BOOL in_macro = FALSE;
+    char* p_macro_saved = NULL;
+    int sline_macro_saved = 0;
+    sBuf command_result;
+
     while(*info.p) {
         skip_spaces_and_lf(&info);
  
@@ -87,6 +222,51 @@ BOOL compile_source(char* fname, char** source, BOOL optimize, sVarTable* module
         char* sname = info.sname;
 
         info.change_sline = FALSE;
+
+        if(*info.p == '`' && *(info.p+1) == '`' && *(info.p+2) == '`') {
+            info.p += 3;
+            skip_spaces_and_lf(&info);
+
+            sBuf cmdline;
+
+            sBuf_init(&cmdline);
+            while(TRUE) {
+                if(*info.p == '`' && *(info.p+1) == '`' && *(info.p+2) == '`') {
+                    info.p+=3;
+                    skip_spaces_and_lf(&info);
+                    break;
+                }
+                else if(*info.p == '\0') {
+                    fprintf(stderr, "unclosed macro\n");
+                    exit(2);
+                }
+                else {
+                    sBuf_append_char(&cmdline, *info.p);
+                    info.p++;
+                }
+            }
+
+            if(gNCNoMacro) {
+            }
+            else {
+                sBuf_init(&command_result);
+
+                if(!get_command_result2(&command_result, cmdline.mBuf))
+                {
+                    return FALSE;
+                }
+
+                in_macro = TRUE;
+                p_macro_saved = info.p;
+                sline_macro_saved = info.sline;
+
+                info.p = command_result.mBuf;
+            }
+
+            free(cmdline.mBuf);
+
+            skip_spaces_and_lf(&info);
+        }
 
         if(*info.p == '#') {
             if(!parse_sharp(&info)) {
@@ -139,6 +319,14 @@ BOOL compile_source(char* fname, char** source, BOOL optimize, sVarTable* module
             skip_spaces_and_lf(&info);
         }
         skip_spaces_and_lf(&info);
+
+        if(*info.p == '\0' && in_macro) {
+            in_macro = FALSE;
+            info.p = p_macro_saved;
+            info.sline = sline_macro_saved;
+
+            free(command_result.mBuf);
+        }
     }
 
     if(info.err_num > 0 || cinfo.err_num > 0) {
