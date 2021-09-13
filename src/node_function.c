@@ -1548,10 +1548,6 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
-    if(gNCDebug && !info->in_generics_function && !empty_function &&info->in_inline_function && info->in_lambda_function && !info->in_thread_function) {
-        finishDebugFunctionInfo();
-    }
-
     if(type_identify_with_class_name(result_type, "void") && result_type->mPointerNum == 0) {
         if(info->defer_block) {
             LLVMBuildBr(gBuilder, info->defer_block);
@@ -1593,6 +1589,10 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
             LLVMBuildRet(gBuilder, llvm_value.value);
         }
+    }
+
+    if(gNCDebug && !info->in_generics_function && !empty_function &&info->in_inline_function && info->in_lambda_function && !info->in_thread_function) {
+        finishDebugFunctionInfo();
     }
 
     if(lambda_) {
