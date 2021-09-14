@@ -1,10 +1,10 @@
+method name completion
+
+method block parent bug
 
 operators
 
     struct with initialization
-
-
-map<char*, int> bug
 
 ---- implemented ----
 debug info
@@ -136,3 +136,6 @@ map
 tuple
 
 Br no mae no free_right_objects while no conditional, for, do while, switch, case atarino br mae ni ireru?
+
+
+map<char*, int> bug

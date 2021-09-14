@@ -244,6 +244,7 @@ int main(int argc, char** argv)
     {
         fprintf(stderr, "come can't compile(2) %s\n", sname);
         compiler_final(sname);
+
         return 1;
     }
 

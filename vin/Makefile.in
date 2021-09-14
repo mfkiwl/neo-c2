@@ -30,8 +30,8 @@ DESTDIR=@DESTDIR@
 ##########################################
 all: vin
 
-vin: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c 03insert_mode.o 03insert_mode.c 04word.c 04word.o 05undo.c 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o
-	$(CC) -o vin main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
+vin: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c 03insert_mode.o 03insert_mode.c 04word.c 04word.o 05undo.c 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o 20completion-neo-c2.o
+	$(CC) -o vin main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o 20completion-neo-c2.o -L/opt/local/lib $(CFLAGS) $(LIBS) $(NCFLAGS)
 
 main.o: configure Makefile config.h main.c common.h
 	neo-c2 main.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
@@ -108,6 +108,10 @@ main.o: configure Makefile config.h main.c common.h
 19rewrite_mode.o: configure Makefile config.h 19rewrite_mode.c common.h
 	neo-c2 19rewrite_mode.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
 	$(CC) -c -o 19rewrite_mode.o 19rewrite_mode.c.ll $(CFLAGS)
+
+20completion-neo-c2.o: configure Makefile config.h 20completion-neo-c2.c common.h
+	neo-c2 20completion-neo-c2.c $(CFLAGS) $(NCFLAGS) -I/usr/local/include
+	$(CC) -c -o 20completion-neo-c2.o 20completion-neo-c2.c.ll $(CFLAGS)
 
 #########################################
 # install

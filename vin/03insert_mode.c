@@ -178,6 +178,9 @@ void ViWin::inputInsertMode(ViWin* self, Vi* nvi)
             self.completion(nvi);
         }
     }
+    else if(key == 'X' - 'A' +1) {
+        self.completion_neo_c2(nvi);
+    }
     else if(key > 127) {
         auto size = ((key & 0x80) >> 7) + ((key & 0x40) >> 6) + ((key & 0x20) >> 5) + ((key & 0x10) >> 4);
 
@@ -286,6 +289,11 @@ void ViWin::writedFlagOn(ViWin* self) version 1
 }
 
 void ViWin::completion(ViWin* self, Vi* nvi) version 1
+{
+    /// implemented by the after layer
+}
+
+void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 1
 {
     /// implemented by the after layer
 }

@@ -129,13 +129,18 @@ void show_type_core(sNodeType* type, int num_classes, char** classes, BOOL no_ou
     for(i=0; i<num_classes; i++) {
         char* class_name2 = classes[num_classes];
 
-        if(strcmp(class_name, class_name2) == 0) {
+        if(strcmp(class_name, class_name2) == 0) 
+        {
             return;
         }
     }
 
-    xstrncpy(classes[num_classes], class_name, VAR_NAME_MAX);
-    num_classes++;
+    if((klass->mFlags & CLASS_FLAGS_STRUCT) || (klass->mFlags & CLASS_FLAGS_UNION)) {
+        xstrncpy(classes[num_classes], class_name, VAR_NAME_MAX);
+        num_classes++;
+    }
+
+    printf("%s ", CLASS_NAME(klass));
 
     if(type->mConstant) {
         printf("const ");
@@ -145,18 +150,25 @@ void show_type_core(sNodeType* type, int num_classes, char** classes, BOOL no_ou
         printf(" ");
     }
     if(klass->mFlags & CLASS_FLAGS_UNION) {
-        printf("union ");
+        if(!no_output_fields) {
+            printf("union ");
+        }
     }
     if(klass->mFlags & CLASS_FLAGS_ENUM) {
-        printf("enum ");
+        if(!no_output_fields) {
+            printf("enum ");
+        }
     }
     if(klass->mFlags & CLASS_FLAGS_STRUCT) {
-        printf("struct ");
+        if(!no_output_fields) {
+            printf("struct ");
+        }
     }
-    printf("%s", CLASS_NAME(klass));
 
     if(strcmp(type->mOriginalTypeName, "") != 0) {
-        printf(" typedef %s", type->mOriginalTypeName);
+        if(!no_output_fields) {
+            printf(" typedef %s", type->mOriginalTypeName);
+        }
     }
     for(i=0; i<type->mPointerNum; i++) {
         printf("*");
@@ -205,13 +217,18 @@ void show_type_core(sNodeType* type, int num_classes, char** classes, BOOL no_ou
             for(j=0; j<num_classes; j++) {
                 char* class_name2 = classes[j];
 
-                if(strcmp(class_name, class_name2) == 0) {
+                if(strcmp(class_name, class_name2) == 0) 
+                {
                     nest = TRUE;
                 }
             }
 
-            xstrncpy(classes[num_classes], class_name, VAR_NAME_MAX);
-            num_classes++;
+            if((field_type->mClass->mFlags & CLASS_FLAGS_STRUCT) 
+                || (field_type->mClass->mFlags & CLASS_FLAGS_UNION))
+            {
+                xstrncpy(classes[num_classes], class_name, VAR_NAME_MAX);
+                num_classes++;
+            }
 
             if(num_classes >= 128) {
                 fprintf(stderr, "overflow class\n");
@@ -278,6 +295,27 @@ void show_node_type(sNodeType* type)
     BOOL no_output_fields = FALSE;
     show_type_core(type, num_classes, classes2, no_output_fields);
     puts("");
+}
+
+void show_node_type_one_line(sNodeType* type)
+{
+    char classes[128][VAR_NAME_MAX];
+    char* classes2[128];
+    int j;
+    for(j=0; j<128; j++) {
+        classes2[j] = classes[j];
+    }
+    int num_classes = 0;
+
+    char* class_name = CLASS_NAME(type->mClass);
+
+    if(type->mClass->mFlags & CLASS_FLAGS_STRUCT || type->mClass->mFlags & CLASS_FLAGS_UNION) {
+        xstrncpy(classes2[num_classes], class_name, VAR_NAME_MAX);
+        num_classes++;
+    }
+
+    BOOL no_output_fields = TRUE;
+    show_type_core(type, num_classes, classes2, no_output_fields);
 }
 
 static void skip_spaces_for_parse_class_name(char** p) 

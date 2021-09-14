@@ -265,6 +265,7 @@ void ViWin::blinkBraceEnd(ViWin* self, wchar_t head, wchar_t tail, Vi* nvi);
 void ViWin::pushUndo(ViWin* self);
 void ViWin::writedFlagOn(ViWin* self);
 void ViWin::completion(ViWin* self, Vi* nvi);
+void ViWin::completion_neo_c2(ViWin* self, Vi* nvi);
 void ViWin::clearInputedKey(ViWin* self);
 void ViWin::saveInputedKey(ViWin* self);
 
@@ -413,6 +414,7 @@ override Vi*% Vi::initialize(Vi*% self);
 /// 13completion.h
 ///////////////////////////////////////////////////////////////////////////////
 override void ViWin::completion(ViWin* self, Vi* nvi);
+wstring&? ViWin::selector2(ViWin* self, list<wstring>* lines);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 14dot.h
@@ -473,3 +475,9 @@ override void ViWin::input(ViWin* self, Vi* nvi);
 
 override Vi*% Vi::initialize(Vi*% self);
 override int Vi::main_loop(Vi* self);
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// 20completion_neo_c2.h
+///////////////////////////////////////////////////////////////////////////////
+override void ViWin::completion_neo_c2(ViWin* self, Vi* nvi);

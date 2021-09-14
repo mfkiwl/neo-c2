@@ -330,9 +330,11 @@ BOOL compile_source(char* fname, char** source, BOOL optimize, sVarTable* module
     }
 
     if(info.err_num > 0 || cinfo.err_num > 0) {
-        fprintf(stderr, "Parser error number is %d. Compile error number is %d\n", info.err_num, cinfo.err_num);
-        free(info.mConst.mBuf);
-        return FALSE;
+        if(!gNCType) {
+            fprintf(stderr, "Parser error number is %d. Compile error number is %d\n", info.err_num, cinfo.err_num);
+            free(info.mConst.mBuf);
+            return FALSE;
+        }
     }
 
     free(info.mConst.mBuf);

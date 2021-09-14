@@ -1,0 +1,202 @@
+#include "common.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <ncurses.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <limits.h>
+
+static int int_compare(wchar_t* left, wchar_t* right) 
+{
+    return wcscmp(left, right);
+}
+
+static bool int_equals(wchar_t* left, wchar_t* right) 
+{
+    return wcscmp(left, right) == 0;
+}
+
+static bool get_command_result2(buffer* command_result, char* cmdline)
+{
+    char buf[BUFSIZ];
+
+    FILE* f = popen(cmdline, "r");
+    if(f == NULL) {
+        perror("popen");
+        fprintf(stderr, "popen(2) is failed at %s\n", cmdline);
+        return false;
+    }
+
+    while(1) {
+        int size = fread(buf, 1, BUFSIZ, f);
+        command_result.append(buf, size);
+
+        if(size < BUFSIZ) {
+            break;
+        }
+    }
+    if(pclose(f) < 0) {
+        fprintf(stderr, "pclose(2) is failed at %s\n", cmdline);
+        return false;
+    }
+
+    return true;
+}
+
+void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
+{
+    auto line = self.texts.item(self.scroll+self.cursorY, null);
+
+    wchar_t* p = line + self.cursorX;
+    p--;
+
+    while(p >= line) {
+        if((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == '_')
+        {
+            p--;
+        }
+        else {
+            break;
+        }
+    }
+
+    bool method_completion = false;
+    if(*p == '.') {
+        method_completion = true;
+    }
+
+    p++;
+    
+    int len = (line + self.cursorX - p);
+
+    auto word = line.substring(self.cursorX-len, self.cursorX);
+
+    FILE* f = fopen("neo_c2_completion.tmp", "w");
+    
+    int i = 0;
+    foreach(it, self.texts) {
+        auto line = self.texts.item(i, null);
+        
+        if(i < self.cursorY+self.scroll) {
+            fprintf(f, "%ls\n", line);
+        }
+        else {
+            break;
+        }
+        
+        i++;
+    }
+    
+    fclose(f);
+
+    if(method_completion) {
+        FILE* f = fopen("neo_c2_completion2.tmp", "w");
+        
+        int i = 0;
+        foreach(it, self.texts) {
+            auto line = self.texts.item(i, null);
+            
+            if(i < self.cursorY+self.scroll) {
+                fprintf(f, "%ls\n", line);
+            }
+            else if(i == self.cursorY+self.scroll) {
+                fprintf(f, "%ls\n", line.substring(0, len-2));
+            }
+            else {
+                break;
+            }
+            
+            i++;
+        }
+        
+        fclose(f);
+
+        char cmdline[128];
+        snprintf(cmdline, 128, "neo-c2 type neo_c2_completion2.tmp");
+        
+        auto command_result = new buffer.initialize();
+        
+        if(get_command_result2(command_result, cmdline)) {
+            auto li = command_result.to_string().scan("^[a-zA-Z0-9_]+".to_regex());
+            if(li.length() > 0) {
+                auto type_name = li.item(0, null);
+
+                char header_name[512];
+
+                snprintf(header_name, 512, "%s_", type_name);
+
+                char cmdline[128];
+                snprintf(cmdline, 128, "neo-c2 function neo_c2_completion.tmp | egrep '^[a-zA-Z0-9_]+'");
+                
+                auto candidates = new list<wstring>.initialize();
+                
+                auto command_result = new buffer.initialize();
+                
+                if(get_command_result2(command_result, cmdline)) {
+                    auto candidates3 = new list<wstring>.initialize();
+                    auto candidates2 = command_result.to_string().split_char('\n');
+                    
+                    foreach(it, candidates2) {
+                        char fun_name[512];
+
+                        snprintf(fun_name, 512, "%s%s", header_name, word.to_string());
+
+                        if(it.index(fun_name, -1) == 0)
+                        {
+                            auto li = it.scan("[a-zA-Z0-9_]+".to_regex());
+
+                            if(li.length() > 0) {
+                                candidates3.push_back(li.item(0, null).to_wstring());
+                            }
+                        }
+                    }
+                
+                    auto candidates4 = candidates3.sort(int lambda(wchar_t* left, wchar_t* right) { return wcscmp(left, right); }).uniq();
+                
+                    auto candidate = self.selector2(candidates4);
+                
+                    auto append = candidate.substring(strlen(header_name), -1).substring(len, -1);
+                    self.insertText(append);
+                }
+            }
+        }
+    
+        system("rm -f neo_c2_completion2.tmp");
+        system("rm -f neo_c2_completion2.tmp.i");
+    }
+    else {
+        char cmdline[128];
+        snprintf(cmdline, 128, "neo-c2 function neo_c2_completion.tmp | egrep '^[a-zA-Z0-9_]+'");
+        
+        auto candidates = new list<wstring>.initialize();
+        
+        auto command_result = new buffer.initialize();
+        
+        if(get_command_result2(command_result, cmdline)) {
+            auto candidates3 = new list<wstring>.initialize();
+            auto candidates2 = command_result.to_string().split_char('\n');
+            
+            foreach(it, candidates2) {
+                if(it.index(word.to_string(), -1) == 0)
+                {
+                    auto li = it.scan("[a-zA-Z0-9_]+".to_regex());
+
+                    if(li.length() > 0) {
+                        candidates3.push_back(li.item(0, null).to_wstring());
+                    }
+                }
+            }
+        
+            auto candidates4 = candidates3.sort(int lambda(wchar_t* left, wchar_t* right) { return wcscmp(left, right); }).uniq();
+        
+            auto candidate = self.selector2(candidates4);
+        
+            auto append = candidate.substring(len, -1);
+            self.insertText(append);
+        }
+    }
+    
+    system("rm -f neo_c2_completion.tmp");
+    system("rm -f neo_c2_completion.tmp.i");
+}

@@ -218,6 +218,7 @@ BOOL type_identify(sNodeType* left, sNodeType* right);
 BOOL type_identify_with_class_name(sNodeType* left, char* right_class_name);
 BOOL is_number_type(sNodeType* node_type);
 void show_node_type(sNodeType* node_type);
+void show_node_type_one_line(sNodeType* type);
 BOOL solve_generics(sNodeType** node_type, sNodeType* generics_type);
 BOOL solve_method_generics(sNodeType** node_type, int num_method_generics_types, sNodeType* method_generics_types[GENERICS_TYPES_MAX]);
 void solve_method_generics2(sNodeType** left_type, sNodeType* right_type);

@@ -5,7 +5,7 @@ then
 elif [ -z "$COME_FLAG" ]
 then
     export COME_FLAG=1
-    main_module=`neo-c2 function $SOURCE_NAME | egrep ^main\\ `
+    main_module=`neo-c2 function $SOURCE_NAME | fgrep 'main('`
 
     if [ -z "$main_module" ]
     then

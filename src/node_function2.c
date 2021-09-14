@@ -40,7 +40,19 @@ void free_funcs()
 
 void show_func(sFunction* fun, BOOL code)
 {
-    printf("%s ", fun->mName);
+    printf("%s(", fun->mName);
+
+    int j;
+    for(j=0; j<fun->mNumParams; j++) {
+        show_node_type_one_line(fun->mParamTypes[j]);
+        printf(" %s", fun->mParamNames[j]);
+
+        if(j!=fun->mNumParams-1) {
+            printf(",");
+        }
+    }
+    printf(") ");
+
     if(fun->mAsmFunName) {
         printf("asm fun name %s ", fun->mAsmFunName);
     }
@@ -48,13 +60,7 @@ void show_func(sFunction* fun, BOOL code)
 
     printf("num params %d\n", fun->mNumParams);
 
-    int j;
-    for(j=0; j<fun->mNumParams; j++) {
-        printf("%s ", fun->mParamNames[j]);
-        show_node_type(fun->mParamTypes[j]);
-    }
-
-    printf("result type ");
+    printf("[result type] ");
     show_node_type(fun->mResultType);
 
     if(fun->mNumGenerics > 0) {
@@ -74,7 +80,7 @@ void show_funcs()
 {
     int i;
     for(i=0; i<gSizeFuncs; i++) {
-        if(gFuncs[i].mName && gFuncs[i].mUser) {
+        if(gFuncs[i].mName) {
             show_func(&gFuncs[i], FALSE);
         }
     }

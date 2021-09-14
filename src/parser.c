@@ -3826,17 +3826,13 @@ static BOOL parse_funcation_call_params(int* num_params, unsigned int* params, s
 
     char buf[VAR_NAME_MAX];
 
-    if(!parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE)) {
-        return FALSE;
-    }
+    parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE);
 
     if(is_type_name(buf, info)) {
         info->p = p;
         info->sline = sline;
 
-        if(!parse_type(&result_type, info, NULL, FALSE, FALSE)) {
-            return FALSE;
-        }
+        parse_type(&result_type, info, NULL, FALSE, FALSE);
     }
     else {
         info->p = p;
