@@ -2,5 +2,5 @@
 
 int main() 
 {
-    xspri:wq
+    xspri
     
