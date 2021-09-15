@@ -194,7 +194,7 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
 
                     if(p) {
                         auto it2 = it.substring(0, p - it+1);
-                        candidates3.push_back(it.to_wstring());
+                        candidates3.push_back(it2.to_wstring());
                     }
                 }
             }
