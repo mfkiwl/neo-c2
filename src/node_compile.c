@@ -6,7 +6,7 @@ BOOL compile(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
-    if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function) {
+    if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !info->empty_function) {
         setCurrentDebugLocation(info->sline, info);
     }
 

@@ -3068,7 +3068,7 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
             }
 
             if(gNCDebug) {
-                if(info->in_generics_function || info->in_inline_function || info->in_lambda_function) {
+                if(info->in_generics_function || info->in_inline_function || info->in_lambda_function || info->empty_function) {
                     setNullCurrentDebugLocation(info->sline, info);
                 }
                 else {

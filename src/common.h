@@ -523,6 +523,7 @@ struct sCompileInfoStruct
     sNodeType* return_result_type;
 
     LLVMBasicBlockRef defer_block;
+    BOOL empty_function;
 };
 
 typedef struct sCompileInfoStruct sCompileInfo;

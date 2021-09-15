@@ -1481,7 +1481,8 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
     LLVMBasicBlockRef defer_block = info->defer_block;
 
-    BOOL empty_function = node_block->mNumNodes == 0;
+    BOOL empty_function = info->empty_function;
+    info->empty_function = node_block->mNumNodes == 0;
 
     char* block_text = NULL;
 
@@ -1502,7 +1503,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     sNodeType* come_function_result_type = gComeFunctionResultType;
     gComeFunctionResultType = fun->mResultType;
 
-    if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !empty_function && !info->in_thread_function) {
+    if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !info->empty_function && !info->in_thread_function) {
         int sline = gNodes[node].mLine;
         char fname[PATH_MAX];
         xstrncpy(fname, gNodes[node].mSName, PATH_MAX);
@@ -1520,7 +1521,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
         LLVMTypeRef llvm_type = create_llvm_type_from_node_type(type_);
 
-        if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !info->in_thread_function) {
+        if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !info->in_thread_function && !info->empty_function) {
             setCurrentDebugLocation(info->sline, info);
         }
 
@@ -1552,6 +1553,10 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         if(info->defer_block) {
             LLVMBuildBr(gBuilder, info->defer_block);
             llvm_change_block(info->defer_block, info);
+        }
+
+        if(info->empty_function) {
+            LLVMSetCurrentDebugLocation(gBuilder, NULL);
         }
 
         LLVMBuildRet(gBuilder, NULL);
@@ -1587,11 +1592,18 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
                 llvm_change_block(info->defer_block, info);
             }
 
+            if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !info->in_thread_function && !info->empty_function) {
+                setCurrentDebugLocation(info->sline, info);
+            }
+            if(info->empty_function) {
+                LLVMSetCurrentDebugLocation(gBuilder, NULL);
+            }
+
             LLVMBuildRet(gBuilder, llvm_value.value);
         }
     }
 
-    if(gNCDebug && !info->in_generics_function && !empty_function &&info->in_inline_function && info->in_lambda_function && !info->in_thread_function) {
+    if(gNCDebug && !info->in_generics_function && !info->empty_function &&info->in_inline_function && info->in_lambda_function && !info->in_thread_function) {
         finishDebugFunctionInfo();
     }
 
@@ -1637,6 +1649,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
     info->return_result_type = return_result_type;
     info->defer_block = defer_block;
+    info->empty_function = empty_function;
 
     return TRUE;
 }
