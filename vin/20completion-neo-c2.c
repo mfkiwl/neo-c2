@@ -1,4 +1,5 @@
 #include "common.h"
+#include <libgen.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -113,7 +114,7 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
         fclose(f);
 
         char cmdline[128];
-        snprintf(cmdline, 128, "neo-c2 type neo_c2_completion2.tmp");
+        snprintf(cmdline, 128, "neo-c2 -I. type neo_c2_completion2.tmp");
         
         auto command_result = new buffer.initialize();
         
@@ -127,7 +128,13 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
                 snprintf(header_name, 512, "%s_", type_name);
 
                 char cmdline[128];
-                snprintf(cmdline, 128, "neo-c2 function neo_c2_completion.tmp | egrep '^[a-zA-Z0-9_]+'");
+
+                char dname[PATH_MAX];
+                strncpy(dname, self.fileName, PATH_MAX);
+
+                char* dname2 = dirname(dname);
+
+                snprintf(cmdline, 128, "neo-c2 -I. -I%s function neo_c2_completion.tmp | egrep '^[a-zA-Z0-9_]+'", dname2);
                 
                 auto candidates = new list<wstring>.initialize();
                 
@@ -176,8 +183,13 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
         system("rm -f neo_c2_completion2.tmp.i");
     }
     else {
+        char dname[PATH_MAX];
+        strncpy(dname, self.fileName, PATH_MAX);
+
+        char* dname2 = dirname(dname);
+
         char cmdline[128];
-        snprintf(cmdline, 128, "neo-c2 function neo_c2_completion.tmp | egrep '^[a-zA-Z0-9_]+'");
+        snprintf(cmdline, 128, "neo-c2 -I. -I%s function neo_c2_completion.tmp | egrep '^[a-zA-Z0-9_]+'", dname2);
         
         auto candidates = new list<wstring>.initialize();
         

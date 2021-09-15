@@ -11,6 +11,7 @@ BOOL parse_block_easy(ALLOC sNodeBlock** node_block, BOOL extern_c_lang, sParser
     else {
         single_expression = TRUE;
     }
+    
 
     sVarTable* old_table = info->lv_table;
 

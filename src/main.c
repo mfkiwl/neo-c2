@@ -1,4 +1,5 @@
 #include "common.h"
+#include <libgen.h>
 
 static void compiler_init(char* sname)
 {
@@ -37,39 +38,43 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
 
     char fname2[PATH_MAX];
 
-    char* cflags = getenv("CFLAGS");
+    char cflags[1024];
+
+    if(strstr(fname, "/")) {
+        if(getenv("CFLAGS")) {
+            char tmp[PATH_MAX];
+            strcpy(tmp, fname);
+            snprintf(cflags, 1024, "%s -I %s", getenv("CFLAGS"), dirname(tmp));
+        }
+        else {
+            char tmp[PATH_MAX];
+            strcpy(tmp, fname);
+            snprintf(cflags, 1024, "-I %s", dirname(tmp));
+        }
+    }
+    else if(getenv("CFLAGS")) {
+        xstrncpy(cflags, getenv("CFLAGS"), 1024);
+    }
+    else {
+        xstrncpy(cflags, "", 1024);
+    }
 
     xstrncpy(fname2, fname, PATH_MAX);
     xstrncat(fname2, ".i", PATH_MAX);
 
     char cmd[1024];
 #ifdef __DARWIN__
-    if(cflags) {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I/usr/local/include -I . %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", cflags, fname, macro_definition, fname2);
-    }
-    else {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clang-cpp -I/usr/local/include -I . -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", fname, macro_definition, fname2);
-    }
+    snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I/usr/local/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", cflags, fname, macro_definition, fname2);
 #else
-    if(cflags) {
-        snprintf(cmd, 1024, "cpp -I . %s -U__GNUC__ %s %s > %s", cflags, fname, macro_definition, fname2);
-        //snprintf(cmd, 1024, "cpp -I . %s -U__GNUC__ -C %s %s > %s", cflags, fname, macro_definition, fname2);
-    }
-    else {
-        snprintf(cmd, 1024, "cpp -I . -U__GNUC__ %s %s > %s", fname, macro_definition, fname2);
-        //snprintf(cmd, 1024, "cpp -I . -U__GNUC__ -C %s %s > %s", fname, macro_definition, fname2);
-    }
+    snprintf(cmd, 1024, "cpp %s -U__GNUC__ %s %s > %s", cflags, fname, macro_definition, fname2);
+    //snprintf(cmd, 1024, "cpp %s -U__GNUC__ -C %s %s > %s", cflags, fname, macro_definition, fname2);
 #endif
 
     //puts(cmd);
     int rc = system(cmd);
     if(rc != 0) {
         char cmd[1024];
-        if(cflags) {
-            snprintf(cmd, 1024, "cpp -I . %s -C %s %s > %s", cflags, fname, macro_definition, fname2);
-        } else {
-            snprintf(cmd, 1024, "cpp -I . -C %s %s > %s", fname, macro_definition, fname2);
-        }
+        snprintf(cmd, 1024, "cpp %s -C %s %s > %s", cflags, fname, macro_definition, fname2);
 
         puts(cmd);
         rc = system(cmd);
@@ -96,7 +101,7 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     return TRUE;
 }
 
-char* gVersion = "1.0.2";
+char* gVersion = "1.0.3";
 BOOL gNCDebug = FALSE;
 char gFName[PATH_MAX];
 sVarTable* gModuleVarTable;

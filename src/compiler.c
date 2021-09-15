@@ -42,7 +42,7 @@ BOOL read_source(char* fname, sBuf* source)
 static BOOL get_command_result2(sBuf* command_result, char* cmdline)
 {
     char buf[BUFSIZ];
-
+    
     FILE* f = popen(cmdline, "r");
     if(f == NULL) {
         perror("popen");
