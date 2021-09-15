@@ -6,4 +6,3 @@ int main()
     
     auto b = new list<int>.initialize();
     
-    b

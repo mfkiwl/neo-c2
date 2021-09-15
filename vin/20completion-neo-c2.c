@@ -144,10 +144,11 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
 
                         if(it.index(fun_name, -1) == 0)
                         {
-                            auto li = it.scan("[a-zA-Z0-9_]+".to_regex());
+                            char* p = strstr(it, ") extern ");
 
-                            if(li.length() > 0) {
-                                candidates3.push_back(li.item(0, null).to_wstring());
+                            if(p) {
+                                auto it2 = it.substring(0, p - it+1);
+                                candidates3.push_back(it2.to_wstring());
                             }
                         }
                     }
@@ -155,9 +156,18 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
                     auto candidates4 = candidates3.sort(int lambda(wchar_t* left, wchar_t* right) { return wcscmp(left, right); }).uniq();
                 
                     auto candidate = self.selector2(candidates4);
+                    
+                    if(candidate) {
+                        
+                        auto li = candidate.to_string().scan("[a-zA-Z0-9_]+".to_regex());
+                        
+                        if(li.length() > 0) {
+                            int len2 = li.item(0, null).length();
                 
-                    auto append = candidate.substring(strlen(header_name), -1).substring(len, -1);
-                    self.insertText(append);
+                            auto append = candidate.substring(0, len2+1).substring(strlen(header_name), -1).substring(len, -1);
+                            self.insertText(append);
+                        }
+                    }
                 }
             }
         }
@@ -180,10 +190,11 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
             foreach(it, candidates2) {
                 if(it.index(word.to_string(), -1) == 0)
                 {
-                    auto li = it.scan("[a-zA-Z0-9_]+".to_regex());
+                    char* p = strstr(it, ") extern ");
 
-                    if(li.length() > 0) {
-                        candidates3.push_back(li.item(0, null).to_wstring());
+                    if(p) {
+                        auto it2 = it.substring(0, p - it+1);
+                        candidates3.push_back(it.to_wstring());
                     }
                 }
             }
@@ -191,9 +202,18 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
             auto candidates4 = candidates3.sort(int lambda(wchar_t* left, wchar_t* right) { return wcscmp(left, right); }).uniq();
         
             auto candidate = self.selector2(candidates4);
-        
-            auto append = candidate.substring(len, -1);
-            self.insertText(append);
+            
+            if(candidate) {
+                
+                auto li = candidate.to_string().scan("[a-zA-Z0-9_]+".to_regex());
+                
+                if(li.length() > 0) {
+                    int len2 = li.item(0, null).length();
+                
+                    auto append = candidate.substring(0, len2+1).substring(len, -1);
+                    self.insertText(append);
+                }
+            }
         }
     }
     
