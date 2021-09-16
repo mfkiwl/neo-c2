@@ -693,12 +693,23 @@ static BOOL parse_variable_name(char* buf, int buf_size, sParserInfo* info, sNod
         info->p++;
         skip_spaces_and_lf(info);
 
+        unsigned int size_num_node = 0;
+        if(!expression(&size_num_node, FALSE, info)) {
+            return FALSE;
+        }
+        int n = 0;
+        if(!get_const_value_from_node(&n, size_num_node, info)) {
+            return FALSE;
+        }
+
+/*
         int n = 0;
         while(xisdigit(*info->p)) {
             n = n * 10 + *info->p - '0';
             info->p++;
         }
         skip_spaces_and_lf(info);
+*/
 
         node_type->mSizeNum = n;
     }

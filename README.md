@@ -106,12 +106,12 @@ int main()
 
 0. INSTALL
 
-Required libraries are LLVM, clang(with LLVM-C), clang++,  gcc, make, autoconf, valgrind, gdb 
+Required libraries are llvm-dev, clang, clang++, g++,  gcc, make, autoconf, valgrind, gdb, pcre-dev, gc-dev
 
 Examples
 
 ```
-sudo apt-get install clang clang++ make autoconf llvm-dev git gdb valgrind gcc 
+sudo apt-get install clang clang++ g++ make autoconf llvm-dev git gdb valgrind gcc libpcre-dev libgc-dev
 ```
 
 For PC, WSL, Raspberry PI OS and iSH(iPhone)
