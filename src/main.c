@@ -95,7 +95,7 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
         free(source.mBuf);
         return FALSE;
     }
-
+    
     free(source.mBuf);
 
     return TRUE;
