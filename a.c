@@ -1,5 +1,10 @@
 #include <stdio.h>
 
-int main() 
+
+void (*sigset(int, void (*)(int)))(int);
+
+
+int main()
 {
-    printf(
+    printf("%p\n", sigset);
+}

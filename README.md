@@ -4,7 +4,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.0.3
+version 1.0.4
 
 ```
 #include <neo-c2.h>
