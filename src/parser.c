@@ -372,7 +372,7 @@ static void create_anonymous_name(char* name, int name_size)
     snprintf(name, name_size, "come_anon%d", n++);
 }
 
-static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_name, BOOL definition_typedef, BOOL definition_struct);
+static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_name, BOOL definition_typedef, BOOL definition_struct, BOOL* function_pointer_result_function, BOOL definition_function_pointer_result_function);
 
 static BOOL parse_attribute(sParserInfo* info, char* asm_fname)
 {
@@ -948,7 +948,7 @@ static BOOL parse_struct(unsigned int* node, char* struct_name, int size_struct_
 
         sNodeType* field = NULL;
         char buf[VAR_NAME_MAX];
-        if(!parse_type(&field, info, buf, FALSE, TRUE)) {
+        if(!parse_type(&field, info, buf, FALSE, TRUE, NULL, FALSE)) {
             info->in_struct = in_struct;
             return FALSE;
         }
@@ -1205,7 +1205,7 @@ static BOOL parse_union(unsigned int* node, char* union_name, int size_union_nam
 
         sNodeType* field = NULL;
         char buf[VAR_NAME_MAX];
-        if(!parse_type(&field, info, buf, FALSE, TRUE)) {
+        if(!parse_type(&field, info, buf, FALSE, TRUE, NULL, FALSE)) {
             return FALSE;
         }
 
@@ -1629,7 +1629,7 @@ static BOOL is_premitive_type(char* buf, sParserInfo* info)
     return klass->mFlags & CLASS_FLAGS_PRIMITIVE;
 }
 
-static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_name, BOOL definition_typedef, BOOL definition_struct)
+static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_name, BOOL definition_typedef, BOOL definition_struct, BOOL* function_pointer_result_function, BOOL definition_function_pointer_result_function)
 {
     if(func_pointer_name) {
         func_pointer_name[0] = '\0';
@@ -2309,7 +2309,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                     else {
                         while(1) {
                             sNodeType* node_type = NULL;
-                            if(!parse_type(&node_type, info, NULL,  FALSE, FALSE)) {
+                            if(!parse_type(&node_type, info, NULL,  FALSE, FALSE, NULL, FALSE)) {
                                 return FALSE;
                             }
 
@@ -2364,7 +2364,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
             }
         }
     }
-    else {
+    else if(!definition_function_pointer_result_function) {
         char* p = info->p;
         int sline = info->sline;
 
@@ -2391,18 +2391,31 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                         }
                     }
 
+                    BOOL no_function_pointer_result_function = FALSE;
                     if(*info->p == ')') {
+                        if(function_pointer_result_function) {
+                            *function_pointer_result_function = FALSE;
+                            no_function_pointer_result_function = TRUE;
+                        }
+
                         info->p++;
                         skip_spaces_and_lf(info);
                     }
 
                     if(*info->p == '(') {
+                        if(function_pointer_result_function && !no_function_pointer_result_function) {
+                            *function_pointer_result_function = TRUE;
+                            info->p = p;
+                            info->sline = sline;
+                            return TRUE;
+                        }
+
                         sNodeType* node_type = clone_node_type(*result_type);
 
                         *result_type = create_node_type_with_class_name("lambda");
+                        pointer_num++;
 
                         (*result_type)->mResultType = node_type;
-                        pointer_num++;
 
                         if(*info->p == '(') {
                             info->p++;
@@ -2434,7 +2447,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                                 while(1) {
                                     sNodeType* node_type = NULL;
                                     char func_pointer_name2[VAR_NAME_MAX];
-                                    if(!parse_type(&node_type, info, func_pointer_name2,  FALSE, FALSE)) {
+                                    if(!parse_type(&node_type, info, func_pointer_name2,  FALSE, FALSE, NULL, FALSE)) {
                                         return FALSE;
                                     }
 
@@ -2469,6 +2482,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                                             sNodeType* node_type = clone_node_type(*result_type);
 
                                             *result_type = create_node_type_with_class_name("lambda");
+
                                             (*result_type)->mResultType = node_type;
 
                                             if(*info->p == ')') {
@@ -2479,7 +2493,8 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                                                 while(1) {
                                                     sNodeType* node_type = NULL;
                                                     char func_pointer_name2[VAR_NAME_MAX];
-                                                    if(!parse_type(&node_type, info, func_pointer_name2,  FALSE, FALSE)) {
+                                                    if(!parse_type(&node_type, info, func_pointer_name2,  FALSE, FALSE, NULL, FALSE)) 
+                                                    {
                                                         return FALSE;
                                                     }
 
@@ -2575,7 +2590,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
 
         while(1) {
             char func_pointer_name[VAR_NAME_MAX];
-            if(!parse_type(&(*result_type)->mGenericsTypes[generics_num], info, func_pointer_name, FALSE, FALSE)) {
+            if(!parse_type(&(*result_type)->mGenericsTypes[generics_num], info, func_pointer_name, FALSE, FALSE, NULL, FALSE)) {
                 return FALSE;
             }
 
@@ -2810,7 +2825,7 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                 while(1) {
                     sNodeType* node_type = NULL;
                     char buf[VAR_NAME_MAX];
-                    if(!parse_type(&node_type, info, buf, FALSE, FALSE)) {
+                    if(!parse_type(&node_type, info, buf, FALSE, FALSE, NULL, FALSE)) {
                         return FALSE;
                     }
 
@@ -3108,7 +3123,7 @@ static BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* nam
 
 static BOOL parse_param(sParserParam* param, sParserInfo* info)
 {
-    if(!parse_type(&param->mType, info, param->mName, FALSE, FALSE)) {
+    if(!parse_type(&param->mType, info, param->mName, FALSE, FALSE, NULL, FALSE)) {
         return FALSE;
     }
 
@@ -3433,7 +3448,7 @@ static BOOL parse_method_generics_function(unsigned int* node, char* struct_name
     }
 
     sNodeType* result_type = NULL;
-    if(!parse_type(&result_type, info, NULL, FALSE, FALSE))
+    if(!parse_type(&result_type, info, NULL, FALSE, FALSE, NULL, FALSE)) 
     {
         return FALSE;
     }
@@ -3654,7 +3669,7 @@ static BOOL parse_inline_function(unsigned int* node, char* struct_name, sParser
     }
 
     sNodeType* result_type = NULL;
-    if(!parse_type(&result_type, info, NULL, FALSE, FALSE))
+    if(!parse_type(&result_type, info, NULL, FALSE, FALSE, NULL, FALSE))
     {
         return FALSE;
     }
@@ -3827,7 +3842,7 @@ static BOOL parse_funcation_call_params(int* num_params, unsigned int* params, s
         info->p = p;
         info->sline = sline;
 
-        parse_type(&result_type, info, NULL, FALSE, FALSE);
+        parse_type(&result_type, info, NULL, FALSE, FALSE, NULL, FALSE);
     }
     else {
         info->p = p;
@@ -4887,7 +4902,7 @@ static BOOL parse_alloca(unsigned int* node, sParserInfo* info)
 {
     sNodeType* node_type = NULL;
 
-    if(!parse_type(&node_type, info, NULL, FALSE, FALSE)) {
+    if(!parse_type(&node_type, info, NULL, FALSE, FALSE, NULL, FALSE)) {
         return FALSE;
     }
 
@@ -4933,7 +4948,7 @@ static BOOL parse_sizeof(unsigned int* node, sParserInfo* info)
         sNodeType* node_type = NULL;
 
         BOOL define_struct_only = FALSE;
-        if(!parse_type(&node_type, info, NULL, FALSE, FALSE)) {
+        if(!parse_type(&node_type, info, NULL, FALSE, FALSE, NULL, FALSE)) {
             return FALSE;
         }
 
@@ -4970,7 +4985,7 @@ static BOOL parse_alignof(unsigned int* node, sParserInfo* info)
     if(is_type_name(buf, info)) {
         sNodeType* node_type = NULL;
 
-        if(!parse_type(&node_type, info, NULL, FALSE, FALSE)) {
+        if(!parse_type(&node_type, info, NULL, FALSE, FALSE, NULL, FALSE)) {
             return FALSE;
         }
 
@@ -5015,7 +5030,7 @@ static BOOL parse_typedef(unsigned int* node, sParserInfo* info)
     buf[0] = '\0';
 
     sNodeType* node_type = NULL;
-    if(!parse_type(&node_type, info, buf, TRUE, FALSE)) {
+    if(!parse_type(&node_type, info, buf, TRUE, FALSE, NULL, FALSE)) {
         return FALSE;
     }
 
@@ -5432,7 +5447,7 @@ static BOOL parse_is_heap(unsigned int* node, sParserInfo* info)
     if(is_type_name(buf, info)) {
         sNodeType* node_type = NULL;
 
-        if(!parse_type(&node_type, info, NULL, FALSE, FALSE)) {
+        if(!parse_type(&node_type, info, NULL, FALSE, FALSE, NULL, FALSE)) {
             return FALSE;
         }
 
@@ -5542,7 +5557,7 @@ static BOOL parse_new(unsigned int* node, sParserInfo* info)
         gc = TRUE;
     }
 
-    if(!parse_type(&node_type, info, NULL, FALSE, FALSE)) {
+    if(!parse_type(&node_type, info, NULL, FALSE, FALSE, NULL, FALSE)) {
         return FALSE;
     }
 
@@ -5586,7 +5601,7 @@ static BOOL parse_var(unsigned int* node, sParserInfo* info, BOOL readonly)
 
     sNodeType* node_type;
     if(*info->p != '=') {
-        if(!parse_type(&node_type, info, NULL, FALSE, FALSE)) {
+        if(!parse_type(&node_type, info, NULL, FALSE, FALSE, NULL, FALSE)) {
             return FALSE;
         }
 
@@ -5807,6 +5822,148 @@ BOOL parse_call_macro(unsigned int* node, char* name, sParserInfo* info)
     return TRUE;
 }
 
+BOOL parse_function_pointer_result_function(unsigned int* node, sParserInfo* info)
+{
+    int sline = info->sline;
+    char* function_head = info->p;
+
+    sNodeType* node_type = NULL;
+    if(!parse_type(&node_type, info, NULL, FALSE, FALSE, NULL, TRUE))
+    {
+        return FALSE;
+    }
+
+    sNodeType* result_type = create_node_type_with_class_name("lambda");
+
+    result_type->mResultType = clone_node_type(node_type);
+
+    /// method generics ///
+    info->mNumMethodGenerics = 0;
+
+    BOOL operator_fun = FALSE;
+
+    expect_next_character_with_one_forward("(", info);
+    expect_next_character_with_one_forward("*", info);
+
+    char fun_name[VAR_NAME_MAX+1];
+    if(!parse_word(fun_name, VAR_NAME_MAX, info, FALSE, FALSE))
+    {
+        return FALSE;
+    }
+
+    expect_next_character_with_one_forward("(", info);
+
+    /// params ///
+    sParserParam params[PARAMS_MAX];
+    memset(params, 0, sizeof(sParserParam)*PARAMS_MAX);
+
+    /// parse_params ///
+    int num_params = 0;
+    BOOL var_arg = FALSE;
+    if(!parse_params(params, &num_params, info, 0, &var_arg))
+    {
+        return FALSE;
+    }
+
+    char asm_fname[VAR_NAME_MAX];
+    if(!parse_attribute(info, asm_fname)) {
+        return FALSE;
+    }
+
+    xstrncpy(info->fun_name, fun_name, VAR_NAME_MAX);
+
+    /// params ///
+    sParserParam params2[PARAMS_MAX];
+    memset(params2, 0, sizeof(sParserParam)*PARAMS_MAX);
+
+    expect_next_character_with_one_forward(")", info);
+    expect_next_character_with_one_forward("(", info);
+
+    /// parse_params ///
+    int num_params2 = 0;
+    BOOL var_arg2 = FALSE;
+    if(!parse_params(params2, &num_params2, info, 0, &var_arg2))
+    {
+        return FALSE;
+    }
+
+    result_type->mNumParams = num_params2;
+
+    int i;
+    for(i=0; i<num_params2; i++) {
+        result_type->mParamTypes[i] = clone_node_type(params2[i].mType);
+    }
+
+    char* struct_name = NULL;
+
+    if(*info->p == ';') {
+        info->p++;
+        skip_spaces_and_lf(info);
+
+        *node = sNodeTree_create_external_function(fun_name, asm_fname, params, num_params, var_arg, result_type, struct_name, operator_fun, 0, info);
+    }
+    else {
+        int version = 0;
+        parse_version(&version, info);
+
+        int i;
+        for(i=0; i<num_params; i++) {
+            char* name = params[i].mName;
+
+            if(name[0] == '\0') {
+                parser_err_msg(info, "Require parametor variable names");
+                info->err_num++;
+            }
+        }
+
+        sNodeBlock* node_block = ALLOC sNodeBlock_alloc();
+        expect_next_character_with_one_forward("{", info);
+        sVarTable* old_table = info->lv_table;
+
+        info->lv_table = init_block_vtable(old_table, FALSE);
+
+        sVarTable* block_var_table = info->lv_table;
+
+        for(i=0; i<num_params; i++) {
+            sParserParam* param = params + i;
+
+            BOOL readonly = FALSE;
+            if(!add_variable_to_table(info->lv_table, param->mName, param->mType, readonly, NULL, -1, FALSE, param->mType->mConstant))
+            {
+                return FALSE;
+            }
+        }
+
+        if(!parse_block(node_block, FALSE, FALSE, info)) {
+            sNodeBlock_free(node_block);
+            return FALSE;
+        }
+
+        if(gNCType) {
+            if(*info->p != '\0') {
+                expect_next_character_with_one_forward("}", info);
+            }
+        }
+        else {
+            expect_next_character_with_one_forward("}", info);
+        }
+
+        info->lv_table = old_table;
+
+        BOOL lambda_ = FALSE;
+
+        BOOL simple_lambda_param = FALSE;
+        BOOL construct_fun = FALSE;
+
+        *node = sNodeTree_create_function(fun_name, asm_fname, params, num_params, result_type, MANAGED node_block, lambda_, block_var_table, struct_name, operator_fun, construct_fun, simple_lambda_param, info, FALSE, var_arg, version, FALSE, -1, fun_name, sline);
+    }
+
+    info->mNumMethodGenerics = 0;
+
+    return TRUE;
+    return FALSE;
+}
+
 static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* info)
 {
     if(!parse_sharp(info)) {
@@ -5831,7 +5988,7 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             info->sline = sline_before;
 
             sNodeType* node_type = NULL;
-            if(!parse_type(&node_type, info, NULL, FALSE, FALSE))
+            if(!parse_type(&node_type, info, NULL, FALSE, FALSE, NULL, FALSE))
             {
                 return FALSE;
             }
@@ -6706,6 +6863,9 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             *node = sNodeTree_create_continue_expression(info);
         }
         else if(strcmp(buf, "extern") == 0) {
+            char* p = info->p;
+            int sline = info->sline;
+
             char asm_fname[VAR_NAME_MAX];
             if(!parse_attribute(info, asm_fname)) {
                 return FALSE;
@@ -6713,12 +6873,21 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             
             sNodeType* result_type = NULL;
             char name[VAR_NAME_MAX+1];
-            if(!parse_type(&result_type, info, name, FALSE, FALSE))
+            BOOL function_pointer_result_function = FALSE;
+            if(!parse_type(&result_type, info, name, FALSE, FALSE, &function_pointer_result_function, FALSE))
             {
                 return FALSE;
             }
 
-            if(name[0] != '\0') {
+            if(function_pointer_result_function) {
+                info->p = p;
+                info->sline = sline;
+
+                if(!parse_function_pointer_result_function(node, info)) {
+                    return FALSE;
+                }
+            }
+            else if(name[0] != '\0') {
                 BOOL extern_ = TRUE;
                 if(!parse_variable(node, result_type, name, extern_, info, FALSE)) 
                 {
@@ -7115,18 +7284,30 @@ static BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserI
             info->p = p_before;
             info->sline = sline_before;
 
+            char* p = info->p;
+            int sline = info->sline;
+
             char buf_before[VAR_NAME_MAX];
 
             xstrncpy(buf_before, buf, VAR_NAME_MAX);
 
             sNodeType* result_type = NULL;
             char name[VAR_NAME_MAX+1];
-            if(!parse_type(&result_type, info, name, FALSE, FALSE))
+            BOOL function_pointer_result_function = FALSE;
+            if(!parse_type(&result_type, info, name, FALSE, FALSE, &function_pointer_result_function, FALSE)) 
             {
                 return FALSE;
             }
 
-            if(strcmp(name, "lambda") == 0) {
+            if(function_pointer_result_function) {
+                info->p = p;
+                info->sline = sline;
+
+                if(!parse_function_pointer_result_function(node, info)) {
+                    return FALSE;
+                }
+            }
+            else if(strcmp(name, "lambda") == 0) {
                 char buf[VAR_NAME_MAX];
                 (void)parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE);
                 if(!parse_lambda(node, result_type, info)) {
