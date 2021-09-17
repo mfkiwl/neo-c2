@@ -1087,7 +1087,7 @@ BOOL compile_return(unsigned int node, sCompileInfo* info)
             cast_right_type_to_left_type(result_type, &right_type, &llvm_value, info);
         }
 
-        if(llvm_value.type->mHeap) {
+        if(result_type->mHeap) {
             remove_object_from_right_values(llvm_value.value, info);
         }
 

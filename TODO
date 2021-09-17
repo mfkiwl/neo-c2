@@ -1,4 +1,3 @@
-method name completion
 
 method block parent bug
 
@@ -139,3 +138,4 @@ Br no mae no free_right_objects while no conditional, for, do while, switch, cas
 
 
 map<char*, int> bug
+ddthod name completion

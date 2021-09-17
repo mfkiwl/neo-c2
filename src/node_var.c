@@ -2747,6 +2747,7 @@ BOOL compile_delete(unsigned int node, sCompileInfo* info)
     //node_type->mHeap = TRUE;
 
     free_object(node_type, llvm_value.value, info);
+    remove_object_from_right_values(llvm_value.value, info);
 
     info->type = create_node_type_with_class_name("void");
 

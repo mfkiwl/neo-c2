@@ -44,17 +44,25 @@ void remove_object_from_right_values(LLVMValueRef obj, sCompileInfo* info)
     struct sRightValueObject* it = info->right_value_objects;
     struct sRightValueObject* it_before = NULL;
     while(it) {
+        struct sRightValueObject* it_next = it->next;
+
         if(it->obj == obj) {
             if(it_before == NULL) {
-                info->right_value_objects = it->next;
+                info->right_value_objects = it_next;
+                free(it);
+                it_before = NULL;
             }
             else {
-                it_before->next = it->next;
+                it_before->next = it_next;
+                free(it);
             }
-            free(it);
+
+            it = it_next;
         }
-        it_before = it;
-        it = it->next;
+        else {
+            it_before = it;
+            it = it_next;
+        }
     }
 }
 
@@ -182,7 +190,7 @@ void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
         LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
 
         /// remove right value objects from list
-        remove_object_from_right_values(obj, info);
+        //remove_object_from_right_values(obj, info);
     }
 }
 
