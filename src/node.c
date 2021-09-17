@@ -1927,6 +1927,12 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
         result_type = LLVMArrayType(result_type, node_type->mArrayNum[i]);
     }
 
+/*
+    if(node_type->mCurrentStackVariable) {
+        result_type = LLVMPointerType(result_type, 0);
+    }
+*/
+
     return result_type;
 }
 

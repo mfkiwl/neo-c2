@@ -198,6 +198,8 @@ struct sNodeTypeStruct {
     int mTypePointerNum;
 
     char mOriginalTypeName[VAR_NAME_MAX];
+
+    BOOL mCurrentStackVariable;
 };
 
 typedef struct sNodeTypeStruct sNodeType;
@@ -259,6 +261,9 @@ struct sVarTableStruct {
 
     struct sVarTableStruct* mParent;            // make linked list
     struct sVarTableStruct* mNext;              // for free var table
+
+    struct sVarTableStruct* mCloneTable;
+    struct sVarTableStruct* mClonedTable;
 };
 
 typedef struct sVarTableStruct sVarTable;

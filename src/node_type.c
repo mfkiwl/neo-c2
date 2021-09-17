@@ -96,6 +96,7 @@ sNodeType* clone_node_type(sNodeType* node_type)
     node_type2->mArrayInitializeNum = node_type->mArrayInitializeNum;
     node_type2->mTypeOfExpression = node_type->mTypeOfExpression;
     node_type2->mConstant = node_type->mConstant;
+    node_type2->mCurrentStackVariable = node_type->mCurrentStackVariable;
 
     xstrncpy(node_type2->mOriginalTypeName, node_type->mOriginalTypeName, VAR_NAME_MAX);
 

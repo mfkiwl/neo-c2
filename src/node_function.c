@@ -2326,7 +2326,8 @@ unsigned int sNodeTree_create_method_block(MANAGED char* block, sNodeType* resul
     gNodes[node].mLine = info->sline;
 
     gNodes[node].uValue.sMethodBlock.mBlockText = MANAGED block;
-    gNodes[node].uValue.sMethodBlock.mVarTable = clone_var_table(info->lv_table);
+    gNodes[node].uValue.sMethodBlock.mVarTable = info->lv_table;
+    //gNodes[node].uValue.sMethodBlock.mVarTable = clone_var_table(info->lv_table);
     gNodes[node].uValue.sMethodBlock.mResultType = result_type;
 
     gNodes[node].mLeft = 0;

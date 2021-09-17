@@ -46,6 +46,9 @@ sVarTable* clone_var_table(sVarTable* lv_table)
     result->mBlockLevel = lv_table->mBlockLevel;
     result->mID = lv_table->mID;
 
+    result->mCloneTable = lv_table;
+    lv_table->mClonedTable = result;
+
     sVarTable* it = lv_table;
 
     sVar* p = it->mLocalVariables;
@@ -552,8 +555,20 @@ void create_current_stack_frame_struct(char* type_name, sVarTable* lv_table)
         while(1) {
             if(p->mName[0] != 0 && p->mType) {
                 xstrncpy(field_names[num_fields], p->mName, VAR_NAME_MAX);
-                fields[num_fields] = clone_node_type(p->mType);
-                fields[num_fields]->mPointerNum++;
+
+                sNodeType* node_type = clone_node_type(p->mType);
+
+                if(node_type->mArrayDimentionNum > 0) {
+                    node_type->mArrayDimentionNum--;
+                    node_type->mPointerNum++;
+                    //node_type->mCurrentStackVariable = TRUE;
+                }
+                else {
+                    node_type->mPointerNum++;
+                }
+
+                fields[num_fields] = node_type;
+
                 num_fields++;
             }
 

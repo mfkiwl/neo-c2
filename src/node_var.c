@@ -620,6 +620,28 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         right_type->mStatic = FALSE;
         var->mType = clone_node_type(right_type);
         left_type = var->mType;
+
+        sVarTable* clone_table = info->pinfo->lv_table->mCloneTable;
+        while(clone_table) {
+            sVar* var = get_variable_from_table(clone_table, var_name);
+
+            if(var) {
+                var->mType = clone_node_type(right_type);
+            }
+
+            clone_table = clone_table->mCloneTable;
+        }
+
+        sVarTable* cloned_table = info->pinfo->lv_table->mClonedTable;
+        while(cloned_table) {
+            sVar* var = get_variable_from_table(cloned_table, var_name);
+
+            if(var) {
+                var->mType = clone_node_type(right_type);
+            }
+
+            cloned_table = cloned_table->mClonedTable;
+        }
     }
     else {
         left_type = var->mType;
@@ -4285,10 +4307,16 @@ BOOL compile_stack(unsigned int node, sCompileInfo* info)
         while(1) {
             if(p->mName[0] != 0 && p->mType) {
                 sVar* var = get_variable_from_table(info->pinfo->lv_table, p->mName);
+
+                sNodeType* field_type = node_type->mClass->mFields[field_index];
                 
                 LLVMValueRef field_address = LLVMBuildStructGEP(gBuilder, stack, field_index, "field");
 
-                LLVMBuildStore(gBuilder, var->mLLVMValue, field_address);
+                LLVMTypeRef llvm_var_type = create_llvm_type_from_node_type(field_type);
+
+                LLVMValueRef llvm_value = LLVMBuildCast(gBuilder, LLVMBitCast, var->mLLVMValue, llvm_var_type, "current_stack_cast");
+
+                LLVMBuildStore(gBuilder, llvm_value, field_address);
 
                 field_index++;
             }
