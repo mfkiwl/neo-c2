@@ -4,7 +4,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.0.7
+version 1.0.8
 
 ```
 #include <neo-c2.h>
@@ -1438,10 +1438,36 @@ li.push_back(1);
 li.push_back(2);
 li.push_back(3);
 
+int a = 1;
+
 li.filter { return it > 1; }.each {
-    printf("%d\n", it);
+    (*parent.a) = 2;
+    printf("%d\n", it, + *parent.a);
 }
-// result is 2\n3\n
+// result is 4\n5\n
+
+printf("a %d\n", a);
+// result is a 2
+```
+
+ただし、親のスタックの変数が配列の場合先頭アドレスが渡されます。
+
+However, if the variable on the parent stack is an array, the start address is passed.
+
+```
+    auto li = new list<char>.initialize();
+    
+    li.push_back("AAA");
+    li.push_back("BBB");
+    
+    char buf[128];
+    
+    strncpy(buf, "CCC", 128);
+    
+    li.each {
+        printf("%s %s\n", it, parent.buf);
+    }
+    /// result is AAA CCC\nBBB CCC\n
 ```
 
 
