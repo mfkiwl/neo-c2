@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 struct sA {
     int aaa;
     int bbb;
@@ -24,5 +22,6 @@ int int::xxx(int self)
 }
 
 int main() {
-  
-}
+    sA a;
+    
+    1
