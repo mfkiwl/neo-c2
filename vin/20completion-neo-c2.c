@@ -138,11 +138,11 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
                 
                 auto candidates = new list<wstring>.initialize();
                 
-                auto command_result = new buffer.initialize();
+                auto command_result2 = new buffer.initialize();
                 
-                if(get_command_result2(command_result, cmdline)) {
+                if(get_command_result2(command_result2, cmdline)) {
                     auto candidates3 = new list<wstring>.initialize();
-                    auto candidates2 = command_result.to_string().split_char('\n');
+                    auto candidates2 = command_result2.to_string().split_char('\n');
                     
                     foreach(it, candidates2) {
                         char fun_name[512];
@@ -160,19 +160,55 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
                         }
                     }
                 
+                    
+                    /// field ///
+                    auto name_fields = new list<wstring>.initialize();
+                    auto type_fields = new list<wstring>.initialize();
+                    auto fields = command_result.to_string().scan("[0-9]+[ ]+\([a-zA-Z0-9_]+)[ ]+\([a-zA-Z0-9_]+)".to_regex());
+                    
+                    int i = 0;
+                    foreach(it, fields) {
+                        if(i % 3 == 1) {
+                            type_fields.push_back(it.to_wstring());
+                        }
+                        else if(i % 3 == 2) {
+                            name_fields.push_back(it.to_wstring());
+                        }
+                        
+                        i++;
+                    }
+                    
+                    i = 0;
+                    foreach(it, name_fields) {
+                        auto type = type_fields.item(i, null);
+
+                        char field_candidate[256];
+                        snprintf(field_candidate, 256, "%ls %ls", it, type);
+                        candidates3.push_back(field_candidate.to_wstring());
+                        
+                        i++;
+                    }
+                    
+                    /// sort //
                     auto candidates4 = candidates3.sort(int lambda(wchar_t* left, wchar_t* right) { return wcscmp(left, right); }).uniq();
                 
+                    /// go ///
                     auto candidate = self.selector2(candidates4);
                     
                     if(candidate) {
-                        
-                        auto li = candidate.to_string().scan("[a-zA-Z0-9_]+".to_regex());
-                        
-                        if(li.length() > 0) {
-                            int len2 = li.item(0, null).length();
-                
-                            auto append = candidate.substring(0, len2+1).substring(strlen(header_name), -1).substring(len, -1);
+                        if(candidate.to_string().match("[a-zA-Z0-9_]+ [a-zA-Z0-9_]+".to_regex(), null)) {
+                            auto append = candidate.substring(len, -1);
                             self.insertText(append);
+                        }
+                        else {
+                            auto li = candidate.to_string().scan("[a-zA-Z0-9_]+".to_regex());
+                            
+                            if(li.length() > 0) {
+                                int len2 = li.item(0, null).length();
+                    
+                                auto append = candidate.substring(0, len2+1).substring(strlen(header_name), -1).substring(len, -1);
+                                self.insertText(append);
+                            }
                         }
                     }
                 }

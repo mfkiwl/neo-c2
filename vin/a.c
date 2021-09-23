@@ -1,6 +1,10 @@
-#include "common.h"
+struct sA {
+    int aaa;
+    int bbb;
+};
 
-int main() 
-{
-    xspri
-    
+int main() {
+    sA a;
+
+    a
+}
