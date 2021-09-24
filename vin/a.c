@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <neo-c2.h>
 
 struct sA {
     int aaa;
@@ -24,5 +24,11 @@ int int::xxx(int self)
 }
 
 int main() {
-  
+   auto li = new list<int>.initialize();
+   
+   li.push_back(1);
+   li.push_back(2);
+   li.push_back(3);
+   
+   li.filter { return it > 2; }.each { printf("%d\n", it); }
 }

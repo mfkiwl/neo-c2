@@ -199,7 +199,7 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
                     auto candidate = self.selector2(candidates4);
                     
                     if(candidate) {
-                        if(candidate.to_string().match("[a-zA-Z0-9_]+ [a-zA-Z0-9_]+".to_regex(), null)) {
+                        if(candidate.to_string().match("^[a-zA-Z0-9_]+ [a-zA-Z0-9_]+$".to_regex(), null)) {
                             auto li = candidate.to_string().scan("[a-zA-Z0-9_]+".to_regex());
 
                             if(li.length() > 0) {
@@ -216,6 +216,7 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
                                 int len2 = li.item(0, null).length();
                     
                                 auto append = candidate.substring(0, len2+1).substring(strlen(header_name), -1).substring(len, -1);
+                            
                                 self.insertText(append);
                             }
                         }
@@ -224,8 +225,8 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
             }
         }
     
-        //system("rm -f neo_c2_completion2.tmp");
-        //system("rm -f neo_c2_completion2.tmp.i");
+        system("rm -f neo_c2_completion2.tmp");
+        system("rm -f neo_c2_completion2.tmp.i");
     }
     else {
         char dname[PATH_MAX];

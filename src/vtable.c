@@ -593,12 +593,14 @@ void create_current_stack_frame_struct(char* type_name, sVarTable* lv_table)
         field_names2[i] = field_names[i];
     }
 
+/*
     sCLClass* current_stack = get_same_current_stack(num_fields, field_names2, fields);
 
     if(current_stack) {
         snprintf(type_name, VAR_NAME_MAX, "%s", CLASS_NAME(current_stack));
     }
     else {
+*/
         snprintf(type_name, VAR_NAME_MAX, "__current_stack_frame__%d", n);
         sCLClass* klass = alloc_struct(type_name, FALSE, FALSE);
 
@@ -611,5 +613,5 @@ void create_current_stack_frame_struct(char* type_name, sVarTable* lv_table)
         (void)create_llvm_struct_type(struct_name, node_type, NULL, undefined_body);
 
         n++;
-    }
+//    }
 }

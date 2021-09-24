@@ -46,7 +46,7 @@ int main(int argc, char** argv)
             }
         }
         else if(strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "-V") == 0 || strcmp(argv[i], "--version") == 0) {
-            puts("vin version 1.0.2");
+            puts("vin version 1.0.3");
             exit(0);
         }
         else {
