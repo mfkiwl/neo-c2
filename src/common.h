@@ -59,6 +59,7 @@ struct sVarTableStruct;
 /// main.c 
 //////////////////////////////
 extern BOOL gNCDebug;
+extern BOOL gNCGC;
 extern BOOL gNCNoMacro;
 extern BOOL gNCType;
 extern BOOL gNCGlobal;
@@ -672,6 +673,10 @@ struct sNodeTreeStruct
         } sObject;
 
         struct {
+            BOOL mGC;
+        } sClone;
+
+        struct {
             char mVarName[VAR_NAME_MAX];
         } sStoreField;
 
@@ -995,7 +1000,7 @@ unsigned int sNodeTree_create_load_channel_element(unsigned int array, unsigned 
 unsigned int sNodeTree_create_stack_object(sNodeType* node_type, unsigned int object_num, char* sname, int sline, sParserInfo* info);
 unsigned int sNodeTree_create_dereffernce(unsigned int left_node, sParserInfo* info);
 unsigned int sNodeTree_create_reffernce(unsigned int left_node, sParserInfo* info);
-unsigned int sNodeTree_create_clone(unsigned int left, sParserInfo* info);
+unsigned int sNodeTree_create_clone(unsigned int left, BOOL gc, sParserInfo* info);
 unsigned int sNodeTree_create_borrow(unsigned int left, sParserInfo* info);
 unsigned int sNodeTree_create_load_array_element(unsigned int array, unsigned int index_node[], int num_dimetion, sParserInfo* info);
 unsigned int sNodeTree_create_store_element(unsigned int array, unsigned int index_node[], int num_dimetion, unsigned int right_node, sParserInfo* info);

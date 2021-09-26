@@ -645,6 +645,33 @@ int main()
 }
 ```
 
+clone is below:
+
+```
+#include <neo-c2.h>
+
+struct sObj {
+    int a;
+    int b;
+};
+
+int main()
+{
+    sObj* obj = new (GC) sObj;
+
+    obj.a = 1;
+    obj.b = 2;
+
+    xassert("gc test", obj.a == 1 && obj.b == 2);
+
+    sObj* obj2 = clone (GC) obj;
+
+    xassert("gc test2", obj2.a == 1 && obj2.b == 2);
+
+    return 0;
+}
+```
+
 However, in this example, it seems that memory is leaking when valgrind is applied. Isn't it free at the end? I prepared it for the time being. If you use this feature, please -lgc the linker.
 
 ただ、この例ではvalgrindをかけるとメモリがリークしている様子です。終了時にはfreeしないんですかね。とりあえず用意しました。この機能を使った場合はリンカーに-lgcしてください。

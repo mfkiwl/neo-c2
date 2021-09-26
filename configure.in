@@ -199,8 +199,8 @@ fi
 
 AC_CHECK_HEADER(math.h, [AC_DEFINE(HAVE_MATH_H,1)], [ exit ])
 AC_HAVE_LIBRARY(m, [ LIBS="$LIBS -lm"; ], [ exit ])
-AC_HAVE_LIBRARY(gc, [ LIBS="$LIBS -lm"; ], [ exit ])
-AC_HAVE_LIBRARY(pcre, [ LIBS="$LIBS -lm"; ], [ exit ])
+AC_HAVE_LIBRARY(gc, [ ], [ exit ])
+AC_HAVE_LIBRARY(pcre, [ ], [ exit ])
 AC_CHECK_HEADER(iconv.h, [AC_DEFINE(HAVE_ICONV_H, 1)], [])
 
 if test "$OS" = CYGWIN || test "$OS" = DARWIN || test "$OS" = FREEBSD

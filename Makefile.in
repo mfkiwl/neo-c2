@@ -183,9 +183,15 @@ $(OBJS): src/*.h Makefile configure
 install:
 	mkdir -p $(DESTDIR)/include
 	$(INSTALL) -m 644 ./neo-c2.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./neo-c2-gc.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./neo-c2-no-gc.h $(DESTDIR)/include
 	$(INSTALL) -m 644 ./neo-c2-pcre.h $(DESTDIR)/include
 	$(INSTALL) -m 644 ./neo-c2-pcre-main.h $(DESTDIR)/include
 	$(INSTALL) -m 644 ./neo-c2-pcre-declare.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./neo-c2-pcre-gc.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./neo-c2-pcre-no-gc.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./neo-c2-pcre-main-gc.h $(DESTDIR)/include
+	$(INSTALL) -m 644 ./neo-c2-pcre-declare-gc.h $(DESTDIR)/include
 
 	mkdir -p "$(DESTDIR)/bin"
 	$(INSTALL) -m 755 ./neo-c2 "$(DESTDIR)/bin"
@@ -223,8 +229,10 @@ test:
 	./code/HelloWorld2
 	PWD=`pwd` ./neo-c2 code/HelloWorld3.c && $(CC) -o code/HelloWorld3 code/HelloWorld3.c.ll
 	./code/HelloWorld3
-	PWD=`pwd` ./neo-c2 code/HelloWorld4.c && $(CC) -o code/HelloWorld4 code/HelloWorld4.c.ll -lpthread
-	./code/HelloWorld4
+	PWD=`pwd` ./neo-c2 -gc code/HelloWorld3.c && $(CC) -o code/HelloWorld3 code/HelloWorld3.c.ll -lgc
+	./code/HelloWorld3
+#	PWD=`pwd` ./neo-c2 code/HelloWorld4.c && $(CC) -o code/HelloWorld4 code/HelloWorld4.c.ll -lpthread
+#	./code/HelloWorld4
 #	PWD=`pwd` ./neo-c2 code/HelloWorld5.c && $(CC) -o code/HelloWorld5 code/HelloWorld5.c.ll -lpthread
 #	./code/HelloWorld5
 #	PWD=`pwd` ./neo-c2 code/HelloWorld6.c && $(CC) -o code/HelloWorld6 code/HelloWorld6.c.ll -lpthread
@@ -233,12 +241,16 @@ test:
 #	./code/HelloWorld7
 	PWD=`pwd` ./neo-c2 code/HelloWorld8.c && $(CC) -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread
 	./code/HelloWorld8
+	PWD=`pwd` ./neo-c2 -gc code/HelloWorld8.c && $(CC) -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread -lgc
+	./code/HelloWorld8
 	PWD=`pwd` ./neo-c2 code/HelloWorld9.c && $(CC) -o code/HelloWorld9 code/HelloWorld9.c.ll -lpcre
 	./code/HelloWorld9
-	PWD=`pwd` ./neo-c2 code/HelloWorld10.c && $(CC) -o code/HelloWorld10 code/HelloWorld10.c.ll
-	./code/HelloWorld10
-	PWD=`pwd` ./neo-c2 code/HelloWorld11.c && $(CC) -o code/HelloWorld11 code/HelloWorld11.c.ll -lgc
-	./code/HelloWorld11
+	PWD=`pwd` ./neo-c2 -gc code/HelloWorld9.c && $(CC) -o code/HelloWorld9 code/HelloWorld9.c.ll -lpcre -lgc
+	./code/HelloWorld9
+#	PWD=`pwd` ./neo-c2 code/HelloWorld10.c && $(CC) -o code/HelloWorld10 code/HelloWorld10.c.ll
+#	./code/HelloWorld10
+#	PWD=`pwd` ./neo-c2 code/HelloWorld11.c && $(CC) -o code/HelloWorld11 code/HelloWorld11.c.ll -lgc
+#	./code/HelloWorld11
 
 debug-test: 
 	@echo "Compile to test code..."
@@ -248,8 +260,10 @@ debug-test:
 	./code/HelloWorld2
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld3.c && $(CC) -g -o code/HelloWorld3 code/HelloWorld3.c.ll
 	./code/HelloWorld3
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld4.c && $(CC) -g -o code/HelloWorld4 code/HelloWorld4.c.ll -lpthread
-	./code/HelloWorld4
+	PWD=`pwd` ./neo-c2 -gc -g code/HelloWorld3.c && $(CC) -g -o code/HelloWorld3-gc code/HelloWorld3.c.ll -lgc
+	./code/HelloWorld3
+#	PWD=`pwd` ./neo-c2 -g code/HelloWorld4.c && $(CC) -g -o code/HelloWorld4 code/HelloWorld4.c.ll -lpthread
+#	./code/HelloWorld4
 #	PWD=`pwd` ./neo-c2 -g code/HelloWorld5.c && $(CC) -g -o code/HelloWorld5 code/HelloWorld5.c.ll -lpthread
 #	./code/HelloWorld5
 #	PWD=`pwd` ./neo-c2 -g code/HelloWorld6.c && $(CC) -g -o code/HelloWorld6 code/HelloWorld6.c.ll -lpthread
@@ -258,12 +272,16 @@ debug-test:
 #	./code/HelloWorld7
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld8.c && $(CC) -g -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread
 	./code/HelloWorld8
+	PWD=`pwd` ./neo-c2 -gc -g code/HelloWorld8.c && $(CC) -g -o code/HelloWorld8 code/HelloWorld8.c.ll -lpthread -lgc
+	./code/HelloWorld8
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld9.c && $(CC) -g -o code/HelloWorld9 code/HelloWorld9.c.ll -lpcre
 	./code/HelloWorld9
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld10.c && $(CC) -g -o code/HelloWorld10 code/HelloWorld10.c.ll
-	./code/HelloWorld10
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld11.c && $(CC) -g -o code/HelloWorld11 code/HelloWorld11.c.ll -lgc
-	./code/HelloWorld11
+	PWD=`pwd` ./neo-c2 -gc -g code/HelloWorld9.c && $(CC) -g -o code/HelloWorld9 code/HelloWorld9.c.ll -lpcre -lgc
+	./code/HelloWorld9
+#	PWD=`pwd` ./neo-c2 -g code/HelloWorld10.c && $(CC) -g -o code/HelloWorld10 code/HelloWorld10.c.ll
+#	./code/HelloWorld10
+#	PWD=`pwd` ./neo-c2 -g code/HelloWorld11.c && $(CC) -g -o code/HelloWorld11 code/HelloWorld11.c.ll -lgc
+#	./code/HelloWorld11
 
 #########################################
 # uninstall
@@ -271,5 +289,14 @@ debug-test:
 uninstall:
 	rm -f "$(DESTDIR)"/bin/neo-c2
 	rm -f "$(DESTDIR)"/include/neo-c2.h
+	rm -f "$(DESTDIR)"/include/neo-c2-gc.h
+	rm -f "$(DESTDIR)"/include/neo-c2-no-gc.h
+	rm -f "$(DESTDIR)"/include/neo-c2-pcre.h
+	rm -f "$(DESTDIR)"/include/neo-c2-pcre-main.h
+	rm -f "$(DESTDIR)"/include/neo-c2-pcre-declare.h
+	rm -f "$(DESTDIR)"/include/neo-c2-pcre-gc.h
+	rm -f "$(DESTDIR)"/include/neo-c2-pcre-no-gc.h
+	rm -f "$(DESTDIR)"/include/neo-c2-pcre-main-gc.h
+	rm -f "$(DESTDIR)"/include/neo-c2-pcre-declare-gc.h
 	rm -f "$(DESTDIR)/share/doc/neo-c2/README.md "
 

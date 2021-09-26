@@ -681,7 +681,7 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 with_debug
-with_memleak_debug
+with_gc
 with_optimize
 '
       ac_precious_vars='build_alias
@@ -1311,7 +1311,7 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-debug              include debug info
-  --with-meak-debug              include memleak debug info
+  --with-gc                 include BoehmGC
   --with-optimize           with optimize(-O in CFLAGS)
 
 Some influential environment variables:
@@ -3652,7 +3652,7 @@ fi
 # configure arguments
 #########################################
 DEBUGGING=0
-MEMDEBUGGING=0
+ENABLE_GC=0
 LOGGING=0
 
 
@@ -3662,9 +3662,9 @@ if test "${with_debug+set}" = set; then :
 fi
 
 
-# Check whether --with-memleak-debug was given.
-if test "${with_memleak_debug+set}" = set; then :
-  withval=$with_memleak_debug;  MEMDEBUGGING=1;
+# Check whether --with-gc was given.
+if test "${with_gc+set}" = set; then :
+  withval=$with_gc;  ENABLE_GC=1;
 fi
 
 
@@ -3762,9 +3762,9 @@ if test $DEBUGGING = 1
 then
     CFLAGS="$CFLAGS -g -DMDEBUG"
 fi
-if test $MEMDEBUGGING = 1
+if test $ENABLE_GC = 1
 then
-    NCFLAGS="$NCFLAGS -gm"
+    NCFLAGS="$NCFLAGS -gc"
 fi
 if test $ENABLE_OPTIMIZE = 1
 then
@@ -3924,6 +3924,45 @@ else
 fi
 ac_cv_lib_pcre=ac_cv_lib_pcre_main
 
+
+if test "$ENABLE_GC" = 1
+then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lgc" >&5
+$as_echo_n "checking for main in -lgc... " >&6; }
+if ${ac_cv_lib_gc_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgc  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gc_main=yes
+else
+  ac_cv_lib_gc_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gc_main" >&5
+$as_echo "$ac_cv_lib_gc_main" >&6; }
+if test "x$ac_cv_lib_gc_main" = xyes; then :
+   LIBS="$LIBS -lgc";
+fi
+ac_cv_lib_gc=ac_cv_lib_gc_main
+
+fi
 
 if test `uname -s` = "Darwin"; then
     ac_fn_c_check_header_mongrel "$LINENO" "ncurses.h" "ac_cv_header_ncurses_h" "$ac_includes_default"

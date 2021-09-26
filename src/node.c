@@ -269,7 +269,6 @@ LLVMValueRef clone_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* 
     return obj;
 }
 
-
 LLVMTypeRef create_llvm_type_with_class_name(char* class_name);
 
 void init_nodes(char* sname)

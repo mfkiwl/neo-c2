@@ -67,7 +67,6 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I/usr/local/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", cflags, fname, macro_definition, fname2);
 #else
     snprintf(cmd, 1024, "cpp %s -U__GNUC__ %s %s > %s", cflags, fname, macro_definition, fname2);
-    //snprintf(cmd, 1024, "cpp %s -U__GNUC__ -C %s %s > %s", cflags, fname, macro_definition, fname2);
 #endif
 
     //puts(cmd);
@@ -103,6 +102,7 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
 
 char* gVersion = "1.0.9";
 BOOL gNCDebug = FALSE;
+BOOL gNCGC = FALSE;
 char gFName[PATH_MAX];
 sVarTable* gModuleVarTable;
 BOOL gNCType = FALSE;
@@ -139,6 +139,11 @@ int main(int argc, char** argv)
         {
             gNCDebug = TRUE;
             xstrncat(optiones, "-g ", 1024);
+        }
+        else if(strcmp(argv[i], "-gc") == 0)
+        {
+            gNCGC = TRUE;
+            xstrncat(optiones, "-gc ", 1024);
         }
         else if(strcmp(argv[i], "type") == 0)
         {

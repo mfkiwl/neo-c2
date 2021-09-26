@@ -860,7 +860,7 @@ unsigned int sNodeTree_create_load_variable(char* var_name, sParserInfo* info)
     return node;
 }
 
-unsigned int sNodeTree_create_clone(unsigned int left, sParserInfo* info)
+unsigned int sNodeTree_create_clone(unsigned int left, BOOL gc, sParserInfo* info)
 {
     unsigned int node = alloc_node();
 
@@ -868,6 +868,8 @@ unsigned int sNodeTree_create_clone(unsigned int left, sParserInfo* info)
 
     xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
     gNodes[node].mLine = info->sline;
+
+    gNodes[node].uValue.sClone.mGC = gc;
 
     gNodes[node].mLeft = left;
     gNodes[node].mRight = 0;
@@ -878,6 +880,8 @@ unsigned int sNodeTree_create_clone(unsigned int left, sParserInfo* info)
 
 BOOL compile_clone(unsigned int node, sCompileInfo* info)
 {
+    BOOL gc = gNodes[node].uValue.sClone.mGC;
+
     unsigned int left_node = gNodes[node].mLeft;
 
     if(!compile(left_node, info)) {
@@ -894,27 +898,50 @@ BOOL compile_clone(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
-    sNodeType* left_type = clone_node_type(info->type);
-    sNodeType* left_type2 = clone_node_type(left_type);
-    left_type2->mHeap = TRUE;
+    if(gc) {
+        sNodeType* left_type = clone_node_type(info->type);
+        sNodeType* left_type2 = clone_node_type(left_type);
+        left_type2->mHeap = FALSE;
 
-    LLVMValueRef obj = clone_object(left_type, lvalue.value, info);
+        LLVMValueRef obj = clone_object(left_type, lvalue.value, info);
 
-    dec_stack_ptr(1, info);
+        dec_stack_ptr(1, info);
 
-    LVALUE llvm_value;
-    llvm_value.value = obj;
-    llvm_value.type = clone_node_type(left_type2);
-    llvm_value.address = NULL;
-    llvm_value.var = NULL;
-    llvm_value.binded_value = FALSE;
-    llvm_value.load_field = FALSE;
+        LVALUE llvm_value;
+        llvm_value.value = obj;
+        llvm_value.type = clone_node_type(left_type2);
+        llvm_value.address = NULL;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = FALSE;
+        llvm_value.load_field = FALSE;
 
-    push_value_to_stack_ptr(&llvm_value, info);
+        push_value_to_stack_ptr(&llvm_value, info);
 
-    append_object_to_right_values(llvm_value.value, left_type2, info);
+        info->type = clone_node_type(left_type2);
+    }
+    else {
+        sNodeType* left_type = clone_node_type(info->type);
+        sNodeType* left_type2 = clone_node_type(left_type);
+        left_type2->mHeap = TRUE;
 
-    info->type = clone_node_type(left_type2);
+        LLVMValueRef obj = clone_object(left_type, lvalue.value, info);
+
+        dec_stack_ptr(1, info);
+
+        LVALUE llvm_value;
+        llvm_value.value = obj;
+        llvm_value.type = clone_node_type(left_type2);
+        llvm_value.address = NULL;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = FALSE;
+        llvm_value.load_field = FALSE;
+
+        push_value_to_stack_ptr(&llvm_value, info);
+
+        append_object_to_right_values(llvm_value.value, left_type2, info);
+
+        info->type = clone_node_type(left_type2);
+    }
 
     return TRUE;
 }
@@ -2768,7 +2795,9 @@ BOOL compile_delete(unsigned int node, sCompileInfo* info)
 
     //node_type->mHeap = TRUE;
 
-    free_object(node_type, llvm_value.value, info);
+    if(!gNCGC) {
+        free_object(node_type, llvm_value.value, info);
+    }
     remove_object_from_right_values(llvm_value.value, info);
 
     info->type = create_node_type_with_class_name("void");
@@ -2814,10 +2843,12 @@ BOOL compile_borrow(unsigned int node, sCompileInfo* info)
 
     sNodeType* node_type = clone_node_type(info->type);
 
-    llvm_value.type->mHeap = FALSE;
-    node_type->mHeap = FALSE;
+    if(!gNCGC) {
+        llvm_value.type->mHeap = FALSE;
+        node_type->mHeap = FALSE;
 
-    remove_object_from_right_values(llvm_value.value, info);
+        remove_object_from_right_values(llvm_value.value, info);
+    }
 
     push_value_to_stack_ptr(&llvm_value, info);
 
@@ -2864,16 +2895,18 @@ BOOL compile_nomove(unsigned int node, sCompileInfo* info)
 
     sNodeType* node_type = clone_node_type(info->type);
 
-    if(is_right_values(llvm_value.value, info)) {
-        llvm_value.type->mHeap = TRUE;
-        node_type->mHeap = TRUE;
-        remove_object_from_right_values(llvm_value.value, info);
-    }
-    else {
-        if(llvm_value.var) {
-            llvm_value.var = NULL;
-            node_type->mHeap = FALSE;
-            llvm_value.type->mHeap = FALSE;
+    if(!gNCGC) {
+        if(is_right_values(llvm_value.value, info)) {
+            llvm_value.type->mHeap = TRUE;
+            node_type->mHeap = TRUE;
+            remove_object_from_right_values(llvm_value.value, info);
+        }
+        else {
+            if(llvm_value.var) {
+                llvm_value.var = NULL;
+                node_type->mHeap = FALSE;
+                llvm_value.type->mHeap = FALSE;
+            }
         }
     }
 
@@ -2920,8 +2953,10 @@ BOOL compile_dummy_heap(unsigned int node, sCompileInfo* info)
     LVALUE llvm_value = *get_value_from_stack(-1);
     dec_stack_ptr(1, info);
 
-    llvm_value.type->mHeap = TRUE;
-    llvm_value.type->mDummyHeap = TRUE;
+    if(!gNCGC) {
+        llvm_value.type->mHeap = TRUE;
+        llvm_value.type->mDummyHeap = TRUE;
+    }
 
     push_value_to_stack_ptr(&llvm_value, info);
 
@@ -2975,7 +3010,9 @@ BOOL compile_managed(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
-    var->mType->mHeap = FALSE;
+    if(!gNCGC) {
+        var->mType->mHeap = FALSE;
+    }
 
     info->type = create_node_type_with_class_name("void"); // dummy
 

@@ -1,4 +1,13 @@
+#ifdef NEOC_GC
+#include <neo-c2-gc.h>
+#include <neo-c2-pcre.h>
+#else
+a:wq
+
 #include <neo-c2.h>
+#include <neo-c2-pcre.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ncurses.h>
@@ -7,7 +16,6 @@
 #include <limits.h>
 #include <wchar.h>
 #include <pcre.h>
-#include <neo-c2-pcre.h>
 #include "config.h"
 
 typedef wchar_t*% wstring;

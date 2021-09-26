@@ -104,6 +104,7 @@ static BOOL parse_compiletime_macro(unsigned int* node, sParserInfo* info)
         pinfo = *info;
 
         pinfo.p = command_result.mBuf;
+
         xstrncpy(pinfo.sname, "macro", PATH_MAX);
         pinfo.sline = 1;
 

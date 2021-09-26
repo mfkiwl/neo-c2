@@ -2123,7 +2123,9 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                 if(*info->p == '&') {
                     info->p++;
                     skip_spaces_and_lf(info);
-                    remove_heap_mark = TRUE;
+                    if(!gNCGC) {
+                        remove_heap_mark = TRUE;
+                    }
                 }
 
                 heap = (*result_type)->mHeap;
@@ -2222,7 +2224,9 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
                 else if(*info->p == '%') {
                     info->p++;
                     skip_spaces_and_lf(info);
-                    (*result_type)->mHeap = TRUE;
+                    if(!gNCGC) {
+                        (*result_type)->mHeap = TRUE;
+                    }
                 }
                 else {
                     break;
@@ -2652,7 +2656,9 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
             info->p++;
             skip_spaces_and_lf(info);
 
-            heap = TRUE;
+            if(!gNCGC) {
+                heap = TRUE;
+            }
         }
         else if(*info->p == '@') {
             info->p++;
@@ -2664,7 +2670,9 @@ static BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_po
             info->p++;
             skip_spaces_and_lf(info);
 
-            no_heap = TRUE;
+            if(!gNCGC) {
+                no_heap = TRUE;
+            }
         }
         else if(*info->p == '$') {
             info->p++;
@@ -5008,6 +5016,24 @@ static BOOL parse_alignof(unsigned int* node, sParserInfo* info)
 
 static BOOL parse_clone(unsigned int* node, sParserInfo* info)
 {
+    BOOL gc = gNCGC;
+    if(*info->p == '(') {
+        info->p++;
+        skip_spaces_and_lf(info);
+
+        if(*info->p == 'G' && *(info->p+1) == 'C') {
+            info->p += 2;
+            skip_spaces_and_lf(info);
+        }
+
+        if(*info->p == ')') {
+            info->p++;
+            skip_spaces_and_lf(info);
+        }
+
+        gc = TRUE;
+    }
+
     if(!expression(node, FALSE, info)) {
         return FALSE;
     }
@@ -5018,7 +5044,7 @@ static BOOL parse_clone(unsigned int* node, sParserInfo* info)
         return TRUE;
     };
 
-    *node = sNodeTree_create_clone(*node, info);
+    *node = sNodeTree_create_clone(*node, gc, info);
 
     return TRUE;
 }
@@ -5538,7 +5564,7 @@ static BOOL parse_new(unsigned int* node, sParserInfo* info)
 {
     sNodeType* node_type = NULL;
 
-    BOOL gc = FALSE;
+    BOOL gc = gNCGC;
 
     if(*info->p == '(') {
         info->p++;
