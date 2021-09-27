@@ -46,7 +46,7 @@ int main(int argc, char** argv)
             }
         }
         else if(strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "-V") == 0 || strcmp(argv[i], "--version") == 0) {
-            puts("vin version 1.0.3");
+            puts("vin version 1.0.4");
             exit(0);
         }
         else {
@@ -69,5 +69,9 @@ int main(int argc, char** argv)
         vi.openFile(null, -1);
     }
     
-    return vi.main_loop();
+    int result = vi.main_loop();
+
+    endwin();
+
+    return result;
 }

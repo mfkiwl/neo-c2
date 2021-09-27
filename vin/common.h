@@ -1,64 +1,14 @@
-#ifdef NEOC_GC
-#include <neo-c2-gc.h>
-#include <neo-c2-pcre.h>
-#else
-a:wq
-
+#include "config.h"
 #include <neo-c2.h>
 #include <neo-c2-pcre.h>
-#endif
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ncurses.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include <limits.h>
-#include <wchar.h>
-#include <pcre.h>
-#include "config.h"
 
-typedef wchar_t*% wstring;
-
-struct regex_struct {
-    char str[128];
-    pcre* regex;
-
-    bool ignore_case;
-    bool multiline;
-    bool global;
-    bool extended;
-    bool dotall;
-    bool anchored;
-    bool dollar_endonly;
-    bool ungreedy;
-
-    int options;
-
-    pcre* re;
-};
-
-regex_struct*% regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy);
-
-/// wstring ///
-wstring wstring(char* str);
-wstring int::substring(wchar_t* str, int head, int tail);
-wstring int::printable(wchar_t* str);
-int int::length(wchar_t* str);
-wchar_t* int::delete(wchar_t* str, int head, int tail);
-int int::index(wchar_t* str, wchar_t* search_str, int default_value);
-int int::rindex(wchar_t* str, wchar_t* search_str, int default_value);
-string int::to_string(wchar_t* wstr);
-wstring char::to_wstring(char* str);
-wstring int::reverse(whar_t* str);
-bool char::match(char* self, regex_struct* reg, list<string>?* group_strings);
-int char::index(char* str, char* search_str, int default_value);
-int char::rindex(char* str, char* search_str, int default_value);
-string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings);
-list<string>*% char::scan(char* self, regex_struct* reg);
-string char::multiply(char* str, int n);
-wstring int::multiply(wchar_t* str, int n);
-int char::index_regex(char* self, regex_struct* reg, int default_value);
 
 /// main.c ///
 int xgetmaxx();

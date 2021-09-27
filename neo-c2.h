@@ -1,3 +1,4 @@
+
 ```
 if echo $ARG | sed -e 's/-gc/NEOC_GC/' | grep NEOC_GC 1> /dev/null 2> /dev/null
 then
@@ -8,3 +9,4 @@ fi
 ```
 
 #define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
+

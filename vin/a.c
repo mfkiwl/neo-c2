@@ -1,4 +1,4 @@
-#include <neo-c2.h>
+#include "common.h"
 
 struct sA {
     int aaa;
@@ -29,6 +29,11 @@ int main() {
    li.push_back(1);
    li.push_back(2);
    li.push_back(3);
+
+   foreach(it, li) {
+       printf("%d\n", it);
+   }
    
-   li.filter { return it > 2; }.each { printf("%d\n", it); }
+
+   return 0;
 }

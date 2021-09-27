@@ -4,7 +4,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.0.9
+version 1.1.0
 
 ```
 #include <neo-c2.h>
@@ -64,7 +64,7 @@ int main()
 
 1. It is compatible with C language to some extent. The C preprocessor also works.
 
-2. It has its own heap system. It has an automatic free of the temporarily generated heap (rvalue) and an automatic free of the heap assigned to the variable.
+2. It has its own heap system. It has an automatic free of the temporarily generated heap (rvalue) and an automatic free of the heap assigned to the variable. Alternatively, it supports heap management using BoehmGC at the system level.
 
 3. It has Generics, Method Generics, inline function, debug info (-g option), and lambda.
 
@@ -84,7 +84,7 @@ int main()
 
 1. C言語とある程度互換性があります。Cプリプロセッサーも動きます。
 
-2. 独自のヒープシステムを備えます。一時的に生成されたヒープ（右辺値）の自動freeと変数に代入されたヒープの自動freeを備えます。
+2. 独自のヒープシステムを備えます。一時的に生成されたヒープ（右辺値）の自動freeと変数に代入されたヒープの自動freeを備えます。もしくはBoehmGCを使ったヒープ管理をシステムレベルでサポートします。
 
 3. Generics, Method Generics, inline function, debug info(-g option), lambdaを備えます。
 
@@ -214,6 +214,12 @@ HELLO WORLD
 ```
 
 3. Heap System
+
+Boehm GC is supported at the system level since version 1.1.0. Traditional heap systems have been complex and difficult to debug. Library too
+We also prepared one using Bohm GC. We also have a conventional heap system. If you don't want to use GC, you may be able to use it.
+plug. neo-c2 -gc enables the heap system using Boehm GC. Please -lgc to the linker. Both heap systems are compatible at the source level. If neo-c2 -gc is used, BoehmGC will be used, otherwise neo-c2 -gc will use its own heap system.  For example, the editor vin created with neo-c2 works with either heap system. However, when using BoehmGC, finalize is not called when the object is released. Also, clone is not automatically defined like its own heap system, so you will have to define it yourself.
+
+version 1.1.0よりBoehmGCをシステムレベルでサポートしました。これまでのヒープシステムは複雑でデバッグが困難だったためです。ライブラリもBohmGCを使ったものも用意しました。これまでのヒープシステムも用意してます。GCを使いたくない場合はそちらを使ってもらえればいいかもしれません。neo-c2 -gcとすればBoehmGCを使ったヒープシステムが有効になります。リンカーには-lgcしてください。どちらを使ったヒープシステムでもソースレベルでは互換性があります。neo-c2 -gcとすれば、BoehmGCが使われて、neo-c2 -gcとしない場合では独自のヒープシステムが使われます。たとえばneo-c2で作ったエディッターのvinはどちらのヒープシステムを使っても動きます。ただし、BoehmGCを使った場合はfinalizeがオブジェクトの解放時に呼ばれません。またcloneも独自のヒープシステムと同じく自動では定義されないため、自身で定義する必要があるでしょう。
 
 The cost of learning the library is low, but the heap system will take some time to learn. Basically, use valgrind to check if a memory leak is occurring. You can also find out illegal memory access by using valgrind. You can also use the -g option to find out the location of memory leaks in the source code and unauthorized memory access in the source code. The basic rule is that rvalues (temporary heap generation that is not assigned to variables) are automatically freed.
 

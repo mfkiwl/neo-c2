@@ -1,6 +1,5 @@
 #include "common.h"
 
-#include <wchar.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ncurses.h>

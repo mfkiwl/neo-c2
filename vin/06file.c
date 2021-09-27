@@ -1,8 +1,4 @@
 #include "common.h"
-#include <limits.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 4
 {

@@ -82,7 +82,7 @@ void Vi::finalize(Vi* self) version 1
 {
     delete self.wins;
 
-    endwin();
+//    endwin();
 }
 
 int Vi::main_loop(Vi* self) version 1

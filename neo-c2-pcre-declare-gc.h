@@ -1,5 +1,5 @@
-#include <limits.h>
 #include <wchar.h>
+#include <limits.h>
 #include <pcre.h>
 #include <sys/ioctl.h>
 

@@ -3,7 +3,7 @@ if echo $ARG | sed -e 's/-gc/NEOC_GC/' | grep NEOC_GC 1> /dev/null 2> /dev/null
 then
     if [ "$COME_FLAG" = 1 ]
     then
-        cat $PREFIX/include/neo-c2-pcre-declare-gc.h | cpp -I . -U__GNUC__
+        cat $PREFIX/include/neo-c2-pcre-declare-gc.h | cpp -I . -U__GNUC__ -D_XOPEN_SOURCE
     elif [ -z "$COME_FLAG" ]
     then
         export COME_FLAG=1
@@ -11,15 +11,15 @@ then
 
         if [ -z "$main_module" ]
         then
-            cat $PREFIX/include/neo-c2-pcre-declare-gc.h | cpp -I . -U__GNUC__
+            cat $PREFIX/include/neo-c2-pcre-declare-gc.h | cpp -I . -U__GNUC__ -D_XOPEN_SOURCE
         else
-            cat $PREFIX/include/neo-c2-pcre-main-gc.h | cpp -I . -U__GNUC__
+            cat $PREFIX/include/neo-c2-pcre-main-gc.h | cpp -I . -U__GNUC__ -D_XOPEN_SOURCE
         fi
     fi
 else
     if [ "$COME_FLAG" = 1 ]
     then
-        cat $PREFIX/include/neo-c2-pcre-declare.h | cpp -I . -U__GNUC__
+        cat $PREFIX/include/neo-c2-pcre-declare.h | cpp -I . -U__GNUC__ -D_XOPEN_SOURCE
     elif [ -z "$COME_FLAG" ]
     then
         export COME_FLAG=1
@@ -27,9 +27,9 @@ else
 
         if [ -z "$main_module" ]
         then
-            cat $PREFIX/include/neo-c2-pcre-declare.h | cpp -I . -U__GNUC__
+            cat $PREFIX/include/neo-c2-pcre-declare.h | cpp -I . -U__GNUC__ -D_XOPEN_SOURCE
         else
-            cat $PREFIX/include/neo-c2-pcre-main.h | cpp -I . -U__GNUC__
+            cat $PREFIX/include/neo-c2-pcre-main.h | cpp -I . -U__GNUC__ -D_XOPEN_SOURCE
         fi
     fi
 fi

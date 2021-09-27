@@ -17,6 +17,10 @@
 #include <sys/select.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 
 typedef char*% string;
 
