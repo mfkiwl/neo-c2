@@ -70,7 +70,7 @@ int main()
 
 4. The library is written in neo-c2.h and you don't need to link any library. The library is minimal and keeps learning costs down. It has a collection library and a string library.
 
-5. It has a mixin-layers system. You can implement your application in layers. Each layer is complete and useful for debugging and porting. A vi clone called vico is implemented as an editor implemented in mixin-layers. Please refer to it because it is in a directory called vico.
+5. It has a mixin-layers system. You can implement your application in layers. Each layer is complete and useful for debugging and porting. A vi clone called vin is implemented as an editor implemented in mixin-layers. Please refer to it because it is in a directory called vin.
 
 6. Parallel excuting functions like Go.
 
@@ -106,12 +106,12 @@ int main()
 
 0. INSTALL
 
-Required libraries are llvm-dev, clang, clang++, g++,  gcc, make, autoconf, valgrind, gdb, pcre-dev, gc-dev
+Required libraries are llvm-dev, clang, clang++, gcc, make, autoconf, valgrind, gdb, pcre-dev, gc-dev
 
 Examples
 
 ```
-sudo apt-get install clang clang++ g++ make autoconf llvm-dev git gdb valgrind gcc libpcre-dev libgc-dev
+sudo apt-get install clang clang++ make autoconf llvm-dev git gdb valgrind gcc libpcre-dev libgc-dev
 ```
 
 For PC, WSL, Raspberry PI OS and iSH(iPhone)
@@ -1382,7 +1382,7 @@ int gGlobal;
 
 ```
 ruby <<EOS
-    type = "`./neo-c2 -n global $SOURCE_NAME | grep gGlobal`".split()[1];
+    type = "`neo-c2 -n global $SOURCE_NAME | grep gGlobal`".split()[1];
     puts(type + " gGlobal2;");
 EOS
 ```

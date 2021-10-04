@@ -4,9 +4,9 @@ if [ -e Makefile ]
 then
     make distclean
 fi
-if [ -e vico/Makefile ]
+if [ -e vin/Makefile ]
 then
-    (cd vico; make distclean)
+    (cd vin; make distclean)
 fi
 
 if [ ! -e Makefile ]
