@@ -100,6 +100,45 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     return TRUE;
 }
 
+/*
+static BOOL linker(char* fname, BOOL optimize, BOOL no_linker)
+{
+    /// linker ///
+    char* p = fname + strlen(fname);
+    
+    while(p >= fname) {
+        if(*p == '.') {
+            break;
+        }
+        else {
+            p--;
+        }
+    }
+    
+    if(p == fname) {
+        fprintf(stderr, "invalid file name. require extension name");
+        return FALSE;
+    }
+    
+    char bname[PATH_MAX];
+    memcpy(bname, fname, p - fname);
+    bname[p-fname] = '\0';
+    
+    if(no_linker) {
+        char cmd[1024];
+        snprintf(cmd, 1024, "clang -c %s.ll", fname);
+        
+        int rc = system(cmd);
+        if(rc != 0) {
+            fprintf(stderr, "return code is error on clang\n");
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+*/
+
 char* gVersion = "1.1.0";
 BOOL gNCDebug = FALSE;
 BOOL gNCGC = FALSE;
@@ -127,7 +166,7 @@ int main(int argc, char** argv)
     char optiones[1024];
 
     optiones[0] = '\0';
-
+    
     int i;
     for(i=1; i<argc; i++) {
         if(strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-version") == 0 || strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "-V") == 0)
@@ -259,6 +298,13 @@ int main(int argc, char** argv)
     }
 
     compiler_final(sname);
+    
+/*
+    if(!linker(sname, optimize, no_linker)) {
+        fprintf(stderr, "come can't compile(2) %s\n", sname);
+        return 1;
+    }
+*/
 
     return 0;
 }

@@ -19,7 +19,7 @@ fi
 DEBUGGING=0
 
 AC_ARG_WITH(debug,              [  --with-debug              include debug info ], [ DEBUGGING=1; ], [])
-AC_ARG_WITH(optimize,           [  --with-optimize           with optimize(-O3 in CFLAGS) ], [ ENABLE_OPTIMIZE=1 ], [ ENABLE_OPTIMIZE=0 ])
+AC_ARG_WITH(optimize,           [  --with-optimize           with optimize(-O2 in CFLAGS) ], [ ENABLE_OPTIMIZE=1 ], [ ENABLE_OPTIMIZE=0 ])
 
 #################################################
 # check cpu type
@@ -163,7 +163,7 @@ fi
 
 if test $ENABLE_OPTIMIZE = 1
 then
-    CFLAGS="$CFLAGS -O3"
+    CFLAGS="$CFLAGS -O2"
 fi
 
 if test $DEBUGGING = 1
@@ -234,14 +234,15 @@ if test $DEBUGGING = 1
 then
     CXXFLAGS="-g $CXXFLAGS"
 else
-    CXXFLAGS="-O3 $CXXFLAGS"
+    CXXFLAGS="-O2 $CXXFLAGS"
 fi
 
 LIBS="$LIBS"
 
 AC_SUBST(CXX)
 
-OBJS="src/parser.o src/alignment.o src/buffer.o src/xfunc.o src/node.o src/node_function.o src/node_function2.o src/node_compile.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/vtable.o src/node_type.o src/klass.o src/constant.o src/node_block.o src/typedef.o src/compiler.o src/macro.o"
+OBJS="src/parser.o src/parser2.o src/parser3.o src/parser4.o src/parser5.o src/parser6.o src/parser7.o src/parser8.o src/alignment.o src/buffer.o src/xfunc.o src/node.o src/node_function.o src/node_function2.o src/node_function3.o src/node_function4.o src/node_function5.o src/node_compile.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/vtable.o src/node_type.o src/klass.o src/constant.o src/node_block.o src/typedef.o src/compiler.o src/macro.o"
+SELF_HOST_OBJS="src/main.c.o src/parser.c.o src/parser2.c.o src/parser3.c.o src/parser4.c.o src/parser5.c.o src/parser6.c.o src/parser7.c.o src/parser8.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/node.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o src/node_function.c.o src/node_function2.c.o src/node_function3.c.o src/node_function4.c.o src/node_function5.c.o src/node_loop.c.o src/node_op.c.o src/node_value.c.o src/node_var.c.o src/macro.c.o src/node_compile.c.o"
 
 AC_CHECK_FUNCS(lchmod)
 
@@ -278,7 +279,7 @@ fi
 
 if test $DEBUGGING = 1
 then
-    CXXFLAGS2="${CXXFLAGS#-O2}"
+    CXXFLAGS2="${CXXFLAGS}"
 else
     CXXFLAGS2="${CXXFLAGS#-g}"
 fi
@@ -290,5 +291,6 @@ AC_SUBST(CFLAGS)
 AC_CHECK_FUNCS(execvpe)
 
 AC_SUBST(OBJS)
+AC_SUBST(SELF_HOST_OBJS)
 
 AC_OUTPUT(Makefile)

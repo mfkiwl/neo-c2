@@ -1312,7 +1312,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-debug              include debug info
   --with-gc                 include BoehmGC
-  --with-optimize           with optimize(-O in CFLAGS)
+  --with-optimize           with optimize(-O2 in CFLAGS)
 
 Some influential environment variables:
   CC          C compiler command

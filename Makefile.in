@@ -26,13 +26,12 @@ LIBS=@LIBS@
 OS=@OS@
 DESTDIR=@DESTDIR@
 OBJS=@OBJS@
+SELF_HOST_OBJS=@SELF_HOST_OBJS@
 
 #########################################
 # main
 #########################################
 all: neo-c2 self-host
-
-debug: neo-c2 debug-self-host
 
 no-self-host: neo-c2
 
@@ -40,137 +39,132 @@ neo-c2: config.h src/main.o $(OBJS)
 	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
 	$(CXX) -o neo-c2 src/main.o $(OBJS) $(CXXFLAGS)
 
-self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c src/node_function.c src/node_function2.c src/node_loop.c src/node_op.c src/node_value.c src/node_var.c src/macro.c
-	./neo-c2 src/parser.c $(CFLAGS) 
-	$(CC) -c -o src/parser.c.o src/parser.c.ll -fPIC
+self-host: config.h $(SELF_HOST_OBJS)
+	$(CXX) -o neo-c2 $(SELF_HOST_OBJS) $(CXXFLAGS) -fPIC
 
-	./neo-c2 src/alignment.c $(CFLAGS)
-	$(CC) -c -o src/alignment.c.o src/alignment.c.ll -fPIC
-
-	./neo-c2 src/buffer.c $(CFLAGS)
-	$(CC) -c -o src/buffer.c.o src/buffer.c.ll -fPIC
-
-	./neo-c2 src/xfunc.c $(CFLAGS)
-	$(CC) -c -o src/xfunc.c.o src/xfunc.c.ll -fPIC
-
-	./neo-c2 src/node.c $(CFLAGS)
-	$(CC) -c -o src/node.c.o src/node.c.ll -fPIC
-
-	./neo-c2 src/node_function.c $(CFLAGS)
-	$(CC) -c -o src/node_function.c.o src/node_function.c.ll -fPIC
-
-	./neo-c2 src/node_function2.c $(CFLAGS)
-	$(CC) -c -o src/node_function2.c.o src/node_function2.c.ll -fPIC
-
-	./neo-c2 src/node_loop.c $(CFLAGS)
-	$(CC) -c -o src/node_loop.c.o src/node_loop.c.ll -fPIC
-
-	./neo-c2 src/node_op.c $(CFLAGS)
-	$(CC) -c -o src/node_op.c.o src/node_op.c.ll -fPIC
-
-	./neo-c2 src/node_value.c $(CFLAGS)
-	$(CC) -c -o src/node_value.c.o src/node_value.c.ll -fPIC
-
-	./neo-c2 src/node_var.c $(CFLAGS)
-	$(CC) -c -o src/node_var.c.o src/node_var.c.ll -fPIC
-
-	./neo-c2 src/node_compile.c $(CFLAGS)
-	$(CC) -c -o src/node_compile.c.o src/node_compile.c.ll -fPIC
-
-	./neo-c2 src/vtable.c $(CFLAGS)
-	$(CC) -c -o src/vtable.c.o src/vtable.c.ll -fPIC
-
-	./neo-c2 src/node_type.c $(CFLAGS)
-	$(CC) -c -o src/node_type.c.o src/node_type.c.ll -fPIC
-
-	./neo-c2 src/klass.c $(CFLAGS)
-	$(CC) -c -o src/klass.c.o src/klass.c.ll -fPIC
-
-	./neo-c2 src/constant.c $(CFLAGS)
-	$(CC) -c -o src/constant.c.o src/constant.c.ll -fPIC
-
-	./neo-c2 src/node_block.c $(CFLAGS)
-	$(CC) -c -o src/node_block.c.o src/node_block.c.ll -fPIC
-
-	./neo-c2 src/typedef.c $(CFLAGS)
-	$(CC) -c -o src/typedef.c.o src/typedef.c.ll -fPIC
-
-	./neo-c2 src/compiler.c $(CFLAGS)
-	$(CC) -c -o src/compiler.c.o src/compiler.c.ll -fPIC
-
-	./neo-c2 src/macro.c $(CFLAGS)
-	$(CC) -c -o src/macro.c.o src/macro.c.ll -fPIC
-
+src/main.c.o: src/main.c
 	./neo-c2 src/main.c $(CFLAGS)
-	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC
+	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC $(CFLAGS)
 
-	$(CXX) -o neo-c2 src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o src/macro.c.o $(CXXFLAGS) -fPIC
+src/parser.c.o: src/parser.c
+	./neo-c2 src/parser.c $(CFLAGS) 
+	$(CC) -c -o src/parser.c.o src/parser.c.ll -fPIC $(CFLAGS)
 
-debug-self-host: src/parser.c src/alignment.c src/buffer.c src/xfunc.c src/node.c src/vtable.c src/node_type.c src/klass.c src/constant.c src/node_block.c src/typedef.c src/compiler.c src/node_function.c src/node_function2.c src/node_loop.c src/node_op.c src/node_value.c src/node_var.c src/macro.c
-	./neo-c2 src/parser.c $(CFLAGS) -g
-	$(CC) -c -o src/parser.c.o src/parser.c.ll -fPIC -g
+src/parser2.c.o: src/parser2.c
+	./neo-c2 src/parser2.c $(CFLAGS) 
+	$(CC) -c -o src/parser2.c.o src/parser2.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/alignment.c $(CFLAGS) -g
-	$(CC) -c -o src/alignment.c.o src/alignment.c.ll -fPIC -g
+src/parser3.c.o: src/parser3.c
+	./neo-c2 src/parser3.c $(CFLAGS) 
+	$(CC) -c -o src/parser3.c.o src/parser3.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/buffer.c $(CFLAGS) -g
-	$(CC) -c -o src/buffer.c.o src/buffer.c.ll -fPIC -g
+src/parser4.c.o: src/parser4.c
+	./neo-c2 src/parser4.c $(CFLAGS) 
+	$(CC) -c -o src/parser4.c.o src/parser4.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/xfunc.c $(CFLAGS) -g
-	$(CC) -c -o src/xfunc.c.o src/xfunc.c.ll -fPIC -g
+src/parser5.c.o: src/parser5.c
+	./neo-c2 src/parser5.c $(CFLAGS) 
+	$(CC) -c -o src/parser5.c.o src/parser5.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/node.c $(CFLAGS) -g
-	$(CC) -c -o src/node.c.o src/node.c.ll -fPIC -g
+src/parser6.c.o: src/parser6.c
+	./neo-c2 src/parser6.c $(CFLAGS) 
+	$(CC) -c -o src/parser6.c.o src/parser6.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/node_function.c $(CFLAGS) -g
-	$(CC) -c -o src/node_function.c.o src/node_function.c.ll -fPIC -g
+src/parser7.c.o: src/parser7.c
+	./neo-c2 src/parser7.c $(CFLAGS) 
+	$(CC) -c -o src/parser7.c.o src/parser7.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/node_function2.c $(CFLAGS) -g
-	$(CC) -c -o src/node_function2.c.o src/node_function2.c.ll -fPIC -g
+src/parser8.c.o: src/parser8.c
+	./neo-c2 src/parser8.c $(CFLAGS) 
+	$(CC) -c -o src/parser8.c.o src/parser8.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/node_loop.c $(CFLAGS) -g
-	$(CC) -c -o src/node_loop.c.o src/node_loop.c.ll -fPIC -g
+src/alignment.c.o: src/alignment.c
+	./neo-c2 src/alignment.c $(CFLAGS)
+	$(CC) -c -o src/alignment.c.o src/alignment.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/node_op.c $(CFLAGS) -g
-	$(CC) -c -o src/node_op.c.o src/node_op.c.ll -fPIC -g
+src/buffer.c.o: src/buffer.c
+	./neo-c2 src/buffer.c $(CFLAGS)
+	$(CC) -c -o src/buffer.c.o src/buffer.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/node_value.c $(CFLAGS) -g
-	$(CC) -c -o src/node_value.c.o src/node_value.c.ll -fPIC -g
+src/xfunc.c.o: src/xfunc.c
+	./neo-c2 src/xfunc.c $(CFLAGS)
+	$(CC) -c -o src/xfunc.c.o src/xfunc.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/node_var.c $(CFLAGS) -g
-	$(CC) -c -o src/node_var.c.o src/node_var.c.ll -fPIC -g
+src/node.c.o: src/node.c
+	./neo-c2 src/node.c $(CFLAGS)
+	$(CC) -c -o src/node.c.o src/node.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/node_compile.c $(CFLAGS) -g
-	$(CC) -c -o src/node_compile.c.o src/node_compile.c.ll -fPIC -g
+src/node_function.c.o: src/node_function.c
+	./neo-c2 src/node_function.c $(CFLAGS)
+	$(CC) -c -o src/node_function.c.o src/node_function.c.ll -fPIC $(CFLAGS#-O2)
 
-	./neo-c2 src/vtable.c $(CFLAGS) -g
-	$(CC) -c -o src/vtable.c.o src/vtable.c.ll -fPIC -g
+src/node_function2.c.o: src/node_function2.c
+	./neo-c2 src/node_function2.c $(CFLAGS)
+	$(CC) -c -o src/node_function2.c.o src/node_function2.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/node_type.c $(CFLAGS) -g
-	$(CC) -c -o src/node_type.c.o src/node_type.c.ll -fPIC -g
+src/node_function3.c.o: src/node_function3.c
+	./neo-c2 src/node_function3.c $(CFLAGS)
+	$(CC) -c -o src/node_function3.c.o src/node_function3.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/klass.c $(CFLAGS) -g
-	$(CC) -c -o src/klass.c.o src/klass.c.ll -fPIC -g
+src/node_function4.c.o: src/node_function4.c
+	./neo-c2 src/node_function4.c $(CFLAGS)
+	$(CC) -c -o src/node_function4.c.o src/node_function4.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/constant.c $(CFLAGS) -g
-	$(CC) -c -o src/constant.c.o src/constant.c.ll -fPIC -g
+src/node_function5.c.o: src/node_function5.c
+	./neo-c2 src/node_function5.c $(CFLAGS)
+	$(CC) -c -o src/node_function5.c.o src/node_function5.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/node_block.c $(CFLAGS) -g
-	$(CC) -c -o src/node_block.c.o src/node_block.c.ll -fPIC -g
+src/node_loop.c.o: src/node_loop.c
+	./neo-c2 src/node_loop.c $(CFLAGS)
+	$(CC) -c -o src/node_loop.c.o src/node_loop.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/typedef.c $(CFLAGS) -g
-	$(CC) -c -o src/typedef.c.o src/typedef.c.ll -fPIC -g
+src/node_op.c.o: src/node_op.c
+	./neo-c2 src/node_op.c $(CFLAGS)
+	$(CC) -c -o src/node_op.c.o src/node_op.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/compiler.c $(CFLAGS) -g
-	$(CC) -c -o src/compiler.c.o src/compiler.c.ll -fPIC -g
+src/node_value.c.o: src/node_value.c
+	./neo-c2 src/node_value.c $(CFLAGS)
+	$(CC) -c -o src/node_value.c.o src/node_value.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/macro.c $(CFLAGS) -g
-	$(CC) -c -o src/macro.c.o src/macro.c.ll -fPIC -g
+src/node_var.c.o: src/node_var.c
+	./neo-c2 src/node_var.c $(CFLAGS)
+	$(CC) -c -o src/node_var.c.o src/node_var.c.ll -fPIC $(CFLAGS)
 
-	./neo-c2 src/main.c $(CFLAGS) -g
-	$(CC) -c -o src/main.c.o src/main.c.ll -fPIC -g
+src/node_compile.c.o: src/node_compile.c
+	./neo-c2 src/node_compile.c $(CFLAGS)
+	$(CC) -c -o src/node_compile.c.o src/node_compile.c.ll -fPIC $(CFLAGS)
 
-	$(CXX) -o neo-c2 src/main.c.o src/node.c.o src/node_function.o src/node_function2.o src/node_loop.o src/node_op.o src/node_value.o src/node_var.o src/node_compile.o src/parser.c.o src/alignment.c.o src/buffer.c.o src/xfunc.c.o src/vtable.c.o src/node_type.c.o src/klass.c.o src/constant.c.o src/node_block.c.o src/typedef.c.o src/compiler.c.o src/macro.c.o $(CXXFLAGS2) -fPIC
+src/vtable.c.o: src/vtable.c
+	./neo-c2 src/vtable.c $(CFLAGS)
+	$(CC) -c -o src/vtable.c.o src/vtable.c.ll -fPIC $(CFLAGS)
+
+src/node_type.c.o: src/node_type.c
+	./neo-c2 src/node_type.c $(CFLAGS)
+	$(CC) -c -o src/node_type.c.o src/node_type.c.ll -fPIC $(CFLAGS)
+
+src/klass.c.o: src/klass.c
+	./neo-c2 src/klass.c $(CFLAGS)
+	$(CC) -c -o src/klass.c.o src/klass.c.ll -fPIC $(CFLAGS)
+
+src/constant.c.o: src/constant.c
+	./neo-c2 src/constant.c $(CFLAGS)
+	$(CC) -c -o src/constant.c.o src/constant.c.ll -fPIC $(CFLAGS)
+
+src/node_block.c.o: src/node_block.c
+	./neo-c2 src/node_block.c $(CFLAGS)
+	$(CC) -c -o src/node_block.c.o src/node_block.c.ll -fPIC $(CFLAGS)
+
+src/typedef.c.o: src/typedef.c
+	./neo-c2 src/typedef.c $(CFLAGS)
+	$(CC) -c -o src/typedef.c.o src/typedef.c.ll -fPIC $(CFLAGS)
+
+src/compiler.c.o: src/compiler.c
+	./neo-c2 src/compiler.c $(CFLAGS)
+	$(CC) -c -o src/compiler.c.o src/compiler.c.ll -fPIC $(CFLAGS)
+
+src/macro.c.o: src/macro.c
+	./neo-c2 src/macro.c $(CFLAGS)
+	$(CC) -c -o src/macro.c.o src/macro.c.ll -fPIC $(CFLAGS)
 
 #########################################
 # Object files

@@ -298,3 +298,121 @@ sFunction* get_function_from_table(char* name)
         }
     }
 }
+
+void llvm_change_block(LLVMBasicBlockRef current_block, sCompileInfo* info)
+{
+    LLVMPositionBuilderAtEnd(gBuilder, current_block);
+    info->current_block = current_block;
+}
+
+void create_generics_fun_name(char* real_fun_name, int size_real_fun_name, char* fun_name,  sNodeType* generics_type, int num_method_generics_types, sNodeType** method_generics_types)
+{
+    xstrncpy(real_fun_name, "", size_real_fun_name);
+
+    xstrncat(real_fun_name, fun_name, size_real_fun_name);
+
+    if(generics_type) {
+        int i;
+        if(generics_type->mNumGenericsTypes > 0) {
+            xstrncat(real_fun_name, "_", size_real_fun_name);
+        }
+
+        for(i=0; i<generics_type->mNumGenericsTypes; i++)
+        {
+            sNodeType* node_type = generics_type->mGenericsTypes[i];
+
+            sCLClass* klass = node_type->mClass;
+            xstrncat(real_fun_name, CLASS_NAME(klass), size_real_fun_name);
+
+            int j;
+            for(j=0; j<node_type->mPointerNum; j++) 
+            {
+                xstrncat(real_fun_name, "p", size_real_fun_name);
+            }
+
+            if(node_type->mHeap) {
+                xstrncat(real_fun_name, "h", size_real_fun_name);
+            }
+
+            if(i != generics_type->mNumGenericsTypes-1) {
+                xstrncat(real_fun_name, "_", size_real_fun_name);
+            }
+        }
+    }
+    else if(num_method_generics_types > 0) {
+        xstrncat(real_fun_name, "_", size_real_fun_name);
+
+        int i;
+        for(i=0; i<num_method_generics_types; i++) 
+        {
+            sNodeType* node_type = method_generics_types[i];
+
+            sCLClass* klass = node_type->mClass;
+            xstrncat(real_fun_name, CLASS_NAME(klass), size_real_fun_name);
+
+            int j;
+            for(j=0; j<node_type->mPointerNum; j++) 
+            {
+                xstrncat(real_fun_name, "p", size_real_fun_name);
+            }
+
+            if(node_type->mHeap) {
+                xstrncat(real_fun_name, "h", size_real_fun_name);
+            }
+
+            if(i != num_method_generics_types-1) {
+                xstrncat(real_fun_name, "_", size_real_fun_name);
+            }
+        }
+    }
+}
+
+BOOL solve_type(sNodeType** node_type, sNodeType* generics_type, int num_method_generics_types, sNodeType** method_generics_types, sCompileInfo* info)
+{
+    if(!solve_method_generics(node_type, num_method_generics_types, method_generics_types))
+    {
+        compile_err_msg(info, "Can't solve method generics type");
+        show_node_type(*node_type);
+        info->err_num++;
+
+        return FALSE;
+    }
+
+    if(generics_type) {
+        if(!solve_generics(node_type, generics_type))
+        {
+            compile_err_msg(info, "Can't solve generics types(3)");
+            show_node_type(*node_type);
+            show_node_type(generics_type);
+            info->err_num++;
+
+            return FALSE;
+        }
+    }
+
+    if(is_typeof_type(*node_type))
+    {
+        if(!solve_typeof(node_type, info)) 
+        {
+            compile_err_msg(info, "Can't solve typeof types");
+            show_node_type(*node_type);
+            info->err_num++;
+            return TRUE;
+        }
+    }
+
+
+    return TRUE;
+}
+
+void create_real_fun_name(char* real_fun_name, size_t size_real_fun_name, char* fun_name, char* struct_name)
+{
+    if(strcmp(struct_name, "") == 0) {
+        xstrncpy(real_fun_name, fun_name, size_real_fun_name);
+    }
+    else {
+        xstrncpy(real_fun_name, struct_name, size_real_fun_name);
+        xstrncat(real_fun_name, "_", size_real_fun_name);
+        xstrncat(real_fun_name, fun_name, size_real_fun_name);
+    }
+}
