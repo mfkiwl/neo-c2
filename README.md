@@ -4,7 +4,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.1.0
+version 1.1.1
 
 ```
 #include <neo-c2.h>
@@ -165,6 +165,23 @@ or
 bash home_build.sh
 ```
 
+With debug info and fast compile
+
+```
+git clone https://github.com/ab25cq/neo-c2
+
+cd neo-c2
+
+./configure --with-debug
+make
+sudo make install
+make test
+
+or 
+
+bash debug_build.sh
+```
+
 1. Language specifications
 
 It is almost the same as C language. Since it is not POSIX compliant, it is not compatible with C language in every detail, but I think that anyone who can use C language can use it immediately. If you don't use the heap system and do #include <neo-c2.h>, you can just use it as a C compiler.
@@ -184,8 +201,7 @@ int main()
     return 0;
 }
 > neo-c2 a.c
-> clang a.c.ll
-> ./a.out
+> ./a
 HELLO WORLD
 ```
 
@@ -194,9 +210,9 @@ The compilation result is output to the source file name.ll. The output of the C
 コンパイル結果はソースファイル名.llに出力されます。ソースファイル名.iにCプリプロセッサの出力が保存されます。ライブラリは何もリンクする必要がありません。
 通常のCコンパイラと同じように使えます。もちろんライブラリもC言語のものを自由に使えます。-gオプションをつけるとデバッグ情報も出力されます。
 
-コンパイルするclangですがLLVM-10以上が必要でLLVM-7が標準のdebianではsudo apt-get install llvm-11-devしてください。その場合はllをコンパイルするclangはclang-11としてください。まあ、今のbusterでのDebianの話ですが。
+version 1.1.1よりリンカーが起動するようになりました。オブジェクトファイルを出力するためには-cオプションを使ってください。
 
-It is clang to compile, but LLVM-10 or higher is required, and LLVM-7 is standard debian, please do sudo apt-get install llvm-11-dev. In that case, clang to compile ll should be clang-11. Well, it's about Debian in the current buster.
+From version 1.1.1, neo-c2 runs linker. If you want to an object file, use -c option.
 
 ```
 > vim a.c
@@ -208,8 +224,7 @@ int main()
     return 0;
 }
 > neo-c2 a.c
-> clang-11 a.c.ll
-> ./a.out
+> ./a
 HELLO WORLD
 ```
 
@@ -1750,4 +1765,6 @@ main FINISH
 fun finish
 ```
 
+# CHANGELOG
 
+version 1.1.1 neo-c2 runs linker. If you want to object file, use -c option

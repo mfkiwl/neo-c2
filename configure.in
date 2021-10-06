@@ -258,6 +258,7 @@ then
     echo llvm-11 ok
     LLVM_VERSION=`llvm-config-11 --version | sed 's/\([[0-9]]*\)\.[[0-9]]*\.[[0-9]]*/\1/'`
     CFLAGS="$CFLAGS -DLLVM_VERSION=$LLVM_VERSION"
+    CFLAGS=$CFLAGS' -DCLANG="\"clang-11\""'
 elif which llvm-config-9 1> /dev/null 2>/dev/null
 then
     CFLAGS=`llvm-config-9 --cflags | tr '\n' ' '`" $CFLAGS"
@@ -265,12 +266,14 @@ then
     echo llvm-9 ok
     LLVM_VERSION=`llvm-config-9 --version | sed 's/\([[0-9]]*\)\.[[0-9]]*\.[[0-9]]*/\1/'`
     CFLAGS="$CFLAGS -DLLVM_VERSION=$LLVM_VERSION"
+    CFLAGS=$CFLAGS' -DCLANG="\"clang-9\""'
 elif which llvm-config 1> /dev/null 2>/dev/null
 then
     CFLAGS=`llvm-config --cflags | tr '\n' ' '`" $CFLAGS"
     CXXFLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs core | tr '\n' ' '`" $CXXFLAGS"
     LLVM_VERSION=`llvm-config --version | sed 's/\([[0-9]]*\)\.[[0-9]]*\.[[0-9]]*/\1/'`
     CFLAGS="$CFLAGS -DLLVM_VERSION=$LLVM_VERSION"
+    CFLAGS=$CFLAGS' -DCLANG="\"clang\""'
     echo ok
 else
     echo no
@@ -287,6 +290,7 @@ fi
 AC_SUBST(CXXFLAGS)
 AC_SUBST(CXXFLAGS2)
 AC_SUBST(CFLAGS)
+AC_SUBST(CLANG)
 
 AC_CHECK_FUNCS(execvpe)
 

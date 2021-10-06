@@ -69,7 +69,7 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     snprintf(cmd, 1024, "cpp %s -U__GNUC__ %s %s > %s", cflags, fname, macro_definition, fname2);
 #endif
 
-    //puts(cmd);
+    puts(cmd);
     int rc = system(cmd);
     if(rc != 0) {
         char cmd[1024];
@@ -100,8 +100,7 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     return TRUE;
 }
 
-/*
-static BOOL linker(char* fname, BOOL optimize, BOOL no_linker)
+static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files, char** obj_files, char* clang_optiones)
 {
     /// linker ///
     char* p = fname + strlen(fname);
@@ -126,20 +125,37 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker)
     
     if(no_linker) {
         char cmd[1024];
-        snprintf(cmd, 1024, "clang -c %s.ll", fname);
+        snprintf(cmd, 1024, "%s -o %s.o -c %s.ll %s", CLANG, fname, fname, clang_optiones);
         
+        puts(cmd);
         int rc = system(cmd);
         if(rc != 0) {
             fprintf(stderr, "return code is error on clang\n");
-            return FALSE;
+            exit(2);
+        }
+    }
+    else {
+        char cmd[1024];
+        snprintf(cmd, 1024, "%s -o %s %s.ll %s", CLANG, bname, fname, clang_optiones);
+        
+        int i;
+        for(i=0; i<num_obj_files; i++) {
+            xstrncat(cmd, obj_files[i], 1024);
+            xstrncat(cmd, " ", 1024);
+        }
+        
+        puts(cmd);
+        int rc = system(cmd);
+        if(rc != 0) {
+            fprintf(stderr, "return code is error on clang\n");
+            exit(2);
         }
     }
 
     return TRUE;
 }
-*/
 
-char* gVersion = "1.1.0";
+char* gVersion = "1.1.1";
 BOOL gNCDebug = FALSE;
 BOOL gNCGC = FALSE;
 char gFName[PATH_MAX];
@@ -160,11 +176,17 @@ int main(int argc, char** argv)
     char c_include_path[max_c_include_path];
     snprintf(c_include_path, max_c_include_path, "%s/include/", PREFIX);
     char macro_definition[max_c_include_path];
+    char obj_files[128][PATH_MAX];
+    int num_obj_files = 0;
+    BOOL no_linker = FALSE;
 
     macro_definition[0] = '\0';
 
     char optiones[1024];
+    
+    char clang_optiones[1024];
 
+    clang_optiones[0] = '\0';
     optiones[0] = '\0';
     
     int i;
@@ -178,11 +200,17 @@ int main(int argc, char** argv)
         {
             gNCDebug = TRUE;
             xstrncat(optiones, "-g ", 1024);
+            xstrncat(clang_optiones, "-g ", 1024);
         }
         else if(strcmp(argv[i], "-gc") == 0)
         {
             gNCGC = TRUE;
             xstrncat(optiones, "-gc ", 1024);
+        }
+        else if(strcmp(argv[i], "-c") == 0) {
+            no_linker = TRUE;
+            xstrncat(optiones, "-c ", 1024);
+            xstrncat(clang_optiones, "-c ", 1024);
         }
         else if(strcmp(argv[i], "type") == 0)
         {
@@ -268,10 +296,21 @@ int main(int argc, char** argv)
 
             xstrncat(macro_definition, dquort_argv, max_c_include_path);
             xstrncat(macro_definition, " ", max_c_include_path);
-            i++;
+        }
+        else if(*argv[i] == '-') {
+            xstrncat(clang_optiones, argv[i], 1024);
+            xstrncat(clang_optiones, " ", 1024);
         }
         else if(*argv[i] != '-' && sname[0] == '\0') {
             xstrncpy(sname, argv[i], PATH_MAX);
+        }
+        else {
+            xstrncpy(obj_files[num_obj_files++], argv[i], PATH_MAX);
+            
+            if(num_obj_files >= 128) {
+                fprintf(stderr, "overflow obj files number\n");
+                exit(2);
+            }
         }
     }
     
@@ -299,12 +338,18 @@ int main(int argc, char** argv)
 
     compiler_final(sname);
     
-/*
-    if(!linker(sname, optimize, no_linker)) {
-        fprintf(stderr, "come can't compile(2) %s\n", sname);
-        return 1;
+    char* obj_files2[128];
+    int k;
+    for(k=0; k<num_obj_files; k++) {
+        obj_files2[k] = obj_files[k];
     }
-*/
+    
+    if(!gNCType && !gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef && !gNCNoMacro) {
+        if(!linker(sname, optimize, no_linker, num_obj_files, obj_files2, clang_optiones)) {
+            fprintf(stderr, "neo-c-2 can't compile(2) %s\n", sname);
+            return 1;
+        }
+    }
 
     return 0;
 }
