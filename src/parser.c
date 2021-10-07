@@ -105,9 +105,6 @@ BOOL parse_word(char* buf, int buf_size, sParserInfo* info, BOOL print_out_err_m
     if(*info->p == 0 && buf[0] == 0) {
         if(print_out_err_msg) {
             parser_err_msg(info, "require word(alphabet or number). this is the end of source");
-            int a = 0;
-            int b = 1;
-            int c = b/a;
         }
         return FALSE;
     }
@@ -118,9 +115,6 @@ BOOL parse_word(char* buf, int buf_size, sParserInfo* info, BOOL print_out_err_m
             snprintf(buf, 1024, "require word(alphabet or _ or number). this is (%c)", *info->p);
             parser_err_msg(info, buf);
             info->err_num++;
-            int a = 0;
-            int b = 1;
-            int c = b/a;
         }
 
         if(*info->p == '\n') info->sline++;

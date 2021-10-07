@@ -1772,9 +1772,6 @@ void arrange_stack(sCompileInfo* info, int top)
     }
     if(info->stack_num < top) {
         fprintf(stderr, "%s %d: unexpected stack value. The stack num is %d. top is %d\n", info->sname, info->sline, info->stack_num, top);
-        int a = 0;
-        int b = 1;
-        int c = b/a;
         exit(2);
     }
 }
@@ -1907,9 +1904,6 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
 
     if(result_type == NULL) {
         fprintf(stderr, "invalid type %s(1)\n", class_name);
-        int a = 0;
-        int b = 1;
-        int c = b/a;
         exit(1);
     }
 

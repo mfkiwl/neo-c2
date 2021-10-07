@@ -1046,10 +1046,6 @@ BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* name, BOOL
             parser_err_msg(info, msg);
             info->err_num++;
 
-            int a = 0;
-            int b = 1;
-            int c = b/a;
-
             *node = 0;
         }
         else {

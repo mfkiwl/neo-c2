@@ -602,6 +602,11 @@ Vi*% Vi::initialize(Vi* self) version 2
         self.activeWin.moveAtHead();
         self.activeWin.saveInputedKeyOnTheMovingCursor();
     });
+    self.events.replace('|', void lambda(Vi* self, int key) 
+    {
+        self.activeWin.moveAtHead();
+        self.activeWin.saveInputedKeyOnTheMovingCursor();
+    });
     self.events.replace('$', void lambda(Vi* self, int key) 
     {
         if(self.activeWin.digitInput > 0) {
