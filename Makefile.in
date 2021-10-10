@@ -187,7 +187,7 @@ distclean: clean
 #########################################
 test: 
 	@echo "Compile to test code..."
-	PWD=`pwd` ./neo-c2 code/HelloWorld.c
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld.c
 	./code/HelloWorld
 	PWD=`pwd` ./neo-c2 code/HelloWorld2.c
 	./code/HelloWorld2
@@ -216,7 +216,7 @@ test:
 
 debug-test: 
 	@echo "Compile to test code..."
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld.c
+	PWD=`pwd` ./neo-c2 -g -no-gc code/HelloWorld.c
 	./code/HelloWorld
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld2.c
 	./code/HelloWorld2
