@@ -1,10 +1,10 @@
 
 ```
-if echo $ARG | sed -e 's/-gc/NEOC_GC/' | grep NEOC_GC 1> /dev/null 2> /dev/null
+if echo $ARG | sed -e 's/-no-gc/NEOC_NO_GC/' | grep NEOC_NO_GC 1> /dev/null 2> /dev/null
 then
-    cat $PREFIX/include/neo-c2-gc.h | cpp -I . -U__GNUC__
-else
     cat $PREFIX/include/neo-c2-no-gc.h | cpp -I . -U__GNUC__
+else
+    cat $PREFIX/include/neo-c2-gc.h | cpp -I . -U__GNUC__
 fi
 ```
 

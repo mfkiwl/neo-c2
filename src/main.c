@@ -136,7 +136,7 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
     }
     else {
         char cmd[1024];
-        snprintf(cmd, 1024, "%s -o %s %s.ll %s", CLANG, bname, fname, clang_optiones);
+        snprintf(cmd, 1024, "%s -o %s %s.ll %s -lgc -lpcre -lpthread", CLANG, bname, fname, clang_optiones);
         
         int i;
         for(i=0; i<num_obj_files; i++) {
@@ -155,9 +155,9 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
     return TRUE;
 }
 
-char* gVersion = "1.1.1";
+char* gVersion = "1.1.2";
 BOOL gNCDebug = FALSE;
-BOOL gNCGC = FALSE;
+BOOL gNCGC = TRUE;
 char gFName[PATH_MAX];
 sVarTable* gModuleVarTable;
 BOOL gNCType = FALSE;
@@ -206,6 +206,11 @@ int main(int argc, char** argv)
         {
             gNCGC = TRUE;
             xstrncat(optiones, "-gc ", 1024);
+        }
+        else if(strcmp(argv[i], "-no-gc") == 0)
+        {
+            gNCGC = TRUE;
+            xstrncat(optiones, "-no-gc ", 1024);
         }
         else if(strcmp(argv[i], "-c") == 0) {
             no_linker = TRUE;

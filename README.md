@@ -4,7 +4,7 @@ C extension compiler language. Some compatibility for C language.
 
 This language is self-hosted.
 
-version 1.1.1
+version 1.1.2
 
 ```
 #include <neo-c2.h>
@@ -229,6 +229,10 @@ HELLO WORLD
 ```
 
 3. Heap System
+
+Boehm GC is the default from version 1.1.2. You don't have to -lgc. Automatically specify -lgc. The following is the case when using the original heap system.
+
+version 1.1.2よりBoehmGCがデフォルトになりました。-lgcしなくて良いです。自動的に-lgcを指定します。以下はオリジナルのヒープシステムを使う場合です。
 
 The cost of learning the library is low, but the heap system will take some time to learn. Basically, use valgrind to check if a memory leak is occurring. You can also find out illegal memory access by using valgrind. You can also use the -g option to find out the location of memory leaks in the source code and unauthorized memory access in the source code. The basic rule is that rvalues (temporary heap generation that is not assigned to variables) are automatically freed.
 
@@ -687,15 +691,13 @@ int main()
 }
 ```
 
-However, in this example, it seems that memory is leaking when valgrind is applied. Isn't it free at the end? I prepared it for the time being. If you use this feature, please -lgc the linker.
+However, in this example, it seems that memory is leaking when valgrind is applied. Isn't it free at the end? I prepared it for the time being. 
 
-ただ、この例ではvalgrindをかけるとメモリがリークしている様子です。終了時にはfreeしないんですかね。とりあえず用意しました。この機能を使った場合はリンカーに-lgcしてください。
+ただ、この例ではvalgrindをかけるとメモリがリークしている様子です。終了時にはfreeしないんですかね。とりあえず用意しました。
 
-Boehm GC is supported at the system level since version 1.1.0. Traditional heap systems have been complex and difficult to debug. Library too
-We also prepared one using Bohm GC. We also have a conventional heap system. If you don't want to use GC, you may be able to use it.
-plug. neo-c2 -gc enables the heap system using Boehm GC. Please -lgc to the linker. Both heap systems are compatible at the source level. If neo-c2 -gc is used, BoehmGC will be used, otherwise neo-c2 -gc will use its own heap system.  For example, the editor vin created with neo-c2 works with either heap system. However, when using BoehmGC, finalize is not called when the object is released. Also, clone is not automatically defined like its own heap system, so you will have to define it yourself.With -gc, the heap system% mark, delete, borrow, dummy_heap, and no_move are ignored. Also, boehmGC is used even if new is not new (GC).
+Boehm GC is supported at the system level since version 1.1.2. Traditional heap systems have been complex and difficult to debug. I also prepared a library using Bohm GC. We also have a conventional heap system. If you don't want to use GC, you may be able to use it. neo-c2 -no-gc will enable the original heap system. Both heap systems are compatible at the source level. For example, the editor vin created with neo-c2 works with either heap system. However, when using Boehm GC, finalize is not called when the object is released. Also, clone is not automatically defined like its own heap system, so you will have to define it yourself. By default, the heap system% mark and delete, borrow, dummy_heap, no_move are ignored. Also, boehmGC is used even if new is not new (GC).
 
-version 1.1.0よりBoehmGCをシステムレベルでサポートしました。これまでのヒープシステムは複雑でデバッグが困難だったためです。ライブラリもBohmGCを使ったものも用意しました。これまでのヒープシステムも用意してます。GCを使いたくない場合はそちらを使ってもらえればいいかもしれません。neo-c2 -gcとすればBoehmGCを使ったヒープシステムが有効になります。リンカーには-lgcしてください。どちらを使ったヒープシステムでもソースレベルでは互換性があります。neo-c2 -gcとすれば、BoehmGCが使われて、neo-c2 -gcとしない場合では独自のヒープシステムが使われます。たとえばneo-c2で作ったエディッターのvinはどちらのヒープシステムを使っても動きます。ただし、BoehmGCを使った場合はfinalizeがオブジェクトの解放時に呼ばれません。またcloneも独自のヒープシステムと同じく自動では定義されないため、自身で定義する必要があるでしょう。-gcとした場合はヒープシステムの%マークやdelete, borrow, dummy_heap, no_moveは無視されます。またnewもnew (GC)としなくても、boehmGCが使われます。
+version 1.1.2よりBoehmGCをシステムレベルでサポートしました。これまでのヒープシステムは複雑でデバッグが困難だったためです。ライブラリもBohmGCを使ったものも用意しました。これまでのヒープシステムも用意してます。GCを使いたくない場合はそちらを使ってもらえればいいかもしれません。neo-c2 -no-gcとすればオリジナルのヒープシステムが有効になります。どちらを使ったヒープシステムでもソースレベルでは互換性があります。たとえばneo-c2で作ったエディッターのvinはどちらのヒープシステムを使っても動きます。ただし、BoehmGCを使った場合はfinalizeがオブジェクトの解放時に呼ばれません。またcloneも独自のヒープシステムと同じく自動では定義されないため、自身で定義する必要があるでしょう。デフォルトではヒープシステムの%マークやdelete, borrow, dummy_heap, no_moveは無視されます。またnewもnew (GC)としなくても、boehmGCが使われます。
 
 4. Generics
 
@@ -1263,10 +1265,6 @@ int main()
 }
 ```
 
-この機能を使ったときはリンクするときに-lpthreadしてください。
-
-Please link with -lpthread using this functions.
-
 8. Annotation
 
 ```
@@ -1684,10 +1682,8 @@ int main()
 ```
 
 If you use these functions, use #include <come-pcre.h>.
-When linking object files, append -lpcre option for linker.
 
 もしこれらの関数を使うときは#include <come-pcre.h>をつけてください。
-リンクするときに-lpcreを付けてください。
 
 # Macro
 

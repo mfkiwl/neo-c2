@@ -8,7 +8,7 @@ tab --> word completion
 version 1.0.4
 
 
-If you want to use BoehmGC, ./configure --with-gc
+If you don't want to use BoehmGC, ./configure --with-no-gc
 
 * INSTALL
 
