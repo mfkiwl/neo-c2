@@ -1,5 +1,6 @@
 #include "common.h"
 #include <fcntl.h>
+#include <libgen.h>
 
 BOOL read_source(char* fname, sBuf* source)
 {
