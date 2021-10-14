@@ -100,28 +100,34 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     return TRUE;
 }
 
-static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files, char** obj_files, char* clang_optiones)
+static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files, char** obj_files, char* clang_optiones, char* exec_fname)
 {
-    /// linker ///
-    char* p = fname + strlen(fname);
-    
-    while(p >= fname) {
-        if(*p == '.') {
-            break;
-        }
-        else {
-            p--;
-        }
-    }
-    
-    if(p == fname) {
-        fprintf(stderr, "invalid file name. require extension name");
-        return FALSE;
-    }
-    
     char bname[PATH_MAX];
-    memcpy(bname, fname, p - fname);
-    bname[p-fname] = '\0';
+    
+    if(fname[0] != '\0') {
+        /// linker ///
+        char* p = fname + strlen(fname);
+        
+        while(p >= fname) {
+            if(*p == '.') {
+                break;
+            }
+            else {
+                p--;
+            }
+        }
+        
+        if(p == fname) {
+            fprintf(stderr, "invalid file name. require extension name");
+            return FALSE;
+        }
+        
+        memcpy(bname, fname, p - fname);
+        bname[p-fname] = '\0';
+    }
+    else {
+        bname[0] = '\0';
+    }
     
     if(no_linker) {
         char cmd[1024];
@@ -134,13 +140,45 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
             exit(2);
         }
     }
+    else if(fname[0] == '\0') {
+        char cmd[1024];
+        if(!gNCGC) {
+            snprintf(cmd, 1024, "%s -o %s %s ", CLANG, exec_fname, clang_optiones);
+        }
+        else {
+            snprintf(cmd, 1024, "%s -o %s %s -lgc -lpcre -lpthread ", CLANG, exec_fname, clang_optiones);
+        }
+        
+        int i;
+        for(i=0; i<num_obj_files; i++) {
+            xstrncat(cmd, obj_files[i], 1024);
+            xstrncat(cmd, " ", 1024);
+        }
+        
+        puts(cmd);
+        int rc = system(cmd);
+        if(rc != 0) {
+            fprintf(stderr, "return code is error on clang\n");
+            exit(2);
+        }
+    }
     else {
         char cmd[1024];
         if(!gNCGC) {
-            snprintf(cmd, 1024, "%s -o %s %s.ll %s", CLANG, bname, fname, clang_optiones);
+            if(exec_fname[0] != '\0') {
+                snprintf(cmd, 1024, "%s -o %s %s.ll %s ", CLANG, exec_fname, fname, clang_optiones);
+            }
+            else {
+                snprintf(cmd, 1024, "%s -o %s %s.ll %s ", CLANG, bname, fname, clang_optiones);
+            }
         }
         else {
-            snprintf(cmd, 1024, "%s -o %s %s.ll %s -lgc -lpcre -lpthread", CLANG, bname, fname, clang_optiones);
+            if(exec_fname[0] != '\0') {
+                snprintf(cmd, 1024, "%s -o %s %s.ll %s -lgc -lpcre -lpthread ", CLANG, exec_fname, fname, clang_optiones);
+            }
+            else {
+                snprintf(cmd, 1024, "%s -o %s %s.ll %s -lgc -lpcre -lpthread ", CLANG, bname, fname, clang_optiones);
+            }
         }
         
         int i;
@@ -160,7 +198,7 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
     return TRUE;
 }
 
-char* gVersion = "1.1.2";
+char* gVersion = "1.1.3";
 BOOL gNCDebug = FALSE;
 BOOL gNCGC = TRUE;
 char gFName[PATH_MAX];
@@ -184,8 +222,10 @@ int main(int argc, char** argv)
     char obj_files[128][PATH_MAX];
     int num_obj_files = 0;
     BOOL no_linker = FALSE;
+    char exec_fname[PATH_MAX];
 
     macro_definition[0] = '\0';
+    exec_fname[0] = '\0';
 
     char optiones[1024];
     
@@ -279,6 +319,13 @@ int main(int argc, char** argv)
                 i++;
             }
         }
+        else if(strcmp(argv[i], "-o") == 0)
+        {
+            if(i + 1 < argc) {
+                xstrncat(exec_fname, argv[i+1], PATH_MAX);
+                i++;
+            }
+        }
         else if(argv[i][0] == '-' && argv[i][1] == 'D') 
         {
             char dquort_argv[256];
@@ -311,15 +358,37 @@ int main(int argc, char** argv)
             xstrncat(clang_optiones, argv[i], 1024);
             xstrncat(clang_optiones, " ", 1024);
         }
-        else if(*argv[i] != '-' && sname[0] == '\0') {
-            xstrncpy(sname, argv[i], PATH_MAX);
-        }
         else {
-            xstrncpy(obj_files[num_obj_files++], argv[i], PATH_MAX);
+            char* fname = argv[i];
+            char* p = fname + strlen(fname);
             
-            if(num_obj_files >= 128) {
-                fprintf(stderr, "overflow obj files number\n");
-                exit(2);
+            while(p >= fname) {
+                if(*p == '.') {
+                    break;
+                }
+                else {
+                    p--;
+                }
+            }
+            
+            if(p == fname) {
+                fprintf(stderr, "invalid file name. require extension name");
+                return FALSE;
+            }
+            
+            char ext_name[PATH_MAX];
+            strncpy(ext_name, p, PATH_MAX);
+            
+            if(strcmp(ext_name, ".o") == 0) {
+                xstrncpy(obj_files[num_obj_files++], argv[i], PATH_MAX);
+                
+                if(num_obj_files >= 128) {
+                    fprintf(stderr, "overflow obj files number\n");
+                    exit(2);
+                }
+            }
+            else {
+                xstrncpy(sname, argv[i], PATH_MAX);
             }
         }
     }
@@ -336,14 +405,16 @@ int main(int argc, char** argv)
     compiler_init(sname);
 
     gModuleVarTable = init_var_table();
-
+    
     BOOL optimize = TRUE;
-    if(!compiler(sname, optimize, gModuleVarTable, FALSE, macro_definition))
-    {
-        fprintf(stderr, "come can't compile(2) %s\n", sname);
-        compiler_final(sname);
-
-        return 1;
+    if(sname[0] != '\0') {
+        if(!compiler(sname, optimize, gModuleVarTable, FALSE, macro_definition))
+        {
+            fprintf(stderr, "come can't compile(2) %s\n", sname);
+            compiler_final(sname);
+    
+            return 1;
+        }
     }
 
     compiler_final(sname);
@@ -355,7 +426,7 @@ int main(int argc, char** argv)
     }
     
     if(!gNCType && !gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef && !gNCNoMacro) {
-        if(!linker(sname, optimize, no_linker, num_obj_files, obj_files2, clang_optiones)) {
+        if(!linker(sname, optimize, no_linker, num_obj_files, obj_files2, clang_optiones, exec_fname)) {
             fprintf(stderr, "neo-c-2 can't compile(2) %s\n", sname);
             return 1;
         }

@@ -97,8 +97,6 @@ fi
 if test $ENABLE_NO_GC = 1
 then
     NCFLAGS="$NCFLAGS -no-gc"
-else
-    CFLAGS="$CFLAGS -lgc"
 fi
 if test $ENABLE_OPTIMIZE = 1
 then

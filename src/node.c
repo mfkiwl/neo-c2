@@ -1445,7 +1445,7 @@ void free_nodes(char* sname)
     snprintf(sname2, PATH_MAX, "%s.ll", sname);
 
     //LLVMDumpModule(gModule); // dump module to STDOUT
-    if(!gNCType && !gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef) {
+    if(!gNCType && !gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef && strcmp(sname, "") != 0) {
         LLVMPrintModuleToFile(gModule, sname2, NULL);
     }
 
