@@ -594,6 +594,12 @@ m.insert("CCC", 3);
 if(m.length() == 3 && m.at("AAA", -1) == 1 && m.at("BBB", -1) == 2 && m.at("CCC", -1) == 3) {
     puts("OK");
 }
+
+foreach(key, m) {
+    auto item = m.at(key, -1);
+
+    printf("%s %d\n", key, item);
+}
 ```
 
 It will be. There is also a tuple. It is defined as follows.
@@ -1415,6 +1421,11 @@ fun finish
 ```
 
 # Original Heap System
+
+If you use the original heap system, you append to -no-gc option for neo-c2
+
+もしオリジナルのヒープシステムを使う場合は-no-gcオプションをneo-c2につけてください。ライブラリも何も-lgc, -lpcre -lpthreadはリンクされなくなるので、自分でリンクしてください。
+
 
 The cost of learning the library is low, but the heap system will take some time to learn. Basically, use valgrind to check if a memory leak is occurring. You can also find out illegal memory access by using valgrind. You can also use the -g option to find out the location of memory leaks in the source code and unauthorized memory access in the source code. The basic rule is that rvalues (temporary heap generation that is not assigned to variables) are automatically freed.
 
