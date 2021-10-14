@@ -228,7 +228,11 @@ If you want to object file only, use -c option.
 
 version 1.1.2よりBoehmGCがデフォルトになりました。
 
+Boehm GC is the default from version 1.1.2.
+
 newでヒープを確保します。
+
+Allocate the heap with new.
 
 ```
 char* str = new char[123];
@@ -240,9 +244,15 @@ puts(str);
 
 freeする必要はありません。
 
+You don't have to be free.
+
 stringはchar*型の文字列を返す関数です。
 
+string is a function that returns a char * type string
+
 stringは以下のように定義されています。
+
+string is defined as below
 
 ```
 typedef char* string;
@@ -259,6 +269,8 @@ inline string string(char* str)
 ```
 
 便利なstring関数としては以下があります。
+
+Some useful string functions are:
 
 ```
 static string xsprintf(char* msg, ...)
@@ -286,11 +298,15 @@ if("ABC".length() == 3) {
     puts("OK");
 }
 
-OOP的な機能として"ABC".reverse()はchar::reverse()が呼ばれます。内部的にはchar_revrseと定義されていて、char_reverseと定義しても同じことです。
+OOP的な機能として"ABC".reverse()はchar::reverse()が呼ばれます。内部的にはchar_revrseと定義されていて
+char_reverseと定義しても同じことです。
 関数の定義側にレシーバの省略はできません。
 char_reverse("ABC")と呼ぶこともできます。
 
 OOP的な機能は以下が有ります。
+
+As an OOP-like function, "ABC" .reverse () is called char :: reverse (). Internally it is defined as char_revrse and it is the same even if it is defined as char_reverse. The receiver cannot be omitted on the function definition side. You can also call it char_reverse ("ABC"). The OOP-like functions are as follows.
+
 
 struct sData
 {
@@ -320,6 +336,9 @@ sData* sData::initialize(sData* self)としても定義できます。コンス�
 autoは右辺値の型が型推論されて宣言されます。
 
 後一つヒープ関連である機能は、cloneです。cloneはヒープに確保されたメモリを内容をそのままにコピーします。
+
+It can also be defined as sData * sData :: initialize (sData * self). The constructor is just a function. auto is declared by type inference of the rvalue type. The other heap-related function is clone. clone copies the memory allocated in the heap as it is.
+
 
 ```
 struct sData
@@ -352,6 +371,9 @@ int main(int argc, char** argv)
 
 dもeと同じ値を保持しています。ただし、この機能は浅いコピーでヒープを保持していた場合ポインタがコピーされるだけです。
 ヒープをフィールドに保持した構造体をcloneするためにはcloneというメソッドが必要です。
+
+d also holds the same value as e. However, this feature only copies the pointer if you hold the heap in a shallow copy. A method called clone is required to clone a structure that holds the heap in a field.
+
 
 ```
 struct sData
@@ -393,6 +415,9 @@ int main(int argc, char** argv)
 ```
 
 cloneメソッドを定義しない場合でも特に問題はない場合が多いですが、dのフィールドのヒープの内容を変更した場合、eのヒープの内容も変更されてしまうでしょう。
+
+In many cases, there is no problem even if you do not define the clone method, but if you change the contents of the heap of the field of d, the contents of the heap of e will also be changed.
+
 
 # Generics BoehmGC version
 
