@@ -297,6 +297,7 @@ if(strcmp("ABC".substring(0,1), "A") == 0) {
 if("ABC".length() == 3) {
     puts("OK");
 }
+```
 
 OOP的な機能として"ABC".reverse()はchar::reverse()が呼ばれます。内部的にはchar_revrseと定義されていて
 char_reverseと定義しても同じことです。
@@ -307,7 +308,7 @@ OOP的な機能は以下が有ります。
 
 As an OOP-like function, "ABC" .reverse () is called char :: reverse (). Internally it is defined as char_revrse and it is the same even if it is defined as char_reverse. The receiver cannot be omitted on the function definition side. You can also call it char_reverse ("ABC"). The OOP-like functions are as follows.
 
-
+```
 struct sData
 {
     string value1;
