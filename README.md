@@ -787,7 +787,7 @@ int main()
 }
 ```
 
-7. Parallel Processing
+# Parallel Processing
 
 It can be executed in parallel with the come function name.
 
@@ -924,7 +924,7 @@ int main()
 }
 ```
 
-8. Annotation
+# Annotation
 
 ```
 int fun(bool flag) 
@@ -947,7 +947,7 @@ int main()
 
 `[a-zA-Z][a-zA-Z_0-9]* is a comment of expression.
 
-8. Reflection
+# Reflection
 
 ```
 > vim a.c
@@ -1065,7 +1065,7 @@ gGlobal2 int
 
 SOURCE_NAMEという環境変数にコンパイル中のソースファイル名が入ってます。
 
-10. Method block
+# Method block
 
 ```
 void times(int n, void* parent, void (*fun)(void* parent))
@@ -1175,8 +1175,7 @@ However, if the variable on the parent stack is an array, the start address is p
     /// result is AAA CCC\nBBB CCC\n
 ```
 
-
-11. Method Generics
+# Method Generics
 
 ```
 struct sStruct<T>
@@ -2145,56 +2144,6 @@ impl tuple4 <T, T2, T3, T4>
 ```
 
 # Collection and heap system
-
-All the elements added to the Collection are also released from memory and cloned on the collection side. When adding elements, do not add the heap managed by the variable table. This is because the heap managed by the variable table beneo-c2 double free because automatic free occurs when it exits the block and free also occurs on the collection side. For example:
-
-Collectionに追加された要素は全てコレクション側でメモリの解放やcloneなども行われます。要素を追加する場合は変数テーブルで管理されたヒープを追加しないようにしてください。
-変数テーブルで管理されたヒープはブロックから出たときに自動freeが起こりコレクション側でもfreeが起こるので、2重freeとなるためです。例えば以下のようにします。
-
-```
-auto l = new list<string>.initialzie();
-
-auto str = string("ABC");
-
-managed str;
-
-l.push_back(str)
-```
-
-When it is managed str, str is no longer a heap managed by the variable table. The% mark disappears from the variable type. str is just char *. Or
-
-managed strとされるとstrは変数テーブルで管理されるヒープでなくなります。変数の型に%マークがなくなります。strは単なるchar*となります。
-
-もしくは
-
-```
-auto l = new list<tring>.initialize();
-
-auto str = borrow string("ABC");
-
-l.push_back(str);
-```
-
-You can also do it. borrow removes the% mark on the heap. str is treated as just char *. In both cases str is freed when auto l is freed. Another way is to clone the variables in the variable table. Since two heaps are created, one is freed in the variable table and the other is freed in the Collection.
-
-としてもいいでしょう。borrowはヒープの%マークを消します。strは単なるchar*として扱われます。
-どちらの場合もauto lがfreeされるときにstrは一緒にfreeされます。
-
-もう一つの方法としては変数テーブルの変数をcloneすることです。２つのヒープが生成されるため、一つは変数テーブルでfreeされて、もう一つはCollectionの中でfreeされます。
-
-```
-auto l = new list<string>.initialize();
-
-auto str = string("ABC");
-
-l.push_back(clone str);
-```
-
-This may be the easiest.
-
-これが一番簡単かもしれません。
-
-5. Collection and heap system
 
 All the elements added to the Collection are also released from memory and cloned on the collection side. When adding elements, do not add the heap managed by the variable table. This is because the heap managed by the variable table beneo-c2 double free because automatic free occurs when it exits the block and free also occurs on the collection side. For example:
 
