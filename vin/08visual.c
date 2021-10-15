@@ -91,6 +91,26 @@ void ViWin::yankOnVisualMode(ViWin* self, Vi* nvi)
     self.saveYankToFile(nvi);
 }
 
+void ViWin::fileYankOnVisualMode(ViWin* self, Vi* nvi) 
+{
+    int head = self.visualModeHead;
+    int tail = self.scroll+self.cursorY;
+
+    if(head >= tail) {
+        int tmp = tail;
+        tail = head;
+        head = tmp;
+    }
+
+    nvi.fileYank.reset();
+    foreach(it, self.texts.sublist(head, tail+1)) {
+        nvi.fileYank.push_back(clone it);
+    }
+    
+    nvi.yankKind = kYankKindLine;
+    self.saveFileYankToFile(nvi);
+}
+
 void ViWin::indentVisualMode(ViWin* self, Vi* nvi) 
 {
     self.pushUndo();
@@ -524,6 +544,11 @@ void ViWin::inputVisualMode(ViWin* self, Vi* nvi)
             break;
 
         case 27:
+            nvi.exitFromVisualMode();
+            break;
+                
+        case 'Y'-'A'+1:
+            self.fileYankOnVisualMode(nvi);
             nvi.exitFromVisualMode();
             break;
     }

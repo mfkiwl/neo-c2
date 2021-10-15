@@ -125,6 +125,7 @@ struct Vi
 
     /// layer 7 ///
     list<wstring>*% yank;
+    list<wstring>*% fileYank;
     int yankKind;
 
     /// layer 9 ///
@@ -287,6 +288,8 @@ override void Vi::exitFromApp(Vi* self);
 void ViWin::deleteOneLine(ViWin* self, Vi* nvi);
 bool ViWin::saveYankToFile(ViWin* self, Vi* nvi);
 bool ViWin::loadYankFromFile(ViWin* self, Vi* nvi);
+bool ViWin::loadFileYankFromFile(ViWin* self, Vi* nvi);
+bool ViWin::saveFileYankToFile(ViWin* self, Vi* nvi);
 
 enum { kYankKindLine, kYankKindNoLine };
 

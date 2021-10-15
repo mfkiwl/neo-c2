@@ -589,7 +589,6 @@ void ViWin::inputHorizonVisualMode(ViWin* self, Vi* nvi)
         case 'b':
             self.backwardWord();
             break;
-                
 
         case 27:
             nvi.exitFromVisualMode();

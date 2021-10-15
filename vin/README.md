@@ -5,7 +5,12 @@ vi clone implemented by neo-c2
 C-x --> completion for c and neo-c2
 tab --> word completion
 
-version 1.0.4
+On visual mode
+C-y --> yank to another yank over another process
+
+C-p --> yank from another yank over another process
+
+version 1.0.5
 
 
 If you don't want to use BoehmGC, ./configure --with-no-gc
