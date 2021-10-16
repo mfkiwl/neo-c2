@@ -35,7 +35,7 @@ void append_macro(char* name, char* body)
 {
     unsigned int hash_value = get_hash_key(name, MACRO_MAX);
 
-    struct sMacro* it = gMacros + hash_value;
+    struct sMacro* it = &gMacros[hash_value];
 
     while(1) {
         if(strcmp(it->mName, "") == 0) {
@@ -47,11 +47,11 @@ void append_macro(char* name, char* body)
         else {
             it++;
 
-            if(it == gMacros + MACRO_MAX)
+            if(it == &gMacros[MACRO_MAX])
             {
                 it = gMacros;
             }
-            else if(it == gMacros + hash_value)
+            else if(it == &gMacros[hash_value])
             {
                 fprintf(stderr, "overflow macro number\n");
                 exit(2);
@@ -70,7 +70,7 @@ char* get_macro(char* name)
 
     unsigned int hash_value = get_hash_key(name, MACRO_MAX);
 
-    struct sMacro* it = gMacros + hash_value;
+    struct sMacro* it = &gMacros[hash_value];
 
     while(1) {
         if(strcmp(it->mName, name) == 0) {
@@ -80,11 +80,11 @@ char* get_macro(char* name)
         else {
             it++;
 
-            if(it == gMacros + MACRO_MAX)
+            if(it == &gMacros[MACRO_MAX])
             {
                 it = gMacros;
             }
-            else if(it == gMacros + hash_value)
+            else if(it == &gMacros[hash_value])
             {
                 break;
             }
@@ -205,4 +205,3 @@ BOOL call_macro(unsigned * node, char* name, char* params, sParserInfo* info)
 
     return TRUE;
 }
-
