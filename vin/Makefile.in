@@ -30,67 +30,67 @@ DESTDIR=@DESTDIR@
 ##########################################
 all: vin
 
-vin: configure Makefile config.h main.c.o main.c 01init.c.o 01init.c 02base.c.o 02base.c 03insert_mode.c.o 03insert_mode.c 04word.c 04word.c.o 05undo.c 05undo.c.o 06file.c.o 07yank.c.o 08visual.c.o 09search.c.o 10edit.c.o 11move.c.o 12command.c.o 13completion.c.o 14dot.c.o 16mark.c.o 17hvisual.c.o 18vvisual.c.o 19rewrite_mode.c.o 20completion-neo-c2.c.o
-	neo-c2 -o vin main.c.o 01init.c.o 02base.c.o 03insert_mode.c.o 04word.c.o 05undo.c.o 06file.c.o 07yank.c.o 08visual.c.o 09search.c.o 10edit.c.o 11move.c.o 12command.c.o 13completion.c.o 14dot.c.o 16mark.c.o 17hvisual.c.o 18vvisual.c.o 19rewrite_mode.c.o 20completion-neo-c2.c.o -L/opt/local/lib $(CFLAGS) $(LIBS) 
+vin: configure Makefile config.h main.o main.c 01init.o 01init.c 02base.o 02base.c 03insert_mode.o 03insert_mode.c 04word.c 04word.o 05undo.c 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o 20completion-neo-c2.o
+	neo-c2 -o vin main.o 01init.o 02base.o 03insert_mode.o 04word.o 05undo.o 06file.o 07yank.o 08visual.o 09search.o 10edit.o 11move.o 12command.o 13completion.o 14dot.o 16mark.o 17hvisual.o 18vvisual.o 19rewrite_mode.o 20completion-neo-c2.o -L/opt/local/lib $(CFLAGS) $(LIBS) 
 
-main.c.o: configure Makefile config.h main.c common.h
+main.o: configure Makefile config.h main.c common.h
 	neo-c2 -c $(NCFLAGS) main.c $(CFLAGS) -I/usr/local/include
 
-01init.c.o: configure Makefile config.h 01init.c common.h
+01init.o: configure Makefile config.h 01init.c common.h
 	neo-c2 -c $(NCFLAGS) 01init.c $(CFLAGS) -I/usr/local/include
 
-02base.c.o: configure Makefile config.h 02base.c common.h
+02base.o: configure Makefile config.h 02base.c common.h
 	neo-c2 -c $(NCFLAGS) 02base.c $(CFLAGS) -I/usr/local/include
 
-03insert_mode.c.o: configure Makefile config.h 03insert_mode.c common.h
+03insert_mode.o: configure Makefile config.h 03insert_mode.c common.h
 	neo-c2 -c $(NCFLAGS) 03insert_mode.c $(CFLAGS) -I/usr/local/include
 
-04word.c.o: configure Makefile config.h 04word.c common.h
+04word.o: configure Makefile config.h 04word.c common.h
 	neo-c2 -c $(NCFLAGS) 04word.c $(CFLAGS) -I/usr/local/include
 
-05undo.c.o: configure Makefile config.h 05undo.c common.h
+05undo.o: configure Makefile config.h 05undo.c common.h
 	neo-c2 -c $(NCFLAGS) 05undo.c $(CFLAGS) -I/usr/local/include
 
-06file.c.o: configure Makefile config.h 06file.c common.h
+06file.o: configure Makefile config.h 06file.c common.h
 	neo-c2 -c $(NCFLAGS) 06file.c $(CFLAGS) -I/usr/local/include
 
-07yank.c.o: configure Makefile config.h 07yank.c common.h
+07yank.o: configure Makefile config.h 07yank.c common.h
 	neo-c2 -c $(NCFLAGS) 07yank.c $(CFLAGS) -I/usr/local/include
 
-08visual.c.o: configure Makefile config.h 08visual.c common.h
+08visual.o: configure Makefile config.h 08visual.c common.h
 	neo-c2 -c $(NCFLAGS) 08visual.c $(CFLAGS) -I/usr/local/include
 
-09search.c.o: configure Makefile config.h 09search.c common.h
+09search.o: configure Makefile config.h 09search.c common.h
 	neo-c2 -c $(NCFLAGS) 09search.c $(CFLAGS) -I/usr/local/include
 
-10edit.c.o: configure Makefile config.h 10edit.c common.h
+10edit.o: configure Makefile config.h 10edit.c common.h
 	neo-c2 -c $(NCFLAGS) 10edit.c $(CFLAGS) -I/usr/local/include
 
-11move.c.o: configure Makefile config.h 11move.c common.h
+11move.o: configure Makefile config.h 11move.c common.h
 	neo-c2 -c $(NCFLAGS) 11move.c $(CFLAGS) -I/usr/local/include
 
-12command.c.o: configure Makefile config.h 12command.c common.h
+12command.o: configure Makefile config.h 12command.c common.h
 	neo-c2 -c $(NCFLAGS) 12command.c $(CFLAGS) -I/usr/local/include
 
-13completion.c.o: configure Makefile config.h 13completion.c common.h
+13completion.o: configure Makefile config.h 13completion.c common.h
 	neo-c2 -c $(NCFLAGS) 13completion.c $(CFLAGS) -I/usr/local/include
 
-14dot.c.o: configure Makefile config.h 14dot.c common.h
+14dot.o: configure Makefile config.h 14dot.c common.h
 	neo-c2 -c $(NCFLAGS) 14dot.c $(CFLAGS) -I/usr/local/include
 
-16mark.c.o: configure Makefile config.h 16mark.c common.h
+16mark.o: configure Makefile config.h 16mark.c common.h
 	neo-c2 -c $(NCFLAGS) 16mark.c $(CFLAGS) -I/usr/local/include
 
-17hvisual.c.o: configure Makefile config.h 17hvisual.c common.h
+17hvisual.o: configure Makefile config.h 17hvisual.c common.h
 	neo-c2 -c $(NCFLAGS) 17hvisual.c $(CFLAGS) -I/usr/local/include
 
-18vvisual.c.o: configure Makefile config.h 18vvisual.c common.h
+18vvisual.o: configure Makefile config.h 18vvisual.c common.h
 	neo-c2 -c $(NCFLAGS) 18vvisual.c $(CFLAGS) -I/usr/local/include
 
-19rewrite_mode.c.o: configure Makefile config.h 19rewrite_mode.c common.h
+19rewrite_mode.o: configure Makefile config.h 19rewrite_mode.c common.h
 	neo-c2 -c $(NCFLAGS) 19rewrite_mode.c $(CFLAGS) -I/usr/local/include
 
-20completion-neo-c2.c.o: configure Makefile config.h 20completion-neo-c2.c common.h
+20completion-neo-c2.o: configure Makefile config.h 20completion-neo-c2.c common.h
 	neo-c2 -c $(NCFLAGS) 20completion-neo-c2.c $(CFLAGS) -I/usr/local/include
 
 #########################################

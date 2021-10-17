@@ -1697,6 +1697,15 @@ static int int::expect(int self, void* parent, void (*block)(void* parent))
     return self;
 }
 
+static bool bool::expect(bool self, void* parent, void (*block)(void* parent))
+{
+    if(!self) {
+        block(parent);
+    }
+
+    return self;
+}
+
 static void int::times(int self, void* parent, void (*block)(void* parent))
 {
     int i;

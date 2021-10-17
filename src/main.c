@@ -118,7 +118,7 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
         }
         
         if(p == fname) {
-            fprintf(stderr, "invalid file name. require extension name");
+            fprintf(stderr, "invalid file name. require extension name(%s)", fname);
             return FALSE;
         }
         
@@ -131,7 +131,13 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
     
     if(no_linker) {
         char cmd[1024];
-        snprintf(cmd, 1024, "%s -o %s.o -c %s.ll %s", CLANG, fname, fname, clang_optiones);
+        
+        if(exec_fname[0] != '\0') {
+            snprintf(cmd, 1024, "%s -o %s -c %s.ll %s", CLANG, exec_fname, fname, clang_optiones);
+        }
+        else {
+            snprintf(cmd, 1024, "%s -o %s.o -c %s.ll %s", CLANG, bname, fname, clang_optiones);
+        }
         
         puts(cmd);
         int rc = system(cmd);
@@ -198,7 +204,7 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
     return TRUE;
 }
 
-char* gVersion = "1.1.7";
+char* gVersion = "1.1.8";
 BOOL gNCDebug = FALSE;
 BOOL gNCGC = TRUE;
 char gFName[PATH_MAX];
@@ -300,13 +306,6 @@ int main(int argc, char** argv)
 
             xstrncat(optiones, "-n ", 1024);
         }
-        else if(strstr(argv[i], "-I") == argv[i])
-        {
-            xstrncat(c_include_path, ":", max_c_include_path);
-            xstrncat(c_include_path, argv[i]+2, max_c_include_path);
-
-            xstrncat(optiones, "-I ", 1024);
-        }
         else if(strcmp(argv[i], "-I") == 0)
         {
             if(i + 1 < argc) {
@@ -316,8 +315,43 @@ int main(int argc, char** argv)
                 xstrncat(optiones, "-I ", 1024);
                 xstrncat(optiones, argv[i+1], 1024);
                 xstrncat(optiones, " ", 1024);
+
+                xstrncat(clang_optiones, "-I ", 1024);
+                xstrncat(clang_optiones, argv[i+1], 1024);
+                xstrncat(clang_optiones, " ", 1024);
                 i++;
             }
+        }
+        else if(argv[i][0] == '-' && argv[i][1] == 'I')
+        {
+            xstrncat(c_include_path, ":", max_c_include_path);
+            xstrncat(c_include_path, argv[i] + 2, max_c_include_path);
+
+            xstrncat(optiones, argv[i], 1024);
+            xstrncat(optiones, " ", 1024);
+
+            xstrncat(clang_optiones, argv[i], 1024);
+            xstrncat(clang_optiones, " ", 1024);
+        }
+        else if(strcmp(argv[i], "-L") == 0)
+        {
+            if(i + 1 < argc) {
+                xstrncat(optiones, "-L ", 1024);
+                xstrncat(optiones, argv[i+1], 1024);
+                xstrncat(optiones, " ", 1024);
+                
+                xstrncat(clang_optiones, "-L ", 1024);
+                xstrncat(clang_optiones, argv[i+1], 1024);
+                xstrncat(clang_optiones, " ", 1024);
+                i++;
+            }
+        }
+        else if(argv[i][0] == '-' && argv[i][1] == 'L') {
+            xstrncat(optiones, argv[i], 1024);
+            xstrncat(optiones, " ", 1024);
+            
+            xstrncat(clang_optiones, argv[i], 1024);
+            xstrncat(clang_optiones, " ", 1024);
         }
         else if(strcmp(argv[i], "-o") == 0)
         {
@@ -372,7 +406,7 @@ int main(int argc, char** argv)
             }
             
             if(p == fname) {
-                fprintf(stderr, "invalid file name. require extension name");
+                fprintf(stderr, "invalid file name. require extension name(%s)", fname);
                 return FALSE;
             }
             

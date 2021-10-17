@@ -44,97 +44,97 @@ self-host: config.h $(SELF_HOST_OBJS)
 	$(CXX) -o neo-c2 $(SELF_HOST_OBJS) $(CXXFLAGS) -fPIC
 
 src/main.c.o: src/main.c
-	./neo-c2 -c src/main.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/main.c.o -c src/main.c $(CFLAGS) -fPIC
 
 src/parser.c.o: src/parser.c
-	./neo-c2 -c src/parser.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/parser.c.o -c src/parser.c $(CFLAGS) -fPIC
 
 src/parser2.c.o: src/parser2.c
-	./neo-c2 -c src/parser2.c $(CFLAGS) -fPIC
+	./neo-c2 -c srcparser2.c.o src/parser2.c $(CFLAGS) -fPIC
 
 src/parser3.c.o: src/parser3.c
-	./neo-c2 -c src/parser3.c $(CFLAGS) -fPIC
+	./neo-c2 srcparser3.c.o -c src/parser3.c $(CFLAGS) -fPIC
 
 src/parser4.c.o: src/parser4.c
-	./neo-c2 -c src/parser4.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/parser4.c.o -c src/parser4.c $(CFLAGS) -fPIC
 
 src/parser5.c.o: src/parser5.c
-	./neo-c2 -c src/parser5.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/parser5.c.o -c src/parser5.c $(CFLAGS) -fPIC
 
 src/parser6.c.o: src/parser6.c
-	./neo-c2 -c src/parser6.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/parser6.c.o -c src/parser6.c $(CFLAGS) -fPIC
 
 src/parser7.c.o: src/parser7.c
-	./neo-c2 -c src/parser7.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/parser7.c.o -c src/parser7.c $(CFLAGS) -fPIC
 
 src/parser8.c.o: src/parser8.c
-	./neo-c2 -c src/parser8.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/parser8.c.o -c src/parser8.c $(CFLAGS) -fPIC
 
 src/alignment.c.o: src/alignment.c
-	./neo-c2 -c src/alignment.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/alignment.c.o -c src/alignment.c $(CFLAGS) -fPIC
 
 src/buffer.c.o: src/buffer.c
-	./neo-c2 -c src/buffer.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/buffer.c.o -c src/buffer.c $(CFLAGS) -fPIC
 
 src/xfunc.c.o: src/xfunc.c
-	./neo-c2 -c src/xfunc.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/xfunc.c.o -c src/xfunc.c $(CFLAGS) -fPIC
 
 src/node.c.o: src/node.c
-	./neo-c2 -c src/node.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node.c.o -c src/node.c $(CFLAGS) -fPIC
 
 src/node_function.c.o: src/node_function.c
-	./neo-c2 -c src/node_function.c $(CFLAGS2) -fPIC
+	./neo-c2 -o src/node_function.c.o -c src/node_function.c $(CFLAGS2) -fPIC
 
 src/node_function2.c.o: src/node_function2.c
-	./neo-c2 -c src/node_function2.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node_function2.c.o -c src/node_function2.c $(CFLAGS) -fPIC
 
 src/node_function3.c.o: src/node_function3.c
-	./neo-c2 -c src/node_function3.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node_function3.c.o -c src/node_function3.c $(CFLAGS) -fPIC
 
 src/node_function4.c.o: src/node_function4.c
-	./neo-c2 -c src/node_function4.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node_function4.c.o -c src/node_function4.c $(CFLAGS) -fPIC
 
 src/node_function5.c.o: src/node_function5.c
-	./neo-c2 -c src/node_function5.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node_function5.c.o -c src/node_function5.c $(CFLAGS) -fPIC
 
 src/node_loop.c.o: src/node_loop.c
-	./neo-c2 -c src/node_loop.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node_loop.c.o -c src/node_loop.c $(CFLAGS) -fPIC
 
 src/node_op.c.o: src/node_op.c
-	./neo-c2 -c src/node_op.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node_op.c.o -c src/node_op.c $(CFLAGS) -fPIC
 
 src/node_value.c.o: src/node_value.c
-	./neo-c2 -c src/node_value.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node_value.c.o -c src/node_value.c $(CFLAGS) -fPIC
 
 src/node_var.c.o: src/node_var.c
-	./neo-c2 -c src/node_var.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node_var.c.o -c src/node_var.c $(CFLAGS) -fPIC
 
 src/node_compile.c.o: src/node_compile.c
-	./neo-c2 -c src/node_compile.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node_compile.c.o -c src/node_compile.c $(CFLAGS) -fPIC
 
 src/vtable.c.o: src/vtable.c
-	./neo-c2 -c src/vtable.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/vtable.c.o -c src/vtable.c $(CFLAGS) -fPIC
 
 src/node_type.c.o: src/node_type.c
-	./neo-c2 -c src/node_type.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node_type.c.o -c src/node_type.c $(CFLAGS) -fPIC
 
 src/klass.c.o: src/klass.c
-	./neo-c2 -c src/klass.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/klass.c.o -c src/klass.c $(CFLAGS) -fPIC
 
 src/constant.c.o: src/constant.c
-	./neo-c2 -c src/constant.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/constant.c.o -c src/constant.c $(CFLAGS) -fPIC
 
 src/node_block.c.o: src/node_block.c
-	./neo-c2 -c src/node_block.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/node_block.c.o -c src/node_block.c $(CFLAGS) -fPIC
 
 src/typedef.c.o: src/typedef.c
-	./neo-c2 -c src/typedef.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/typedef.c.o -c src/typedef.c $(CFLAGS) -fPIC
 
 src/compiler.c.o: src/compiler.c
-	./neo-c2 -c src/compiler.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/compiler.c.o -c src/compiler.c $(CFLAGS) -fPIC
 
 src/macro.c.o: src/macro.c
-	./neo-c2 -c src/macro.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/macro.c.o -c src/macro.c $(CFLAGS) -fPIC
 
 #########################################
 # Object files
@@ -177,7 +177,7 @@ permission:
 # clean
 #########################################
 clean:
-	rm -fR neo-c2 src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.c.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM neo-c2.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8 code/HelloWorld9 code/HelloWorld10 code/HelloWorld11 *.c.o
+	rm -fR neo-c2 src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM neo-c2.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8 code/HelloWorld9 code/HelloWorld10 code/HelloWorld11 *.o
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache 
