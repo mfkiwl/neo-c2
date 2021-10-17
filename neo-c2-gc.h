@@ -1619,6 +1619,27 @@ static string xbasename(char* path)
     }
 }
 
+static string xextname(char* path)
+{
+    char* p = path + strlen(path);
+    
+    while(p >= path) {
+        if(*p == '.') {
+            break;
+        }
+        else {
+            p--;
+        }
+    }
+    
+    if(p < path) {
+        return string(path);
+    }
+    else {
+        return string(p+1);  
+    }
+}
+
 static string xrealpath(char* path)
 {
     char* result = realpath(path, null);

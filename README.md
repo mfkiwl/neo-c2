@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 1.1.6
+version 1.1.7
 
 ```
 #include <neo-c2.h>

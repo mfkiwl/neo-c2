@@ -198,7 +198,7 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
     return TRUE;
 }
 
-char* gVersion = "1.1.6";
+char* gVersion = "1.1.7";
 BOOL gNCDebug = FALSE;
 BOOL gNCGC = TRUE;
 char gFName[PATH_MAX];
