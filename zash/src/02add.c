@@ -1,73 +1,71 @@
 #include "common.h"
 #include <ctype.h>
 
-static sNode* create_add_node(sNode* left, sNode* right, char* fname, int sline)
+static sNode* create_add_node(sNode* left, sNode* right, sParserInfo* info)
 {
     sNode* result = new sNode;
     
     result.kind = kOpAdd;
     
-    result.fname = string(fname);
-    result.sline = sline;
+    result.fname = string(info->fname);
+    result.sline = info->sline;
     result.value.opValue.left = left;
     result.value.opValue.right = right;
     
     return result;
 }
 
-static sNode* create_sub_node(sNode* left, sNode* right, char* fname, int sline)
+static sNode* create_sub_node(sNode* left, sNode* right, sParserInfo* info)
 {
     sNode* result = new sNode;
     
     result.kind = kOpSub;
     
-    result.fname = string(fname);
-    result.sline = sline;
+    result.fname = string(info->fname);
+    result.sline = info->sline;
     result.value.opValue.left = left;
     result.value.opValue.right = right;
     
     return result;
 }
 
-static sNode* op_add_node(char** p, char* fname, int* sline)
+static sNode* op_add_node(sParserInfo* info)
 {
-    sNode* result = exp_node(p, fname, sline);
+    sNode* result = exp_node(info);
     
-    while(**p == '+' || **p == '-') {
-        if(**p == '+') {
-            (*p)++;
-            skip_spaces(p, sline);
+    while(*info->p == '+' || *info->p == '-') {
+        if(*info->p == '+') {
+            info->p++;
+            skip_spaces(info);
             
-            sNode* right = op_add_node(p, fname, sline);
+            sNode* right = op_add_node(info);
             
             if(right == null) {
                 return null;
             }
             
-            result = create_add_node(result, right, fname, sline);
-puts("add node");
+            result = create_add_node(result, right, info);
         }
-        else if(**p == '-') {
-            (*p)++;
-            skip_spaces(p, sline);
+        else if(*info->p == '-') {
+            info->p++;
+            skip_spaces(info);
             
-            sNode* right = op_add_node(p, fname, sline);
+            sNode* right = op_add_node(info);
             
             if(right == null) {
                 return null;
             }
             
-            result = create_sub_node(result, right, fname, sline);
-puts("sub node");
+            result = create_sub_node(result, right, info);
         }
     }
     
     return result;
 }
 
-bool expression(char** p, sNode** node, char* fname, int* sline)
+bool expression(sNode** node, sParserInfo* info)
 {
-    *node = op_add_node(p, fname, sline);
+    *node = op_add_node(info);
     
     if(*node == null) {
         return false;
@@ -76,21 +74,21 @@ bool expression(char** p, sNode** node, char* fname, int* sline)
     return true;
 }
 
-bool compile(sNode* node, buffer* codes)
+bool compile(sNode* node, buffer* codes, sParserInfo* info)
 {
-    inherit(node, codes);
+    inherit(node, codes, info);
     
     if(node.kind == kOpAdd) {
 puts("compile add value");
         sNode* left = node.opValue.left
         
-        if(!compile(left, codes)) {
+        if(!compile(left, codes, info)) {
             return false;
         }
         
         sNode* right = node.opValue.right;
         
-        if(!compile(right, codes)) {
+        if(!compile(right, codes, info)) {
             return false;
         }
         
@@ -100,13 +98,13 @@ puts("compile add value");
 puts("compile sub value");
         sNode* left = node.opValue.left
         
-        if(!compile(left, codes)) {
+        if(!compile(left, codes, info)) {
             return false;
         }
         
         sNode* right = node.opValue.right;
         
-        if(!compile(right, codes)) {
+        if(!compile(right, codes, info)) {
             return false;
         }
         

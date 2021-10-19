@@ -18,7 +18,7 @@ bool vm(buffer* codes)
                 stack[stack_num].intValue = value;
                 stack_num++;
                 
-                printf("int value %d\n", value);
+printf("int value %d\n", value);
                 break;
                 
             case OP_ADD: {
@@ -32,7 +32,7 @@ bool vm(buffer* codes)
                 stack[stack_num].intValue = lvalue + rvalue;
                 stack_num++;
                 
-                printf("add value %d\n", lvalue + rvalue);
+printf("add value %d\n", lvalue + rvalue);
                 }
                 break;
                 
@@ -47,9 +47,14 @@ bool vm(buffer* codes)
                 stack[stack_num].intValue = lvalue - rvalue;
                 stack_num++;
                 
-                printf("sub value %d\n", lvalue - rvalue);
+printf("sub value %d\n", lvalue - rvalue);
                 }
                 break;
+        }
+        
+        if(stack_num < 0 || stack_num >= ZSTACK_MAX) {
+            fprintf(stderr, "invalid stack num\n");
+            return false;
         }
     }
     

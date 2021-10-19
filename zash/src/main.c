@@ -1,6 +1,6 @@
 #include "common.h"
 
-bool parse(char* fname, list<sNode*>* nodes, buffer* codes)
+bool parse(char* fname, buffer* codes)
 {
     FILE* f = fopen(fname, "r");
     
@@ -21,17 +21,28 @@ bool parse(char* fname, list<sNode*>* nodes, buffer* codes)
 
     fclose(f);
     
-    char* p = source.to_string();
-    int sline = 1;
+    sParserInfo info;
     
-    while(*p) {
+    info.p = source.to_string();
+    info.fname = string(fname);
+    info.sline = 1;
+    
+    list<sNode*>* nodes = new list<sNode*>.initialize();
+    
+    while(*info->p) {
         sNode* node = null;
-        if(!expression(&p, &node, fname, &sline)) {
-            fprintf(stderr, "%s %d: unexpected character %c\n", fname, sline, *p);
+        if(!expression(&node, &info)) {
+            fprintf(stderr, "%s %d: unexpected character %c\n", fname, info->sline, *info->p);
             return false;
         }
         
         nodes.push_back(node);
+    }
+    
+    foreach(it, nodes) {
+        if(!compile(it, codes, &info)) {
+            return false;
+        }
     }
     
     return true;
@@ -52,18 +63,10 @@ int main(int argc, char** argv)
     if(fname == null) {
     }
     else {
-        list<sNode*>* nodes = new list<sNode*>.initialize();
-        
         buffer* codes = new buffer.initialize();
         
-        parse(fname, nodes, codes).expect {
+        parse(fname, codes).expect {
             exit(1);
-        }
-        
-        foreach(it, nodes) {
-            compile(it, codes).expect {
-                exit(1);
-            }
         }
         
         vm(codes).expect {

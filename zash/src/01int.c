@@ -1,46 +1,45 @@
 #include "common.h"
 #include <ctype.h>
 
-void skip_spaces(char** p, int* sline)
+void skip_spaces(sParserInfo* info)
 {
-    while(**p == ' ' || **p == '\t' || (**p == '\n' && (*sline)++)) {
-        (*p)++;
+    while(*info->p == ' ' || *info->p == '\t' || (*info->p == '\n' && info->sline++)) {
+        info->p++;
     }
 }
 
-static sNode* create_int_node(int value, char* fname, int sline)
+static sNode* create_int_node(int value, sParserInfo* info)
 {
     sNode* result = new sNode;
     
     result.kind = kIntValue;
     
-    result.fname = string(fname);
-    result.sline = sline;
+    result.fname = string(info->fname);
+    result.sline = info->sline;
     result.value.intValue = value;
     
-puts("int_node");
     return result;
 }
 
-sNode* exp_node(char** p, char* fname, int* sline)
+sNode* exp_node(sParserInfo* info)
 {
-    if(isdigit(**p)) {
+    if(isdigit(*info->p)) {
         int n = 0;
-        while(isdigit(**p)) {
-            n = n * 10 + (**p - '0');
-            (*p)++;
+        while(isdigit(*info->p)) {
+            n = n * 10 + (*info->p - '0');
+            info->p++;
         }
-        skip_spaces(p, sline);
+        skip_spaces(info);
         
-        return create_int_node(n, fname, sline);
+        return create_int_node(n, info);
     }
     
     return null;
 }
 
-bool expression(char** p, sNode** node, char* fname, int* sline) version 1
+bool expression(sNode** node, sParserInfo* info) version 1
 {
-    *node = exp_node(p, fname, sline);
+    *node = exp_node(info);
     
     if(*node == null) {
         return false;
@@ -49,7 +48,7 @@ bool expression(char** p, sNode** node, char* fname, int* sline) version 1
     return true;
 }
 
-bool compile(sNode* node, buffer* codes) version 1
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 1
 {
     if(node.kind == kIntValue) {
 puts("compile int value");

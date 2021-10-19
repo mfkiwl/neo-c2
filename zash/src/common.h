@@ -21,6 +21,13 @@ struct sNode
     } value;
 };
 
+struct sParserInfo
+{
+    char* p;
+    int sline;
+    char* fname;
+};
+
 union ZVALUE {
     int intValue;
     bool boolValue;
@@ -38,14 +45,14 @@ union ZVALUE {
 bool vm(buffer* codes);
 
 /// 01int.c ///
-bool expression(char** p, sNode** node, char* fname, int* sline);
-bool compile(sNode* node, buffer* codes);
+bool expression(sNode** node, sParserInfo* info);
+bool compile(sNode* node, buffer* codes, sParserInfo* info);
 
-void skip_spaces(char** p, int* sline);
+void skip_spaces(sParserInfo* info);
 
-sNode* exp_node(char** p, char* fname, int* sline);
+sNode* exp_node(sParserInfo* info);
 
 /// 02op.c ///
-override bool expression(char** p, sNode** node, char* fname, int* sline);
-override bool compile(sNode* node, buffer* codes);
+override bool expression(sNode** node, sParserInfo* info);
+override bool compile(sNode* node, buffer* codes, sParserInfo* info);
 
