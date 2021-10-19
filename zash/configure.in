@@ -212,7 +212,7 @@ DESTDIR=$myprefix
 
 AC_SUBST(DESTDIR)
 
-OBJS="src/main.o src/01int.o"
+OBJS="src/main.o src/01int.o src/02add.o src/vm.o"
 
 AC_CHECK_FUNCS(execvpe)
 

@@ -4047,7 +4047,7 @@ DESTDIR=$myprefix
 
 
 
-OBJS="src/main.o src/01int.o"
+OBJS="src/main.o src/01int.o src/02add.o src/vm.o"
 
 for ac_func in execvpe
 do :

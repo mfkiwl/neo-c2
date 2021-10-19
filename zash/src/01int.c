@@ -8,7 +8,7 @@ void skip_spaces(char** p, int* sline)
     }
 }
 
-sNode* create_int_node(int value, char* fname, int sline)
+static sNode* create_int_node(int value, char* fname, int sline)
 {
     sNode* result = new sNode;
     
@@ -18,6 +18,7 @@ sNode* create_int_node(int value, char* fname, int sline)
     result.sline = sline;
     result.value.intValue = value;
     
+puts("int_node");
     return result;
 }
 
@@ -37,7 +38,7 @@ sNode* exp_node(char** p, char* fname, int* sline)
     return null;
 }
 
-bool expression(char** p, sNode** node, char* fname, int* sline)
+bool expression(char** p, sNode** node, char* fname, int* sline) version 1
 {
     *node = exp_node(p, fname, sline);
     
@@ -48,46 +49,10 @@ bool expression(char** p, sNode** node, char* fname, int* sline)
     return true;
 }
 
-bool parse(char* fname, list<sNode*>* nodes, buffer* codes)
-{
-    FILE* f = fopen(fname, "r");
-    
-    if(f == null) {
-        fprintf(stderr, "file %s is not found\n", fname);
-        return false;
-    }
-    
-    buffer* source = new buffer.initialize();
-    
-    char line[4096];
-
-    while(fgets(line, 4096, f) != null)
-    {
-        line[strlen(line)-1] = '\0';
-        source.append_str(line);
-    }
-
-    fclose(f);
-    
-    char* p = source.to_string();
-    int sline = 1;
-    
-    while(*p) {
-        sNode* node = null;
-        if(!expression(&p, &node, fname, &sline)) {
-            fprintf(stderr, "%s %d: unexpected character %c\n", fname, sline, *p);
-            return false;
-        }
-        
-        nodes.push_back(node);
-    }
-    
-    return true;
-}
-
-bool compile(sNode* node, buffer* codes)
+bool compile(sNode* node, buffer* codes) version 1
 {
     if(node.kind == kIntValue) {
+puts("compile int value");
         codes.append_int(OP_INT_VALUE);
         codes.append_int(node.value.intValue);
     }
@@ -95,15 +60,3 @@ bool compile(sNode* node, buffer* codes)
     return true;
 }
 
-bool run(int* p)
-{
-    if(*p == OP_INT_VALUE) {
-        p++;
-        int value = *p;
-        p++;
-        
-        printf("int value %d\n", value);
-    }
-    
-    return true;
-}
