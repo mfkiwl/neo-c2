@@ -50,10 +50,10 @@ src/parser.c.o: src/parser.c
 	./neo-c2 -o src/parser.c.o -c src/parser.c $(CFLAGS) -fPIC
 
 src/parser2.c.o: src/parser2.c
-	./neo-c2 -c srcparser2.c.o src/parser2.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/parser2.c.o -c src/parser2.c $(CFLAGS) -fPIC
 
 src/parser3.c.o: src/parser3.c
-	./neo-c2 srcparser3.c.o -c src/parser3.c $(CFLAGS) -fPIC
+	./neo-c2 -o src/parser3.c.o -c src/parser3.c $(CFLAGS) -fPIC
 
 src/parser4.c.o: src/parser4.c
 	./neo-c2 -o src/parser4.c.o -c src/parser4.c $(CFLAGS) -fPIC
