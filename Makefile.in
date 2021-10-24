@@ -207,7 +207,7 @@ test:
 	./code/HelloWorld8
 	PWD=`pwd` ./neo-c2 code/HelloWorld8.c
 	./code/HelloWorld8
-	PWD=`pwd` ./neo-c2 code/HelloWorld9.c
+	PWD=`pwd` ./neo-c2 code/HelloWorld9.c -lpcre
 	./code/HelloWorld9
 #	PWD=`pwd` ./neo-c2 code/HelloWorld10.c
 #	./code/HelloWorld10
@@ -236,7 +236,7 @@ debug-test:
 	./code/HelloWorld8
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld8.c
 	./code/HelloWorld8
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld9.c
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld9.c -lpcre
 	./code/HelloWorld9
 #	PWD=`pwd` ./neo-c2 -g code/HelloWorld10.c
 #	./code/HelloWorld10

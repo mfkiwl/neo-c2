@@ -21,7 +21,7 @@ ENABLE_GC=0
 LOGGING=0
 
 AC_ARG_WITH(debug,              [  --with-debug              include debug info ], [ DEBUGGING=1; ], [])
-AC_ARG_WITH(no-gc,              [  --with-no-gc              include Original Heap System ], [ ENABLE_NO_GC=1; ], [])
+AC_ARG_WITH(gc,                 [  --with-gc                 include Boehm GC ], [ ENABLE_GC=1; ], [])
 AC_ARG_WITH(optimize,           [  --with-optimize           with optimize(-O2 in CFLAGS) ], [ ENABLE_OPTIMIZE=1 ], [ ENABLE_OPTIMIZE=0 ])
 
 #########################################
@@ -94,9 +94,9 @@ if test $DEBUGGING = 1
 then
     CFLAGS="$CFLAGS -g -DMDEBUG"
 fi
-if test $ENABLE_NO_GC = 1
+if test $ENABLE_GC = 1
 then
-    NCFLAGS="$NCFLAGS -no-gc"
+    NCFLAGS="$NCFLAGS -gc"
 fi
 if test $ENABLE_OPTIMIZE = 1
 then

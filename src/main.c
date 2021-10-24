@@ -206,7 +206,7 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
 
 char* gVersion = "1.1.8";
 BOOL gNCDebug = FALSE;
-BOOL gNCGC = TRUE;
+BOOL gNCGC = FALSE;
 char gFName[PATH_MAX];
 sVarTable* gModuleVarTable;
 BOOL gNCType = FALSE;
