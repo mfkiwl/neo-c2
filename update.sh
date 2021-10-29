@@ -10,9 +10,9 @@ then
     (cd zash && make distclean)
 fi
 
-if [ -e yajs/Makefile ]
+if [ -e yapy/Makefile ]
 then
-    (cd yajs && make distclean)
+    (cd yapy && make distclean)
 fi
 
 
