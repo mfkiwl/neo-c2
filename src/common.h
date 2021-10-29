@@ -45,6 +45,8 @@
 #define ENUM_ELEMENT_MAX 512
 #define MACRO_MAX 512
 
+#define FUNCTION_VERSION_MAX 99
+
 #define clint64 long long      // for 32 bit cpu
 
 //////////////////////////////

@@ -21,11 +21,11 @@ static sNode*% create_int_node(int value, sParserInfo* info)
     return result;
 }
 
-void sNode_finalize(sNode* self) 
+void sNode_finalize(sNode* self) version 1
 {
 }
 
-sNode*%? exp_node(sParserInfo* info)
+sNode*%? exp_node(sParserInfo* info) version 1
 {
     if(isdigit(*info->p)) {
         int n = 0;
@@ -41,7 +41,7 @@ sNode*%? exp_node(sParserInfo* info)
     return null;
 }
 
-bool expression(sNode** node, sParserInfo* info) 
+bool expression(sNode** node, sParserInfo* info) version 1
 {
     *node = borrow exp_node(info);
     
@@ -52,10 +52,9 @@ bool expression(sNode** node, sParserInfo* info)
     return true;
 }
 
-bool compile(sNode* node, buffer* codes, sParserInfo* info) 
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 1
 {
     if(node.kind == kIntValue) {
-puts("compile int value");
         codes.append_int(OP_INT_VALUE);
         codes.append_int(node.value.intValue);
     }

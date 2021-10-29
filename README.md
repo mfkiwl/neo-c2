@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 1.2.1
+version 1.2.2
 
 ```
 #include <neo-c2.h>
@@ -1594,7 +1594,7 @@ int fun(char* str) version 2
     return n + 1;
 }
 
-int fun(char* str)
+int fun(char* str) version 3
 {
     int n = inherit(str);
 

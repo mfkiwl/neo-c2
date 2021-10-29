@@ -256,14 +256,32 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         info->method_block_generics_type = clone_node_type(generics_type);
     }
 
-    xstrncpy(info->calling_fun_name, fun_name, VAR_NAME_MAX);
-
+/*
+    sFunction* fun = NULL;
+    for(i=FUNCTION_VERSION_MAX; i>=1; i--) {
+        char new_fun_name[VAR_NAME_MAX];
+        snprintf(new_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, i);
+    
+        fun = get_function_from_table(new_fun_name);
+        
+        if(fun) {
+            xstrncpy(fun_name, new_fun_name, VAR_NAME_MAX);
+            break;
+        }
+    }
+    
+    if(fun == NULL) {
+        fun = get_function_from_table(fun_name);
+    }
+*/
     sFunction* fun = get_function_from_table(fun_name);
 
     if(fun == NULL) {
         compile_err_msg(info, "function not found(%s)\n", fun_name);
         return TRUE;
     }
+    
+    xstrncpy(info->calling_fun_name, fun_name, VAR_NAME_MAX);
 
     if(method) {
         xstrncpy(param_names[0], fun->mParamNames[0], VAR_NAME_MAX);

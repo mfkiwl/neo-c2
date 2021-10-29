@@ -1,35 +1,35 @@
 #######################################################
 # installed directories
 #######################################################
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-bindir=@bindir@
-datadir=@datadir@
-mandir=@mandir@
-sharedstatedir=@sharedstatedir@
-sysconfdir=@sysconfdir@/yajs
-datarootdir=@datarootdir@/yajs
-docdir=@datadir@/doc
-libdir=@libdir@
+prefix=/usr/local
+exec_prefix=${prefix}
+bindir=${exec_prefix}/bin
+datadir=${datarootdir}
+mandir=${datarootdir}/man
+sharedstatedir=${prefix}/com
+sysconfdir=${prefix}/etc/yapy
+datarootdir=${prefix}/share/yapy
+docdir=${datarootdir}/doc
+libdir=${exec_prefix}/lib
 
 ##########################################################
 # environmnet variables
 ##########################################################
-CC=@CC@
-INSTALL=@INSTALL@
-CFLAGS=@CFLAGS@
-LIBS=@LIBS@
-OS=@OS@
-DESTDIR=@DESTDIR@
-OBJS=@OBJS@
+CC=neo-c2
+INSTALL=/usr/bin/install -c
+CFLAGS=-Isrc/ -I. -L . -fPIC -rdynamic -DPREFIX="\"${DESTDIR}/\"" -I/usr/local/include -L /usr/local/lib -g
+LIBS= -lutil -lreadline -lm -lpcre
+OS=LINUX
+DESTDIR=/usr/local
+OBJS=src/main.o src/01int.o src/02add.o src/03str.o src/vm.o
 
 ##########################################################
 # main
 ##########################################################
-all: yajs
+all: yapy
 
-yajs: config.h $(OBJS) 
-	$(CC) -o yajs $(OBJS) $(CFLAGS) $(LIBS)
+yapy: config.h $(OBJS) 
+	$(CC) -o yapy $(OBJS) $(CFLAGS) $(LIBS)
 
 #########################################################
 # Object files
@@ -42,13 +42,13 @@ $(OBJ): src/*.h Makefile configure
 install:
 
 	mkdir -p "$(DESTDIR)/bin"
-	$(INSTALL) -m 755 ./yajs "$(DESTDIR)/bin"
+	$(INSTALL) -m 755 ./yapy "$(DESTDIR)/bin"
 
 #########################################################
 # uninstall
 #########################################################
 uninstall:
-	rm -f "$(DESTDIR)"/bin/yajs
+	rm -f "$(DESTDIR)"/bin/yapy
 
 #########################################################
 # permission
@@ -64,7 +64,7 @@ permission:
 # clean
 ########################################################
 clean:
-	rm -fR yajs yajs.dSYM src/*.o config.log config.status *.stackdump autom4te.cache .DS_Store core.* core a.out src/*.ll src/*.i
+	rm -fR yapy yapy.dSYM src/*.o config.log config.status *.stackdump autom4te.cache .DS_Store core.* core a.out src/*.ll src/*.i
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache
@@ -73,5 +73,5 @@ distclean: clean
 # test
 ########################################################
 test: 
-	PWD=`pwd` && ./yajs code/HelloWorld.js
+	PWD=`pwd` && ./yapy code/HelloWorld.py
 

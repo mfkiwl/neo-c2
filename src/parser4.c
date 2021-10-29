@@ -406,6 +406,11 @@ void parse_version(int* version, sParserInfo* info)
             info->p++;
             skip_spaces_and_lf(info);
         }
+        
+        if(*version >= FUNCTION_VERSION_MAX) {
+            fprintf(stderr, "overflow function version max");
+            exit(2);
+        }
 
         skip_spaces_and_lf(info);
     }

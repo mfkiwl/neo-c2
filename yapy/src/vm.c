@@ -50,6 +50,20 @@ printf("add value %d\n", lvalue + rvalue);
 printf("sub value %d\n", lvalue - rvalue);
                 }
                 break;
+                 
+            case OP_STRING_VALUE: {
+                p++;
+                
+                char* str = (char*)p;
+                
+printf("string value (%s)\n", str);
+
+                int len = strlen(str);
+                len = (len + 3) & ~3;
+                
+                p += len
+                }
+                break;
         }
         
         if(stack_num < 0 || stack_num >= ZSTACK_MAX) {

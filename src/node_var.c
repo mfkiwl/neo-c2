@@ -3280,6 +3280,10 @@ BOOL compile_store_field(unsigned int node, sCompileInfo* info)
 
         return TRUE;
     }
+    
+    if(field_type->mHeap) {
+        remove_object_from_right_values(rvalue.value, info);
+    }
 
     LLVMValueRef field_address;
 
