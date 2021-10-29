@@ -169,9 +169,9 @@ or
 bash home_build.sh
 ```
 
-With debug info and fast compile. Fast build.
+With debug info. 
 
-デバッグ情報を入れたビルドは以下です。ビルドが高速なので、これ使ってもいいです。コンパイラの体感速度に差はないです。
+デバッグ情報を入れたビルドは以下です。
 
 ```
 git clone https://github.com/ab25cq/neo-c2
@@ -188,7 +188,9 @@ or
 bash debug_build.sh
 ```
 
-Fast Build.
+Fast Build. For ISH
+
+最速のビルドです。For ISH
 
 ```
 git clone https://github.com/ab25cq/neo-c2
