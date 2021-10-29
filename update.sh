@@ -10,6 +10,11 @@ then
     (cd zash && make distclean)
 fi
 
+if [ -e yajs/Makefile ]
+then
+    (cd yajs && make distclean)
+fi
+
 
 if [ -e Makefile ]
 then

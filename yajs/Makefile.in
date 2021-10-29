@@ -7,8 +7,8 @@ bindir=@bindir@
 datadir=@datadir@
 mandir=@mandir@
 sharedstatedir=@sharedstatedir@
-sysconfdir=@sysconfdir@/yapy
-datarootdir=@datarootdir@/yapy
+sysconfdir=@sysconfdir@/yajs
+datarootdir=@datarootdir@/yajs
 docdir=@datadir@/doc
 libdir=@libdir@
 
@@ -26,10 +26,10 @@ OBJS=@OBJS@
 ##########################################################
 # main
 ##########################################################
-all: yapy
+all: yajs
 
-yapy: config.h $(OBJS) 
-	$(CC) -o yapy $(OBJS) $(CFLAGS) $(LIBS)
+yajs: config.h $(OBJS) 
+	$(CC) -o yajs $(OBJS) $(CFLAGS) $(LIBS)
 
 #########################################################
 # Object files
@@ -42,13 +42,13 @@ $(OBJ): src/*.h Makefile configure
 install:
 
 	mkdir -p "$(DESTDIR)/bin"
-	$(INSTALL) -m 755 ./yapy "$(DESTDIR)/bin"
+	$(INSTALL) -m 755 ./yajs "$(DESTDIR)/bin"
 
 #########################################################
 # uninstall
 #########################################################
 uninstall:
-	rm -f "$(DESTDIR)"/bin/yapy
+	rm -f "$(DESTDIR)"/bin/yajs
 
 #########################################################
 # permission
@@ -64,7 +64,7 @@ permission:
 # clean
 ########################################################
 clean:
-	rm -fR yapy yapy.dSYM src/*.o config.log config.status *.stackdump autom4te.cache .DS_Store core.* core a.out src/*.ll src/*.i
+	rm -fR yajs yajs.dSYM src/*.o config.log config.status *.stackdump autom4te.cache .DS_Store core.* core a.out src/*.ll src/*.i
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache
@@ -73,5 +73,5 @@ distclean: clean
 # test
 ########################################################
 test: 
-	PWD=`pwd` && ./yapy code/HelloWorld.py
+	PWD=`pwd` && ./yajs code/HelloWorld.js
 

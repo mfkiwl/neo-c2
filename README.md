@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 1.2.0
+version 1.2.1
 
 ```
 #include <neo-c2.h>
@@ -186,6 +186,23 @@ make test
 or 
 
 bash debug_build.sh
+```
+
+Fast Build.
+
+```
+git clone https://github.com/ab25cq/neo-c2
+
+cd neo-c2
+
+./configure --with-debug
+make no-self-host
+sudo make install
+make test
+
+or 
+
+bash fast_build.sh
 ```
 
 # Language specifications
