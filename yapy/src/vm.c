@@ -83,21 +83,6 @@ printf("string value (%s)\n", str);
                 }
                 break;
                 
-                
-        }
-        
-printf("stack_num %d\n", stack_num);
-        
-        if(stack_num < 0 || stack_num >= ZSTACK_MAX) {
-            fprintf(stderr, "invalid stack num\n");
-            return false;
-        }
-    }
-    
-    return true;
-}
-
-/*
             case OP_PRINT: 
                 p++;
                 
@@ -113,4 +98,19 @@ printf("stack_num %d\n", stack_num);
                 stack_num--;
                
                 break;
+                
+        }
+        
+printf("stack_num %d\n", stack_num);
+        
+        if(stack_num < 0 || stack_num >= ZSTACK_MAX) {
+            fprintf(stderr, "invalid stack num\n");
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+/*
 */

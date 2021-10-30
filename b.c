@@ -4,7 +4,7 @@ int fun();
 
 int main() 
 {
-    puts("AAA");
+    printf("%d\n", 'd');
     return 0;
 }
 

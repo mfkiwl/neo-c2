@@ -1241,7 +1241,7 @@ BOOL compile_switch_expression(unsigned int node, sCompileInfo* info)
     unsigned int* switch_expression = gNodes[node].uValue.sSwitch.mSwitchExpression;
     int num_switch_expression = gNodes[node].uValue.sSwitch.mNumSwitchExpression;
     unsigned int expression_node = gNodes[node].uValue.sSwitch.mExpression;
-    LLVMBasicBlockRef loop_end_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "end_block");
+    LLVMBasicBlockRef loop_end_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "end_blockX");
 
     info->loop_end_block[info->num_loop] = loop_end_block;
     info->num_loop++;
@@ -1267,6 +1267,8 @@ BOOL compile_switch_expression(unsigned int node, sCompileInfo* info)
     info->switch_expression_type = clone_node_type(get_value_from_stack(-1)->type);
     dec_stack_ptr(1, info);
 
+    
+    void* case_else_block_before = info->case_else_block;
     info->case_else_block = NULL;
 
     int i;
@@ -1306,10 +1308,12 @@ BOOL compile_switch_expression(unsigned int node, sCompileInfo* info)
     LLVMBuildBr(gBuilder, loop_end_block);
 
     llvm_change_block(loop_end_block, info);
+    
 
     info->type = create_node_type_with_class_name("void");
 
-    info->case_else_block = NULL;
+    info->case_else_block = case_else_block_before;
+//    info->case_else_block = NULL;
 
     info->num_loop--;
 
@@ -1352,8 +1356,9 @@ BOOL compile_case_expression(unsigned int node, sCompileInfo* info)
     else {
         cond_then_block = (LLVMBasicBlockRef)info->case_then_block;
     }
-    LLVMBasicBlockRef cond_else_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "cond_else_block");
+    LLVMBasicBlockRef cond_else_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "cond_else_blockX");
 
+    LLVMBasicBlockRef case_else_block_before = info->case_else_block;
     LLVMBasicBlockRef case_else_block = (LLVMBasicBlockRef)info->case_else_block;
 
     if(case_else_block) {
