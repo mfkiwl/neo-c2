@@ -173,7 +173,6 @@ struct sNodeTypeStruct {
     BOOL mRegister;
     BOOL mVolatile;
     BOOL mStatic;
-    BOOL mOverride;
     BOOL mUniq;
     int mSizeNum;
     BOOL mChannel;

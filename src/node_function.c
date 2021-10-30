@@ -59,57 +59,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     int version = gNodes[node].uValue.sFunctionCall.mVersion;
 
     if(inherit) {
-        char real_fun_name[VAR_NAME_MAX];
-
-        char* p = gFunctionName;
-
-        BOOL get_ = FALSE;
-        int n = 0;
-
-        while(*p) {
-            if(*p == '_' && *(p+1) == 'v' && xisdigit(*(p+2))) {
-                char* p2 = p + 2;
-                n = 0;
-                while(xisdigit(*p2)) {
-                    n = n * 10 + (*p2 - '0');
-                    p2++;
-                }
-                break;
-            }
-            else {
-                p++;
-            }
-        }
-
-        version = n;
-
-        if(*p == '\0') {
-            char* fun_name2 = gFunctionName;
-
-            char old_fun_name[VAR_NAME_MAX];
-
-            int i;
-            for(i=FUN_VERSION_MAX; i>=0; i--) {
-                snprintf(old_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name2, i);
-
-                LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, old_fun_name);
-
-                if(llvm_fun) {
-                    break;
-                }
-            }
-
-            strncpy(fun_name, old_fun_name, VAR_NAME_MAX);
-        }
-        else {
-            memcpy(real_fun_name, gFunctionName, p - gFunctionName);
-            real_fun_name[p-gFunctionName] = '\0';
-
-            char fun_name2[VAR_NAME_MAX];
-            snprintf(fun_name2, VAR_NAME_MAX, "%s_v%d", real_fun_name, version-1);
-
-            strncpy(fun_name, fun_name2, VAR_NAME_MAX);
-        }
+        xstrncpy(fun_name, gFunctionName, VAR_NAME_MAX);
     }
 
     int num_generics = gNodes[node].uValue.sFunctionCall.mNumGenerics;
@@ -256,25 +206,65 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         info->method_block_generics_type = clone_node_type(generics_type);
     }
 
-/*
     sFunction* fun = NULL;
-    for(i=FUNCTION_VERSION_MAX; i>=1; i--) {
-        char new_fun_name[VAR_NAME_MAX];
-        snprintf(new_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, i);
-    
-        fun = get_function_from_table(new_fun_name);
+    if(inherit) {
+        int version = 0;
+        char real_fun_name[VAR_NAME_MAX];
+
+        char* p = gFunctionName;
+
+        BOOL get_ = FALSE;
+        int n = 0;
+
+        while(*p) {
+            if(*p == '_' && *(p+1) == 'v' && xisdigit(*(p+2))) {
+                char* p2 = p + 2;
+                n = 0;
+                while(xisdigit(*p2)) {
+                    n = n * 10 + (*p2 - '0');
+                    p2++;
+                }
+                break;
+            }
+            else {
+                p++;
+            }
+        }
+
+        version = n;
         
-        if(fun) {
-            xstrncpy(fun_name, new_fun_name, VAR_NAME_MAX);
-            break;
+        memcpy(real_fun_name, gFunctionName, p - gFunctionName);
+        real_fun_name[p-gFunctionName] = '\0';
+        
+        for(i=n-1; i>=1; i--) {
+            char new_fun_name[VAR_NAME_MAX];
+            snprintf(new_fun_name, VAR_NAME_MAX, "%s_v%d", real_fun_name, i);
+            fun = get_function_from_table(new_fun_name);
+            
+            if(fun) {
+                xstrncpy(fun_name, new_fun_name, VAR_NAME_MAX);
+                break;
+            }
+        }
+    }
+    else {
+        for(i=FUNCTION_VERSION_MAX; i>=1; i--) {
+            char new_fun_name[VAR_NAME_MAX];
+            snprintf(new_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, i);
+        
+            fun = get_function_from_table(new_fun_name);
+            
+            if(fun) {
+                xstrncpy(fun_name, new_fun_name, VAR_NAME_MAX);
+                break;
+            }
         }
     }
     
     if(fun == NULL) {
         fun = get_function_from_table(fun_name);
     }
-*/
-    sFunction* fun = get_function_from_table(fun_name);
+//    sFunction* fun = get_function_from_table(fun_name);
 
     if(fun == NULL) {
         compile_err_msg(info, "function not found(%s)\n", fun_name);

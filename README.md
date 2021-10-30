@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 1.2.2
+version 1.2.3
 
 ```
 #include <neo-c2.h>
@@ -1576,10 +1576,6 @@ Mixin-layers is a programming technique that creates an application so that laye
 
 ```
 #include <stdio.h>
-
-int fun(char* str);
-override int fun(char* str);
-override int fun(char* str);
 
 int fun(char* str) version 1
 {

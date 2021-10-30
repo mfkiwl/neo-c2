@@ -10,12 +10,23 @@ bool vm(buffer* codes)
     
     while((p - head) < (codes.length() / sizeof(int))) {
         switch(*p) {
+            case OP_POP:
+                p++;
+                int n = *p;
+                p++;
+                
+                stack_num -= n;
+                
+printf("pop %d\n", n);
+                break;
+                
             case OP_INT_VALUE:
                 p++;
                 int value = *p;
                 p++;
                 
-                stack[stack_num].intValue = value;
+                stack[stack_num].kind = kIntValue;
+                stack[stack_num].value.intValue = value;
                 stack_num++;
                 
 printf("int value %d\n", value);
@@ -29,7 +40,8 @@ printf("int value %d\n", value);
                 
                 stack_num-=2;
                 
-                stack[stack_num].intValue = lvalue + rvalue;
+                stack[stack_num].kind = kIntValue;
+                stack[stack_num].value.intValue = lvalue + rvalue;
                 stack_num++;
                 
 printf("add value %d\n", lvalue + rvalue);
@@ -44,6 +56,7 @@ printf("add value %d\n", lvalue + rvalue);
                 
                 stack_num-=2;
                 
+                stack[stack_num].kind = kIntValue;
                 stack[stack_num].intValue = lvalue - rvalue;
                 stack_num++;
                 
@@ -60,11 +73,20 @@ printf("string value (%s)\n", str);
 
                 int len = strlen(str);
                 len = (len + 3) & ~3;
+                len /= sizeof(int);
                 
-                p += len
+                p += len;
+                
+                stack[stack_num].kind = kStringValue;
+                stack[stack_num].stringValue = str;
+                stack_num++;
                 }
                 break;
+                
+                
         }
+        
+printf("stack_num %d\n", stack_num);
         
         if(stack_num < 0 || stack_num >= ZSTACK_MAX) {
             fprintf(stderr, "invalid stack num\n");
@@ -75,3 +97,20 @@ printf("string value (%s)\n", str);
     return true;
 }
 
+/*
+            case OP_PRINT: 
+                p++;
+                
+                switch(stack[stack_num-1].kind) {
+                    case kStringValue: 
+                        puts(stack[stack_num-1].value.stringValue);
+                        break;
+                        
+                    case kIntValue: 
+                        printf("%d\n", stack[stack_num-1].value.intValue);
+                        break;
+                }
+                stack_num--;
+               
+                break;
+*/

@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-ViWin*% ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 9
+ViWin*% ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 17
 {
     auto result = inherit(self, y, x, width, height, vi);
     
@@ -196,7 +196,7 @@ void ViWin::horizonVisualModeView(ViWin* self, Vi* nvi)
     wrefresh(self.win);
 }
 
-void ViWin::view(ViWin* self, Vi* nvi) version 7
+void ViWin::view(ViWin* self, Vi* nvi) version 17
 {
     if(nvi.mode == kHorizonVisualMode 
         && nvi.activeWin.equals(self)) 
@@ -597,7 +597,7 @@ void ViWin::inputHorizonVisualMode(ViWin* self, Vi* nvi)
     self.saveInputedKey();
 }
 
-void ViWin::input(ViWin* self, Vi* nvi) version 7
+void ViWin::input(ViWin* self, Vi* nvi) version 17
 {
     if(nvi.mode == kHorizonVisualMode) {
         self.inputHorizonVisualMode(nvi);
@@ -615,7 +615,7 @@ void Vi::enterHorizonVisualMode(Vi* self)
     self.activeWin.visualModeHorizonHeadY = self.activeWin.cursorY;
 }
 
-Vi*% Vi::initialize(Vi*% self)  version 15
+Vi*% Vi::initialize(Vi*% self)  version 17
 {
     auto result = inherit(self);
 

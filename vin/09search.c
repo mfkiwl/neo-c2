@@ -28,7 +28,7 @@ void ViWin::searchModeView(ViWin* self, Vi* nvi)
     wrefresh(self.win);
 }
 
-void ViWin::view(ViWin* self, Vi* nvi) version 5
+void ViWin::view(ViWin* self, Vi* nvi) version 9
 {
     if(nvi.mode == kSearchMode && self.equals(nvi.activeWin)) {
         self.searchModeView(nvi);
@@ -295,7 +295,7 @@ void ViWin::inputSearchlMode(ViWin* self, Vi* nvi)
     self.saveInputedKey();
 }
 
-void ViWin::input(ViWin* self, Vi* nvi) version 5
+void ViWin::input(ViWin* self, Vi* nvi) version 9
 {
     if(nvi.mode == kSearchMode) {
         self.inputSearchlMode(nvi);
@@ -371,7 +371,7 @@ void Vi::readSearchString(Vi* self, char* file_name)
     wcsncpy(self.searchString, wstring(line), 128);
 }
 
-void Vi::enterSearchMode(Vi* self, bool regex_search, bool reverse) version 2
+void Vi::enterSearchMode(Vi* self, bool regex_search, bool reverse) version 9
 {
     self.mode = kSearchMode;
     wcsncpy(self.searchString, wstring(""), 128);
@@ -439,7 +439,7 @@ Vi*% Vi::initialize(Vi*% self) version 9
     return result;
 }
     
-void Vi::finalize(Vi* self) version 4
+void Vi::finalize(Vi* self) version 9
 {
     self.saveSearchString("searchString.vin");
     

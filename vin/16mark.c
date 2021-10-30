@@ -13,7 +13,7 @@ static bool int_equals(int left, int right)
     return left == right;
 }
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 8
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 16
 {
     auto result = inherit(self, y, x, width, height, vi);
     
@@ -22,7 +22,7 @@ ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi*
     return result;
 }
 
-void ViWin::finalize(ViWin* self) version 5
+void ViWin::finalize(ViWin* self) version 16
 {
     inherit(self);
 
@@ -105,7 +105,7 @@ void ViWin::returnBackOfStack(ViWin* self)
     }
 }
 
-Vi*% Vi::initialize(Vi*% self) version 14
+Vi*% Vi::initialize(Vi*% self) version 16
 {
     auto result = inherit(self);
 

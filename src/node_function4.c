@@ -274,24 +274,11 @@ BOOL compile_external_function(unsigned int node, sCompileInfo* info)
     LLVMTypeRef function_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_arg);
     LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
 
-    BOOL override_ = result_type->mOverride;
-
     if(llvm_fun) {
-        if(override_) {
-            char old_fun_name[VAR_NAME_MAX];
+        if(version > 0) {
+            char new_fun_name[VAR_NAME_MAX];
 
-            int i;
-            for(i=1; i<FUN_VERSION_MAX; i++) {
-                snprintf(old_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, i);
-
-                LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, old_fun_name);
-
-                if(llvm_fun == NULL) {
-                   break;
-                }
-            }
-
-            LLVMSetValueName2(llvm_fun, old_fun_name, strlen(old_fun_name));
+            snprintf(new_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, version);
 
             char* block_text = NULL;
 
@@ -301,13 +288,13 @@ BOOL compile_external_function(unsigned int node, sCompileInfo* info)
             }
 
             BOOL generics_function = FALSE;
-            if(!add_function_to_table(old_fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, TRUE, asm_fun_name, TRUE, NULL)) {
+            if(!add_function_to_table(new_fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, TRUE, asm_fun_name, TRUE, NULL)) {
                 fprintf(stderr, "overflow function table\n");
                 return FALSE;
             }
 
             if(strcmp(asm_fun_name, "") == 0) {
-                llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+                llvm_fun = LLVMAddFunction(gModule, new_fun_name, function_type);
             }
             else {
                 llvm_fun = LLVMAddFunction(gModule, asm_fun_name, function_type);
@@ -315,28 +302,55 @@ BOOL compile_external_function(unsigned int node, sCompileInfo* info)
         }
     }
     else {
-        if(strcmp(asm_fun_name, "") == 0) {
-            llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+        if(version > 0) {
+            char new_fun_name[VAR_NAME_MAX];
+
+            snprintf(new_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, version);
+
+            char* block_text = NULL;
+
+            char* param_names2[PARAMS_MAX];
+            for(i=0; i<PARAMS_MAX; i++) {
+                param_names2[i] = param_names[i];
+            }
+
+            BOOL generics_function = FALSE;
+            if(!add_function_to_table(new_fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, TRUE, asm_fun_name, TRUE, NULL)) {
+                fprintf(stderr, "overflow function table\n");
+                return FALSE;
+            }
+
+            if(strcmp(asm_fun_name, "") == 0) {
+                llvm_fun = LLVMAddFunction(gModule, new_fun_name, function_type);
+            }
+            else {
+                llvm_fun = LLVMAddFunction(gModule, asm_fun_name, function_type);
+            }
         }
         else {
+            if(strcmp(asm_fun_name, "") == 0) {
+                llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+            }
+            else {
 #ifdef __DARWIN__
-            llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
+                llvm_fun = LLVMAddFunction(gModule, fun_name, function_type);
 #else
-            llvm_fun = LLVMAddFunction(gModule, asm_fun_name, function_type);
+                llvm_fun = LLVMAddFunction(gModule, asm_fun_name, function_type);
 #endif
-        }
-
-        char* block_text = NULL;
-
-        char* param_names2[PARAMS_MAX];
-        for(i=0; i<PARAMS_MAX; i++) {
-            param_names2[i] = param_names[i];
-        }
-
-        BOOL generics_function = FALSE;
-        if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, TRUE, asm_fun_name, TRUE, NULL)) {
-            fprintf(stderr, "overflow function table\n");
-            return FALSE;
+            }
+    
+            char* block_text = NULL;
+    
+            char* param_names2[PARAMS_MAX];
+            for(i=0; i<PARAMS_MAX; i++) {
+                param_names2[i] = param_names[i];
+            }
+    
+            BOOL generics_function = FALSE;
+            if(!add_function_to_table(fun_name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_arg, 0, NULL, TRUE, asm_fun_name, TRUE, NULL)) {
+                fprintf(stderr, "overflow function table\n");
+                return FALSE;
+            }
         }
     }
 

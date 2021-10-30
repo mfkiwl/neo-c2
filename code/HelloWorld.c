@@ -377,9 +377,9 @@ enum AAA
     kC
 };
 
-extern void funY(int a, int b);
-extern override void funY(int a, int b);
-extern override void funY(int a, int b);
+extern void funY(int a, int b) version 1;
+extern void funY(int a, int b) version 2;
+extern void funY(int a, int b) version 3;
 
 void funY(int a, int b) version 1
 {
@@ -397,6 +397,21 @@ void funY(int a, int b) version 3
     inherit(a, b);
     puts("verion 3");
     printf("a %d b %d\n", a, b);
+}
+
+int funXY(int a, int b) version 1
+{
+    return 1;
+}
+
+int funXY(int a, int b) version 2
+{
+    return inherit(a, b) + 1;
+}
+
+int funXY(int a, int b) version 3
+{
+    return inherit(a, b) + 1;
 }
 
 int main()
@@ -816,6 +831,7 @@ test_label:
     xassert("lambda test", lam(1, 2) == 3);
 
     funY(1, 2);
+    xassert("mixin-layers test", funXY(1, 2) == 3);
 
     return 0;
 }

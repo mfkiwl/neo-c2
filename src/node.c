@@ -137,7 +137,22 @@ void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
         char fun_name[VAR_NAME_MAX];
         snprintf(fun_name, VAR_NAME_MAX, "%s_finalize", class_name);
 
-        sFunction* finalizer = get_function_from_table(fun_name);
+        int i;
+        sFunction* finalizer = NULL;
+        for(i=FUN_VERSION_MAX-1; i>=1; i--) {
+            char new_fun_name[VAR_NAME_MAX];
+            snprintf(new_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, i);
+            finalizer = get_function_from_table(new_fun_name);
+            
+            if(finalizer) {
+                xstrncpy(fun_name, new_fun_name, VAR_NAME_MAX);
+                break;
+            }
+        }
+        
+        if(finalizer == NULL) {
+            finalizer = get_function_from_table(fun_name);
+        }
 
         if(node_type->mHeap && finalizer != NULL) {
             if(finalizer->mGenericsFunction) {
@@ -210,7 +225,20 @@ LLVMValueRef clone_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* 
         char fun_name[VAR_NAME_MAX];
         snprintf(fun_name, VAR_NAME_MAX, "%s_clone", class_name);
 
-        sFunction* cloner = get_function_from_table(fun_name);
+        int i;
+        sFunction* cloner = NULL;
+        for(i=FUN_VERSION_MAX-1; i>=1; i--) {
+            char new_fun_name[VAR_NAME_MAX];
+            snprintf(new_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, i);
+            cloner = get_function_from_table(new_fun_name);
+            
+            if(cloner) {
+                xstrncpy(fun_name, new_fun_name, VAR_NAME_MAX);
+                break;
+            }
+        }
+        
+        cloner = get_function_from_table(fun_name);
 
         if(cloner != NULL) {
             if(cloner->mGenericsFunction) {

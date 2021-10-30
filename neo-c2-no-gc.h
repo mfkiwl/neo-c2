@@ -1652,10 +1652,18 @@ static void buffer_alignment(buffer* self)
 {
     int len = self.len;
     len = (len + 3) & ~3;
+    
+    if(len >= self.size) {
+        int new_size = (self.size + 1 + 1) * 2;
+        self.buf = realloc(self.buf, new_size);
+        self.size = new_size;
+    }
 
     for(int i=self.len; i<len; i++) {
-        self.append_char('\0');
+        self.buf[i] = '\0';
     }
+    
+    self.len = len;
 }
 
 static int buffer_compare(buffer* left, buffer* right) 

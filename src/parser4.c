@@ -473,17 +473,17 @@ BOOL parse_function(unsigned int* node, sNodeType* result_type, char* fun_name, 
             }
         }
     }
+    
+    int version = 0;
+    parse_version(&version, info);
 
     if(*info->p == ';') {
         info->p++;
         skip_spaces_and_lf(info);
 
-        *node = sNodeTree_create_external_function(fun_name, asm_fname, params, num_params, var_arg, result_type, struct_name, operator_fun, 0, info);
+        *node = sNodeTree_create_external_function(fun_name, asm_fname, params, num_params, var_arg, result_type, struct_name, operator_fun, version, info);
     }
     else {
-        int version = 0;
-        parse_version(&version, info);
-
         int i;
         for(i=0; i<num_params; i++) {
             char* name = params[i].mName;

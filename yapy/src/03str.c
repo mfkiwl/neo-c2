@@ -23,7 +23,7 @@ void sNode_finalize(sNode* self) version 3
     }
 }
 
-sNode*%? exp_node(sParserInfo* info) version 2
+sNode*%? exp_node(sParserInfo* info) version 3
 {
     sNode* result = borrow inherit(info);
     
@@ -111,7 +111,10 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 3
         codes.append_int(OP_STRING_VALUE);
         
         codes.append_str(node.value.stringValue);
-        codes.apliment();
+        
+        codes.alignment();
+        
+        info->stack_num++;
     }
     
     return true;

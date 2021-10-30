@@ -57,6 +57,8 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 1
     if(node.kind == kIntValue) {
         codes.append_int(OP_INT_VALUE);
         codes.append_int(node.value.intValue);
+        
+        info->stack_num++;
     }
     
     return true;

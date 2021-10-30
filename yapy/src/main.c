@@ -28,6 +28,7 @@ bool parse(char* fname, buffer* codes)
     info.p = source2;
     info.fname = fname;
     info.sline = 1;
+    info.stack_num = 0;
     
     list<sNode*%>*% nodes = new list<sNode*%>.initialize();
     
@@ -43,6 +44,17 @@ bool parse(char* fname, buffer* codes)
     
     foreach(it, nodes) {
         if(!compile(it, codes, &info)) {
+            return false;
+        }
+        
+printf("%d\n", info->stack_num);
+        if(info->stack_num >= 0) {
+            codes.append_int(OP_POP);
+            codes.append_int(info->stack_num);
+            info->stack_num = 0;
+        }
+        else {
+            fprintf(stderr, "%s %d: invalid stack num\n", fname, info->sline);
             return false;
         }
     }

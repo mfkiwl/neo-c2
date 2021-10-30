@@ -73,7 +73,7 @@ static sNode*% op_add_node(sParserInfo* info)
     return dummy_heap result;
 }
 
-bool expression(sNode** node, sParserInfo* info)
+bool expression(sNode** node, sParserInfo* info) version 2
 {
     *node = borrow op_add_node(info);
     
@@ -102,6 +102,10 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 2
         }
         
         codes.append_int(OP_ADD);
+        
+        info->stack_num -= 2;
+        info->stack_num++;
+        
     }
     else if(node.kind == kOpSub) {
         sNode* left = node.opValue.left
@@ -117,6 +121,9 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 2
         }
         
         codes.append_int(OP_SUB);
+        
+        info->stack_num -= 2;
+        info->stack_num++;
     }
     
     return true;

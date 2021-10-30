@@ -1,6 +1,6 @@
 #include "common.h"
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 6
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 10
 {
     auto result = inherit(self, y, x, width, height, vi);
     
@@ -16,7 +16,7 @@ void ViWin::modifyCursorOnDeleting(ViWin* self)
     self.modifyOverCursorXValue2();
 }
 
-void ViWin::deleteOneLine(ViWin* self, Vi* nvi) version 2
+void ViWin::deleteOneLine(ViWin* self, Vi* nvi) version 10
 {
     if(self.digitInput > 0) {
         self.pushUndo();
@@ -664,7 +664,7 @@ void ViWin::yankOneLine(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin::joinLines2(ViWin* self) version 2
+void ViWin::joinLines2(ViWin* self) version 10
 {
     self.pushUndo();
 

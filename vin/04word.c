@@ -367,7 +367,7 @@ void ViWin::forwardWord2(ViWin* self)
     }
 }
 
-void ViWin::backwardWord(ViWin* self) version 2
+void ViWin::backwardWord(ViWin* self)
 {
     auto line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 

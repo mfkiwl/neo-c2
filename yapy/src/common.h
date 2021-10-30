@@ -4,7 +4,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValue, kOpAdd, kOpSub, kStringValue } kind;
+    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint } kind;
     
     char* fname;
     int sline;
@@ -27,14 +27,21 @@ struct sParserInfo
     char* p;
     int sline;
     char* fname;
+    
+    int stack_num;
 };
 
-union ZVALUE 
+struct ZVALUE 
 {
-    int intValue;
-    bool boolValue;
-    long longValue;
-    void* objValue;
+    enum { kIntValue, kBoolValue, kLongValue, kStringValue, kObjValue } kind;
+    
+    union {
+        int intValue;
+        bool boolValue;
+        long longValue;
+        char* stringValue;
+        void* objValue;
+    } value;
 };
 
 struct sVar
@@ -59,28 +66,37 @@ void sFunction_finalize();
 #define OP_ADD 2
 #define OP_SUB 3
 #define OP_STRING_VALUE 4
+#define OP_PRINT 5
+#define OP_POP 6
 
 /// vm.c ///
 bool vm(buffer* codes);
 
 /// 01int.c ///
-bool expression(sNode** node, sParserInfo* info);
-bool compile(sNode* node, buffer* codes, sParserInfo* info);
+bool expression(sNode** node, sParserInfo* info) version 1;
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 1;
 
-void sNode_finalize(sNode* self);
-sNode*%? exp_node(sParserInfo* info);
+void sNode_finalize(sNode* self) version 1;
+sNode*%? exp_node(sParserInfo* info) version 1;
 
 void skip_spaces(sParserInfo* info);
 
 /// 02add.c ///
-override bool expression(sNode** node, sParserInfo* info);
-override bool compile(sNode* node, buffer* codes, sParserInfo* info);
+bool expression(sNode** node, sParserInfo* info) version 2;
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 2;
 
-override void sNode_finalize(sNode* self);
+void sNode_finalize(sNode* self);
 
 /// 03str.c ///
-override bool compile(sNode* node, buffer* codes, sParserInfo* info);
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 3;
 
-override void sNode_finalize(sNode* self);
-override sNode*%? exp_node(sParserInfo* info);
+void sNode_finalize(sNode* self) version 3;
+sNode*%? exp_node(sParserInfo* info) version 3;
 
+/// 04print.c ///
+bool wordcmp(char* p, char* word2);
+
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 4;
+
+void sNode_finalize(sNode* self) version 4;
+sNode*%? exp_node(sParserInfo* info) version 4;

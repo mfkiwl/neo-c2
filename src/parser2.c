@@ -56,7 +56,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
     BOOL signed_ = FALSE;
     BOOL no_heap = FALSE;
     BOOL managed_ = FALSE;
-    BOOL override_ = 0;
     BOOL channel = FALSE;
     int pointer_num = 0;
 
@@ -87,9 +86,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
         }
         else if(strcmp(type_name, "static") == 0) {
             static_ = TRUE;
-        }
-        else if(strcmp(type_name, "override") == 0) {
-            override_ = TRUE;
         }
         else {
             info->p = p_before;
@@ -1097,7 +1093,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
     (*result_type)->mRegister = register_;
     (*result_type)->mVolatile = volatile_;
     (*result_type)->mStatic = static_;
-    (*result_type)->mOverride = override_;
     (*result_type)->mUniq = uniq;
     (*result_type)->mNoHeap = no_heap;
 

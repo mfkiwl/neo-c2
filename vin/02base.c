@@ -213,7 +213,7 @@ void ViWin::textsView(ViWin* self, Vi* nvi)
 }
 */
 
-void ViWin::statusBarView(ViWin* self, Vi* nvi) version 1
+void ViWin::statusBarView(ViWin* self, Vi* nvi) version 2
 {
     int maxy = getmaxy(self.win);
     int maxx = getmaxx(self.win);
@@ -236,7 +236,7 @@ void ViWin::view(ViWin* self, Vi* nvi) version 2
     wrefresh(self.win);
 }
 
-int ViWin::getKey(ViWin* self, bool head) version 1
+int ViWin::getKey(ViWin* self, bool head) version 2
 {
     return wgetch(self.win);        
 }
@@ -345,13 +345,13 @@ void ViWin::modifyUnderCursorXValue(ViWin* self)
     }
 }
 
-void ViWin::forward(ViWin* self) 
+void ViWin::forward(ViWin* self) version 2
 {
     self.cursorX++;
     self.modifyOverCursorXValue();
 }
 
-void ViWin::backward(ViWin* self) 
+void ViWin::backward(ViWin* self) version 2
 {
     self.cursorX--;
     self.modifyUnderCursorXValue();
@@ -449,7 +449,7 @@ void ViWin::moveTop(ViWin* self)
 }
 
 /// implemented after layer
-void ViWin::restoreVisualMode(ViWin* self, Vi* nvi) version 1
+void ViWin::restoreVisualMode(ViWin* self, Vi* nvi) version 2
 {
 }
 
@@ -498,7 +498,7 @@ void ViWin::moveBottom(ViWin* self)
     self.centeringCursor();
 }
 
-void ViWin::openFile(ViWin* self, char* file_name, int line_num) version 1
+void ViWin::openFile(ViWin* self, char* file_name, int line_num) version 2
 {
     /// implemented by the after layer
 }
@@ -515,12 +515,12 @@ void ViWin::saveReturnPoint(ViWin* self)
     self.returnPointStack.push_back(clone return_point);
 }
 
-void ViWin::saveInputedKeyOnTheMovingCursor(ViWin* self) version 1
+void ViWin::saveInputedKeyOnTheMovingCursor(ViWin* self) version 2
 {
     /// inpelemeted after layer
 }
 
-void ViWin::joinLines2(ViWin* self)  version 1
+void ViWin::joinLines2(ViWin* self)  version 2
 {
     /// implemented after layer
 }
@@ -684,7 +684,7 @@ void Vi::finalize(Vi* self) version 2
     inherit(self);
 }
 
-void Vi::exitFromApp(Vi* self) version 1
+void Vi::exitFromApp(Vi* self) version 2
 {
     self.appEnd = true;
 }
@@ -724,17 +724,17 @@ int Vi::main_loop(Vi* self) version 2
     0
 }
 
-void Vi::openFile(Vi* self, char* file_name, int line_num) version 1
+void Vi::openFile(Vi* self, char* file_name, int line_num) version 2
 {
     /// implemented by the after layer
 }
 
-void Vi::repositionWindows(Vi* self)  version 1
+void Vi::repositionWindows(Vi* self)  version 2
 {
     /// implemented by the after layer
 }
 
-void Vi::enterSearchMode(Vi* self, bool regex_search, bool search_reverse) version 1
+void Vi::enterSearchMode(Vi* self, bool regex_search, bool search_reverse) version 2
 {
     /// implemented by the after layer
 }

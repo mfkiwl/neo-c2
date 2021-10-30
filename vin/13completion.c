@@ -124,7 +124,7 @@ wstring&? ViWin::selector2(ViWin* self, list<wstring>* lines)
     return result;
 }
 
-void ViWin::completion(ViWin* self, Vi* nvi) version 2
+void ViWin::completion(ViWin* self, Vi* nvi) version 13
 {
     auto line = self.texts.item(self.scroll+self.cursorY, null);
 

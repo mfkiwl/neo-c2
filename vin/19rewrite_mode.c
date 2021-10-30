@@ -17,7 +17,7 @@ void ViWin::rewriteModeView(ViWin* self, Vi* nvi)
     wattroff(self.win, A_REVERSE);
 }
 
-void ViWin::view(ViWin* self, Vi* nvi) version 9
+void ViWin::view(ViWin* self, Vi* nvi) version 19
 {
     if(nvi.mode == kRewriteMode && self.equals(nvi.activeWin)) {
         self.rewriteModeView(nvi);
@@ -167,7 +167,7 @@ void ViWin::inputRewritetMode(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin::input(ViWin* self, Vi* nvi) version 9
+void ViWin::input(ViWin* self, Vi* nvi) version 19
 {
     if(nvi.mode == kRewriteMode) {
         self.inputRewritetMode(nvi);
@@ -190,7 +190,7 @@ void Vi::exitFromRewiteMode(Vi* self)
     self.activeWin.saveInputedKey();
 }
 
-Vi*% Vi::initialize(Vi*% self) version 17
+Vi*% Vi::initialize(Vi*% self) version 19
 {
     auto result = inherit(self);
 
@@ -205,7 +205,7 @@ Vi*% Vi::initialize(Vi*% self) version 17
     return result;
 }
 
-int Vi::main_loop(Vi* self) version 4
+int Vi::main_loop(Vi* self) version 19
 {
     while(!self.appEnd) {
         self.view();

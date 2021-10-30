@@ -278,42 +278,42 @@ void ViWin::input(ViWin* self, Vi* nvi) version 3
     }
 }
 
-void ViWin::pushUndo(ViWin* self) version 1
+void ViWin::pushUndo(ViWin* self) version 3
 {
     /// implemented by the after layer
 }
 
-void ViWin::writedFlagOn(ViWin* self) version 1
+void ViWin::writedFlagOn(ViWin* self) version 3
 {
     /// implemented by the after layer
 }
 
-void ViWin::completion(ViWin* self, Vi* nvi) version 1
+void ViWin::completion(ViWin* self, Vi* nvi) version 3
 {
     /// implemented by the after layer
 }
 
-void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 1
+void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 3
 {
     /// implemented by the after layer
 }
 
-void ViWin::clearInputedKey(ViWin* self) version 1
+void ViWin::clearInputedKey(ViWin* self) version 3
 {
     /// implemented by the after layer
 }
 
-void ViWin::saveInputedKey(ViWin* self) version 1
+void ViWin::saveInputedKey(ViWin* self) version 3
 {
     /// implemented by the after layer
 }
 
-void ViWin::backwardWord(ViWin* self) version 1
+void ViWin::backwardWord(ViWin* self) version 3
 {
     /// implemented by the after layer
 }
 
-void Vi::enterInsertMode(Vi* self) version 1
+void Vi::enterInsertMode(Vi* self) version 3
 {
     self.mode = kInsertMode;
     self.activeWin.writedFlagOn();
@@ -323,7 +323,7 @@ void Vi::enterInsertMode(Vi* self) version 1
     refresh();
 }
 
-void Vi::enterInsertMode2(Vi* self) 
+void Vi::enterInsertMode2(Vi* self) version 3
 {
     self.mode = kInsertMode;
     self.activeWin.writedFlagOn();
@@ -333,7 +333,7 @@ void Vi::enterInsertMode2(Vi* self)
     refresh();
 }
 
-void Vi::exitFromInsertMode(Vi* self) 
+void Vi::exitFromInsertMode(Vi* self) version 3
 {
     self.mode = kEditMode;
     self.activeWin.saveInputedKey();

@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 10
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 18
 {
     auto result = inherit(self, y, x, width, height, vi);
     
@@ -71,7 +71,7 @@ void ViWin::verticalVisualModeView(ViWin* self, Vi* nvi)
     wrefresh(self.win);
 }
 
-void ViWin::view(ViWin* self, Vi* nvi) version 8
+void ViWin::view(ViWin* self, Vi* nvi) version 18
 {
     if(nvi.mode == kVerticalVisualMode 
         && nvi.activeWin.equals(self)) 
@@ -388,7 +388,7 @@ void ViWin::inputVerticalVisualMode(ViWin* self, Vi* nvi)
     self.saveInputedKey();
 }
 
-void ViWin::input(ViWin* self, Vi* nvi) version 8
+void ViWin::input(ViWin* self, Vi* nvi) version 18
 {
     if(nvi.mode == kVerticalVisualMode) {
         self.inputVerticalVisualMode(nvi);
@@ -417,7 +417,7 @@ void Vi::enterVerticalVisualMode(Vi* self)
     self.activeWin.visualModeVerticalInserting = false;
 }
 
-Vi*% Vi::initialize(Vi*% self) version 16
+Vi*% Vi::initialize(Vi*% self) version 18
 {
     auto result = inherit(self);
 

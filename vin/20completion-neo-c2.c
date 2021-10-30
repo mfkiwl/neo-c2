@@ -45,7 +45,7 @@ static bool get_command_result2(buffer* command_result, char* cmdline)
     return true;
 }
 
-void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 2
+void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
 {
     auto line = self.texts.item(self.scroll+self.cursorY, null);
 

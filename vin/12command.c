@@ -325,7 +325,7 @@ void ViWin::commandModeInput(ViWin* self, Vi* nvi)
     }
 }
 
-void ViWin::view(ViWin* self, Vi* nvi) version 6
+void ViWin::view(ViWin* self, Vi* nvi) version 12
 {
     if(nvi.mode == kCommandMode && self == nvi.activeWin) {
         self.commandModeView(nvi);
@@ -335,7 +335,7 @@ void ViWin::view(ViWin* self, Vi* nvi) version 6
     }
 }
 
-void ViWin::input(ViWin* self, Vi* nvi) version 6
+void ViWin::input(ViWin* self, Vi* nvi) version 12
 {
     if(nvi.mode == kCommandMode) {
         self.commandModeInput(nvi);

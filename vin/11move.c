@@ -220,7 +220,7 @@ void ViWin::toggleCommentBackward(ViWin* self)
     }
 }
 
-void ViWin::gotoBraceEnd(ViWin* self, Vi* nvi) version 2
+void ViWin::gotoBraceEnd(ViWin* self, Vi* nvi) version 11
 {
     auto line = self.texts.item(self.scroll+self.cursorY, null);
 

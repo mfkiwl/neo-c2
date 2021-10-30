@@ -140,7 +140,14 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     }
 
     BOOL static_ = result_type->mStatic;
+    
+    if(version > 0) {
+        char new_fun_name[VAR_NAME_MAX];
+        snprintf(new_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, version);
+        xstrncpy(fun_name, new_fun_name, VAR_NAME_MAX);
+    }
 
+/*
     if(version > 0) {
         int i;
         for(i=FUN_VERSION_MAX; i>=0; i--) {
@@ -161,6 +168,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
             xstrncpy(fun_name, fun_name2, VAR_NAME_MAX);
         }
     }
+*/
 
     LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
     LLVMTypeRef  llvm_fun_type;

@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi)  version 5
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi)  version 8
 {
     auto result = inherit(self, y, x, width, height, vi);
 
@@ -61,7 +61,7 @@ void ViWin::visualModeView(ViWin* self, Vi* nvi)
     wrefresh(self.win);
 }
 
-void ViWin::view(ViWin* self, Vi* nvi) version 4
+void ViWin::view(ViWin* self, Vi* nvi) version 8
 {
     if(nvi.mode == kVisualMode && nvi.activeWin.equals(self)) {
         self.visualModeView(nvi);
@@ -421,12 +421,12 @@ void ViWin::deleteOnVisualMode(ViWin* self, Vi* nvi)
     
 }
 
-void ViWin::makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 1
+void ViWin::makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 8
 {
     /// implemented after layer
 }
 
-void ViWin::makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 1
+void ViWin::makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 8
 {
     /// implemented after layer
 }
@@ -555,7 +555,7 @@ void ViWin::inputVisualMode(ViWin* self, Vi* nvi)
     self.saveInputedKey();
 }
 
-void ViWin::input(ViWin* self, Vi* nvi) version 4
+void ViWin::input(ViWin* self, Vi* nvi) version 8
 {
     if(nvi.mode == kVisualMode) {
         self.inputVisualMode(nvi);
@@ -565,7 +565,7 @@ void ViWin::input(ViWin* self, Vi* nvi) version 4
     }
 }
 
-void ViWin::restoreVisualMode(ViWin* self, Vi* nvi) version 2
+void ViWin::restoreVisualMode(ViWin* self, Vi* nvi) version 8
 {
     nvi.mode = kVisualMode;
 
@@ -576,7 +576,7 @@ void ViWin::restoreVisualMode(ViWin* self, Vi* nvi) version 2
     }
 }
 
-void ViWin::gotoBraceEnd(ViWin* self, Vi* nvi) version 1
+void ViWin::gotoBraceEnd(ViWin* self, Vi* nvi) version 8
 {
     /// implemeted after layer
 }

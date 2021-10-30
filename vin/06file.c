@@ -1,6 +1,6 @@
 #include "common.h"
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 4
+ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 6
 {
     auto result = inherit(self, y, x, width, height, vi);
 
@@ -9,7 +9,7 @@ ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi*
     return result;
 }
 
-void ViWin::statusBarView(ViWin* self, Vi* nvi) version 2
+void ViWin::statusBarView(ViWin* self, Vi* nvi) version 6
 {
     int maxy = getmaxy(self.win);
     int maxx = getmaxx(self.win);
@@ -92,7 +92,7 @@ void ViWin::readCursorPosition(ViWin* self, char* file_name)
     self.modifyOverCursorYValue();
 }
 
-void ViWin::openFile(ViWin* self, char* file_name, int line_num) version 2
+void ViWin::openFile(ViWin* self, char* file_name, int line_num) version 6
 {
     FILE* f = fopen(file_name, "r");
     
@@ -188,12 +188,12 @@ void ViWin::writeFile(ViWin* self)
     }
 }
 
-void ViWin::writedFlagOn(ViWin* self) version 2
+void ViWin::writedFlagOn(ViWin* self) version 6
 {
     self.writed = true;
 }
 
-bool ViWin::saveDotToFile(ViWin* self, Vi* nvi) version 1
+bool ViWin::saveDotToFile(ViWin* self, Vi* nvi) version 6
 {
     /// implementad after layer
 }
@@ -235,7 +235,7 @@ void Vi::closeActiveWin(Vi* self)
     self.activeWin = self.wins.item(0, null);
 }
 
-void Vi::exitFromApp(Vi* self) version 2
+void Vi::exitFromApp(Vi* self) version 6
 {
     foreach(it, self.wins) {
         it.writeFile();
@@ -294,7 +294,7 @@ Vi*% Vi::initialize(Vi*% self) version 6
     return result;
 }
 
-void Vi::repositionWindows(Vi* self) version 2
+void Vi::repositionWindows(Vi* self) version 6
 {
     int maxy = xgetmaxy();
     int maxx = xgetmaxx();
@@ -379,7 +379,7 @@ string Vi::readLastOpenFile(Vi* self)
     return string(file_name);
 }
 
-void Vi::openFile(Vi* self, char* file_name, int line_num) version 2
+void Vi::openFile(Vi* self, char* file_name, int line_num) version 6
 {
     if(file_name == null) {
         auto file_name = self.readLastOpenFile();
