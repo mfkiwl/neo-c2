@@ -1796,6 +1796,27 @@ static bool xiswalnum(wchar_t c)
     return xiswalpha(c) || xiswdigit(c);
 }
 
+static bool xisalpha(char c)
+{
+    bool result = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    return result;
+}
+
+static bool xisblank(char c)
+{
+    return c == ' ' || c == '\t';
+}
+
+static bool xisdigit(char c)
+{
+    return (c >= '0' && c <= '9');
+}
+
+static bool xisalnum(char c)
+{
+    return xisalpha(c) || xisdigit(c);
+}
+
 static string xbasename(char* path)
 {
     char* p = path + strlen(path);

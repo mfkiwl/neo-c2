@@ -27,9 +27,9 @@ void sNode_finalize(sNode* self) version 1
 
 sNode*%? exp_node(sParserInfo* info) version 1
 {
-    if(isdigit(*info->p)) {
+    if(xisdigit(*info->p)) {
         int n = 0;
-        while(isdigit(*info->p)) {
+        while(xisdigit(*info->p)) {
             n = n * 10 + (*info->p - '0');
             info->p++;
         }

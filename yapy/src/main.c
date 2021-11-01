@@ -25,6 +25,8 @@ bool parse(char* fname, buffer* codes)
     
     string source2 = source.to_string();
     
+puts(source2);
+    
     info.p = source2;
     info.fname = fname;
     info.sline = 1;
@@ -35,7 +37,7 @@ bool parse(char* fname, buffer* codes)
     while(*info->p) {
         sNode* node = null;
         if(!expression(&node, &info)) {
-            fprintf(stderr, "%s %d: unexpected character %c\n", fname, info->sline, *info->p);
+            fprintf(stderr, "%s %d: unexpected character (%c)\n", fname, info->sline, *info->p);
             return false;
         }
         

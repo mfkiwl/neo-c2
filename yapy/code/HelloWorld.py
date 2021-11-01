@@ -1,3 +1,2 @@
 1+1
-print("ABC")
-
+print("HELLO WORLD")
