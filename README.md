@@ -650,6 +650,38 @@ This should work fine.
 
 これで不具合なく動くはずです。
 
+Struct and union are the same rule of a local variable.
+
+構造体やunionも普通の変数と同じルールです。
+
+```
+struct sA {
+   int*% a;
+};
+
+void sA_finalize(sA* self)
+{
+    delete self.a;
+}
+
+int main()
+{
+    int*% a = new int;
+    *a = 5;
+
+    sA*% data = new sA;
+    data.a = a;  // the owner of a is changed
+
+    return 0;
+}
+```
+
+In this case, data.a will be freed when data will be freed. 
+a will not be freed.
+
+みたいなケースです。この場合、dataがfreeされるタイミングでdata.aがフリーされます。
+aはfreeされません。
+
 You can also new using Boehm GC. In this case, assign it to an ordinary pointer. Since it is a conservative GC, it seems that the memory may not be released, but for the time being, I think that the memory will not be exhausted. finalize is not called. The usage is as follows.
 
 BoehmGCを使ったnewもできます。この場合は普通のポインタに代入してください。保守的GCなのでメモリが解放されない場合もある様子ですが、とりあえずは、メモリは枯渇しないと思います。finalizeは呼ばれません。使い方は以下です。
