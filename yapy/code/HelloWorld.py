@@ -1,2 +1,2 @@
-1+1
-print("HELLO WORLD")
+a=1+1
+print(a)

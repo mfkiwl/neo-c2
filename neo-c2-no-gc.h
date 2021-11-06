@@ -371,13 +371,15 @@ impl vector<T>
     T& begin(vector<T>* self) {
         self.it = 0;
 
-        return self.item(0, null);
+        T& default_value;
+        return self.item(0, default_value);
     }
 
     T& next(vector<T>* self) {
         self.it++;
 
-        return self.item(self.it, null);
+        T& default_value
+        return self.item(self.it, default_value);
     }
 
     bool end(vector<T>* self) {
@@ -932,7 +934,8 @@ impl list <T>
         list<T>*% result = new list<T>.initialize();
 
         if(self.length() > 0) {
-            T& item_before = self.item(0, null);
+            T& default_value;
+            T& item_before = self.item(0, default_value);
 
             if(isheap(T)) {
                 result.push_back(clone item_before);
@@ -1118,7 +1121,8 @@ impl map <T, T2>
         int len = 0;
 
         for(auto it = self.begin(); !self.end(); it = self.next()) {
-            T2& it2 = self.at(it, null);
+            T2& default_value;
+            T2& it2 = self.at(it, default_value);
             int hash = it.get_hash_key() % size;
             int n = hash;
 
@@ -1138,7 +1142,8 @@ impl map <T, T2>
                 else {
                     item_existance[n] = true;
                     keys[n] = it;
-                    items[n] = self.at(it, null);
+                    T2& default_value;
+                    items[n] = self.at(it, default_value);
 
                     len++;
                     break;
@@ -1275,7 +1280,8 @@ impl map <T, T2>
 
         bool result = true;
         foreach(it, left) {
-            T2& it2 = left.at(it, null);
+            T2 default_value;
+            T2& it2 = left.at(it, default_value);
 
             if(right.find(it)) {
                 T2& default_value;

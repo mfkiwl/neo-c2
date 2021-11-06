@@ -1,5 +1,18 @@
 #include "common.h"
 
+void show_zvalue(ZVALUE value)
+{
+    switch(value.kind) {
+        case kIntValue:
+            printf("int value %d\n", value.value.intValue);
+            break;
+            
+        case kStringValue:
+            printf("string value %s\n", value.value.stringValue);
+            break;
+    }
+}
+
 bool vm(buffer* codes)
 {
     ZVALUE stack[ZSTACK_MAX];
@@ -7,6 +20,8 @@ bool vm(buffer* codes)
     
     int* p = (int*)codes.buf;
     int* head = (int*)codes.buf;
+    
+    map<char*, ZVALUE>*% vtable = new map<char*, ZVALUE>.initialize();
     
     while((p - head) < (codes.length() / sizeof(int))) {
         switch(*p) {
@@ -17,7 +32,6 @@ bool vm(buffer* codes)
                 
                 stack_num -= n;
                 
-printf("pop %d\n", n);
                 break;
                 
             case OP_INT_VALUE:
@@ -29,7 +43,6 @@ printf("pop %d\n", n);
                 stack[stack_num].value.intValue = value;
                 stack_num++;
                 
-printf("int value %d\n", value);
                 break;
                 
             case OP_ADD: {
@@ -44,7 +57,6 @@ printf("int value %d\n", value);
                 stack[stack_num].value.intValue = lvalue + rvalue;
                 stack_num++;
                 
-printf("add value %d\n", lvalue + rvalue);
                 }
                 break;
                 
@@ -59,8 +71,6 @@ printf("add value %d\n", lvalue + rvalue);
                 stack[stack_num].kind = kIntValue;
                 stack[stack_num].intValue = lvalue - rvalue;
                 stack_num++;
-                
-printf("sub value %d\n", lvalue - rvalue);
                 }
                 break;
                  
@@ -69,8 +79,6 @@ printf("sub value %d\n", lvalue - rvalue);
                 
                 char* str = (char*)p;
                 
-printf("string value (%s)\n", str);
-
                 int len = strlen(str);
                 len = (len + 3) & ~3;
                 len /= sizeof(int);
@@ -95,13 +103,62 @@ printf("string value (%s)\n", str);
                         printf("%d\n", stack[stack_num-1].value.intValue);
                         break;
                 }
-                stack_num--;
-               
                 break;
                 
+            case OP_LOAD: {
+                p++;
+                
+                char* var_name = (char*)p;
+                
+                int len = strlen(var_name);
+                len = (len + 3) & ~3;
+                len /= sizeof(int);
+                
+                p += len;
+                
+                bool in_global_context = (bool)*p;
+                p++;
+                
+                if(in_global_context) {
+                    stack[stack_num] = gGlobalVar.at(var_name, gNullValue);
+                    stack_num++;
+                }
+                else {
+                    stack[stack_num] = vtable.at(var_name, gNullValue);
+                    stack_num++;
+                }
+                
+                if(stack[stack_num-1].kind == kNullValue) {
+                    fprintf(stderr, "var not found(%s)\n", var_name);
+                }
+                }
+                break;
+                
+            case OP_STORE: {
+                p++;
+                
+                char* var_name = (char*)p;
+                
+                int len = strlen(var_name);
+                len = (len + 3) & ~3;
+                len /= sizeof(int);
+                
+                p += len;
+                
+                bool in_global_context = (bool)*p;
+                p++;
+                
+                if(in_global_context) {
+                    ZVALUE right = stack[stack_num-1];
+                    gGlobalVar.insert(var_name, right);
+                }
+                else {
+                    ZVALUE right = stack[stack_num-1];
+                    vtable.insert(var_name, right);
+                }
+                }
+                break;
         }
-        
-printf("stack_num %d\n", stack_num);
         
         if(stack_num < 0 || stack_num >= ZSTACK_MAX) {
             fprintf(stderr, "invalid stack num\n");

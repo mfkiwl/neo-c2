@@ -4,7 +4,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint } kind;
+    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint, kLoadVar, kStoreVar } kind;
     
     char* fname;
     int sline;
@@ -19,6 +19,17 @@ struct sNode
         } opValue;
         
         string stringValue;
+        
+        struct {
+            string name;
+            sNode*% right;
+            bool in_global_context;
+        } storeVarValue;
+        
+        struct {
+            string name;
+            bool in_global_context;
+        } loadVarValue;
     } value;
 };
 
@@ -29,11 +40,13 @@ struct sParserInfo
     char* fname;
     
     int stack_num;
+    
+    bool in_global_context;
 };
 
 struct ZVALUE 
 {
-    enum { kIntValue, kBoolValue, kLongValue, kStringValue, kObjValue } kind;
+    enum { kIntValue, kBoolValue, kLongValue, kStringValue, kObjValue, kNullValue } kind;
     
     union {
         int intValue;
@@ -68,6 +81,11 @@ void sFunction_finalize();
 #define OP_STRING_VALUE 4
 #define OP_PRINT 5
 #define OP_POP 6
+#define OP_STORE 7
+#define OP_LOAD 8
+
+extern map<char*, ZVALUE>* gGlobalVar;
+extern ZVALUE gNullValue;
 
 /// vm.c ///
 bool vm(buffer* codes);
@@ -100,3 +118,9 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 4;
 
 void sNode_finalize(sNode* self) version 4;
 sNode*%? exp_node(sParserInfo* info) version 4;
+
+/// 05var.c ///
+void sNode_finalize(sNode* self) version 5;
+sNode*%? exp_node(sParserInfo* info) version 5;
+
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 5;

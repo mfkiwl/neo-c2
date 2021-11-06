@@ -1,5 +1,8 @@
 #include "common.h"
 
+map<char*, ZVALUE>* gGlobalVar;
+ZVALUE gNullValue;
+
 bool parse(char* fname, buffer* codes)
 {
     FILE* f = fopen(fname, "r");
@@ -25,12 +28,11 @@ bool parse(char* fname, buffer* codes)
     
     string source2 = source.to_string();
     
-puts(source2);
-    
     info.p = source2;
     info.fname = fname;
     info.sline = 1;
     info.stack_num = 0;
+    info.in_global_context = true;
     
     list<sNode*%>*% nodes = new list<sNode*%>.initialize();
     
@@ -49,7 +51,6 @@ puts(source2);
             return false;
         }
         
-printf("%d\n", info->stack_num);
         if(info->stack_num >= 0) {
             codes.append_int(OP_POP);
             codes.append_int(info->stack_num);
@@ -85,9 +86,15 @@ int main(int argc, char** argv)
             exit(1);
         }
         
+        gGlobalVar = borrow new map<char*, ZVALUE>.initialize();
+        gNullValue.kind = kNullValue;
+        gNullValue.objValue = null;
+        
         vm(codes).expect {
             exit(1);
         }
+        
+        delete gGlobalVar;
     }
     
     return 0;

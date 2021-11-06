@@ -5,11 +5,6 @@ then
     (cd vin && make distclean)
 fi
 
-if [ -e zash/Makefile ]
-then
-    (cd zash && make distclean)
-fi
-
 if [ -e yapy/Makefile ]
 then
     (cd yapy && make distclean)

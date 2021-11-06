@@ -3280,6 +3280,14 @@ BOOL compile_store_field(unsigned int node, sCompileInfo* info)
 
         return TRUE;
     }
+
+    /// std::move ///
+    if(field_type->mHeap && right_type->mHeap) {
+        sVar* var = rvalue.var;
+        if(var) {
+            var->mLLVMValue = NULL;
+        }
+    }
     
     if(field_type->mHeap) {
         remove_object_from_right_values(rvalue.value, info);

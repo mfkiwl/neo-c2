@@ -79,8 +79,6 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 4
         }
         
         codes.append_int(OP_PRINT);
-        
-        info->stack_num --;
     }
     
     return true;
