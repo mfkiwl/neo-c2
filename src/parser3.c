@@ -1039,7 +1039,18 @@ BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* name, BOOL
         }
     }
     else {
-        *node = sNodeTree_create_define_variable(name, extern_, info->mBlockLevel == 0, info);
+        if(*info->p != ',' && *info->p != ';' && isascii(*info->p)) 
+        {
+            char msg[1024];
+            snprintf(msg, 1024, "Require right value for , or ;. This is %c", *info->p);
+            parser_err_msg(info, msg);
+            info->err_num++;
+
+            *node = 0;
+        }
+        else {
+            *node = sNodeTree_create_define_variable(name, extern_, info->mBlockLevel == 0, info);
+        }
     }
 
     check_already_added_variable(info->lv_table, name, info);
@@ -1051,3 +1062,5 @@ BOOL parse_variable(unsigned int* node, sNodeType* result_type, char* name, BOOL
 
     return TRUE;
 }
+
+
