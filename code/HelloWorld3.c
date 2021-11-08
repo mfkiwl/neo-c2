@@ -48,7 +48,6 @@ int main()
         printf("%d\n", it);
     }
 
-/*
     list<int>*% l = new list<int>.initialize();
 
     xassert("list test1", l.length() == 0);
@@ -152,7 +151,6 @@ int main()
     xassert("map test2", m2.at("AAA", -1) == 1);
 
     xassert("map test3", m1.equals(m2));
-*/
 
     return 0;
 }

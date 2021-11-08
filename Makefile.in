@@ -147,15 +147,9 @@ $(OBJS): src/*.h Makefile configure
 install:
 	mkdir -p $(DESTDIR)/include
 	$(INSTALL) -m 644 ./neo-c2.h $(DESTDIR)/include
-	$(INSTALL) -m 644 ./neo-c2-gc.h $(DESTDIR)/include
-	$(INSTALL) -m 644 ./neo-c2-no-gc.h $(DESTDIR)/include
 	$(INSTALL) -m 644 ./neo-c2-pcre.h $(DESTDIR)/include
 	$(INSTALL) -m 644 ./neo-c2-pcre-main.h $(DESTDIR)/include
 	$(INSTALL) -m 644 ./neo-c2-pcre-declare.h $(DESTDIR)/include
-	$(INSTALL) -m 644 ./neo-c2-pcre-gc.h $(DESTDIR)/include
-	$(INSTALL) -m 644 ./neo-c2-pcre-no-gc.h $(DESTDIR)/include
-	$(INSTALL) -m 644 ./neo-c2-pcre-main-gc.h $(DESTDIR)/include
-	$(INSTALL) -m 644 ./neo-c2-pcre-declare-gc.h $(DESTDIR)/include
 
 	mkdir -p "$(DESTDIR)/bin"
 	$(INSTALL) -m 755 ./neo-c2 "$(DESTDIR)/bin"
@@ -185,9 +179,9 @@ distclean: clean
 #########################################
 # test
 #########################################
-test: 
+test: gc-test debug-test
 	@echo "Compile to test code..."
-	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld.c
+	PWD=`pwd` ./neo-c2 code/HelloWorld.c
 	./code/HelloWorld
 	PWD=`pwd` ./neo-c2 code/HelloWorld2.c
 	./code/HelloWorld2
@@ -212,9 +206,36 @@ test:
 	PWD=`pwd` ./neo-c2 code/HelloWorld11.c -lgc
 	./code/HelloWorld11
 
+gc-test: 
+	@echo "Compile to gc test code..."
+	PWD=`pwd` ./neo-c2 code/HelloWorld.c
+	./code/HelloWorld
+	PWD=`pwd` ./neo-c2 code/HelloWorld2.c
+	./code/HelloWorld2
+	PWD=`pwd` ./neo-c2 code/HelloWorld3.c -gc
+	./code/HelloWorld3
+	PWD=`pwd` ./neo-c2 code/HelloWorld3.c -gc
+	./code/HelloWorld3
+	PWD=`pwd` ./neo-c2 code/HelloWorld4.c -gc
+	./code/HelloWorld4
+	PWD=`pwd` ./neo-c2 code/HelloWorld5.c -gc
+	./code/HelloWorld5
+	PWD=`pwd` ./neo-c2 code/HelloWorld6.c -gc
+	./code/HelloWorld6
+	PWD=`pwd` ./neo-c2 code/HelloWorld7.c -gc
+	./code/HelloWorld7
+	PWD=`pwd` ./neo-c2 code/HelloWorld8.c -gc
+	./code/HelloWorld8
+	PWD=`pwd` ./neo-c2 code/HelloWorld9.c -gc
+	./code/HelloWorld9
+	PWD=`pwd` ./neo-c2 code/HelloWorld10.c -gc
+	./code/HelloWorld10
+	PWD=`pwd` ./neo-c2 code/HelloWorld11.c -gc
+	./code/HelloWorld11
+
 debug-test: 
 	@echo "Compile to test code..."
-	PWD=`pwd` ./neo-c2 -g -no-gc code/HelloWorld.c
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld.c
 	./code/HelloWorld
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld2.c
 	./code/HelloWorld2
@@ -245,14 +266,8 @@ debug-test:
 uninstall:
 	rm -f "$(DESTDIR)"/bin/neo-c2
 	rm -f "$(DESTDIR)"/include/neo-c2.h
-	rm -f "$(DESTDIR)"/include/neo-c2-gc.h
-	rm -f "$(DESTDIR)"/include/neo-c2-no-gc.h
 	rm -f "$(DESTDIR)"/include/neo-c2-pcre.h
 	rm -f "$(DESTDIR)"/include/neo-c2-pcre-main.h
 	rm -f "$(DESTDIR)"/include/neo-c2-pcre-declare.h
-	rm -f "$(DESTDIR)"/include/neo-c2-pcre-gc.h
-	rm -f "$(DESTDIR)"/include/neo-c2-pcre-no-gc.h
-	rm -f "$(DESTDIR)"/include/neo-c2-pcre-main-gc.h
-	rm -f "$(DESTDIR)"/include/neo-c2-pcre-declare-gc.h
 	rm -f "$(DESTDIR)/share/doc/neo-c2/README.md "
 

@@ -1099,6 +1099,7 @@ unsigned int sNodeTree_create_write_channel(unsigned int address_node, unsigned 
 unsigned int sNodeTree_create_read_channel(unsigned int left_node, sParserInfo* info);
 
 BOOL is_generics_type(sNodeType* node_type);
+BOOL is_method_generics_type(sNodeType* node_type);
 BOOL is_generics_struct_type(sNodeType* node_type);
 
 BOOL compile_read_channel(unsigned int node, sCompileInfo* info);

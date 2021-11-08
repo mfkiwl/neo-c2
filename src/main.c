@@ -64,9 +64,19 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
 
     char cmd[1024];
 #ifdef __DARWIN__
-    snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I/usr/local/include -I%s/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", PREFIX, cflags, fname, macro_definition, fname2);
+    if(gNCGC) {
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I/usr/local/include -I%s/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ -DWITH_GC %s %s > %s", PREFIX, cflags, fname, macro_definition, fname2);
+    }
+    else {
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I/usr/local/include -I%s/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", PREFIX, cflags, fname, macro_definition, fname2);
+    }
 #else
-    snprintf(cmd, 1024, "cpp -I%s/include %s -U__GNUC__ %s %s > %s", PREFIX,cflags, fname, macro_definition, fname2);
+    if(gNCGC) {
+        snprintf(cmd, 1024, "cpp -I%s/include %s -U__GNUC__ %s %s -DWITH_GC > %s", PREFIX,cflags, fname, macro_definition, fname2);
+    }
+    else {
+        snprintf(cmd, 1024, "cpp -I%s/include %s -U__GNUC__ %s %s > %s", PREFIX,cflags, fname, macro_definition, fname2);
+    }
 #endif
 
     puts(cmd);
@@ -204,7 +214,7 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
     return TRUE;
 }
 
-char* gVersion = "1.2.6";
+char* gVersion = "1.2.7";
 BOOL gNCDebug = FALSE;
 BOOL gNCGC = FALSE;
 char gFName[PATH_MAX];

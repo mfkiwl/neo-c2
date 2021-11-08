@@ -2433,6 +2433,25 @@ BOOL is_generics_type(sNodeType* node_type)
     return FALSE;
 }
 
+BOOL is_method_generics_type(sNodeType* node_type)
+{
+    sCLClass* klass = node_type->mClass;
+
+    if(klass->mFlags & CLASS_FLAGS_METHOD_GENERICS) {
+        return TRUE;
+    }
+    else {
+        int i;
+        for(i=0; i<node_type->mNumGenericsTypes; i++) {
+            if(is_method_generics_type(node_type->mGenericsTypes[i])) {
+                return TRUE;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
 BOOL is_generics_struct_type(sNodeType* node_type)
 {
     sCLClass* klass = node_type->mClass;

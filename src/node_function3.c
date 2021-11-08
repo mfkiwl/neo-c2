@@ -169,6 +169,11 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         }
     }
 */
+    BOOL result_type_is_method_generics = FALSE;
+    if(is_method_generics_type(result_type)) {
+        result_type_is_method_generics = TRUE;
+        result_type = create_node_type_with_class_name("void");
+    }
 
     LLVMTypeRef llvm_result_type = create_llvm_type_from_node_type(result_type);
     LLVMTypeRef  llvm_fun_type;
@@ -372,10 +377,19 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     }
 
     gThreadNum = thread_num;
+    
+    sNodeType* return_result_type2 = clone_node_type(info->return_result_type);
 
     info->return_result_type = return_result_type;
     info->defer_block = defer_block;
     info->empty_function = empty_function;
+    
+    if(result_type_is_method_generics) {
+        LLVMDeleteFunction(llvm_fun);
+        gNodes[node].uValue.sFunction.mResultType = clone_node_type(return_result_type2);
+        
+        return compile(node, info);
+    }
 
     return TRUE;
 }

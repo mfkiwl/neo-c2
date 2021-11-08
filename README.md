@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 1.2.6
+version 1.2.7
 
 ```
 #include <neo-c2.h>
@@ -61,6 +61,16 @@ int main()
     li.filter { return it > 1; }.each {
         printf("%d\n", it);
     }
+    
+    list<char*>*% li2 = new list<char*>.initialize();$
+$
+    li2.push_back("1");$
+    li2.push_back("2");$
+    li2.push_back("3");$
+    li2.push_back("4");$
+    li2.push_back("5");$
+    $
+    li2.map { return atoi(it); }.filter { return it > 3; }.each { printf("%d\n", it); }$
 
     return 0;
 }
@@ -2092,7 +2102,7 @@ int main()
     list3.push_back("2");
     list3.push_back("3");
 
-    auto list4 = list3.map int { return atoi(it); }
+    auto list4 = list3.map { return atoi(it); }
 
     xassert("map test", list4.item(0, -1) == 1 && list4.item(1, -1) == 2 && list4.item(2, -1) == 3);
 

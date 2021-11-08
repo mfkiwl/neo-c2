@@ -1,1 +1,1 @@
-./configure --with-optimize && make no-self-host && sudo make install && make test && make debug-test
+./configure --with-optimize && make no-self-host && sudo make install && make test 

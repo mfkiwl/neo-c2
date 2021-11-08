@@ -25,6 +25,7 @@ template <R> R fun(R a, int b)
 int main(int argc, char** argv)
 {
     int a = 1;
+    
 /*
     auto fun = int lambda(__current__* parent, int b, int c) {
         *parent.a = 4;
@@ -73,7 +74,7 @@ int main(int argc, char** argv)
     list3.push_back("2");
     list3.push_back("3");
 
-    auto list4 = list3.map int { return atoi(it); }
+    auto list4 = list3.map { return atoi(it); }
 
     xassert("map test", list4.item(0, -1) == 1 && list4.item(1, -1) == 2 && list4.item(2, -1) == 3);
 
