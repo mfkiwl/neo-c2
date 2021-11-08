@@ -1,3 +1,21 @@
+#define _GNU_SOURCE
+
+#define __attribute__(x)
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#ifdef __DARWIN__
+#include <malloc/malloc.h>
+#else
+#include <malloc.h>
+#endif
+
+#include <gc.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
 
 #define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 

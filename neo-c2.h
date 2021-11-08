@@ -14,11 +14,12 @@
 #include <gc.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <sys/stat.h>
+
 #include <sys/select.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 
 ```
 if echo $ARG | sed -e 's/-gc/NEOC_GC/' | grep NEOC_GC 1> /dev/null 2> /dev/null
