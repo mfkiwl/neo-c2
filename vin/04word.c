@@ -439,42 +439,6 @@ void ViWin::backwardWord(ViWin* self)
             }
         }
     }
-    else if((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || *p == '_' || (*p >= '0' && *p <='9'))
-    {
-        while((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || *p == '_' || (*p >= '0' && *p <= '9'))
-        {
-            p--;
-            self.cursorX--;
-
-            if(self.cursorX < 0)
-            {
-                self.cursorX = 0;
-                self.cursorY--;
-
-                self.modifyUnderCursorYValue();
-
-                if(self.scroll+self.cursorY <= 0) 
-                {
-                    self.cursorY = 0;
-                    self.scroll = 0;
-                    break;
-                }
-
-
-                line = self.texts.item(self.scroll+self.cursorY, wstring(""));
-
-                if(wcslen(line) == 0)
-                {
-                    p = line;
-                    self.cursorX = 0;
-                }
-                else {
-                    self.cursorX = wcslen(line) -1;
-                    p = line + self.cursorX;
-                }
-            }
-        }
-    }
     else if(xiswalpha(*p)) {
         while(xiswalpha(*p)) {
             p--;
