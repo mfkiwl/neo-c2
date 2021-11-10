@@ -1,13 +1,6 @@
 #include "common.h"
 #include <ctype.h>
 
-void skip_spaces(sParserInfo* info)
-{
-    while(*info->p == ' ' || *info->p == '\t' || (*info->p == '\n' && info->sline++)) {
-        info->p++;
-    }
-}
-
 static sNode*% create_int_node(int value, sParserInfo* info)
 {
     sNode*% result = new sNode;
@@ -33,7 +26,7 @@ sNode*%? exp_node(sParserInfo* info) version 1
             n = n * 10 + (*info->p - '0');
             info->p++;
         }
-        skip_spaces(info);
+        skip_spaces_until_eol(info);
         
         return create_int_node(n, info);
     }

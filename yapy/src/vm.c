@@ -1,5 +1,20 @@
 #include "common.h"
 
+static map<char*, ZVALUE>* gGlobalVar;
+static ZVALUE gNullValue;
+
+void initialize_modules() version 1
+{
+    gGlobalVar = borrow new map<char*, ZVALUE>.initialize();
+    gNullValue.kind = kNullValue;
+    gNullValue.objValue = null;
+}
+
+void finalize_modules() version 1
+{
+    delete gGlobalVar;
+}
+
 void show_zvalue(ZVALUE value)
 {
     switch(value.kind) {
@@ -13,7 +28,7 @@ void show_zvalue(ZVALUE value)
     }
 }
 
-bool vm(buffer* codes)
+bool vm(buffer* codes, map<char*, ZVALUE>* params)
 {
     ZVALUE stack[ZSTACK_MAX];
     int stack_num = 0;
@@ -22,6 +37,15 @@ bool vm(buffer* codes)
     int* head = (int*)codes.buf;
     
     map<char*, ZVALUE>*% vtable = new map<char*, ZVALUE>.initialize();
+    
+    if(params) {
+        foreach(it, params) {
+            char* key = it;
+            ZVALUE item = params.at(it, gNullValue);
+            
+            vtable.insert(key, item);
+        }
+    }
     
     while((p - head) < (codes.length() / sizeof(int))) {
         switch(*p) {
@@ -158,6 +182,22 @@ bool vm(buffer* codes)
                 }
                 }
                 break;
+                
+            case OP_FUNCALL:
+                p++;
+                
+                char* fun_name = (char*)p;
+                
+                int len = strlen(fun_name);
+                len = (len + 3) & ~3;
+                len /= sizeof(int);
+                
+                p += len;
+                
+                if(!function_call(fun_name, stack, stack_num)) {
+                    return false;
+                }
+                break;
         }
         
         if(stack_num < 0 || stack_num >= ZSTACK_MAX) {
@@ -169,5 +209,3 @@ bool vm(buffer* codes)
     return true;
 }
 
-/*
-*/

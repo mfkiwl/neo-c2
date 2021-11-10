@@ -52,7 +52,7 @@ sNode*%? exp_node(sParserInfo* info) version 3
                 }
                 else if(*info->p == '"') {
                     info->p++
-                    skip_spaces(info);
+                    skip_spaces_until_eol(info);
                     break;
                 }
                 else {
@@ -87,7 +87,7 @@ sNode*%? exp_node(sParserInfo* info) version 3
                 }
                 else if(*info->p == '\'') {
                     info->p++
-                    skip_spaces(info);
+                    skip_spaces_until_eol(info);
                     break;
                 }
                 else {

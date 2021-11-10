@@ -1,2 +1,9 @@
-a=1+1
-print(a)
+a=1
+print a
+
+def fun():
+    print "HELLO FUN"
+
+fun()
+print 2
+fun()

@@ -240,7 +240,7 @@ int Vi::main_loop(Vi* self) version 3;
 /// 4word.h
 ///////////////////////////////////////////////////////////////////////////////
 void ViWin::forwardWord(ViWin* self);
-void ViWin::backwardWord(ViWin* self);
+void ViWin::backwardWord(ViWin* self) version 4;
 
 Vi*% Vi::initialize(Vi*% self) version 4;
 

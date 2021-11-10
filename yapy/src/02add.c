@@ -46,7 +46,7 @@ static sNode*% op_add_node(sParserInfo* info)
     while(*info->p == '+' || *info->p == '-') {
         if(*info->p == '+') {
             info->p++;
-            skip_spaces(info);
+            skip_spaces_until_eol(info);
             
             sNode* right = borrow op_add_node(info);
             
@@ -58,7 +58,7 @@ static sNode*% op_add_node(sParserInfo* info)
         }
         else if(*info->p == '-') {
             info->p++;
-            skip_spaces(info);
+            skip_spaces_until_eol(info);
             
             sNode* right = borrow op_add_node(info);
             

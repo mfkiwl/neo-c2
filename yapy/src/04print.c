@@ -43,11 +43,11 @@ sNode*%? exp_node(sParserInfo* info) version 4
     if(result == null) {
         if(emb_funcmp(info->p, "print")) {
             info->p += strlen("print");
-            skip_spaces(info);
+            skip_spaces_until_eol(info);
             
             if(*info->p == '(') {
                 info->p++;
-                skip_spaces(info);
+                skip_spaces_until_eol(info);
             }
             
             sNode* node = null;
@@ -57,7 +57,7 @@ sNode*%? exp_node(sParserInfo* info) version 4
             
             if(*info->p == ')') {
                 info->p++;
-                skip_spaces(info);
+                skip_spaces_until_eol(info);
             }
             
             result = borrow create_print_node(node, info);

@@ -42,6 +42,14 @@ void sNode_finalize(sNode* self) version 5
     }
 }
 
+sNode*%? fun_node(string fun_name, sParserInfo* info) version 5   // implemented after layer
+{
+}
+
+sNode*%? def_node(sParserInfo* info) version 5   // implemented after layer
+{
+}
+
 sNode*%? exp_node(sParserInfo* info) version 5
 {
     sNode* result = borrow inherit(info);
@@ -54,11 +62,14 @@ sNode*%? exp_node(sParserInfo* info) version 5
                 buf.append_char(*info->p);
                 info->p++;
             }
-            skip_spaces(info);
+            skip_spaces_until_eol(info);
             
-            if(*info->p == '=') {
+            if(strcmp(buf.to_string(), "def") == 0) {
+                return def_node(info);
+            }
+            else if(*info->p == '=') {
                 info->p++;
-                skip_spaces(info);
+                skip_spaces_until_eol(info);
                 
                 sNode* right;
                 if(!expression(&right, info)) {
@@ -67,6 +78,9 @@ sNode*%? exp_node(sParserInfo* info) version 5
                 }
                 
                 return create_store_var(buf.to_string(), dummy_heap right, info);
+            }
+            else if(*info->p == '(') {
+                return fun_node(buf.to_string(), info)
             }
             else {
                 return create_load_var(buf.to_string(), info);

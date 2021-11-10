@@ -4,7 +4,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint, kLoadVar, kStoreVar } kind;
+    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint, kLoadVar, kStoreVar, kFun, kFunCall } kind;
     
     char* fname;
     int sline;
@@ -30,6 +30,17 @@ struct sNode
             string name;
             bool in_global_context;
         } loadVarValue;
+        
+        struct {
+            string name;
+            buffer*% codes;
+            vector<string>*% param_names;
+        } funValue;
+        
+        struct {
+            string name;
+            vector<sNode*%>*% params;
+        } funCallValue;
     } value;
 };
 
@@ -42,6 +53,7 @@ struct sParserInfo
     int stack_num;
     
     bool in_global_context;
+    int space_num;
 };
 
 struct ZVALUE 
@@ -65,14 +77,6 @@ struct sVar
 
 void sVar_finalize();
 
-struct sFunction
-{
-    string name;
-    list<sVar*%>*% vars;
-};
-
-void sFunction_finalize();
-
 #define ZSTACK_MAX 1024
 
 #define OP_INT_VALUE 1
@@ -83,12 +87,18 @@ void sFunction_finalize();
 #define OP_POP 6
 #define OP_STORE 7
 #define OP_LOAD 8
+#define OP_FUNCALL 9
 
-extern map<char*, ZVALUE>* gGlobalVar;
-extern ZVALUE gNullValue;
+/// main.c ///
+void skip_spaces(sParserInfo* info);
+void skip_spaces_until_eol(sParserInfo* info);
+buffer*% parse_block(sParserInfo* info);
 
 /// vm.c ///
-bool vm(buffer* codes);
+void initialize_modules() version 1;
+void finalize_modules() version 1;
+
+bool vm(buffer* codes, map<char*, ZVALUE>* params);
 
 /// 01int.c ///
 bool expression(sNode** node, sParserInfo* info) version 1;
@@ -96,8 +106,6 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 1;
 
 void sNode_finalize(sNode* self) version 1;
 sNode*%? exp_node(sParserInfo* info) version 1;
-
-void skip_spaces(sParserInfo* info);
 
 /// 02add.c ///
 bool expression(sNode** node, sParserInfo* info) version 2;
@@ -122,5 +130,19 @@ sNode*%? exp_node(sParserInfo* info) version 4;
 /// 05var.c ///
 void sNode_finalize(sNode* self) version 5;
 sNode*%? exp_node(sParserInfo* info) version 5;
+sNode*%? fun_node(string fun_name, sParserInfo* info) version 5;   // implemented after layer
+sNode*%? def_node(sParserInfo* info) version 5;   // implemented after layer
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 5;
+
+/// 06fun.c ///
+void initialize_modules() version 6;
+void finalize_modules() version 6;
+
+void sNode_finalize(sNode* self) version 6;
+sNode*%? fun_node(string fun_name, sParserInfo* info) version 6;
+sNode*%? def_node(sParserInfo* info) version 6;
+
+bool function_call(char* fun_name, ZVALUE* stack, int stack_num);
+
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6;
