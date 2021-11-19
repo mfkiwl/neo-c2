@@ -98,7 +98,15 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 5
     if(node.kind == kLoadVar) {
         codes.append_int(OP_LOAD);
         
-        codes.append_str(node.value.loadVarValue.name);
+        char* name = node.value.loadVarValue.name;
+        
+        int len = strlen(name);
+        int offset = (len + 3) & ~3;
+        offset /= sizeof(int);
+        
+        codes.append_int(offset);
+        
+        codes.append_str(name);
         codes.alignment();
         
         codes.append_int(node.value.loadVarValue.in_global_context);
@@ -114,7 +122,15 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 5
         
         codes.append_int(OP_STORE);
         
-        codes.append_str(node.value.storeVarValue.name);
+        char* name = node.value.storeVarValue.name;
+        
+        int len = strlen(name);
+        int offset = (len + 3) & ~3;
+        offset /= sizeof(int);
+        
+        codes.append_int(offset);
+        
+        codes.append_str(name);
         codes.alignment();
         
         codes.append_int(node.value.storeVarValue.in_global_context);

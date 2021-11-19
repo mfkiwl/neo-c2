@@ -112,10 +112,11 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 3
         
         char* str = node.value.stringValue;
         
-        int len = (strlen(str) + 3) & ~3;
+        int len = strlen(str);
+        int offset = (len + 3) & ~3;
+        offset /= sizeof(int);
         
-        codes.append_int(len);
-        
+        codes.append_int(offset);
         codes.append_str(str);
         codes.alignment();
         

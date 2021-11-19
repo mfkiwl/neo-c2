@@ -105,7 +105,7 @@ bool vm(buffer* codes, map<char*, ZVALUE>* params)
     }
     
     while((p - head) < (codes.length() / sizeof(int))) {
-print_op(*p);
+//print_op(*p);
         switch(*p) {
             case OP_POP: {
                 p++;
@@ -159,14 +159,12 @@ print_op(*p);
             case OP_STRING_VALUE: {
                 p++;
                 
-                int len = *p;
+                int offset = *p;
                 p++;
-                
-                len /= sizeof(int);
                 
                 char* str = (char*)p;
                 
-                p += len;
+                p += offset;
                 
                 stack[stack_num].kind = kStringValue;
                 stack[stack_num].stringValue = str;
@@ -200,13 +198,12 @@ print_op(*p);
             case OP_LOAD: {
                 p++;
                 
+                int offset = *p;
+                p++;
+                
                 char* var_name = (char*)p;
                 
-                int len = strlen(var_name);
-                len = (len + 3) & ~3;
-                len /= sizeof(int);
-                
-                p += len;
+                p += offset;
                 
                 bool in_global_context = (bool)*p;
                 p++;
@@ -235,13 +232,12 @@ print_op(*p);
             case OP_STORE: {
                 p++;
                 
+                int offset = *p;
+                p++;
+                
                 char* var_name = (char*)p;
                 
-                int len = strlen(var_name);
-                len = (len + 3) & ~3;
-                len /= sizeof(int);
-                
-                p += len;
+                p += offset;
                 
                 bool in_global_context = (bool)*p;
                 p++;
@@ -260,13 +256,12 @@ print_op(*p);
             case OP_FUNCALL:
                 p++;
                 
+                int offset = *p;
+                p++;
+                
                 char* fun_name = (char*)p;
                 
-                int len = strlen(fun_name);
-                len = (len + 3) & ~3;
-                len /= sizeof(int);
-                
-                p += len;
+                p += offset;
                 
                 if(!function_call(fun_name, stack, stack_num)) {
                     return false;

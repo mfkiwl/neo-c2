@@ -197,6 +197,12 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
         
         char* name = node.value.funCallValue.name;
         
+        int len = strlen(name);
+        int offset = (len + 3) & ~3;
+        offset /= sizeof(int);
+        
+        codes.append_int(offset);
+        
         codes.append_str(name);
         codes.alignment();
         

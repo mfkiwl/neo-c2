@@ -147,11 +147,17 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 8
         }
         
         codes.append_int(OP_IF);
+        
         int offset = if_codes.length();
+        offset = (offset + 3) & ~3;
+        
+        offset /= sizeof(int);
+        
+        offset += 2;
+        
         codes.append_int(offset);
         
         codes.append(if_codes.buf, if_codes.len);
-        
         codes.alignment();
         
         info->stack_num--;
@@ -172,10 +178,15 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 8
             
             codes.append_int(OP_IF);
             int offset = elif_block.length();
+            offset = (offset + 3) & ~3;
+            
+            offset /= sizeof(int);
+        
+            offset += 2;
+            
             codes.append_int(offset);
             
             codes.append(elif_block.buf, elif_block.len);
-            
             codes.alignment();
             
             info->stack_num--;
