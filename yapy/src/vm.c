@@ -28,6 +28,63 @@ void show_zvalue(ZVALUE value)
     }
 }
 
+void print_op(int op)
+{
+    switch(op) {
+        case OP_POP:
+            puts("OP_POP");
+            break;
+                
+        case OP_INT_VALUE: 
+            puts("OP_INT_VALUE");
+            break;
+                
+        case OP_ADD: 
+            puts("OP_ADD");
+            break;
+                
+        case OP_SUB:
+            puts("OP_SUB");
+            break;
+                 
+        case OP_STRING_VALUE:
+            puts("OP_STRING_VALUE");
+            break;
+                
+        case OP_PRINT: 
+            puts("OP_PRINT");
+            break;
+                
+        case OP_LOAD: 
+            puts("OP_LOAD");
+            break;
+                
+        case OP_STORE: 
+            puts("OP_STORE");
+            break;
+                
+        case OP_FUNCALL:
+            puts("OP_FUNCALL");
+            break;
+                
+        case OP_BOOL_VALUE: 
+            puts("OP_BOOL_VALUE");
+            break;
+                
+        case OP_GOTO: 
+            puts("OP_GOTO");
+            break;
+                
+        case OP_IF: 
+            puts("OP_IF");
+            break;
+                
+        default:
+            printf("invalid op code %d\n", op);
+            break;
+    }
+}
+
 bool vm(buffer* codes, map<char*, ZVALUE>* params)
 {
     ZVALUE stack[ZSTACK_MAX];
@@ -48,17 +105,18 @@ bool vm(buffer* codes, map<char*, ZVALUE>* params)
     }
     
     while((p - head) < (codes.length() / sizeof(int))) {
+print_op(*p);
         switch(*p) {
-            case OP_POP:
+            case OP_POP: {
                 p++;
                 int n = *p;
                 p++;
                 
                 stack_num -= n;
-                
+                }
                 break;
                 
-            case OP_INT_VALUE:
+            case OP_INT_VALUE: {
                 p++;
                 int value = *p;
                 p++;
@@ -66,7 +124,7 @@ bool vm(buffer* codes, map<char*, ZVALUE>* params)
                 stack[stack_num].kind = kIntValue;
                 stack[stack_num].value.intValue = value;
                 stack_num++;
-                
+                }
                 break;
                 
             case OP_ADD: {
@@ -101,11 +159,12 @@ bool vm(buffer* codes, map<char*, ZVALUE>* params)
             case OP_STRING_VALUE: {
                 p++;
                 
-                char* str = (char*)p;
+                int len = *p;
+                p++;
                 
-                int len = strlen(str);
-                len = (len + 3) & ~3;
                 len /= sizeof(int);
+                
+                char* str = (char*)p;
                 
                 p += len;
                 
@@ -126,6 +185,15 @@ bool vm(buffer* codes, map<char*, ZVALUE>* params)
                     case kIntValue: 
                         printf("%d\n", stack[stack_num-1].value.intValue);
                         break;
+                        
+                    case kBoolValue:
+                       if(stack[stack_num-1].value.boolValue) {
+                           puts("true");
+                       }
+                       else {
+                           puts("false");
+                       }
+                       break;
                 }
                 break;
                 
@@ -149,6 +217,12 @@ bool vm(buffer* codes, map<char*, ZVALUE>* params)
                 }
                 else {
                     stack[stack_num] = vtable.at(var_name, gNullValue);
+                    
+                    if(stack[stack_num-1].kind == kNullValue) {
+                        fprintf(stderr, "var not found(%s)\n", var_name);
+                    }
+                    
+                    stack[stack_num] = gGlobalVar.at(var_name, gNullValue);
                     stack_num++;
                 }
                 
@@ -198,6 +272,46 @@ bool vm(buffer* codes, map<char*, ZVALUE>* params)
                     return false;
                 }
                 break;
+                
+            case OP_BOOL_VALUE: {
+                p++;
+                int value = *p;
+                p++;
+                
+                stack[stack_num].kind = kBoolValue;
+                stack[stack_num].value.boolValue = value;
+                stack_num++;
+                }
+                break;
+                
+            case OP_GOTO: {
+                p++;
+                
+                int value = *p;
+                p++;
+                
+                p = head + value;
+                }
+                break;
+                
+            case OP_IF: {
+                p++;
+                
+                int value = *p;
+                p++;
+                
+                bool exp = stack[stack_num-1].value.boolValue;
+                stack_num--;
+                
+                if(!exp) {
+                    p += value;
+                }
+                }
+                break;
+                
+            default:
+                printf("invalid op code %d\n", *p);
+                exit(1);
         }
         
         if(stack_num < 0 || stack_num >= ZSTACK_MAX) {

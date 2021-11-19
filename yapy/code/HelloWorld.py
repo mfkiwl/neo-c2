@@ -1,9 +1,2 @@
-a=1
-print a
+print "IF HELLO"
 
-def fun():
-    print "HELLO FUN"
-
-fun()
-print 2
-fun()

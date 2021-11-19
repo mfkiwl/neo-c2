@@ -23,13 +23,13 @@ void sNode_finalize(sNode* self) version 4
     }
 }
 
-bool emb_funcmp(char* p, char* word2)
+static bool emb_funcmp(char* p, char* word2)
 {
     bool result = strstr(p, word2) == p;
     
     char c = p[strlen(word2)];
     
-    if(result && (c == ' ' || c == '\t' || c == '\0' || c == '(')) {
+    if(result && (c == ' ' || c == '\t' || c == '\0' || c == '(' || c == '\n')) {
         return true;
     }
     

@@ -4,7 +4,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint, kLoadVar, kStoreVar, kFun, kFunCall } kind;
+    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf } kind;
     
     char* fname;
     int sline;
@@ -41,6 +41,14 @@ struct sNode
             string name;
             vector<sNode*%>*% params;
         } funCallValue;
+        
+        struct {
+            sNode*% if_exp;
+            buffer*% if_codes;
+            vector<sNode*%>*% elif_exps;
+            vector<buffer*%>*% elif_blocks;
+            buffer*? else_block;
+        } ifValue;
     } value;
 };
 
@@ -88,6 +96,9 @@ void sVar_finalize();
 #define OP_STORE 7
 #define OP_LOAD 8
 #define OP_FUNCALL 9
+#define OP_BOOL_VALUE 10
+#define OP_IF 11
+#define OP_GOTO 12
 
 /// main.c ///
 void skip_spaces(sParserInfo* info);
@@ -146,3 +157,17 @@ sNode*%? def_node(sParserInfo* info) version 6;
 bool function_call(char* fun_name, ZVALUE* stack, int stack_num);
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6;
+
+/// 07bool.c ///
+void sNode_finalize(sNode* self) version 7;
+
+sNode*%? exp_node(sParserInfo* info) version 7;
+
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 7;
+
+/// 08if.c ///
+void sNode_finalize(sNode* self) version 8;
+
+sNode*%? exp_node(sParserInfo* info) version 8;
+
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 8;

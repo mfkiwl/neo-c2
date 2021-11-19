@@ -165,6 +165,16 @@ int main(int argc, char** argv)
         info.in_global_context = true;
         info.space_num = 0;
         
+        while(true) {
+            skip_spaces_until_eol(&info);
+            if(*info.p == '\n') {
+                info.p++;
+            }
+            else {
+                break;
+            }
+        }
+        
         parse(&info, codes, 0`space_num).expect {
             exit(1);
         }

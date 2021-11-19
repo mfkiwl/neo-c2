@@ -110,8 +110,13 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 3
     if(node.kind == kStringValue) {
         codes.append_int(OP_STRING_VALUE);
         
-        codes.append_str(node.value.stringValue);
+        char* str = node.value.stringValue;
         
+        int len = (strlen(str) + 3) & ~3;
+        
+        codes.append_int(len);
+        
+        codes.append_str(str);
         codes.alignment();
         
         info->stack_num++;
