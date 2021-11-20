@@ -171,3 +171,6 @@ void sNode_finalize(sNode* self) version 8;
 sNode*%? exp_node(sParserInfo* info) version 8;
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 8;
+
+/// 09comment.c ///
+bool expression(sNode** node, sParserInfo* info) version 9;

@@ -285,7 +285,7 @@ bool vm(buffer* codes, map<char*, ZVALUE>* params)
                 int value = *p;
                 p++;
                 
-                p = head + value;
+                p = (int*)((char*)head + value);
                 }
                 break;
                 

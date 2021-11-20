@@ -205,7 +205,9 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 8
         for(int i=0; i<end_points.length(); i++) {
             int end_point = end_points.item(i, -1);
             
-            codes.buf[end_point] = codes.length();
+            int* p = (int*)(codes.buf + end_point);
+            
+            *p = codes.length();
         }
     }
     

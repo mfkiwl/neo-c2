@@ -1,16 +1,21 @@
 print "HELLO"
 print "HELLO WORLD"
 
-
 def fun():
-    print "H2"
+    print "FUN"
 
 fun()
 fun()
 
 if True:
-    print "H"
+    print "IF TRUE"
 elif True:
-    print "Y"
+    print "ELIF TRUE"
 else:
-    print "H3 FALSE"
+    print "IF FALSE"
+
+
+fun();
+
+print "END"
+
