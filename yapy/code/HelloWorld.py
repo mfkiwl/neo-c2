@@ -17,8 +17,9 @@ else:
 
 fun();
 
-print "END"
-
 
 while True:
     print "HELLO WHILE"
+
+
+print "TEST FINISH"

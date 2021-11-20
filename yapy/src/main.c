@@ -37,7 +37,7 @@ static bool read_source(char* fname, buffer* source)
     return true;
 }
 
-static bool parse(sParserInfo* info, buffer* codes, int space_num)
+static list<sNode*%>*% parse(sParserInfo* info, int space_num)
 {
     info->space_num = space_num;
     
@@ -47,7 +47,7 @@ static bool parse(sParserInfo* info, buffer* codes, int space_num)
         sNode* node = null;
         if(!expression(&node, info)) {
             fprintf(stderr, "%s %d: unexpected character (%c)\n", info->fname, info->sline, *info->p);
-            return false;
+            exit(2);
         }
         
         nodes.push_back(dummy_heap node);
@@ -79,9 +79,16 @@ static bool parse(sParserInfo* info, buffer* codes, int space_num)
         }
     }
     
+    return nodes;
+}
+
+buffer*% make_code(list<sNode*%>* nodes, sParserInfo* info)
+{
+    buffer*% codes = new buffer.initialize();
+    
     foreach(it, nodes) {
         if(!compile(it, codes, info)) {
-            return false;
+            exit(2);
         }
         
         if(info->stack_num >= 0) {
@@ -91,11 +98,11 @@ static bool parse(sParserInfo* info, buffer* codes, int space_num)
         }
         else {
             fprintf(stderr, "%s %d: invalid stack num\n", info->fname, info->sline);
-            return false;
+            exit(2);
         }
     }
     
-    return true;
+    return codes;
 }
 
 buffer*% parse_block(sParserInfo* info)
@@ -104,7 +111,7 @@ buffer*% parse_block(sParserInfo* info)
     bool in_global_context = info.in_global_context;
     info.in_global_context = false;
     
-    buffer*% codes = new buffer.initialize();
+    buffer*% codes = null;
     
     /// multi line ///
     if(*info->p == '\n') {
@@ -117,9 +124,8 @@ buffer*% parse_block(sParserInfo* info)
             space_num++;
         }
         
-        parse(info, codes, space_num).expect {
-            exit(1);
-        }
+        list<sNode*%>*% nodes = parse(info, space_num);
+        codes = make_code(nodes, info);
     }
     /// one line ///
     else {
@@ -154,8 +160,6 @@ int main(int argc, char** argv)
             exit(1);
         }
         
-        buffer*% codes = new buffer.initialize();
-        
         sParserInfo info;
         
         info.p = borrow source.to_string();
@@ -164,6 +168,7 @@ int main(int argc, char** argv)
         info.stack_num = 0;
         info.in_global_context = true;
         info.space_num = 0;
+        info.loop_head = -1;
         
         while(true) {
             skip_spaces_until_eol(&info);
@@ -175,9 +180,9 @@ int main(int argc, char** argv)
             }
         }
         
-        parse(&info, codes, 0`space_num).expect {
-            exit(1);
-        }
+        list<sNode*%>*% nodes = parse(&info, 0`space_num);
+        
+        buffer*% codes = make_code(nodes, &info);
         
         vm(codes, null).expect {
             exit(1);

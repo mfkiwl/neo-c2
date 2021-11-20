@@ -4,7 +4,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile } kind;
+    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak } kind;
     
     char* fname;
     int sline;
@@ -53,6 +53,7 @@ struct sNode
         struct {
             sNode*% while_exp;
             buffer*% while_codes;
+            buffer*% else_codes;
         } whileValue;
     } value;
 };
@@ -67,6 +68,9 @@ struct sParserInfo
     
     bool in_global_context;
     int space_num;
+    
+    int loop_head;
+    vector<int>* breaks;
 };
 
 struct ZVALUE 
