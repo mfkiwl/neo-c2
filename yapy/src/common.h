@@ -4,7 +4,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf } kind;
+    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile } kind;
     
     char* fname;
     int sline;
@@ -49,6 +49,11 @@ struct sNode
             vector<buffer*%>*% elif_blocks;
             buffer*? else_block;
         } ifValue;
+        
+        struct {
+            sNode*% while_exp;
+            buffer*% while_codes;
+        } whileValue;
     } value;
 };
 
@@ -174,3 +179,8 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 8;
 
 /// 09comment.c ///
 bool expression(sNode** node, sParserInfo* info) version 9;
+
+/// 10while.c ///
+void sNode_finalize(sNode* self) version 10;
+sNode*%? exp_node(sParserInfo* info) version 10;
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 10;

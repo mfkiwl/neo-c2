@@ -153,7 +153,7 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 8
         
         offset /= sizeof(int);
         
-        offset += 2;
+        offset += 2`goto;
         
         codes.append_int(offset);
         
@@ -182,7 +182,7 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 8
             
             offset /= sizeof(int);
         
-            offset += 2;
+            offset += 2`goto;
             
             codes.append_int(offset);
             

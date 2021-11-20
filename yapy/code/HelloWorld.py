@@ -19,3 +19,6 @@ fun();
 
 print "END"
 
+
+while True:
+    print "HELLO WHILE"
