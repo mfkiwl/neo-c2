@@ -1833,6 +1833,10 @@ int main()
 }
 ```
 
+-lpthread is required to use these. If you do -gc, it will be automatically -lpthreaded, so it is not necessary.
+
+これらを使う場合は-lpthreadが必要です。-gcした場合は自動的に-lpthreadされるため必要ありません。
+
 # Annotation
 
 ```
@@ -1853,10 +1857,6 @@ int main()
     return 0;
 }
 ```
-
--lpthread is required to use these. If you do -gc, it will be automatically -lpthreaded, so it is not necessary.
-
-これらを使う場合は-lpthreadが必要です。-gcした場合は自動的に-lpthreadされるため必要ありません。
 
 `[a-zA-Z][a-zA-Z_0-9]* is a comment of expression.
 
