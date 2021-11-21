@@ -92,9 +92,9 @@ $
 
 4. ライブラリはneo-c2.h,neo-c2-pcre.hに書かれてあります。コレクションライブラリと文字列ライブラリを備えます。ライブラリは何もリンクする必要がありません。
 
-5. It has a mixin-layers system. You can implement your application in layers. Each layer is complete and useful for debugging and porting. A vi clone called vin is implemented as an editor implemented in mixin-layers. Please refer to it because it is in a directory called vin.
+5. It has a mixin-layers system. You can implement your application in layers. Each layer is complete and useful for debugging and porting. A vi clone called vin is implemented as an editor implemented in mixin-layers. Please refer to it because it is in a directory called vin. Also I'm creating yet another python(yapy).
 
-5. mixin-layersシステムを備えます。アプリケーションをレイヤーを重ねるように実装できます。各レイヤーは完結しており、デバッグや移植作業でも有効です。mixin-layersで実装されたエディッタとしてvinというviクローンを実装しています。vinというディレクトリの中に入っているので参考にしてください。
+5. mixin-layersシステムを備えます。アプリケーションをレイヤーを重ねるように実装できます。各レイヤーは完結しており、デバッグや移植作業でも有効です。mixin-layersで実装されたエディッタとしてvinというviクローンを実装しています。vinというディレクトリの中に入っているので参考にしてください。またPython処理系をyapyというディレクトリに作っています。
 
 6. Macro and Reflection. Combination using with its can generate code on compile time. Compile time reflection.
 
@@ -1299,7 +1299,7 @@ vectorは以下のように定義されています。
 ```
 struct vector<T> 
 {
-    T* items;
+    T&* items;
     int len;
     int size;
 
@@ -1308,21 +1308,23 @@ struct vector<T>
 
 impl vector<T> 
 {
-    vector<T>* initialize(vector<T>* self);
-    vector<T>* clone(vector<T>* self);
+    vector<T>*% initialize(vector<T>*% self);
+    void finalize(vector<T>* self);
     void push_back(vector<T>* self, T item);
-    T item(vector<T>* self, int index, T default_value);
+    T& item(vector<T>* self, int index, T& default_value);
     bool equals(vector<T>* left, vector<T>* right);
     bool replace(vector<T>* self, int index, T value);
     int find(vector<T>* self, T& item, int default_value);
     int length(vector<T>* self);
     void reset(vector<T>* self);
-    T begin(vector<T>* self);
-    T next(vector<T>* self);
+    T& begin(vector<T>* self);
+    T& next(vector<T>* self);
     bool end(vector<T>* self);
+
+    list<T>*% to_list(vector<T>* self);
 }
 
-#define foreach(o1, o2) for(auto _obj = (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
+#define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 ```
 
 ```
@@ -1350,26 +1352,29 @@ listは以下です。
 ```
 impl list <T>
 {
-list<T>* initialize(list<T>* self);
-list<T>* clone(list<T>* self);
-int length(list<T>* self);
-void push_back(list<T>* self, T item);
-T item(list<T>* self, int position, T default_value);
-void insert(list<T>* self, int position, T item);
-void reset(list<T>* self);
-void delete(list<T>* self, int head, int tail);
-void replace(list<T>* self, int position, T item);
-int find(list<T>* self, T item, int default_value);
-list<T>* sublist(list<T>* self, int begin, int tail);
-list<T>* reverse(list<T>* self);
-list<T>* merge_list(list<T>* left, list<T>* right, int (*compare)(T,T));
-list<T>* merge_sort(list<T>* self, int (*compare)(T,T));
-list<T>* sort(list<T>* self, int (*compare)(T,T));
-list<T>* uniq(list<T>* self);
-bool equals(list<T>* left, list<T>* right);
-T begin(list<T>* self);
-T next(list<T>* self);
-bool end(list<T>* self);
+    list<T>*% initialize(list<T>*% self);
+    void finalize(list<T>* self);
+    list<T>*% clone(list<T>* self);
+    int length(list<T>* self);
+    void push_back(list<T>* self, T item) ;
+    T& item(list<T>* self, int position, T& default_value);
+    void insert(list<T>* self, int position, T item);
+    void reset(list<T>* self) ;
+    void delete(list<T>* self, int head, int tail);
+    void replace(list<T>* self, int position, T item);
+
+    int find(list<T>* self, T& item, int default_value) ;
+    list<T>*% sublist(list<T>* self, int begin, int tail) ;
+
+    list<T>*% reverse(list<T>* self);
+    list<T>*% merge_list(list<T>* left, list<T>* right, int (*compare)(T&,T&));
+    list<T>*% merge_sort(list<T>* self, int (*compare)(T&,T&));
+    list<T>*% sort(list<T>* self, int (*compare)(T&,T&));
+    list<T>*% uniq(list<T>* self);
+    bool equals(list<T>* left, list<T>* right);
+    T& begin(list<T>* self);
+    T& next(list<T>* self);
+    bool end(list<T>* self);
 }
 ```
 
@@ -1433,17 +1438,20 @@ The map is below.
 mapは以下です。
 
 ```
-map<T,T2>* initialize(map<T,T2>* self) {
-T2 at(map<T, T2>* self, T key, T2 default_value) 
-void rehash(map<T,T2>* self) {
-void insert(map<T,T2>* self, T key, T2 item) 
-map<T, T2>* clone(map<T, T2>* self)
-bool find(map<T, T2>* self, T key) {
-bool equals(map<T, T2>* left, map<T, T2>* right)
-int length(map<T, T2>* self);
-T begin(map<T, T2>* self);
-T next(map<T, T2>* self);
-bool end(map<T, T2>* self);
+impl map <T, T2>
+{
+    map<T,T2>*% initialize(map<T,T2>*% self);
+    T2& at(map<T, T2>* self, T& key, T2& default_value);
+    void rehash(map<T,T2>* self) ;
+    void insert(map<T,T2>* self, T key, T2 item) ;
+    map<T, T2>*% clone(map<T, T2>* self);
+    bool find(map<T, T2>* self, T& key);
+    bool equals(map<T, T2>* left, map<T, T2>* right);
+    int length(map<T, T2>* self);
+    T& begin(map<T, T2>* self);
+    T& next(map<T, T2>* self);
+    bool end(map<T, T2>* self) ;
+}
 ```
 
 使い方は
@@ -1482,8 +1490,9 @@ struct tuple1<T>
 
 impl tuple1 <T>
 {
-tuple1<T>* clone(tuple1<T>* self);
-bool equals(tuple1<T>* left, tuple1<T>* right);
+    tuple1<T>*% clone(tuple1<T>* self);
+    void finalize(tuple1<T>* self)
+    bool equals(tuple1<T>* left, tuple1<T>* right);
 }
 
 struct tuple2<T, T2>
@@ -1494,8 +1503,9 @@ struct tuple2<T, T2>
 
 impl tuple2 <T, T2>
 {
-tuple2<T,T2>* clone(tuple2<T, T2>* self);
-bool equals(tuple2<T, T2>* left, tuple2<T, T2>* right);
+    tuple2<T,T2>*% clone(tuple2<T, T2>* self);
+    void finalize(tuple2<T, T2>* self);
+    bool equals(tuple2<T, T2>* left, tuple2<T, T2>* right);
 }
 
 struct tuple3<T, T2, T3>
@@ -1507,8 +1517,9 @@ struct tuple3<T, T2, T3>
 
 impl tuple3 <T, T2, T3>
 {
-tuple3<T,T2, T3>* clone(tuple3<T, T2, T3>* self);
-bool equals(tuple3<T, T2, T3>* left, tuple3<T, T2, T3>* right);
+    tuple3<T,T2, T3>*% clone(tuple3<T, T2, T3>* self);
+    void finalize(tuple3<T, T2, T3>* self)
+    bool equals(tuple3<T, T2, T3>* left, tuple3<T, T2, T3>* right);
 }
 
 struct tuple4<T, T2, T3, T4>
@@ -1521,10 +1532,16 @@ struct tuple4<T, T2, T3, T4>
 
 impl tuple4 <T, T2, T3, T4>
 {
-tuple4<T,T2, T3, T4>* clone(tuple4<T, T2, T3, T4>* self);
-bool equals(tuple4<T, T2, T3, T4>* left, tuple4<T, T2, T3, T4>* right);
+    tuple4<T,T2, T3, T4>*% clone(tuple4<T, T2, T3, T4>* self);
+    void finalize(tuple4<T, T2, T3, T4>* self);
+    bool equals(tuple4<T, T2, T3, T4>* left, tuple4<T, T2, T3, T4>* right);
 }
 ```
+
+BoehmGCを有効にした場合は%, delete, dummy_heap, borrowなどは無視されます。つまりオリジナルのヒープシステムで作ったアプリは-gcをつけてもBoehmGCで動きます。 ソースコードレベルではBoehmGCとオリジナルのヒープシステムは互換性があります。
+
+If BoehmGC is enabled,%, delete, dummy_heap, borrow, etc. will be ignored. In other words, apps created with the original heap system will work with Boehm GC even with -gc. At the source code level, Boehm GC and the original heap system are compatible.
+
 
 # lambda
 
@@ -1581,7 +1598,8 @@ The definition is as follows.
 定義は以下です。
 
 ```
-buffer* buffer_initialize(buffer* self);
+buffer*% buffer_initialize(buffer*% self);
+void buffer_finalize(buffer* self);
 int buffer_length(buffer* self) 
 void buffer_append(buffer* self, char* mem, size_t size);
 void buffer_append_char(buffer* self, char c);
