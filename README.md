@@ -288,7 +288,7 @@ char* strとするとnew char[123]の結果は右辺値と判断されて代入�
 char*%と書くのがめんどくさい場合はautoを使ってください。右辺値の型が型推論されて宣言されます。
 
 ```
-char*% str = new char[123];
+auto str = new char[123];
 
 strncpy(str, "ABC", 123);
 
