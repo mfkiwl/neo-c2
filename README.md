@@ -1097,6 +1097,11 @@ Add the -gc option to the compiler. The heap system with Boehm GC is enabled. Th
 
 コンパイラに-gcオプションを付けてください。BoehmGCによるヒープシステムが有効になります。リンカーには-lpthread -lgc -lpcreが付与されます。
 
+BoehmGCを有効にした場合は%, delete, dummy_heap, borrowなどは無視されます。つまりオリジナルのヒープシステムで作ったアプリは-gcをつけてもBoehmGCで動きます。 ソースコードレベルではBoehmGCとオリジナルのヒープシステムは互換性があります。
+
+If BoehmGC is enabled,%, delete, dummy_heap, borrow, etc. will be ignored. In other words, apps created with the original heap system will work with Boehm GC even with -gc. At the source code level, Boehm GC and the original heap system are compatible.
+
+
 newでヒープを確保します。
 
 Allocate the heap with new.
@@ -1537,11 +1542,6 @@ impl tuple4 <T, T2, T3, T4>
     bool equals(tuple4<T, T2, T3, T4>* left, tuple4<T, T2, T3, T4>* right);
 }
 ```
-
-BoehmGCを有効にした場合は%, delete, dummy_heap, borrowなどは無視されます。つまりオリジナルのヒープシステムで作ったアプリは-gcをつけてもBoehmGCで動きます。 ソースコードレベルではBoehmGCとオリジナルのヒープシステムは互換性があります。
-
-If BoehmGC is enabled,%, delete, dummy_heap, borrow, etc. will be ignored. In other words, apps created with the original heap system will work with Boehm GC even with -gc. At the source code level, Boehm GC and the original heap system are compatible.
-
 
 # lambda
 
