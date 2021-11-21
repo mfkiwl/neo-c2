@@ -1,6 +1,6 @@
 #include "common.h"
 
-static sNode*% create_while(sNode*% while_exp, buffer*% while_codes, buffer*%? else_codes, sParserInfo* info)
+static sNode*% create_while(sNode*% while_exp, list<sNode*%>*% while_nodes, list<sNode*%>*%? else_nodes, sParserInfo* info)
 {
     sNode*% result = new sNode;
     
@@ -9,8 +9,8 @@ static sNode*% create_while(sNode*% while_exp, buffer*% while_codes, buffer*%? e
     result.fname = info->fname;
     result.sline = info->sline;
     result.value.whileValue.while_exp = while_exp;
-    result.value.whileValue.while_codes = while_codes;
-    result.value.whileValue.else_codes = else_codes;
+    result.value.whileValue.while_nodes = while_nodes;
+    result.value.whileValue.else_nodes = else_nodes;
     
     return result;
 }
@@ -45,9 +45,9 @@ void sNode_finalize(sNode* self) version 10
 
     if(self.kind == kWhile) {
         delete self.value.whileValue.while_exp;
-        delete self.value.whileValue.while_codes;
-        if(self.value.whileValue.else_codes) {
-            delete self.value.whileValue.else_codes
+        delete self.value.whileValue.while_nodes;
+        if(self.value.whileValue.else_nodes) {
+            delete self.value.whileValue.else_nodes
         }
     }
 }
@@ -90,9 +90,9 @@ sNode*%? exp_node(sParserInfo* info) version 10
             return null;
         }
         
-        buffer*% while_codes = parse_block(info);
+        list<sNode*%>*% while_nodes = parse_block(info);
         
-        buffer*? else_codes = null;
+        list<sNode*%>*%? else_nodes = null;
         
         if(word_cmp(info->p, "else")) {
             info->p += strlen("else");
@@ -107,10 +107,10 @@ sNode*%? exp_node(sParserInfo* info) version 10
                 return null;
             }
             
-            else_codes = borrow parse_block(info);
+            else_nodes = parse_block(info);
         }
         
-        result = borrow create_while(while_exp, while_codes, else_codes, info);
+        result = borrow create_while(while_exp, while_nodes, else_nodes, info);
     }
     else if(word_cmp(info->p, "break")) {
         info->p += strlen("break");
@@ -138,8 +138,8 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 10
     
     if(node.kind == kWhile) {
         sNode* while_exp = borrow node.value.whileValue.while_exp;
-        buffer* while_codes = borrow node.value.whileValue.while_codes;
-        buffer* else_codes = borrow node.value.whileValue.else_codes;
+        list<sNode*%>* while_nodes = borrow node.value.whileValue.while_nodes;
+        list<sNode*%>* else_nodes = borrow node.value.whileValue.else_nodes;
         
         int head = codes.length();
         
@@ -148,6 +148,8 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 10
         
         vector<int>* breaks_before = info->breaks;
         info->breaks = borrow new vector<int>.initialize();
+        
+        buffer*% while_codes = compile_nodes(while_nodes, info);
         
         if(!compile(while_exp, codes, info)) {
             return false;
@@ -164,6 +166,8 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 10
         
         codes.append_int(offset);
         
+        int while_codes_top = codes.len;
+        
         codes.append(while_codes.buf, while_codes.len);
         codes.alignment();
         
@@ -172,7 +176,9 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 10
         codes.append_int(OP_GOTO);
         codes.append_int(head);
         
-        if(else_codes) {
+        if(else_nodes) {
+            buffer*% else_codes = compile_nodes(else_nodes, info);
+            
             codes.append(else_codes.buf, else_codes.len);
             codes.alignment();
         }
@@ -180,7 +186,7 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 10
         for(int i=0; i<info->breaks.length(); i++) {
             int break_point = info->breaks.item(i, -1);
             
-            int* p = (int*)(codes.buf + break_point);
+            int* p = (int*)(codes.buf + while_codes_top + break_point);
             
             *p = codes.length();
         }
@@ -197,7 +203,10 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 10
         }
         
         codes.append_int(OP_GOTO);
-        info->breaks.push_back(codes.len);
+        
+        int break_point = codes.len;
+        info->breaks.push_back(break_point);
+        
         codes.append_int(0);
     }
     else if(node.kind == kContinue) {

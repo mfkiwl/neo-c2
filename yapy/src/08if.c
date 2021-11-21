@@ -69,7 +69,7 @@ sNode*%? exp_node(sParserInfo* info) version 8
             return null;
         }
         
-        buffer*% if_codes = parse_block(info);
+        buffer*% if_codes = compile_block(info);
         
         vector<sNode*%>*% elif_exps = new vector<sNode*%>.initialize();
         vector<buffer*%>*% elif_blocks = new vector<buffer*%>.initialize();
@@ -95,7 +95,7 @@ sNode*%? exp_node(sParserInfo* info) version 8
                 return null;
             }
             
-            buffer*% elif_block = parse_block(info);
+            buffer*% elif_block = compile_block(info);
             
             elif_blocks.push_back(elif_block);
         }
@@ -115,7 +115,7 @@ sNode*%? exp_node(sParserInfo* info) version 8
                 return null;
             }
             
-            else_block = borrow parse_block(info);
+            else_block = borrow compile_block(info);
         }
         
         result = borrow create_if(if_exp, if_codes, elif_exps, elif_blocks, else_block, info);

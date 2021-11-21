@@ -52,8 +52,8 @@ struct sNode
         
         struct {
             sNode*% while_exp;
-            buffer*% while_codes;
-            buffer*% else_codes;
+            list<sNode*%>*% while_nodes;
+            list<sNode*%>*% else_nodes;
         } whileValue;
     } value;
 };
@@ -112,7 +112,9 @@ void sVar_finalize();
 /// main.c ///
 void skip_spaces(sParserInfo* info);
 void skip_spaces_until_eol(sParserInfo* info);
-buffer*% parse_block(sParserInfo* info);
+list<sNode*%>*% parse_block(sParserInfo* info);
+buffer*% compile_nodes(list<sNode*%>* nodes, sParserInfo* info);
+buffer*% compile_block(sParserInfo* info);
 
 /// vm.c ///
 void initialize_modules() version 1;

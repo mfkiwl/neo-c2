@@ -82,7 +82,7 @@ static list<sNode*%>*% parse(sParserInfo* info, int space_num)
     return nodes;
 }
 
-buffer*% make_code(list<sNode*%>* nodes, sParserInfo* info)
+buffer*% compile_nodes(list<sNode*%>* nodes, sParserInfo* info)
 {
     buffer*% codes = new buffer.initialize();
     
@@ -105,13 +105,13 @@ buffer*% make_code(list<sNode*%>* nodes, sParserInfo* info)
     return codes;
 }
 
-buffer*% parse_block(sParserInfo* info)
+list<sNode*%>*% parse_block(sParserInfo* info)
 {
     int space_num = info.space_num;
     bool in_global_context = info.in_global_context;
     info.in_global_context = false;
     
-    buffer*% codes = null;
+    list<sNode*%>*% nodes = null;
     
     /// multi line ///
     if(*info->p == '\n') {
@@ -124,8 +124,7 @@ buffer*% parse_block(sParserInfo* info)
             space_num++;
         }
         
-        list<sNode*%>*% nodes = parse(info, space_num);
-        codes = make_code(nodes, info);
+        nodes = parse(info, space_num);
     }
     /// one line ///
     else {
@@ -134,7 +133,15 @@ buffer*% parse_block(sParserInfo* info)
     info.in_global_context = in_global_context;
     info.space_num = space_num;
     
-    return codes;
+    return nodes;
+}
+
+buffer*% compile_block(sParserInfo* info)
+{
+    list<sNode*%>*% nodes = parse_block(info);
+    buffer*% buffer = compile_nodes(nodes, info);
+    
+    return buffer;
 }
 
 int main(int argc, char** argv)
@@ -182,7 +189,7 @@ int main(int argc, char** argv)
         
         list<sNode*%>*% nodes = parse(&info, 0`space_num);
         
-        buffer*% codes = make_code(nodes, &info);
+        buffer*% codes = compile_nodes(nodes, &info);
         
         vm(codes, null).expect {
             exit(1);

@@ -143,7 +143,7 @@ sNode*%? def_node(sParserInfo* info) version 6
         }
     }
     
-    buffer*% codes = parse_block(info);
+    buffer*% codes = compile_block(info);
     
     return create_fun(fun_name, codes, param_names, info);
 }

@@ -19,7 +19,10 @@ fun();
 
 
 while True:
-    print "HELLO WHILE"
+    print "WHILE HELLO"
+    continue
+else:
+    print "WHILE ELSE"
 
 
 print "TEST FINISH"
