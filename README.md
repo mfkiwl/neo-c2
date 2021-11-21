@@ -1543,6 +1543,43 @@ impl tuple4 <T, T2, T3, T4>
 }
 ```
 
+# buffer(Boehm GC version)
+
+The definition is as follows.
+
+定義は以下です。
+
+```
+buffer*% buffer_initialize(buffer*% self);
+void buffer_finalize(buffer* self);
+int buffer_length(buffer* self) 
+void buffer_append(buffer* self, char* mem, size_t size);
+void buffer_append_char(buffer* self, char c);
+void buffer_append_str(buffer* self, char* str);
+void buffer_append_nullterminated_str(buffer* self, char* str);
+string buffer_to_string(buffer* self);
+void buffer_append_int(buffer* self, int value) ;
+void buffer_append_long(buffer* self, long value) ;
+void buffer_append_short(buffer* self, short value);
+void buffer_alignment(buffer* self);
+int buffer_compare(buffer* left, buffer* right);
+```
+
+使い方は以下です。
+
+Usage is bellow:
+
+```
+buffer* b1 = new buffer.initialize();
+
+b1.append_str("ABC");
+b1.append_str("DEF");
+
+if(strcmp(b1.to_string(), "ABCDEF") == 0) {
+    puts("OK");
+}
+```
+
 # lambda
 
 ```
@@ -1590,43 +1627,6 @@ __current__ defines a structure that contains pointers to all variables in the c
 __current__は現在のスタックフレームのすべての変数のポインタを格納している構造体を定義します。
 __stack__は現在のスタックフレームのすべての変数のポインタを格納している構造体にスタックフレームのポインタを代入した構造体のポインタを返します。
 この場合はstruct { int* a, int* argc, char*** argv };という構造体が定義されます。
-
-# buffer(Boehm GC version)
-
-The definition is as follows.
-
-定義は以下です。
-
-```
-buffer*% buffer_initialize(buffer*% self);
-void buffer_finalize(buffer* self);
-int buffer_length(buffer* self) 
-void buffer_append(buffer* self, char* mem, size_t size);
-void buffer_append_char(buffer* self, char c);
-void buffer_append_str(buffer* self, char* str);
-void buffer_append_nullterminated_str(buffer* self, char* str);
-string buffer_to_string(buffer* self);
-void buffer_append_int(buffer* self, int value) ;
-void buffer_append_long(buffer* self, long value) ;
-void buffer_append_short(buffer* self, short value);
-void buffer_alignment(buffer* self);
-int buffer_compare(buffer* left, buffer* right);
-```
-
-使い方は以下です。
-
-Usage is bellow:
-
-```
-buffer* b1 = new buffer.initialize();
-
-b1.append_str("ABC");
-b1.append_str("DEF");
-
-if(strcmp(b1.to_string(), "ABCDEF") == 0) {
-    puts("OK");
-}
-```
 
 # mixin-layers system
 
