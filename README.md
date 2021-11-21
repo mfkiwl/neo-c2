@@ -288,7 +288,7 @@ char* strとするとnew char[123]の結果は右辺値と判断されて代入�
 char*%と書くのがめんどくさい場合はautoを使ってください。右辺値の型が型推論されて宣言されます。
 
 ```
-auto str = new char[123];
+char*% str = new char[123];
 
 strncpy(str, "ABC", 123);
 
@@ -316,17 +316,17 @@ borrowをつけると右辺値の自動freeの対象から外されて、右辺�
 型名に%をつけた変数同士の代入は所有権の移動が起こります。
 
 ```
-    auto a = new char[128];
-    auto b = a;
+    char*% a = new char[128];
+    char*% b = a;
 ```
 
-It is b that is freed. a cannot be used after auto b. Use no move to prevent this.
+It is b that is freed. a cannot be used after char*% b. Use no move to prevent this.
 
-freeされるのはbです。aはauto b以降使えなくなります。これを防ぐにはnomoveを使ってください。
+freeされるのはbです。aはchar*% b以降使えなくなります。これを防ぐにはnomoveを使ってください。
 
 ```
-    auto a = new char[128];
-    auto b = nomove a;
+    char*% a = new char[128];
+    char*% b = nomove a;
 ```
 
 It is a that is freed. When nomove is used for the rvalue, the rvalue is not automatically freed at the end of the line, but is freed when the variable disappears.
@@ -343,7 +343,7 @@ char* fun()
 
 int main()
 {
-    auto a = nomove fun();
+    char*% a = nomove fun();
     return 0;
 }
 ```
@@ -562,7 +562,7 @@ void sData_finalize(sData* self)
 
 int main(int argc, char** argv)
 {
-    auto d = new sData.initialize();
+    sData*% d = new sData.initialize();
 
     printf("%s %s\n", d.value1, d.value2);
 
@@ -593,11 +593,11 @@ sData*% sData_initialize(sData*% self)
 
 int main(int argc, char** argv)
 {
-    auto d = new sData.initialize();
+    sData*% d = new sData.initialize();
 
     printf("%d %d\n", d.value1, d.value2);
 
-    auto e = clone d;
+    sData*% e = clone d;
 
     printf("%d %d\n", e.value2, e.value2);
 
@@ -628,7 +628,7 @@ sData*% sData_initialize(sData*% self)
 
 sData*% sData_clone(sData* self)
 {
-    auto result = new sData;
+    sData*% result = new sData;
 
     result.value1 = clone self.value1;
     result.value2 = clone self.value2;
@@ -644,11 +644,11 @@ void sData_finalize(sData* self)
 
 int main(int argc, char** argv)
 {
-    auto d = new sData.initialize();
+    sData*% d = new sData.initialize();
 
     printf("%s %s\n", d.value1, d.value2);
 
-    auto e = clone d;
+    sData*% e = clone d;
 
     printf("%s %s\n", e.value1, e.value2);
 
@@ -800,7 +800,7 @@ The & in the type name removes% from the generic type name. Even if T has a%, it
 使い方は以下です。
 
 ```
-auto v = new vector<int>.initialize();
+vector<int>*% v = new vector<int>.initialize();
 
 v.push_back(1);
 v.push_back(2);
@@ -855,7 +855,7 @@ Usage is almost the same as vector.
 使い方はvectorとほぼ同じです。
 
 ```
-auto l = new list<int>.initialize();
+list<int>*% l = new list<int>.initialize();
 
 l.push_back(1);
 l.push_back(2);
@@ -891,13 +891,38 @@ int int::compare(int left, int right) {
 
 int main(int argc, char** argv)
 {
-    auto l = new list<int>.initialize();
+    list<int>*% l = new list<int>.initialize();
 
     l.push_back(7);
     l.push_back(1);
     l.push_back(2);
 
-    auto l2 = l.sort(int_compare);
+    list<int>*% l2 = l.sort(int_compare);
+
+    if(l2.item(0, -1) == 1 && l2.item(1, -1) == 2 && l2.item(2, -1) == 7) {
+        puts("OK");
+    }
+}
+```
+
+```
+int main(int argc, char** argv)
+{
+    list<int>*% l = new list<int>.initialize();
+
+    l.push_back(7);
+    l.push_back(1);
+    l.push_back(2);
+
+    list<int>*% l2 = l.sort(int lambda(int left, int right) { 
+        if(left < right) { 
+            return -1; 
+        } else if(left > right) { 
+            return 1; 
+        } else { 
+            return 0 
+        }
+    );
 
     if(l2.item(0, -1) == 1 && l2.item(1, -1) == 2 && l2.item(2, -1) == 7) {
         puts("OK");
@@ -931,7 +956,7 @@ impl map <T, T2>
 Usage is bellow:
 
 ```
-auto m = new map<char*, int>.initialize();
+map<char*, int>*% m = new map<char*, int>.initialize();
 
 m.insert("AAA", 1);
 m.insert("BBB", 2);
@@ -1012,9 +1037,9 @@ Collectionに追加された要素は全てコレクション側でメモリの�
 変数テーブルで管理されたヒープはブロックから出たときに自動freeが起こりコレクション側でもfreeが起こるので、2重freeとなるためです。例えば以下のようにします。
 
 ```
-auto l = new list<string>.initialzie();
+list<string>*% l = new list<string>.initialzie();
 
-auto str = string("ABC");
+char*% str = string("ABC");
 
 managed str;
 
@@ -1028,24 +1053,28 @@ managed strとされるとstrは変数テーブルで管理されるヒープで
 もしくは
 
 ```
-auto l = new list<tring>.initialize();
+list<string>*% l = new list<string>.initialize();
 
-auto str = borrow string("ABC");
+char* str = borrow string("ABC");
 
 l.push_back(str);
 ```
 
 You can also do it. borrow removes the% mark on the heap. str is treated as just char *. In both cases str is freed when auto l is freed. Another way is to clone the variables in the variable table. Since two heaps are created, one is freed in the variable table and the other is freed in the Collection.
 
+borrow is also excluded from the target of automatic free of rvalues
+
 としてもいいでしょう。borrowはヒープの%マークを消します。strは単なるchar*として扱われます。
-どちらの場合もauto lがfreeされるときにstrは一緒にfreeされます。
+どちらの場合もlist<string>*% lがfreeされるときにstrは一緒にfreeされます。
+
+borrowは右辺値の自動freeの対象からも外れます。
 
 もう一つの方法としては変数テーブルの変数をcloneすることです。２つのヒープが生成されるため、一つは変数テーブルでfreeされて、もう一つはCollectionの中でfreeされます。
 
 ```
-auto l = new list<string>.initialize();
+list<string>*% l = new list<string>.initialize();
 
-auto str = string("ABC");
+char*% str = string("ABC");
 
 l.push_back(clone str);
 ```
@@ -1197,7 +1226,7 @@ sData* sData_initialize(sData* self)
 
 int main(int argc, char** argv)
 {
-    auto d = new sData.initialize();
+    sData* d = new sData.initialize();
 
     printf("%s %s\n", d.value1, d.value2);
 
@@ -1230,11 +1259,11 @@ sData* sData_initialize(sData* self)
 
 int main(int argc, char** argv)
 {
-    auto d = new sData.initialize();
+    sData* d = new sData.initialize();
 
     printf("%d %d\n", d.value1, d.value2);
 
-    auto e = clone d;
+    sData* e = clone d;
 
     printf("%d %d\n", e.value2, e.value2);
 
@@ -1265,7 +1294,7 @@ sData* sData_initialize(sData* self)
 
 sData* sData_clone(sData* self)
 {
-    auto result = new sData;
+    sData* result = new sData;
 
     result.value1 = clone self.value1;
     result.value2 = clone self.value2;
@@ -1275,11 +1304,11 @@ sData* sData_clone(sData* self)
 
 int main(int argc, char** argv)
 {
-    auto d = new sData.initialize();
+    sData* d = new sData.initialize();
 
     printf("%s %s\n", d.value1, d.value2);
 
-    auto e = clone d;
+    sData* e = clone d;
 
     printf("%s %s\n", e.value1, e.value2);
 
@@ -1333,7 +1362,7 @@ impl vector<T>
 ```
 
 ```
-auto v = new vector<int>.initialize();
+vector<int>* v = new vector<int>.initialize();
 
 v.push_back(1);
 v.push_back(2);
@@ -1388,7 +1417,7 @@ Usage is almost the same as vector.
 使い方はvectorとほぼ同じです。
 
 ```
-auto l = new list<int>.initialize();
+list<int>* l = new list<int>.initialize();
 
 l.push_back(1);
 l.push_back(2);
@@ -1424,13 +1453,13 @@ int int::compare(int left, int right) {
 
 int main(int argc, char** argv)
 {
-    auto l = new list<int>.initialize();
+    list<int>* l = new list<int>.initialize();
 
     l.push_back(7);
     l.push_back(1);
     l.push_back(2);
 
-    auto l2 = l.sort(int_compare);
+    list<int>* l2 = l.sort(int_compare);
 
     if(l2.item(0, -1) == 1 && l2.item(1, -1) == 2 && l2.item(2, -1) == 7) {
         puts("OK");
@@ -1464,7 +1493,7 @@ impl map <T, T2>
 Usage is bellow:
 
 ```
-auto m = new map<char*, int>.initialize();
+map<char*,int>* m = new map<char*, int>.initialize();
 
 m.insert("AAA", 1);
 m.insert("BBB", 2);
@@ -1475,7 +1504,7 @@ if(m.length() == 3 && m.at("AAA", -1) == 1 && m.at("BBB", -1) == 2 && m.at("CCC"
 }
 
 foreach(key, m) {
-    auto item = m.at(key, -1);
+    int item = m.at(key, -1);
 
     printf("%s %d\n", key, item);
 }
@@ -1595,7 +1624,7 @@ lambdas don't have access to variables in the parent stack.
 lambdaは親のスタックの変数にはアクセスできません。
 
 ```
-auto a = 1;
+int a = 1;
 
 auto fun = int lambda(int x, int y) { return x + y + a; }
 ```
@@ -2021,7 +2050,7 @@ int fd = open("ABC", O_RDONLY).expect {
     puts("HELLO METHOD BLOCK");
 }
 
-auto li = new list<int>.initialize();
+list<int>*% li = new list<int>.initialize();
 
 li.push_back(1);
 li.push_back(2);
@@ -2044,7 +2073,7 @@ printf("a %d\n", a);
 However, if the variable on the parent stack is an array, the start address is passed.
 
 ```
-    auto li = new list<char>.initialize();
+    list<char>*% li = new list<char>.initialize();
     
     li.push_back("AAA");
     li.push_back("BBB");
@@ -2114,13 +2143,13 @@ impl list<T> {
 
 int main()
 {
-    auto list3 = new list<char*>.initialize();
+    list<char*>*% list3 = new list<char*>.initialize();
 
     list3.push_back("1");
     list3.push_back("2");
     list3.push_back("3");
 
-    auto list4 = list3.map { return atoi(it); }
+    list<int>*% list4 = list3.map { return atoi(it); }
 
     xassert("map test", list4.item(0, -1) == 1 && list4.item(1, -1) == 2 && list4.item(2, -1) == 3);
 
