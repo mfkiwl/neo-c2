@@ -1122,7 +1122,7 @@ stringは以下のように定義されています。
 string is defined as below
 
 ```
-typedef char* string;
+typedef char*% string;
 
 inline string string(char* str)
 {
