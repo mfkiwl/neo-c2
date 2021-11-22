@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 1.2.7
+version 1.5.0
 
 ```
 #include <neo-c2.h>
@@ -249,884 +249,13 @@ If you want to object file only, use -c option.
 
 オブジェクトファイルを出力するためには-cオプションを使ってください。
 
-# Original Heap System
-
-By default, the original heap system is the default. If you want to use Boehm GC, add the -gc option>.
-
-デフォルトではオリジナルヒープシステムがデフォルトとなっています。BoehmGCを使いたい場合は-gcオプションを付けてください。
-
-The cost of learning the library is low, but the heap system will take some time to learn. Basically, use valgrind to check if a memory leak is occurring. You can also find out illegal memory access by using valgrind. You can also use the -g option to find out the location of memory leaks in the source code and unauthorized memory access in the source code. The basic rule is that rvalues (temporary heap generation that is not assigned to variables) are automatically freed.
-
-ライブラリの学習コストは低いですが、ヒープシステムは学習するのに少し時間がかかるでしょう。基本的にメモリーリークが起こっているかの確認はvalgrindを使ってください。
-また不正なメモリアクセスもvalgrindを使えば分かるでしょう。-gオプションを使うとソースコードでのメモリーリークや不正なメモリアクセスのソースコードでの位置も分かります。
-
-基本的なルールですが、右辺値（変数に代入されない一時的なヒープの生成)は自動的にfreeされます。
-
-```
-puts(xsprintf("1 + 1 == %d\n", 1 + 1));
-```
-
-xsprintf uses the heap to generate memory, but since it is an rvalue, it is automatically freed after puts. It is the timing when the rvalue is freed, but after one sentence is executed. I don't expect code that makes heavy use of method chains like Ruby, but even if method chains are used, method chains can be performed because the memory of the rvalue heap exists until the execution of one sentence is completed. Probably. The next rule is that the function that creates the heap assigned to the variable with% and the memory such as new will be freed after the block escapes.
-
-xsprintfはヒープを使ったメモリが生成されますが、右辺値なので、puts後に自動的にfreeされます。右辺値がfreeされるタイミングですが、1文が実行された後です。
-あまり、Rubyのようにメソッドチェインを多用するコードは想定していませんが
-メソッドチェインしても１文の実行が終わるまで右辺値のヒープのメモリは存在しているためメソッドチェインを行うことも可能でしょう。
-
-次のルールは%をつけた変数に代入されたヒープを生成する関数やnewなどのメモリはブロックの脱出後にfreeされます。
-
-```
-char*% str = new char[123];
-
-strncpy(str, "AAA", 123);
-
-puts(str);
-```
-
-Note that if char * str is used, the result of new char [123] will be judged as an rvalue and will be freed before being assigned. If you find it awkward to write char *%, use auto. The rvalue type is type inferred and declared.
-
-char* strとするとnew char[123]の結果は右辺値と判断されて代入される前にfreeされるので注意してください。
-char*%と書くのがめんどくさい場合はautoを使ってください。右辺値の型が型推論されて宣言されます。
-
-```
-auto str = new char[123];
-
-strncpy(str, "ABC", 123);
-
-puts(str);
-```
-
-If you want to manage the memory yourself, add borrow to declare heap memory that is not an rvalue, and then assign it to a pointer without%.
-
-自分でメモリを管理したい場合はborrowをつけて右辺値じゃないヒープメモリと宣言してから%をつけないポインタに代入してください。
-
-```
-char* str = borrow char str[123];
-
-strncpy(str, "ABC", 123);
-
-puts(str);
-
-delete str;
-```
-
-If you add borrow, it will be excluded from the target of automatic free of rvalue, and automatic free of rvalue will not be done. Assignment between variables with% added to the type name causes a transfer of ownership.
-
-borrowをつけると右辺値の自動freeの対象から外されて、右辺値の自動freeがされないようになります。
-
-型名に%をつけた変数同士の代入は所有権の移動が起こります。
-
-```
-    char*% a = new char[128];
-    char*% b = a;
-```
-
-It is b that is freed. a cannot be used after char*% b. Use no move to prevent this.
-
-freeされるのはbです。aはchar*% b以降使えなくなります。これを防ぐにはnomoveを使ってください。
-
-```
-    char*% a = new char[128];
-    char*% b = nomove a;
-```
-
-It is a that is freed. When nomove is used for the rvalue, the rvalue is not automatically freed at the end of the line, but is freed when the variable disappears.
-
-freeされるのはaです。
-
-右辺値にnomoveを使った場合ですが、その場合は右辺値は行末で自動freeされるのではなく変数が消えた時にfreeされます。
-
-```
-char* fun() 
-{
-    return new char[128];
-}
-
-int main()
-{
-    char*% a = nomove fun();
-    return 0;
-}
-```
-
-a is freed at the end of main. Next is the case of a function. If% is attached to the argument of the function, the management of heap memory shifts to the function side. On the other hand, if you do not add%, you will simply refer to the memory.
-
-aはmainの終了時にfreeされます。
-
-次は関数の場合です。関数の引数に%がついていた場合はヒープメモリの管理は関数側に移ります。逆に%をつけていない場合は単にメモリの参照をすることとなります。
-
-```
-void fun(char* str)
-{
-    puts(str);
-}
-
-int main()
-{
-    char*% str = new char[123];
-    
-    strncpy(str, "ABC", 123);
-
-    fun(str);
-
-    return 0;
-}
-```
-
-In this case, str is freed before the return of the main function. You can still use str after calling fun.
-
-この場合はmain関数のreturnの前にstrがfreeされます。funの呼び出し後もstrは使えます。
-
-```
-void fun(char*% str)
-{
-    puts(str);
-}
-
-int main()
-{
-    char*% str = new char[123];
-    
-    strncpy(str, "ABC", 123);
-
-    fun(str);
-
-    return 0;
-}
-```
-
-In this case, str is freed in fun. You cannot use str after calling fun. The same rule applies when a heap is temporarily created with a function argument.
-
-この場合はfunの中でstrがfreeされます。funを呼び出した後はstrは使えません。
-
-関数の引数で一時的にヒープを生成した場合も同様のルールとなります。
-
-
-```
-void fun(char* str)
-{
-    puts(str);
-}
-
-int main()
-{
-    fun(string("AAA"));
-}
-```
-
-string is a function that returns a char *% type string. In this case, the return value (rvalue) of string is freed after calling fun. string is defined as follows.
-
-stringはchar*%型の文字列を返す関数です。この場合はfunの呼び出し後にstringの戻り値(右辺値)がfreeされます。
-
-stringは以下のように定義されています。
-
-```
-typedef char*% string;
-
-inline string string(char* str)
-{
-    int len = strlen(str) + 1;
-    char* result = (char*)calloc(len, sizeof(char));
-
-    strncpy(result, str, len);
-
-    return dummy_heap result;
-}
-```
-
-dummy_heapは普通のポインタに%を付与します。
-
-便利なstring関数としては以下があります。
-
-dummy_heap gives% to ordinary pointers. Some useful string functions are:
-
-```
-static string xsprintf(char* msg, ...)
-{
-    va_list args;
-    va_start(args, msg);
-    char* result;
-    int len = vasprintf(&result, msg, args);
-    va_end(args);
-
-    if(len < 0) {
-        fprintf(stderr, "can't get heap memory.\n");
-
-        exit(2);
-    }
-
-    return dummy_heap result;
-}
-
-static string char::reverse(char* str) 
-{
-    int len = strlen(str);
-    string result = new char[len + 1];
-
-    for(int i=0; i<len; i++) {
-        result[i] = str[len-i-1];
-    }
-
-    result[len] = '\0';
-
-    return result;
-}
-
-static string char::substring(char* str, int head, int tail)
-{
-    if(str == null) {
-        return string("");
-    }
-
-    int len = strlen(str);
-
-    if(head < 0) {
-        head += len;
-    }
-    if(tail < 0) {
-        tail += len + 1;
-    }
-
-    if(head > tail) {
-        return str.substring(tail, head).reverse();
-    }
-
-    if(head < 0) {
-        head = 0;
-    }
-
-    if(tail >= len) {
-        tail = len;
-    }
-
-    if(head == tail) {
-        return string("");
-    }
-
-    if(tail-head+1 < 1) {
-        return string("");
-    }
-
-    string result = new char[tail-head+1];
-
-    memcpy(result, str + head, tail-head);
-    result[tail-head] = '\0';
-
-    return result;
-}
-```
-
-使い方は
-
-Usage is bellow:
-
-```
-if(strcmp(xsprintf("%d", 2), "2") == 0) {
-    puts("OK");
-}
-if(strcmp("ABC".reverse(), "CBA") == 0) {
-    puts("OK");
-}
-
-if(strcmp("ABC".substring(0,1), "A") == 0) {
-    puts("OK");
-}
-```
-
-It will be. It is called when "object type name_method name" is called as an OOP-like function. In other words, "ABC" .reverse () is the same as calling char_reverse ("ABC") or char::reverse("ABC"). Another important point is that the memory allocated in the heap is called finalizer according to the type name.
-
-となります。OOP的な機能として"オブジェクトの型名_メソッド名"がメソッドコールした場合は呼ばれます。
-つまり、"ABC".reverse()はchar_reverse("ABC")もしくはchar::reverse("ABC")を呼び出したことと同じことです。
-
-もう一つ重要な点はヒープで確保されたメモリは型名に応じてfinalizerが呼ばれることです。
-
-```
-struct sData
-{
-    string value1;
-    string value2;
-};
-
-sData*% sData_initialize(sData*% self)
-{
-    self.value1 = string("ABC");
-    self.value2 = string("DEF");
-    
-    return self;
-}
-
-void sData_finalize(sData* self)
-{
-    delete self.value1;
-    delete self.value2;
-}
-
-int main(int argc, char** argv)
-{
-    sData*% d = new sData.initialize();
-
-    printf("%s %s\n", d.value1, d.value2);
-
-    return 0;
-}
-```
-
-If you keep the heap in the struct, it will not be automatically freed. Be sure to define finalizer and use delete to free up memory. The other heap-related function is clone. clone copies the memory allocated in the heap as it is.
-
-structの中にヒープを保持する場合、自動的にはfreeされません。必ずfinalizerを定義してdeleteを使い、メモリを開放してください。
-
-後一つヒープ関連である機能は、cloneです。cloneはヒープに確保されたメモリを内容をそのままにコピーします。
-
-```
-struct sData
-{
-    int value1;
-    int value2;
-};
-
-sData*% sData_initialize(sData*% self)
-{
-    self.value1 = 123;
-    self.value2 = 234;
-
-    return self;
-}
-
-int main(int argc, char** argv)
-{
-    sData*% d = new sData.initialize();
-
-    printf("%d %d\n", d.value1, d.value2);
-
-    sData*% e = clone d;
-
-    printf("%d %d\n", e.value2, e.value2);
-
-    return 0;
-}
-```
-
-e also holds the same value as d. However, this feature only copies the pointer if you hold the heap in a shallow copy. If you delete the pointer, you will get a segmentation fault if you clone it. To prevent this, implement a method called clone.
-
-eもdと同じ値を保持しています。ただし、この機能は浅いコピーでヒープを保持していた場合ポインタがコピーされるだけです。
-もしそのポインタをdeleteしてしまうとcloneした場合segmentation faultが起こるでしょう。
-これを防ぐためにはcloneというメソッドを実装します。
-
-```
-struct sData
-{
-    string value1;
-    string value2;
-};
-
-sData*% sData_initialize(sData*% self)
-{
-    self.value1 = string("ABC");
-    self.value2 = string("DEF");
-    
-    return self;
-}
-
-sData*% sData_clone(sData* self)
-{
-    sData*% result = new sData;
-
-    result.value1 = clone self.value1;
-    result.value2 = clone self.value2;
-
-    return result;
-}
-
-void sData_finalize(sData* self)
-{
-    delete self.value1;
-    delete self.value2;
-}
-
-int main(int argc, char** argv)
-{
-    sData*% d = new sData.initialize();
-
-    printf("%s %s\n", d.value1, d.value2);
-
-    sData*% e = clone d;
-
-    printf("%s %s\n", e.value1, e.value2);
-
-    return 0;
-}
-```
-
-This should work fine.
-
-これで不具合なく動くはずです。
-
-Struct and union are the same rule of a local variable.
-
-構造体やunionも普通の変数と同じルールです。
-
-```
-struct sA {
-   int*% a;
-};
-
-void sA_finalize(sA* self)
-{
-    delete self.a;
-}
-
-int main()
-{
-    int*% a = new int;
-    *a = 5;
-
-    sA*% data = new sA;
-    data.a = a;  // the owner of a is changed
-
-    return 0;
-}
-```
-
-In this case, data.a will be freed when data will be freed. 
-a will not be freed.
-
-みたいなケースです。この場合、dataがfreeされるタイミングでdata.aがフリーされます。
-aはfreeされません。
-
-You can also new using Boehm GC. In this case, assign it to an ordinary pointer. Since it is a conservative GC, it seems that the memory may not be released, but for the time being, I think that the memory will not be exhausted. finalize is not called. The usage is as follows.
-
-BoehmGCを使ったnewもできます。この場合は普通のポインタに代入してください。保守的GCなのでメモリが解放されない場合もある様子ですが、とりあえずは、メモリは枯渇しないと思います。finalizeは呼ばれません。使い方は以下です。
-
-```
-#include <neo-c2.h>
-
-struct sObj {
-    int a;
-    int b;
-};
-
-int main()
-{
-    sObj* obj = new (GC) sObj;
-
-    obj.a = 1;
-    obj.b = 2;
-
-    xassert("gc test", obj.a == 1 && obj.b == 2);
-
-    return 0;
-}
-```
-
-clone is below:
-
-```
-#include <neo-c2.h>
-
-struct sObj {
-    int a;
-    int b;
-};
-
-int main()
-{
-    sObj* obj = new (GC) sObj;
-
-    obj.a = 1;
-    obj.b = 2;
-
-    xassert("gc test", obj.a == 1 && obj.b == 2);
-
-    sObj* obj2 = clone (GC) obj;
-
-    xassert("gc test2", obj2.a == 1 && obj2.b == 2);
-
-    return 0;
-}
-```
-
-However, in this example, it seems that memory is leaking when valgrind is applied. Isn't it free at the end? I prepared it for the time being. 
-
-ただ、この例ではvalgrindをかけるとメモリがリークしている様子です。終了時にはfreeしないんですかね。とりあえず用意しました。
-
-When using Boehm GC, -lgc is required as a compiler option.
-
-BoehmGCを使う場合はコンパイラのオプションに-lgcが必要です。
-
-# Generics(Original Heap version)
-
-Generics is a code generation method. I have implemented it, but basically I am making it for the collection library of the basic library. We do not recommend using Generics for your own application code. This is because the code beneo-c2 complicated. If you want to make your own library, you can use it. The vector is defined as follows.
-
-Genericsはコード生成方式です。実装してますが、基本的に基本ライブラリのコレクションライブラリ用に作っています。
-自作のアプリケーションコードにGenericsを使うことはお勧めしません。コードが複雑になるためです。
-ライブラリを自作したい場合には使ってもいいと思います。
-
-vectorは以下のように定義されています。
-
-```
-struct vector<T> 
-{
-    T&* items;
-    int len;
-    int size;
-
-    int it;
-};
-
-impl vector<T> 
-{
-    vector<T>*% initialize(vector<T>*% self);
-    void finalize(vector<T>* self);
-    void push_back(vector<T>* self, T item);
-    T& item(vector<T>* self, int index, T& default_value);
-    bool equals(vector<T>* left, vector<T>* right);
-    bool replace(vector<T>* self, int index, T value);
-    int find(vector<T>* self, T& item, int default_value);
-    int length(vector<T>* self);
-    void reset(vector<T>* self);
-    T& begin(vector<T>* self);
-    T& next(vector<T>* self);
-    bool end(vector<T>* self);
-
-    list<T>*% to_list(vector<T>* self);
-}
-
-#define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
-```
-
-The & in the type name removes% from the generic type name. Even if T has a%, it is treated as a pointer. managed removes% from variables with%. The usage is as follows.
-
-型名の&はジェネリクスの型名から%を消すものです。Tに%がついていてもポインタとして処理されます。managedは%がつけられた変数から%を取り除きます。
-
-使い方は以下です。
-
-```
-vector<int>*% v = new vector<int>.initialize();
-
-v.push_back(1);
-v.push_back(2);
-v.push_back(3);
-
-if(v.length() == 3 && v.item(0, -1) == 1 && v.item(1, -1) == 2 && v.item(2, -2) == 3 && v.item(10000, -1) == -1) {
-    puts("OK");
-}
-
-foreach(it , v) {
-    printf("%d\n", it);
-}
-```
-
--1 of item is the default value. If index is out of range, the default value is returned. foreach is a macro that accesses all elements. list is below. 
-
-itemの-1はデフォルト値でもしindexが範囲外ならデフォルト値を返します。foreachは全ての要素にアクセスするマクロです。
-
-listは以下です。
-
-```
-impl list <T>
-{
-    list<T>*% initialize(list<T>*% self);
-    void finalize(list<T>* self);
-    list<T>*% clone(list<T>* self);
-    int length(list<T>* self);
-    void push_back(list<T>* self, T item) ;
-    T& item(list<T>* self, int position, T& default_value);
-    void insert(list<T>* self, int position, T item);
-    void reset(list<T>* self) ;
-    void delete(list<T>* self, int head, int tail);
-    void replace(list<T>* self, int position, T item);
-
-    int find(list<T>* self, T& item, int default_value) ;
-    list<T>*% sublist(list<T>* self, int begin, int tail) ;
-
-    list<T>*% reverse(list<T>* self);
-    list<T>*% merge_list(list<T>* left, list<T>* right, int (*compare)(T&,T&));
-    list<T>*% merge_sort(list<T>* self, int (*compare)(T&,T&));
-    list<T>*% sort(list<T>* self, int (*compare)(T&,T&));
-    list<T>*% uniq(list<T>* self);
-    bool equals(list<T>* left, list<T>* right);
-    T& begin(list<T>* self);
-    T& next(list<T>* self);
-    bool end(list<T>* self);
-}
-```
-
-Usage is almost the same as vector.
-
-使い方はvectorとほぼ同じです。
-
-```
-list<int>*% l = new list<int>.initialize();
-
-l.push_back(1);
-l.push_back(2);
-l.push_back(3);
-
-if(l.length() == 3 && l.item(0, -1) == 1 && l.item(1, -1) == 2 && l.item(2, -1) == 3 && l.item(1000, -1) == -1) {
-    puts("OK");
-}
-
-foreach(it, l) {
-    printf("%d\n", it);
-}
-```
-
-The difference from vector is that there is an insert for element insertion. insert is fast. Instead, item is slow. (Random access). foreach will not be too slow. Use sort as follows. 
-
-vectorと違う点は要素の挿入のinsertがある点です。insertは高速です。その代わりitemは遅いです。（ランダムアクセス)。foreachはそれほど遅くないでしょう。
-
-sortは以下のように使います。
-
-```
-int int::compare(int left, int right) {
-    if(left < right) {
-        return -1;
-    }
-    else if(left > right) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
-
-int main(int argc, char** argv)
-{
-    list<int>*% l = new list<int>.initialize();
-
-    l.push_back(7);
-    l.push_back(1);
-    l.push_back(2);
-
-    list<int>*% l2 = l.sort(int_compare);
-
-    if(l2.item(0, -1) == 1 && l2.item(1, -1) == 2 && l2.item(2, -1) == 7) {
-        puts("OK");
-    }
-}
-```
-
-```
-int main(int argc, char** argv)
-{
-    list<int>*% l = new list<int>.initialize();
-
-    l.push_back(7);
-    l.push_back(1);
-    l.push_back(2);
-
-    list<int>*% l2 = l.sort(int lambda(int left, int right) { 
-        if(left < right) { 
-            return -1; 
-        } else if(left > right) { 
-            return 1; 
-        } else { 
-            return 0 
-        }
-    );
-
-    if(l2.item(0, -1) == 1 && l2.item(1, -1) == 2 && l2.item(2, -1) == 7) {
-        puts("OK");
-    }
-}
-```
-
-The map is below.
-
-mapは以下です。
-
-```
-impl map <T, T2>
-{
-    map<T,T2>*% initialize(map<T,T2>*% self);
-    T2& at(map<T, T2>* self, T& key, T2& default_value);
-    void rehash(map<T,T2>* self) ;
-    void insert(map<T,T2>* self, T key, T2 item) ;
-    map<T, T2>*% clone(map<T, T2>* self);
-    bool find(map<T, T2>* self, T& key);
-    bool equals(map<T, T2>* left, map<T, T2>* right);
-    int length(map<T, T2>* self);
-    T& begin(map<T, T2>* self);
-    T& next(map<T, T2>* self);
-    bool end(map<T, T2>* self) ;
-}
-```
-
-使い方は
-
-Usage is bellow:
-
-```
-map<char*, int>*% m = new map<char*, int>.initialize();
-
-m.insert("AAA", 1);
-m.insert("BBB", 2);
-m.insert("CCC", 3);
-
-if(m.length() == 3 && m.at("AAA", -1) == 1 && m.at("BBB", -1) == 2 && m.at("CCC", -1) == 3) {
-    puts("OK");
-}
-```
-
-It will be. There is also a tuple. It is defined as follows.
-
-となります。
-
-tupleもあります。以下のように定義されています。
-
-```
-struct tuple1<T>
-{
-    T v1;
-};
-
-impl tuple1 <T>
-{
-    tuple1<T>*% clone(tuple1<T>* self);
-    void finalize(tuple1<T>* self)
-    bool equals(tuple1<T>* left, tuple1<T>* right);
-}
-
-struct tuple2<T, T2>
-{
-    T v1;
-    T2 v2;
-};
-
-impl tuple2 <T, T2>
-{
-    tuple2<T,T2>*% clone(tuple2<T, T2>* self);
-    void finalize(tuple2<T, T2>* self);
-    bool equals(tuple2<T, T2>* left, tuple2<T, T2>* right);
-}
-
-struct tuple3<T, T2, T3>
-{
-    T v1;
-    T2 v2;
-    T3 v3;
-};
-
-impl tuple3 <T, T2, T3>
-{
-    tuple3<T,T2, T3>*% clone(tuple3<T, T2, T3>* self);
-    void finalize(tuple3<T, T2, T3>* self)
-    bool equals(tuple3<T, T2, T3>* left, tuple3<T, T2, T3>* right);
-}
-
-struct tuple4<T, T2, T3, T4>
-{
-    T v1;
-    T2 v2;
-    T3 v3;
-    T4 v3;
-};
-
-impl tuple4 <T, T2, T3, T4>
-{
-    tuple4<T,T2, T3, T4>*% clone(tuple4<T, T2, T3, T4>* self);
-    void finalize(tuple4<T, T2, T3, T4>* self);
-    bool equals(tuple4<T, T2, T3, T4>* left, tuple4<T, T2, T3, T4>* right);
-}
-```
-
-# Collection and heap system
-
-All the elements added to the Collection are also released from memory and cloned on the collection side. When adding elements, do not add the heap managed by the variable table. This is because the heap managed by the variable table beneo-c2 double free because automatic free occurs when it exits the block and free also occurs on the collection side. For example:
-
-Collectionに追加された要素は全てコレクション側でメモリの解放やcloneなども行われます。要素を追加する場合は変数テーブルで管理されたヒープを追加しないようにしてください。
-変数テーブルで管理されたヒープはブロックから出たときに自動freeが起こりコレクション側でもfreeが起こるので、2重freeとなるためです。例えば以下のようにします。
-
-```
-list<string>*% l = new list<string>.initialzie();
-
-char*% str = string("ABC");
-
-managed str;
-
-l.push_back(str)
-```
-
-When it is managed str, str is no longer a heap managed by the variable table. The% mark disappears from the variable type. str is just char *. Or
-
-managed strとされるとstrは変数テーブルで管理されるヒープでなくなります。変数の型に%マークがなくなります。strは単なるchar*となります。
-
-もしくは
-
-```
-list<string>*% l = new list<string>.initialize();
-
-char* str = borrow string("ABC");
-
-l.push_back(str);
-```
-
-You can also do it. borrow removes the% mark on the heap. str is treated as just char *. In both cases str is freed when auto l is freed. Another way is to clone the variables in the variable table. Since two heaps are created, one is freed in the variable table and the other is freed in the Collection.
-
-borrow is also excluded from the target of automatic free of rvalues
-
-としてもいいでしょう。borrowはヒープの%マークを消します。strは単なるchar*として扱われます。
-どちらの場合もlist<string>*% lがfreeされるときにstrは一緒にfreeされます。
-
-borrowは右辺値の自動freeの対象からも外れます。
-
-もう一つの方法としては変数テーブルの変数をcloneすることです。２つのヒープが生成されるため、一つは変数テーブルでfreeされて、もう一つはCollectionの中でfreeされます。
-
-```
-list<string>*% l = new list<string>.initialize();
-
-char*% str = string("ABC");
-
-l.push_back(clone str);
-```
-
-This may be the easiest.
-
-これが一番簡単かもしれません。
-
-# buffer(Original Heap version)
-
-The definition is as follows.
-
-定義は以下です。
-
-```
-buffer*% buffer_initialize(buffer*% self);
-void buffer_finalize(buffer* self);
-int buffer_length(buffer* self) 
-void buffer_append(buffer* self, char* mem, size_t size);
-void buffer_append_char(buffer* self, char c);
-void buffer_append_str(buffer* self, char* str);
-void buffer_append_nullterminated_str(buffer* self, char* str);
-string buffer_to_string(buffer* self);
-void buffer_append_int(buffer* self, int value) ;
-void buffer_append_long(buffer* self, long value) ;
-void buffer_append_short(buffer* self, short value);
-void buffer_alignment(buffer* self);
-int buffer_compare(buffer* left, buffer* right);
-```
-
-使い方は以下です。
-
-Usage is bellow:
-
-```
-buffer*% b1 = new buffer.initialize();
-
-b1.append_str("ABC");
-b1.append_str("DEF");
-
-if(strcmp(b1.to_string(), "ABCDEF") == 0) {
-    puts("OK");
-}
-```
-
 # Heap System(BoehmGC)
 
-Add the -gc option to the compiler. The heap system with Boehm GC is enabled. The linker is given -lpthread -lgc -lpcre.
+By the default the boehm GC is default. The linker is given -lpthread -lgc -lpcre.
 
-コンパイラに-gcオプションを付けてください。BoehmGCによるヒープシステムが有効になります。リンカーには-lpthread -lgc -lpcreが付与されます。
+BoehmGCによるヒープシステムはデフォルトです。リンカーには-lpthread -lgc -lpcreが付与されます。
 
-BoehmGCを有効にした場合は%, delete, dummy_heap, borrowなどは無視されます。つまりオリジナルのヒープシステムで作ったアプリは-gcをつけてもBoehmGCで動きます。 ソースコードレベルではBoehmGCとオリジナルのヒープシステムは互換性があります。
+BoehmGCを有効にした場合は%, delete, dummy_heap, borrowなどオリジナルヒープシステムのものは無視されます。
 
 If BoehmGC is enabled,%, delete, dummy_heap, borrow, etc. will be ignored. In other words, apps created with the original heap system will work with Boehm GC even with -gc. At the source code level, Boehm GC and the original heap system are compatible.
 
@@ -2330,4 +1459,877 @@ fun2 finish
 after fun2
 main FINISH
 fun finish
+```
+
+# Original Heap System
+
+Original Heap System is buggy, it will be obsolute.
+
+オリジナルヒープシステムはバグが多いです。いずれ、消します。
+
+もし、オリジナルのヒープシステムを使いたい場合は-no-gcオプションをつけてください。
+
+The cost of learning the library is low, but the heap system will take some time to learn. Basically, use valgrind to check if a memory leak is occurring. You can also find out illegal memory access by using valgrind. You can also use the -g option to find out the location of memory leaks in the source code and unauthorized memory access in the source code. The basic rule is that rvalues (temporary heap generation that is not assigned to variables) are automatically freed.
+
+ライブラリの学習コストは低いですが、ヒープシステムは学習するのに少し時間がかかるでしょう。基本的にメモリーリークが起こっているかの確認はvalgrindを使ってください。
+また不正なメモリアクセスもvalgrindを使えば分かるでしょう。-gオプションを使うとソースコードでのメモリーリークや不正なメモリアクセスのソースコードでの位置も分かります。
+
+基本的なルールですが、右辺値（変数に代入されない一時的なヒープの生成)は自動的にfreeされます。
+
+```
+puts(xsprintf("1 + 1 == %d\n", 1 + 1));
+```
+
+xsprintf uses the heap to generate memory, but since it is an rvalue, it is automatically freed after puts. It is the timing when the rvalue is freed, but after one sentence is executed. I don't expect code that makes heavy use of method chains like Ruby, but even if method chains are used, method chains can be performed because the memory of the rvalue heap exists until the execution of one sentence is completed. Probably. The next rule is that the function that creates the heap assigned to the variable with% and the memory such as new will be freed after the block escapes.
+
+xsprintfはヒープを使ったメモリが生成されますが、右辺値なので、puts後に自動的にfreeされます。右辺値がfreeされるタイミングですが、1文が実行された後です。
+あまり、Rubyのようにメソッドチェインを多用するコードは想定していませんが
+メソッドチェインしても１文の実行が終わるまで右辺値のヒープのメモリは存在しているためメソッドチェインを行うことも可能でしょう。
+
+次のルールは%をつけた変数に代入されたヒープを生成する関数やnewなどのメモリはブロックの脱出後にfreeされます。
+
+```
+char*% str = new char[123];
+
+strncpy(str, "AAA", 123);
+
+puts(str);
+```
+
+Note that if char * str is used, the result of new char [123] will be judged as an rvalue and will be freed before being assigned. If you find it awkward to write char *%, use auto. The rvalue type is type inferred and declared.
+
+char* strとするとnew char[123]の結果は右辺値と判断されて代入される前にfreeされるので注意してください。
+char*%と書くのがめんどくさい場合はautoを使ってください。右辺値の型が型推論されて宣言されます。
+
+```
+auto str = new char[123];
+
+strncpy(str, "ABC", 123);
+
+puts(str);
+```
+
+If you want to manage the memory yourself, add borrow to declare heap memory that is not an rvalue, and then assign it to a pointer without%.
+
+自分でメモリを管理したい場合はborrowをつけて右辺値じゃないヒープメモリと宣言してから%をつけないポインタに代入してください。
+
+```
+char* str = borrow char str[123];
+
+strncpy(str, "ABC", 123);
+
+puts(str);
+
+delete str;
+```
+
+If you add borrow, it will be excluded from the target of automatic free of rvalue, and automatic free of rvalue will not be done. Assignment between variables with% added to the type name causes a transfer of ownership.
+
+borrowをつけると右辺値の自動freeの対象から外されて、右辺値の自動freeがされないようになります。
+
+型名に%をつけた変数同士の代入は所有権の移動が起こります。
+
+```
+    char*% a = new char[128];
+    char*% b = a;
+```
+
+It is b that is freed. a cannot be used after char*% b. Use no move to prevent this.
+
+freeされるのはbです。aはchar*% b以降使えなくなります。これを防ぐにはnomoveを使ってください。
+
+```
+    char*% a = new char[128];
+    char*% b = nomove a;
+```
+
+It is a that is freed. When nomove is used for the rvalue, the rvalue is not automatically freed at the end of the line, but is freed when the variable disappears.
+
+freeされるのはaです。
+
+右辺値にnomoveを使った場合ですが、その場合は右辺値は行末で自動freeされるのではなく変数が消えた時にfreeされます。
+
+```
+char* fun() 
+{
+    return new char[128];
+}
+
+int main()
+{
+    char*% a = nomove fun();
+    return 0;
+}
+```
+
+a is freed at the end of main. Next is the case of a function. If% is attached to the argument of the function, the management of heap memory shifts to the function side. On the other hand, if you do not add%, you will simply refer to the memory.
+
+aはmainの終了時にfreeされます。
+
+次は関数の場合です。関数の引数に%がついていた場合はヒープメモリの管理は関数側に移ります。逆に%をつけていない場合は単にメモリの参照をすることとなります。
+
+```
+void fun(char* str)
+{
+    puts(str);
+}
+
+int main()
+{
+    char*% str = new char[123];
+    
+    strncpy(str, "ABC", 123);
+
+    fun(str);
+
+    return 0;
+}
+```
+
+In this case, str is freed before the return of the main function. You can still use str after calling fun.
+
+この場合はmain関数のreturnの前にstrがfreeされます。funの呼び出し後もstrは使えます。
+
+```
+void fun(char*% str)
+{
+    puts(str);
+}
+
+int main()
+{
+    char*% str = new char[123];
+    
+    strncpy(str, "ABC", 123);
+
+    fun(str);
+
+    return 0;
+}
+```
+
+In this case, str is freed in fun. You cannot use str after calling fun. The same rule applies when a heap is temporarily created with a function argument.
+
+この場合はfunの中でstrがfreeされます。funを呼び出した後はstrは使えません。
+
+関数の引数で一時的にヒープを生成した場合も同様のルールとなります。
+
+
+```
+void fun(char* str)
+{
+    puts(str);
+}
+
+int main()
+{
+    fun(string("AAA"));
+}
+```
+
+string is a function that returns a char *% type string. In this case, the return value (rvalue) of string is freed after calling fun. string is defined as follows.
+
+stringはchar*%型の文字列を返す関数です。この場合はfunの呼び出し後にstringの戻り値(右辺値)がfreeされます。
+
+stringは以下のように定義されています。
+
+```
+typedef char*% string;
+
+inline string string(char* str)
+{
+    int len = strlen(str) + 1;
+    char* result = (char*)calloc(len, sizeof(char));
+
+    strncpy(result, str, len);
+
+    return dummy_heap result;
+}
+```
+
+dummy_heapは普通のポインタに%を付与します。
+
+便利なstring関数としては以下があります。
+
+dummy_heap gives% to ordinary pointers. Some useful string functions are:
+
+```
+static string xsprintf(char* msg, ...)
+{
+    va_list args;
+    va_start(args, msg);
+    char* result;
+    int len = vasprintf(&result, msg, args);
+    va_end(args);
+
+    if(len < 0) {
+        fprintf(stderr, "can't get heap memory.\n");
+
+        exit(2);
+    }
+
+    return dummy_heap result;
+}
+
+static string char::reverse(char* str) 
+{
+    int len = strlen(str);
+    string result = new char[len + 1];
+
+    for(int i=0; i<len; i++) {
+        result[i] = str[len-i-1];
+    }
+
+    result[len] = '\0';
+
+    return result;
+}
+
+static string char::substring(char* str, int head, int tail)
+{
+    if(str == null) {
+        return string("");
+    }
+
+    int len = strlen(str);
+
+    if(head < 0) {
+        head += len;
+    }
+    if(tail < 0) {
+        tail += len + 1;
+    }
+
+    if(head > tail) {
+        return str.substring(tail, head).reverse();
+    }
+
+    if(head < 0) {
+        head = 0;
+    }
+
+    if(tail >= len) {
+        tail = len;
+    }
+
+    if(head == tail) {
+        return string("");
+    }
+
+    if(tail-head+1 < 1) {
+        return string("");
+    }
+
+    string result = new char[tail-head+1];
+
+    memcpy(result, str + head, tail-head);
+    result[tail-head] = '\0';
+
+    return result;
+}
+```
+
+使い方は
+
+Usage is bellow:
+
+```
+if(strcmp(xsprintf("%d", 2), "2") == 0) {
+    puts("OK");
+}
+if(strcmp("ABC".reverse(), "CBA") == 0) {
+    puts("OK");
+}
+
+if(strcmp("ABC".substring(0,1), "A") == 0) {
+    puts("OK");
+}
+```
+
+It will be. It is called when "object type name_method name" is called as an OOP-like function. In other words, "ABC" .reverse () is the same as calling char_reverse ("ABC") or char::reverse("ABC"). Another important point is that the memory allocated in the heap is called finalizer according to the type name.
+
+となります。OOP的な機能として"オブジェクトの型名_メソッド名"がメソッドコールした場合は呼ばれます。
+つまり、"ABC".reverse()はchar_reverse("ABC")もしくはchar::reverse("ABC")を呼び出したことと同じことです。
+
+もう一つ重要な点はヒープで確保されたメモリは型名に応じてfinalizerが呼ばれることです。
+
+```
+struct sData
+{
+    string value1;
+    string value2;
+};
+
+sData*% sData_initialize(sData*% self)
+{
+    self.value1 = string("ABC");
+    self.value2 = string("DEF");
+    
+    return self;
+}
+
+void sData_finalize(sData* self)
+{
+    delete self.value1;
+    delete self.value2;
+}
+
+int main(int argc, char** argv)
+{
+    sData*% d = new sData.initialize();
+
+    printf("%s %s\n", d.value1, d.value2);
+
+    return 0;
+}
+```
+
+If you keep the heap in the struct, it will not be automatically freed. Be sure to define finalizer and use delete to free up memory. The other heap-related function is clone. clone copies the memory allocated in the heap as it is.
+
+structの中にヒープを保持する場合、自動的にはfreeされません。必ずfinalizerを定義してdeleteを使い、メモリを開放してください。
+
+後一つヒープ関連である機能は、cloneです。cloneはヒープに確保されたメモリを内容をそのままにコピーします。
+
+```
+struct sData
+{
+    int value1;
+    int value2;
+};
+
+sData*% sData_initialize(sData*% self)
+{
+    self.value1 = 123;
+    self.value2 = 234;
+
+    return self;
+}
+
+int main(int argc, char** argv)
+{
+    sData*% d = new sData.initialize();
+
+    printf("%d %d\n", d.value1, d.value2);
+
+    sData*% e = clone d;
+
+    printf("%d %d\n", e.value2, e.value2);
+
+    return 0;
+}
+```
+
+e also holds the same value as d. However, this feature only copies the pointer if you hold the heap in a shallow copy. If you delete the pointer, you will get a segmentation fault if you clone it. To prevent this, implement a method called clone.
+
+eもdと同じ値を保持しています。ただし、この機能は浅いコピーでヒープを保持していた場合ポインタがコピーされるだけです。
+もしそのポインタをdeleteしてしまうとcloneした場合segmentation faultが起こるでしょう。
+これを防ぐためにはcloneというメソッドを実装します。
+
+```
+struct sData
+{
+    string value1;
+    string value2;
+};
+
+sData*% sData_initialize(sData*% self)
+{
+    self.value1 = string("ABC");
+    self.value2 = string("DEF");
+    
+    return self;
+}
+
+sData*% sData_clone(sData* self)
+{
+    sData*% result = new sData;
+
+    result.value1 = clone self.value1;
+    result.value2 = clone self.value2;
+
+    return result;
+}
+
+void sData_finalize(sData* self)
+{
+    delete self.value1;
+    delete self.value2;
+}
+
+int main(int argc, char** argv)
+{
+    sData*% d = new sData.initialize();
+
+    printf("%s %s\n", d.value1, d.value2);
+
+    sData*% e = clone d;
+
+    printf("%s %s\n", e.value1, e.value2);
+
+    return 0;
+}
+```
+
+This should work fine.
+
+これで不具合なく動くはずです。
+
+Struct and union are the same rule of a local variable.
+
+構造体やunionも普通の変数と同じルールです。
+
+```
+struct sA {
+   int*% a;
+};
+
+void sA_finalize(sA* self)
+{
+    delete self.a;
+}
+
+int main()
+{
+    int*% a = new int;
+    *a = 5;
+
+    sA*% data = new sA;
+    data.a = a;  // the owner of a is changed
+
+    return 0;
+}
+```
+
+In this case, data.a will be freed when data will be freed. 
+a will not be freed.
+
+みたいなケースです。この場合、dataがfreeされるタイミングでdata.aがフリーされます。
+aはfreeされません。
+
+You can also new using Boehm GC. In this case, assign it to an ordinary pointer. Since it is a conservative GC, it seems that the memory may not be released, but for the time being, I think that the memory will not be exhausted. finalize is not called. The usage is as follows.
+
+BoehmGCを使ったnewもできます。この場合は普通のポインタに代入してください。保守的GCなのでメモリが解放されない場合もある様子ですが、とりあえずは、メモリは枯渇しないと思います。finalizeは呼ばれません。使い方は以下です。
+
+```
+#include <neo-c2.h>
+
+struct sObj {
+    int a;
+    int b;
+};
+
+int main()
+{
+    sObj* obj = new (GC) sObj;
+
+    obj.a = 1;
+    obj.b = 2;
+
+    xassert("gc test", obj.a == 1 && obj.b == 2);
+
+    return 0;
+}
+```
+
+clone is below:
+
+```
+#include <neo-c2.h>
+
+struct sObj {
+    int a;
+    int b;
+};
+
+int main()
+{
+    sObj* obj = new (GC) sObj;
+
+    obj.a = 1;
+    obj.b = 2;
+
+    xassert("gc test", obj.a == 1 && obj.b == 2);
+
+    sObj* obj2 = clone (GC) obj;
+
+    xassert("gc test2", obj2.a == 1 && obj2.b == 2);
+
+    return 0;
+}
+```
+
+However, in this example, it seems that memory is leaking when valgrind is applied. Isn't it free at the end? I prepared it for the time being. 
+
+ただ、この例ではvalgrindをかけるとメモリがリークしている様子です。終了時にはfreeしないんですかね。とりあえず用意しました。
+
+When using Boehm GC, -lgc is required as a compiler option.
+
+BoehmGCを使う場合はコンパイラのオプションに-lgcが必要です。
+
+# Generics(Original Heap version)
+
+Generics is a code generation method. I have implemented it, but basically I am making it for the collection library of the basic library. We do not recommend using Generics for your own application code. This is because the code beneo-c2 complicated. If you want to make your own library, you can use it. The vector is defined as follows.
+
+Genericsはコード生成方式です。実装してますが、基本的に基本ライブラリのコレクションライブラリ用に作っています。
+自作のアプリケーションコードにGenericsを使うことはお勧めしません。コードが複雑になるためです。
+ライブラリを自作したい場合には使ってもいいと思います。
+
+vectorは以下のように定義されています。
+
+```
+struct vector<T> 
+{
+    T&* items;
+    int len;
+    int size;
+
+    int it;
+};
+
+impl vector<T> 
+{
+    vector<T>*% initialize(vector<T>*% self);
+    void finalize(vector<T>* self);
+    void push_back(vector<T>* self, T item);
+    T& item(vector<T>* self, int index, T& default_value);
+    bool equals(vector<T>* left, vector<T>* right);
+    bool replace(vector<T>* self, int index, T value);
+    int find(vector<T>* self, T& item, int default_value);
+    int length(vector<T>* self);
+    void reset(vector<T>* self);
+    T& begin(vector<T>* self);
+    T& next(vector<T>* self);
+    bool end(vector<T>* self);
+
+    list<T>*% to_list(vector<T>* self);
+}
+
+#define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
+```
+
+The & in the type name removes% from the generic type name. Even if T has a%, it is treated as a pointer. managed removes% from variables with%. The usage is as follows.
+
+型名の&はジェネリクスの型名から%を消すものです。Tに%がついていてもポインタとして処理されます。managedは%がつけられた変数から%を取り除きます。
+
+使い方は以下です。
+
+```
+vector<int>*% v = new vector<int>.initialize();
+
+v.push_back(1);
+v.push_back(2);
+v.push_back(3);
+
+if(v.length() == 3 && v.item(0, -1) == 1 && v.item(1, -1) == 2 && v.item(2, -2) == 3 && v.item(10000, -1) == -1) {
+    puts("OK");
+}
+
+foreach(it , v) {
+    printf("%d\n", it);
+}
+```
+
+-1 of item is the default value. If index is out of range, the default value is returned. foreach is a macro that accesses all elements. list is below. 
+
+itemの-1はデフォルト値でもしindexが範囲外ならデフォルト値を返します。foreachは全ての要素にアクセスするマクロです。
+
+listは以下です。
+
+```
+impl list <T>
+{
+    list<T>*% initialize(list<T>*% self);
+    void finalize(list<T>* self);
+    list<T>*% clone(list<T>* self);
+    int length(list<T>* self);
+    void push_back(list<T>* self, T item) ;
+    T& item(list<T>* self, int position, T& default_value);
+    void insert(list<T>* self, int position, T item);
+    void reset(list<T>* self) ;
+    void delete(list<T>* self, int head, int tail);
+    void replace(list<T>* self, int position, T item);
+
+    int find(list<T>* self, T& item, int default_value) ;
+    list<T>*% sublist(list<T>* self, int begin, int tail) ;
+
+    list<T>*% reverse(list<T>* self);
+    list<T>*% merge_list(list<T>* left, list<T>* right, int (*compare)(T&,T&));
+    list<T>*% merge_sort(list<T>* self, int (*compare)(T&,T&));
+    list<T>*% sort(list<T>* self, int (*compare)(T&,T&));
+    list<T>*% uniq(list<T>* self);
+    bool equals(list<T>* left, list<T>* right);
+    T& begin(list<T>* self);
+    T& next(list<T>* self);
+    bool end(list<T>* self);
+}
+```
+
+Usage is almost the same as vector.
+
+使い方はvectorとほぼ同じです。
+
+```
+list<int>*% l = new list<int>.initialize();
+
+l.push_back(1);
+l.push_back(2);
+l.push_back(3);
+
+if(l.length() == 3 && l.item(0, -1) == 1 && l.item(1, -1) == 2 && l.item(2, -1) == 3 && l.item(1000, -1) == -1) {
+    puts("OK");
+}
+
+foreach(it, l) {
+    printf("%d\n", it);
+}
+```
+
+The difference from vector is that there is an insert for element insertion. insert is fast. Instead, item is slow. (Random access). foreach will not be too slow. Use sort as follows. 
+
+vectorと違う点は要素の挿入のinsertがある点です。insertは高速です。その代わりitemは遅いです。（ランダムアクセス)。foreachはそれほど遅くないでしょう。
+
+sortは以下のように使います。
+
+```
+int int::compare(int left, int right) {
+    if(left < right) {
+        return -1;
+    }
+    else if(left > right) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+int main(int argc, char** argv)
+{
+    list<int>*% l = new list<int>.initialize();
+
+    l.push_back(7);
+    l.push_back(1);
+    l.push_back(2);
+
+    list<int>*% l2 = l.sort(int_compare);
+
+    if(l2.item(0, -1) == 1 && l2.item(1, -1) == 2 && l2.item(2, -1) == 7) {
+        puts("OK");
+    }
+}
+```
+
+```
+int main(int argc, char** argv)
+{
+    list<int>*% l = new list<int>.initialize();
+
+    l.push_back(7);
+    l.push_back(1);
+    l.push_back(2);
+
+    list<int>*% l2 = l.sort(int lambda(int left, int right) { 
+        if(left < right) { 
+            return -1; 
+        } else if(left > right) { 
+            return 1; 
+        } else { 
+            return 0 
+        }
+    );
+
+    if(l2.item(0, -1) == 1 && l2.item(1, -1) == 2 && l2.item(2, -1) == 7) {
+        puts("OK");
+    }
+}
+```
+
+The map is below.
+
+mapは以下です。
+
+```
+impl map <T, T2>
+{
+    map<T,T2>*% initialize(map<T,T2>*% self);
+    T2& at(map<T, T2>* self, T& key, T2& default_value);
+    void rehash(map<T,T2>* self) ;
+    void insert(map<T,T2>* self, T key, T2 item) ;
+    map<T, T2>*% clone(map<T, T2>* self);
+    bool find(map<T, T2>* self, T& key);
+    bool equals(map<T, T2>* left, map<T, T2>* right);
+    int length(map<T, T2>* self);
+    T& begin(map<T, T2>* self);
+    T& next(map<T, T2>* self);
+    bool end(map<T, T2>* self) ;
+}
+```
+
+使い方は
+
+Usage is bellow:
+
+```
+map<char*, int>*% m = new map<char*, int>.initialize();
+
+m.insert("AAA", 1);
+m.insert("BBB", 2);
+m.insert("CCC", 3);
+
+if(m.length() == 3 && m.at("AAA", -1) == 1 && m.at("BBB", -1) == 2 && m.at("CCC", -1) == 3) {
+    puts("OK");
+}
+```
+
+It will be. There is also a tuple. It is defined as follows.
+
+となります。
+
+tupleもあります。以下のように定義されています。
+
+```
+struct tuple1<T>
+{
+    T v1;
+};
+
+impl tuple1 <T>
+{
+    tuple1<T>*% clone(tuple1<T>* self);
+    void finalize(tuple1<T>* self)
+    bool equals(tuple1<T>* left, tuple1<T>* right);
+}
+
+struct tuple2<T, T2>
+{
+    T v1;
+    T2 v2;
+};
+
+impl tuple2 <T, T2>
+{
+    tuple2<T,T2>*% clone(tuple2<T, T2>* self);
+    void finalize(tuple2<T, T2>* self);
+    bool equals(tuple2<T, T2>* left, tuple2<T, T2>* right);
+}
+
+struct tuple3<T, T2, T3>
+{
+    T v1;
+    T2 v2;
+    T3 v3;
+};
+
+impl tuple3 <T, T2, T3>
+{
+    tuple3<T,T2, T3>*% clone(tuple3<T, T2, T3>* self);
+    void finalize(tuple3<T, T2, T3>* self)
+    bool equals(tuple3<T, T2, T3>* left, tuple3<T, T2, T3>* right);
+}
+
+struct tuple4<T, T2, T3, T4>
+{
+    T v1;
+    T2 v2;
+    T3 v3;
+    T4 v3;
+};
+
+impl tuple4 <T, T2, T3, T4>
+{
+    tuple4<T,T2, T3, T4>*% clone(tuple4<T, T2, T3, T4>* self);
+    void finalize(tuple4<T, T2, T3, T4>* self);
+    bool equals(tuple4<T, T2, T3, T4>* left, tuple4<T, T2, T3, T4>* right);
+}
+```
+
+# Collection and heap system
+
+All the elements added to the Collection are also released from memory and cloned on the collection side. When adding elements, do not add the heap managed by the variable table. This is because the heap managed by the variable table beneo-c2 double free because automatic free occurs when it exits the block and free also occurs on the collection side. For example:
+
+Collectionに追加された要素は全てコレクション側でメモリの解放やcloneなども行われます。要素を追加する場合は変数テーブルで管理されたヒープを追加しないようにしてください。
+変数テーブルで管理されたヒープはブロックから出たときに自動freeが起こりコレクション側でもfreeが起こるので、2重freeとなるためです。例えば以下のようにします。
+
+```
+list<string>*% l = new list<string>.initialzie();
+
+char*% str = string("ABC");
+
+managed str;
+
+l.push_back(str)
+```
+
+When it is managed str, str is no longer a heap managed by the variable table. The% mark disappears from the variable type. str is just char *. Or
+
+managed strとされるとstrは変数テーブルで管理されるヒープでなくなります。変数の型に%マークがなくなります。strは単なるchar*となります。
+
+もしくは
+
+```
+list<string>*% l = new list<string>.initialize();
+
+char* str = borrow string("ABC");
+
+l.push_back(str);
+```
+
+You can also do it. borrow removes the% mark on the heap. str is treated as just char *. In both cases str is freed when auto l is freed. Another way is to clone the variables in the variable table. Since two heaps are created, one is freed in the variable table and the other is freed in the Collection.
+
+borrow is also excluded from the target of automatic free of rvalues
+
+としてもいいでしょう。borrowはヒープの%マークを消します。strは単なるchar*として扱われます。
+どちらの場合もlist<string>*% lがfreeされるときにstrは一緒にfreeされます。
+
+borrowは右辺値の自動freeの対象からも外れます。
+
+もう一つの方法としては変数テーブルの変数をcloneすることです。２つのヒープが生成されるため、一つは変数テーブルでfreeされて、もう一つはCollectionの中でfreeされます。
+
+```
+list<string>*% l = new list<string>.initialize();
+
+char*% str = string("ABC");
+
+l.push_back(clone str);
+```
+
+This may be the easiest.
+
+これが一番簡単かもしれません。
+
+# buffer(Original Heap version)
+
+The definition is as follows.
+
+定義は以下です。
+
+```
+buffer*% buffer_initialize(buffer*% self);
+void buffer_finalize(buffer* self);
+int buffer_length(buffer* self) 
+void buffer_append(buffer* self, char* mem, size_t size);
+void buffer_append_char(buffer* self, char c);
+void buffer_append_str(buffer* self, char* str);
+void buffer_append_nullterminated_str(buffer* self, char* str);
+string buffer_to_string(buffer* self);
+void buffer_append_int(buffer* self, int value) ;
+void buffer_append_long(buffer* self, long value) ;
+void buffer_append_short(buffer* self, short value);
+void buffer_alignment(buffer* self);
+int buffer_compare(buffer* left, buffer* right);
+```
+
+使い方は以下です。
+
+Usage is bellow:
+
+```
+buffer*% b1 = new buffer.initialize();
+
+b1.append_str("ABC");
+b1.append_str("DEF");
+
+if(strcmp(b1.to_string(), "ABCDEF") == 0) {
+    puts("OK");
+}
 ```

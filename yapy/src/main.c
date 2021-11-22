@@ -169,7 +169,9 @@ int main(int argc, char** argv)
         
         sParserInfo info;
         
-        info.p = borrow source.to_string();
+        string source2 = source.to_string();
+        
+        info.p = source2;
         info.fname = fname;
         info.sline = 1;
         info.stack_num = 0;

@@ -120,7 +120,7 @@ buffer*% compile_block(sParserInfo* info);
 void initialize_modules() version 1;
 void finalize_modules() version 1;
 
-bool vm(buffer* codes, map<char*, ZVALUE>* params);
+bool vm(buffer* codes, map<string, ZVALUE>* params);
 
 /// 01int.c ///
 bool expression(sNode** node, sParserInfo* info) version 1;
@@ -133,7 +133,7 @@ sNode*%? exp_node(sParserInfo* info) version 1;
 bool expression(sNode** node, sParserInfo* info) version 2;
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 2;
 
-void sNode_finalize(sNode* self);
+void sNode_finalize(sNode* self) version 2;
 
 /// 03str.c ///
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 3;

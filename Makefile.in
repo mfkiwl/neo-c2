@@ -179,85 +179,85 @@ distclean: clean
 #########################################
 # test
 #########################################
-test: gc-test debug-test
-	@echo "Compile to test code..."
-	PWD=`pwd` ./neo-c2 code/HelloWorld.c
+test: no-gc-test debug-test
+	@echo "Compile to gc test code..."
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld.c
 	./code/HelloWorld
-	PWD=`pwd` ./neo-c2 code/HelloWorld2.c
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld2.c
 	./code/HelloWorld2
 	PWD=`pwd` ./neo-c2 code/HelloWorld3.c
 	./code/HelloWorld3
 	PWD=`pwd` ./neo-c2 code/HelloWorld3.c
 	./code/HelloWorld3
-	PWD=`pwd` ./neo-c2 code/HelloWorld4.c -lpthread
+	PWD=`pwd` ./neo-c2 code/HelloWorld4.c
 	./code/HelloWorld4
-	PWD=`pwd` ./neo-c2 code/HelloWorld5.c -lpthread
+	PWD=`pwd` ./neo-c2 code/HelloWorld5.c
 	./code/HelloWorld5
-	PWD=`pwd` ./neo-c2 code/HelloWorld6.c -lpthread
+	PWD=`pwd` ./neo-c2 code/HelloWorld6.c
 	./code/HelloWorld6
-	PWD=`pwd` ./neo-c2 code/HelloWorld7.c -lpthread
+	PWD=`pwd` ./neo-c2 code/HelloWorld7.c
 	./code/HelloWorld7
-	PWD=`pwd` ./neo-c2 code/HelloWorld8.c -lpthread
+	PWD=`pwd` ./neo-c2 code/HelloWorld8.c
 	./code/HelloWorld8
-	PWD=`pwd` ./neo-c2 code/HelloWorld9.c -lpcre
+	PWD=`pwd` ./neo-c2 code/HelloWorld9.c
 	./code/HelloWorld9
 	PWD=`pwd` ./neo-c2 code/HelloWorld10.c
 	./code/HelloWorld10
-	PWD=`pwd` ./neo-c2 code/HelloWorld11.c -lgc
+	PWD=`pwd` ./neo-c2 code/HelloWorld11.c
 	./code/HelloWorld11
 
-gc-test: 
-	@echo "Compile to gc test code..."
-	PWD=`pwd` ./neo-c2 code/HelloWorld.c
+no-gc-test: 
+	@echo "Compile to test code..."
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld.c
 	./code/HelloWorld
-	PWD=`pwd` ./neo-c2 code/HelloWorld2.c
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld2.c
 	./code/HelloWorld2
-	PWD=`pwd` ./neo-c2 code/HelloWorld3.c -gc
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld3.c
 	./code/HelloWorld3
-	PWD=`pwd` ./neo-c2 code/HelloWorld3.c -gc
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld3.c
 	./code/HelloWorld3
-	PWD=`pwd` ./neo-c2 code/HelloWorld4.c -gc
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld4.c -lpthread
 	./code/HelloWorld4
-	PWD=`pwd` ./neo-c2 code/HelloWorld5.c -gc
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld5.c -lpthread
 	./code/HelloWorld5
-	PWD=`pwd` ./neo-c2 code/HelloWorld6.c -gc
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld6.c -lpthread
 	./code/HelloWorld6
-	PWD=`pwd` ./neo-c2 code/HelloWorld7.c -gc
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld7.c -lpthread
 	./code/HelloWorld7
-	PWD=`pwd` ./neo-c2 code/HelloWorld8.c -gc
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld8.c -lpthread
 	./code/HelloWorld8
-	PWD=`pwd` ./neo-c2 code/HelloWorld9.c -gc
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld9.c -lpcre
 	./code/HelloWorld9
-	PWD=`pwd` ./neo-c2 code/HelloWorld10.c -gc
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld10.c
 	./code/HelloWorld10
-	PWD=`pwd` ./neo-c2 code/HelloWorld11.c -gc
+	PWD=`pwd` ./neo-c2 -no-gc code/HelloWorld11.c -lgc
 	./code/HelloWorld11
 
 debug-test: 
 	@echo "Compile to test code..."
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld.c
+	PWD=`pwd` ./neo-c2 -no-gc -g code/HelloWorld.c
 	./code/HelloWorld
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld2.c
+	PWD=`pwd` ./neo-c2 -no-gc -g code/HelloWorld2.c
 	./code/HelloWorld2
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld3.c
 	./code/HelloWorld3
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld3.c
 	./code/HelloWorld3
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld4.c -lpthread
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld4.c
 	./code/HelloWorld4
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld5.c -lpthread
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld5.c
 	./code/HelloWorld5
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld6.c -lpthread
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld6.c
 	./code/HelloWorld6
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld7.c -lpthread
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld7.c
 	./code/HelloWorld7
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld8.c -lpthread
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld8.c
 	./code/HelloWorld8
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld9.c -lpcre
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld9.c
 	./code/HelloWorld9
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld10.c
 	./code/HelloWorld10
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld11.c -lgc
+	PWD=`pwd` ./neo-c2 -g code/HelloWorld11.c
 	./code/HelloWorld11
 
 #########################################

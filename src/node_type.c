@@ -795,11 +795,13 @@ BOOL solve_generics(sNodeType** node_type, sNodeType* generics_type)
                 return FALSE;
             }
         }
+        
     }
 
     if((*node_type)->mPointerNum == 0) {
         (*node_type)->mHeap = FALSE;
     }
+    
 
     return TRUE;
 }

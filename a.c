@@ -1,16 +1,25 @@
 #include <neo-c2.h>
 
+bool fun()
+{
+    map<string, int>*% params = new map<string, int>.initialize();
+    
+    if(true) {
+        return true;
+    }
+    
+    return true;
+}
+
 int main()
 {
-    list<char*>*% li = new list<char*>.initialize();
+    vector<string>*% param_names = new vector<string>.initialize();
     
-    li.push_back("1");
-    li.push_back("2");
-    li.push_back("3");
-    li.push_back("4");
-    li.push_back("5");
+    param_names.push_back(string("AAA"));
+    param_names.push_back(string("BBB"));
+    param_names.push_back(string("CCC"));
     
-    li.map { return atoi(it); }.filter { return it > 3; }.each { printf("%d\n", it); }
+    fun();
     
     return 0;
 }

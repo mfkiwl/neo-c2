@@ -12,7 +12,7 @@ void initialize_modules() version 1
 
 void finalize_modules() version 1
 {
-    delete gGlobalVar;
+    delete dummy_heap gGlobalVar;
 }
 
 void show_zvalue(ZVALUE value)
@@ -85,7 +85,7 @@ void print_op(int op)
     }
 }
 
-bool vm(buffer* codes, map<char*, ZVALUE>* params)
+bool vm(buffer* codes, map<string, ZVALUE>* params)
 {
     ZVALUE stack[ZSTACK_MAX];
     int stack_num = 0;
@@ -93,12 +93,13 @@ bool vm(buffer* codes, map<char*, ZVALUE>* params)
     int* p = (int*)codes.buf;
     int* head = (int*)codes.buf;
     
-    map<char*, ZVALUE>*% vtable = new map<char*, ZVALUE>.initialize();
+    map<string, ZVALUE>*% vtable = new map<string, ZVALUE>.initialize();
     
     if(params) {
         foreach(it, params) {
             char* key = it;
-            ZVALUE item = params.at(it, gNullValue);
+            
+            ZVALUE item = params.at(string(it), gNullValue);
             
             vtable.insert(key, item);
         }

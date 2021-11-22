@@ -34,7 +34,7 @@ void initialize_modules() version 6
 
 void finalize_modules() version 6
 {
-    delete gFuncs;
+    delete dummy_heap gFuncs;
     
     inherit();
 }
@@ -125,6 +125,7 @@ sNode*%? def_node(sParserInfo* info) version 6
         else if(xisalpha(*info->p)) {
             while(xisalnum(*info->p) || *info->p == '_') {
                 buf2.append_char(*info->p);
+                info->p++;
             }
             
             param_names.push_back(buf2.to_string());
@@ -230,7 +231,7 @@ bool function_call(char* fun_name, ZVALUE* stack, int stack_num)
     buffer* codes = fun->codes;
     vector<string>* param_names = fun->param_names;
     
-    map<char*, ZVALUE>*% params = new map<char*, ZVALUE>.initialize();
+    map<string, ZVALUE>*% params = new map<string, ZVALUE>.initialize();
     
     int i = 0;
     foreach(it, param_names) {
@@ -240,7 +241,7 @@ bool function_call(char* fun_name, ZVALUE* stack, int stack_num)
         i++;
     }
     
-    if(!vm(codes, params)) {
+    if(!vm(codes, null)) {
         return false;
     }
     

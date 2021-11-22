@@ -1,5 +1,1 @@
-
-def fun():
-    print 1
-    
-fun()
+print 1+1

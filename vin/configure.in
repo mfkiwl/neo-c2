@@ -21,7 +21,7 @@ ENABLE_GC=0
 LOGGING=0
 
 AC_ARG_WITH(debug,              [  --with-debug              include debug info ], [ DEBUGGING=1; ], [])
-AC_ARG_WITH(gc,                 [  --with-gc                 include Boehm GC ], [ ENABLE_GC=1; ], [])
+AC_ARG_WITH(-no-gc,             [  --with-no-gc              disable Boehm GC ], [ ENABLE_NO_GC=1; ], [])
 AC_ARG_WITH(optimize,           [  --with-optimize           with optimize(-O2 in CFLAGS) ], [ ENABLE_OPTIMIZE=1 ], [ ENABLE_OPTIMIZE=0 ])
 
 #########################################
@@ -94,9 +94,9 @@ if test $DEBUGGING = 1
 then
     CFLAGS="$CFLAGS -g -DMDEBUG"
 fi
-if test $ENABLE_GC = 1
+if test $ENABLE_NO_GC = 1
 then
-    NCFLAGS="$NCFLAGS -gc"
+    NCFLAGS="$NCFLAGS -no-gc"
 fi
 if test $ENABLE_OPTIMIZE = 1
 then
@@ -133,10 +133,7 @@ AC_CHECK_HEADER(iconv.h, [AC_DEFINE(HAVE_ICONV_H, 1)], [])
 AC_CHECK_HEADER(pcre.h, [AC_DEFINE(HAVE_PCRE_H,1)], [])
 AC_HAVE_LIBRARY(pcre, [ LIBS="$LIBS -lpcre"; ], [ eixt ])
 
-if test "$ENABLE_GC" = 1
-then
-    AC_HAVE_LIBRARY(gc, [ LIBS="$LIBS -lgc"; ], [])
-fi
+AC_HAVE_LIBRARY(gc, [ LIBS="$LIBS -lgc"; ], [])
 
 if test `uname -s` = "Darwin"; then
     AC_CHECK_HEADER(ncurses.h, [AC_DEFINE(HAVE_NCURSESW_H, 1)], [])

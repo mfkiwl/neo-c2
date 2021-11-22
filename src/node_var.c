@@ -2813,7 +2813,7 @@ BOOL compile_delete(unsigned int node, sCompileInfo* info)
     sNodeType* node_type = clone_node_type(info->type);
 
     //node_type->mHeap = TRUE;
-
+    
     if(!gNCGC) {
         free_object(node_type, llvm_value.value, info);
     }
@@ -3549,7 +3549,7 @@ BOOL compile_load_field(unsigned int node, sCompileInfo* info)
 
             return TRUE;
         }
-
+        
         if(info->generics_type) {
             if(!solve_generics(&field_type, info->generics_type)) 
             {
@@ -3560,6 +3560,7 @@ BOOL compile_load_field(unsigned int node, sCompileInfo* info)
 
                 return FALSE;
             }
+            field_type->mHeap = info->generics_type->mHeap;
         }
 
         LVALUE llvm_value;
@@ -3593,8 +3594,9 @@ BOOL compile_load_field(unsigned int node, sCompileInfo* info)
 
         info->type = clone_node_type(field_type);
     }
+    
 
-    info->type->mHeap = FALSE;
+//    info->type->mHeap = FALSE;
 
     return TRUE;
 }

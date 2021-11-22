@@ -9,7 +9,7 @@ static sNode*% create_print_node(sNode* exp, sParserInfo* info)
     
     result.fname = info->fname;
     result.sline = info->sline;
-    result.value.opValue.left = exp;
+    result.value.opValue.left = dummy_heap exp;
     
     return result;
 }
@@ -19,7 +19,7 @@ void sNode_finalize(sNode* self) version 4
     inherit(self);
     
     if(self.kind == kPrint) {
-        delete self.value.opValue.left;
+        delete dummy_heap self.value.opValue.left;
     }
 }
 

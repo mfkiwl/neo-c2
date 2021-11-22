@@ -20,9 +20,11 @@ fun();
 
 while True:
     print "WHILE HELLO"
-    continue
+    break
 else:
     print "WHILE ELSE"
 
+a=123
+print a
 
 print "TEST FINISH"
