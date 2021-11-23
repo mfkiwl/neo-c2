@@ -1,8 +1,8 @@
 #include "common.h"
 
-static sNode*% create_true(sParserInfo* info)
+static sNode* create_true(sParserInfo* info)
 {
-    sNode*% result = new sNode;
+    sNode* result = new sNode;
     
     result.kind = kTrue;
     
@@ -12,9 +12,9 @@ static sNode*% create_true(sParserInfo* info)
     return result;
 }
 
-static sNode*% create_false(sParserInfo* info)
+static sNode* create_false(sParserInfo* info)
 {
-    sNode*% result = new sNode;
+    sNode* result = new sNode;
     
     result.kind = kFalse;
     
@@ -22,11 +22,6 @@ static sNode*% create_false(sParserInfo* info)
     result.sline = info->sline;
     
     return result;
-}
-
-void sNode_finalize(sNode* self) version 7
-{
-    inherit(self);
 }
 
 static bool word_cmp(char* p, char* word2)
@@ -42,7 +37,7 @@ static bool word_cmp(char* p, char* word2)
     return false;
 }
 
-sNode*%? exp_node(sParserInfo* info) version 7
+sNode*? exp_node(sParserInfo* info) version 7
 {
     sNode* result = null;
     
@@ -50,20 +45,20 @@ sNode*%? exp_node(sParserInfo* info) version 7
         info->p += strlen("True");
         skip_spaces_until_eol(info);
         
-        result = borrow create_true(info);
+        result = create_true(info);
     }
     else if(word_cmp(info->p, "False")) {
         info->p += strlen("False");
         skip_spaces_until_eol(info);
         
-        result = borrow create_false(info);
+        result = create_false(info);
     }
     
     if(result == null) {
-        result = borrow inherit(info);
+        result = inherit(info);
     }
     
-    return dummy_heap result;
+    return result;
 }
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 7

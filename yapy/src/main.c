@@ -37,11 +37,11 @@ static bool read_source(char* fname, buffer* source)
     return true;
 }
 
-static list<sNode*%>*% parse(sParserInfo* info, int space_num)
+static list<sNode*>* parse(sParserInfo* info, int space_num)
 {
     info->space_num = space_num;
     
-    list<sNode*%>*% nodes = new list<sNode*%>.initialize();
+    list<sNode*>* nodes = new list<sNode*>.initialize();
     
     while(*info->p) {
         sNode* node = null;
@@ -50,7 +50,7 @@ static list<sNode*%>*% parse(sParserInfo* info, int space_num)
             exit(2);
         }
         
-        nodes.push_back(dummy_heap node);
+        nodes.push_back(node);
         
         if(*info->p == ';') {
             info->p++;
@@ -82,9 +82,9 @@ static list<sNode*%>*% parse(sParserInfo* info, int space_num)
     return nodes;
 }
 
-buffer*% compile_nodes(list<sNode*%>* nodes, sParserInfo* info)
+buffer* compile_nodes(list<sNode*>* nodes, sParserInfo* info)
 {
-    buffer*% codes = new buffer.initialize();
+    buffer* codes = new buffer.initialize();
     
     foreach(it, nodes) {
         if(!compile(it, codes, info)) {
@@ -105,13 +105,13 @@ buffer*% compile_nodes(list<sNode*%>* nodes, sParserInfo* info)
     return codes;
 }
 
-list<sNode*%>*% parse_block(sParserInfo* info)
+list<sNode*>* parse_block(sParserInfo* info)
 {
     int space_num = info.space_num;
     bool in_global_context = info.in_global_context;
     info.in_global_context = false;
     
-    list<sNode*%>*% nodes = null;
+    list<sNode*>* nodes = null;
     
     /// multi line ///
     if(*info->p == '\n') {
@@ -136,10 +136,10 @@ list<sNode*%>*% parse_block(sParserInfo* info)
     return nodes;
 }
 
-buffer*% compile_block(sParserInfo* info)
+buffer* compile_block(sParserInfo* info)
 {
-    list<sNode*%>*% nodes = parse_block(info);
-    buffer*% buffer = compile_nodes(nodes, info);
+    list<sNode*>* nodes = parse_block(info);
+    buffer* buffer = compile_nodes(nodes, info);
     
     return buffer;
 }
@@ -161,7 +161,7 @@ int main(int argc, char** argv)
     else {
         initialize_modules();
         
-        buffer*% source = new buffer.initialize();
+        buffer* source = new buffer.initialize();
         
         read_source(fname, source).expect {
             exit(1);
@@ -189,9 +189,9 @@ int main(int argc, char** argv)
             }
         }
         
-        list<sNode*%>*% nodes = parse(&info, 0`space_num);
+        list<sNode*>* nodes = parse(&info, 0`space_num);
         
-        buffer*% codes = compile_nodes(nodes, &info);
+        buffer* codes = compile_nodes(nodes, &info);
         
         vm(codes, null).expect {
             exit(1);

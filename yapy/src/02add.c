@@ -1,9 +1,9 @@
 #include "common.h"
 #include <ctype.h>
 
-static sNode*% create_add_node(sNode* left, sNode* right, sParserInfo* info)
+static sNode* create_add_node(sNode* left, sNode* right, sParserInfo* info)
 {
-    sNode*% result = new sNode;
+    sNode* result = new sNode;
     
     result.kind = kOpAdd;
     
@@ -29,53 +29,43 @@ static sNode* create_sub_node(sNode* left, sNode* right, sParserInfo* info)
     return result;
 }
 
-void sNode_finalize(sNode* self) version 2
+static sNode* op_add_node(sParserInfo* info)
 {
-    inherit(self);
-    
-    if(self.kind == kOpAdd || self.kind == kOpSub) {
-        delete self.value.opValue.left;
-        delete self.value.opValue.right;
-    }
-}
-
-static sNode*% op_add_node(sParserInfo* info)
-{
-    sNode* result = borrow exp_node(info);
+    sNode* result = exp_node(info);
     
     while(*info->p == '+' || *info->p == '-') {
         if(*info->p == '+') {
             info->p++;
             skip_spaces_until_eol(info);
             
-            sNode* right = borrow op_add_node(info);
+            sNode* right = op_add_node(info);
             
             if(right == null) {
                 return null;
             }
             
-            result = borrow create_add_node(result, right, info);
+            result = create_add_node(result, right, info);
         }
         else if(*info->p == '-') {
             info->p++;
             skip_spaces_until_eol(info);
             
-            sNode* right = borrow op_add_node(info);
+            sNode* right = op_add_node(info);
             
             if(right == null) {
                 return null;
             }
             
-            result = borrow create_sub_node(result, right, info);
+            result =  create_sub_node(result, right, info);
         }
     }
     
-    return dummy_heap result;
+    return result;
 }
 
 bool expression(sNode** node, sParserInfo* info) version 2
 {
-    *node = borrow op_add_node(info);
+    *node = op_add_node(info);
     
     if(*node == null) {
         return false;

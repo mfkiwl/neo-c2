@@ -1,9 +1,9 @@
 #include "common.h"
 #include <ctype.h>
 
-static sNode*% create_int_node(int value, sParserInfo* info)
+static sNode* create_int_node(int value, sParserInfo* info)
 {
-    sNode*% result = new sNode;
+    sNode* result = new sNode;
     
     result.kind = kIntValue;
     
@@ -14,11 +14,7 @@ static sNode*% create_int_node(int value, sParserInfo* info)
     return result;
 }
 
-void sNode_finalize(sNode* self) version 1
-{
-}
-
-sNode*%? exp_node(sParserInfo* info) version 1
+sNode*? exp_node(sParserInfo* info) version 1
 {
     if(xisdigit(*info->p)) {
         int n = 0;
@@ -36,7 +32,7 @@ sNode*%? exp_node(sParserInfo* info) version 1
 
 bool expression(sNode** node, sParserInfo* info) version 1
 {
-    *node = borrow exp_node(info);
+    *node = exp_node(info);
     
     if(*node == null) {
         return false;

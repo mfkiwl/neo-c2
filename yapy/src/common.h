@@ -13,16 +13,16 @@ struct sNode
         int intValue;
         
         struct {
-            sNode*% left
-            sNode*% right
-            sNode*% middle
+            sNode* left
+            sNode* right
+            sNode* middle
         } opValue;
         
         string stringValue;
         
         struct {
             string name;
-            sNode*% right;
+            sNode* right;
             bool in_global_context;
         } storeVarValue;
         
@@ -33,27 +33,27 @@ struct sNode
         
         struct {
             string name;
-            buffer*% codes;
-            vector<string>*% param_names;
+            buffer* codes;
+            vector<string>* param_names;
         } funValue;
         
         struct {
             string name;
-            vector<sNode*%>*% params;
+            vector<sNode*>* params;
         } funCallValue;
         
         struct {
-            sNode*% if_exp;
-            buffer*% if_codes;
-            vector<sNode*%>*% elif_exps;
-            vector<buffer*%>*% elif_blocks;
+            sNode* if_exp;
+            buffer* if_codes;
+            vector<sNode*>* elif_exps;
+            vector<buffer*>* elif_blocks;
             buffer*? else_block;
         } ifValue;
         
         struct {
-            sNode*% while_exp;
-            list<sNode*%>*% while_nodes;
-            list<sNode*%>*% else_nodes;
+            sNode* while_exp;
+            list<sNode*>* while_nodes;
+            list<sNode*>* else_nodes;
         } whileValue;
     } value;
 };
@@ -92,8 +92,6 @@ struct sVar
     ZVALUE value;
 };
 
-void sVar_finalize();
-
 #define ZSTACK_MAX 1024
 
 #define OP_INT_VALUE 1
@@ -112,9 +110,9 @@ void sVar_finalize();
 /// main.c ///
 void skip_spaces(sParserInfo* info);
 void skip_spaces_until_eol(sParserInfo* info);
-list<sNode*%>*% parse_block(sParserInfo* info);
-buffer*% compile_nodes(list<sNode*%>* nodes, sParserInfo* info);
-buffer*% compile_block(sParserInfo* info);
+list<sNode*>* parse_block(sParserInfo* info);
+buffer* compile_nodes(list<sNode*>* nodes, sParserInfo* info);
+buffer* compile_block(sParserInfo* info);
 
 /// vm.c ///
 void initialize_modules() version 1;
@@ -126,60 +124,48 @@ bool vm(buffer* codes, map<string, ZVALUE>* params);
 bool expression(sNode** node, sParserInfo* info) version 1;
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 1;
 
-void sNode_finalize(sNode* self) version 1;
-sNode*%? exp_node(sParserInfo* info) version 1;
+sNode*? exp_node(sParserInfo* info) version 1;
 
 /// 02add.c ///
 bool expression(sNode** node, sParserInfo* info) version 2;
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 2;
 
-void sNode_finalize(sNode* self) version 2;
-
 /// 03str.c ///
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 3;
 
-void sNode_finalize(sNode* self) version 3;
-sNode*%? exp_node(sParserInfo* info) version 3;
+sNode*? exp_node(sParserInfo* info) version 3;
 
 /// 04print.c ///
 bool wordcmp(char* p, char* word2);
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 4;
 
-void sNode_finalize(sNode* self) version 4;
-sNode*%? exp_node(sParserInfo* info) version 4;
+sNode*? exp_node(sParserInfo* info) version 4;
 
 /// 05var.c ///
-void sNode_finalize(sNode* self) version 5;
-sNode*%? exp_node(sParserInfo* info) version 5;
-sNode*%? fun_node(string fun_name, sParserInfo* info) version 5;   // implemented after layer
-sNode*%? def_node(sParserInfo* info) version 5;   // implemented after layer
+sNode*? exp_node(sParserInfo* info) version 5;
+sNode*? fun_node(string fun_name, sParserInfo* info) version 5;   // implemented after layer
+sNode*? def_node(sParserInfo* info) version 5;   // implemented after layer
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 5;
 
 /// 06fun.c ///
 void initialize_modules() version 6;
-void finalize_modules() version 6;
 
-void sNode_finalize(sNode* self) version 6;
-sNode*%? fun_node(string fun_name, sParserInfo* info) version 6;
-sNode*%? def_node(sParserInfo* info) version 6;
+sNode*? fun_node(string fun_name, sParserInfo* info) version 6;
+sNode*? def_node(sParserInfo* info) version 6;
 
 bool function_call(char* fun_name, ZVALUE* stack, int stack_num);
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6;
 
 /// 07bool.c ///
-void sNode_finalize(sNode* self) version 7;
-
-sNode*%? exp_node(sParserInfo* info) version 7;
+sNode*? exp_node(sParserInfo* info) version 7;
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 7;
 
 /// 08if.c ///
-void sNode_finalize(sNode* self) version 8;
-
-sNode*%? exp_node(sParserInfo* info) version 8;
+sNode*? exp_node(sParserInfo* info) version 8;
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 8;
 
@@ -187,6 +173,5 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 8;
 bool expression(sNode** node, sParserInfo* info) version 9;
 
 /// 10while.c ///
-void sNode_finalize(sNode* self) version 10;
-sNode*%? exp_node(sParserInfo* info) version 10;
+sNode*? exp_node(sParserInfo* info) version 10;
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 10;

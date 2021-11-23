@@ -1,26 +1,17 @@
 #include "common.h"
 #include <ctype.h>
 
-static sNode*% create_print_node(sNode* exp, sParserInfo* info)
+static sNode* create_print_node(sNode* exp, sParserInfo* info)
 {
-    sNode*% result = new sNode;
+    sNode* result = new sNode;
     
     result.kind = kPrint;
     
     result.fname = info->fname;
     result.sline = info->sline;
-    result.value.opValue.left = dummy_heap exp;
+    result.value.opValue.left = exp;
     
     return result;
-}
-
-void sNode_finalize(sNode* self) version 4
-{
-    inherit(self);
-    
-    if(self.kind == kPrint) {
-        delete dummy_heap self.value.opValue.left;
-    }
 }
 
 static bool emb_funcmp(char* p, char* word2)
@@ -36,9 +27,9 @@ static bool emb_funcmp(char* p, char* word2)
     return false;
 }
 
-sNode*%? exp_node(sParserInfo* info) version 4
+sNode*? exp_node(sParserInfo* info) version 4
 {
-    sNode* result = borrow inherit(info);
+    sNode* result = inherit(info);
     
     if(result == null) {
         if(emb_funcmp(info->p, "print")) {
@@ -60,11 +51,11 @@ sNode*%? exp_node(sParserInfo* info) version 4
                 skip_spaces_until_eol(info);
             }
             
-            result = borrow create_print_node(node, info);
+            result = create_print_node(node, info);
         }
     }
     
-    return dummy_heap result;
+    return result;
 }
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 4

@@ -5,14 +5,13 @@ static ZVALUE gNullValue;
 
 void initialize_modules() version 1
 {
-    gGlobalVar = borrow new map<char*, ZVALUE>.initialize();
+    gGlobalVar = new map<char*, ZVALUE>.initialize();
     gNullValue.kind = kNullValue;
     gNullValue.objValue = null;
 }
 
 void finalize_modules() version 1
 {
-    delete dummy_heap gGlobalVar;
 }
 
 void show_zvalue(ZVALUE value)
@@ -93,7 +92,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params)
     int* p = (int*)codes.buf;
     int* head = (int*)codes.buf;
     
-    map<string, ZVALUE>*% vtable = new map<string, ZVALUE>.initialize();
+    map<string, ZVALUE>* vtable = new map<string, ZVALUE>.initialize();
     
     if(params) {
         foreach(it, params) {

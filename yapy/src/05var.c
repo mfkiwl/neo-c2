@@ -1,8 +1,8 @@
 #include "common.h"
 
-static sNode*% create_load_var(char* str, sParserInfo* info)
+static sNode* create_load_var(char* str, sParserInfo* info)
 {
-    sNode*% result = new sNode;
+    sNode* result = new sNode;
     
     result.kind = kLoadVar;
     
@@ -14,9 +14,9 @@ static sNode*% create_load_var(char* str, sParserInfo* info)
     return result;
 }
 
-static sNode*% create_store_var(char* str, sNode*% right, sParserInfo* info)
+static sNode* create_store_var(char* str, sNode* right, sParserInfo* info)
 {
-    sNode*% result = new sNode;
+    sNode* result = new sNode;
     
     result.kind = kStoreVar;
     
@@ -29,34 +29,23 @@ static sNode*% create_store_var(char* str, sNode*% right, sParserInfo* info)
     return result;
 }
 
-void sNode_finalize(sNode* self) version 5
+sNode*? fun_node(string fun_name, sParserInfo* info) version 5   // implemented after layer
 {
-    inherit(self);
-
-    if(self.kind == kLoadVar) {
-        delete self.value.storeVarValue.name;
-    }
-    else if(self.kind == kStoreVar) {
-        delete self.value.storeVarValue.name;
-        delete self.value.storeVarValue.right;
-    }
+    return null;
 }
 
-sNode*%? fun_node(string fun_name, sParserInfo* info) version 5   // implemented after layer
+sNode*? def_node(sParserInfo* info) version 5   // implemented after layer
 {
+    return null;
 }
 
-sNode*%? def_node(sParserInfo* info) version 5   // implemented after layer
+sNode*? exp_node(sParserInfo* info) version 5
 {
-}
-
-sNode*%? exp_node(sParserInfo* info) version 5
-{
-    sNode* result = borrow inherit(info);
+    sNode* result = inherit(info);
     
     if(result == null) {
         if(xisalpha(*info->p) || *info->p == '_') {
-            buffer*% buf = new buffer.initialize();
+            buffer* buf = new buffer.initialize();
             
             while(xisalnum(*info->p) || *info->p == '_') {
                 buf.append_char(*info->p);
@@ -77,7 +66,7 @@ sNode*%? exp_node(sParserInfo* info) version 5
                     return null;
                 }
                 
-                return create_store_var(buf.to_string(), dummy_heap right, info);
+                return create_store_var(buf.to_string(), right, info);
             }
             else if(*info->p == '(') {
                 return fun_node(buf.to_string(), info)
@@ -88,7 +77,7 @@ sNode*%? exp_node(sParserInfo* info) version 5
         }
     }
     
-    return dummy_heap result;
+    return result;
 }
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 5
@@ -114,7 +103,7 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 5
         info->stack_num++;
     }
     else if(node.kind == kStoreVar) {
-        sNode* right = borrow node.value.storeVarValue.right;
+        sNode* right = node.value.storeVarValue.right;
         
         if(!compile(right, codes, info)) {
             return false;

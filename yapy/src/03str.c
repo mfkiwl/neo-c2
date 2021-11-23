@@ -1,9 +1,9 @@
 #include "common.h"
 #include <ctype.h>
 
-static sNode*% create_string_node(char* str, sParserInfo* info)
+static sNode* create_string_node(char* str, sParserInfo* info)
 {
-    sNode*% result = new sNode;
+    sNode* result = new sNode;
     
     result.kind = kStringValue;
     
@@ -14,24 +14,15 @@ static sNode*% create_string_node(char* str, sParserInfo* info)
     return result;
 }
 
-void sNode_finalize(sNode* self) version 3
+sNode*? exp_node(sParserInfo* info) version 3
 {
-    inherit(self);
-
-    if(self.kind == kStringValue) {
-        delete self.value.stringValue;
-    }
-}
-
-sNode*%? exp_node(sParserInfo* info) version 3
-{
-    sNode* result = borrow inherit(info);
+    sNode* result = inherit(info);
     
     if(result == null) {
         if(*info->p == '"') {
             info->p++;
             
-            buffer*% buf = new buffer.initialize();
+            buffer* buf = new buffer.initialize();
             
             while(true) {
                 if(*info->p == '\0') {
@@ -66,7 +57,7 @@ sNode*%? exp_node(sParserInfo* info) version 3
         else if(*info->p == '\'') {
             info->p++;
             
-            buffer*% buf = new buffer.initialize();
+            buffer* buf = new buffer.initialize();
             
             while(true) {
                 if(*info->p == '\0') {
@@ -100,7 +91,7 @@ sNode*%? exp_node(sParserInfo* info) version 3
         }
     }
     
-    return dummy_heap result;
+    return result;
 }
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 3

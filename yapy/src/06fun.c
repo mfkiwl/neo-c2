@@ -3,11 +3,11 @@
 struct sFunction
 {
     string name;
-    buffer*% codes;
-    vector<string>*% param_names;
+    buffer* codes;
+    vector<string>* param_names;
 };
 
-sFunction*% sFunction_initialize(sFunction*% self, char* name, buffer* codes, vector<string>* param_names)
+sFunction* sFunction_initialize(sFunction* self, char* name, buffer* codes, vector<string>* param_names)
 {
     self.name = clone name;
     self.codes = clone codes;
@@ -16,32 +16,23 @@ sFunction*% sFunction_initialize(sFunction*% self, char* name, buffer* codes, ve
     return self;
 }
 
-void sFunction_finalize(sFunction* self)
-{
-    delete self.name;
-    delete self.codes;
-    delete self.param_names;
-}
-
-static map<string, sFunction*%>* gFuncs;
+static map<string, sFunction*>* gFuncs;
 
 void initialize_modules() version 6
 {
     inherit();
     
-    gFuncs = borrow new map<string, sFunction*%>.initialize();
+    gFuncs = new map<string, sFunction*>.initialize();
 }
 
 void finalize_modules() version 6
 {
-    delete dummy_heap gFuncs;
-    
     inherit();
 }
 
-static sNode*% create_fun(char* fun_name, buffer*% codes, vector<string>*% param_names, sParserInfo* info)
+static sNode* create_fun(char* fun_name, buffer* codes, vector<string>* param_names, sParserInfo* info)
 {
-    sNode*% result = new sNode;
+    sNode* result = new sNode;
     
     result.kind = kFun;
     
@@ -54,9 +45,9 @@ static sNode*% create_fun(char* fun_name, buffer*% codes, vector<string>*% param
     return result;
 }
 
-static sNode*% create_fun_call(char* fun_name, vector<sNode*%>*% params, sParserInfo* info)
+static sNode* create_fun_call(char* fun_name, vector<sNode*>* params, sParserInfo* info)
 {
-    sNode*% result = new sNode;
+    sNode* result = new sNode;
     
     result.kind = kFunCall;
     
@@ -68,24 +59,9 @@ static sNode*% create_fun_call(char* fun_name, vector<sNode*%>*% params, sParser
     return result;
 }
 
-void sNode_finalize(sNode* self) version 6
+sNode*? def_node(sParserInfo* info) version 6
 {
-    inherit(self);
-
-    if(self.kind == kFun) {
-        delete self.value.funValue.name;
-        delete self.value.funValue.codes;
-        delete self.value.funValue.param_names;
-    }
-    else if(self.kind == kFunCall) {
-        delete self.value.funCallValue.name;
-        delete self.value.funCallValue.params;
-    }
-}
-
-sNode*%? def_node(sParserInfo* info) version 6
-{
-    buffer*% buf = new buffer.initialize();
+    buffer* buf = new buffer.initialize();
     
     while(xisalnum(*info->p) || *info->p == '_') {
         buf.append_char(*info->p);
@@ -103,9 +79,9 @@ sNode*%? def_node(sParserInfo* info) version 6
     info->p++;
     skip_spaces_until_eol(info);
     
-    vector<string>*% param_names = new vector<string>.initialize();
+    vector<string>* param_names = new vector<string>.initialize();
     
-    buffer*% buf2 = new buffer.initialize();
+    buffer* buf2 = new buffer.initialize();
     
     while(true) {
         if(*info->p == ')') {
@@ -130,7 +106,6 @@ sNode*%? def_node(sParserInfo* info) version 6
             
             param_names.push_back(buf2.to_string());
             
-            delete buf2;
             buf2 = new buffer.initialize();
             
             if(*info->p == ',') {
@@ -144,17 +119,17 @@ sNode*%? def_node(sParserInfo* info) version 6
         }
     }
     
-    buffer*% codes = compile_block(info);
+    buffer* codes = compile_block(info);
     
     return create_fun(fun_name, codes, param_names, info);
 }
 
-sNode*%? fun_node(string fun_name, sParserInfo* info) version 6
+sNode*? fun_node(string fun_name, sParserInfo* info) version 6
 {
     info->p++;
     skip_spaces_until_eol(info);
     
-    vector<sNode*%>*% params = new vector<sNode*%>.initialize();
+    vector<sNode*>* params = new vector<sNode*>.initialize();
     
     while(*info->p) {
         if(*info->p == ')') {
@@ -174,7 +149,7 @@ sNode*%? fun_node(string fun_name, sParserInfo* info) version 6
             skip_spaces_until_eol(info);
         }
         
-        params.push_back(dummy_heap node);
+        params.push_back(node);
     }
     
     return create_fun_call(fun_name, params, info);
@@ -189,7 +164,7 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
         buffer* codes = node.value.funValue.codes;
         vector<string>* param_names = node.value.funValue.param_names;
         
-        sFunction*% fun = new sFunction.initialize(name, codes, param_names);
+        sFunction* fun = new sFunction.initialize(name, codes, param_names);
         
         gFuncs.insert(name, fun);
     }
@@ -207,7 +182,7 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
         codes.append_str(name);
         codes.alignment();
         
-        vector<sNode*%>* params = node.value.funCallValue.params;
+        vector<sNode*>* params = node.value.funCallValue.params;
         
         foreach(it, params) {
             if(!compile(it, codes, info)) {
@@ -231,7 +206,7 @@ bool function_call(char* fun_name, ZVALUE* stack, int stack_num)
     buffer* codes = fun->codes;
     vector<string>* param_names = fun->param_names;
     
-    map<string, ZVALUE>*% params = new map<string, ZVALUE>.initialize();
+    map<string, ZVALUE>* params = new map<string, ZVALUE>.initialize();
     
     int i = 0;
     foreach(it, param_names) {
