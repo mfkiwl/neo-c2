@@ -1,9 +1,9 @@
 
+vin undo, searching word saving to file
+
 method block parent bug
 
-operators
-
-    struct with initialization
+struct with initialization
 
 ---- implemented ----
 debug info
@@ -139,3 +139,5 @@ Br no mae no free_right_objects while no conditional, for, do while, switch, cas
 
 map<char*, int> bug
 ddthod name completion
+
+operators
