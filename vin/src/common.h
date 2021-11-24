@@ -1,4 +1,4 @@
-#include "config.h"
+#include "../config.h"
 #include <neo-c2.h>
 #include <neo-c2-pcre.h>
 
@@ -40,14 +40,14 @@ struct ViWin
     int scroll;
     int digitInput;
 
-    tuple3<int,int,int>*% returnPoint;
-    list<tuple3<int, int, int>*%>*% returnPointStack;
+    tuple3<int,int,int>* returnPoint;
+    list<tuple3<int, int, int>*>* returnPointStack;
 
     /// layer 5 ///
-    list<list<wstring>*%>%* undo;
-    list<int>%* undoScroll;
-    list<int>%* undoCursorX;
-    list<int>%* undoCursorY;
+    list<list<wstring>*>* undo;
+    list<int>* undoScroll;
+    list<int>* undoCursorX;
+    list<int>* undoCursorY;
     int undoIndex;
 
     /// layer 6 ///
@@ -74,8 +74,8 @@ struct ViWin
     char commandString[128];
 
     /// layer 14 ///
-    vector<int>*% inputedKeys;
-    vector<int>*% savedInputedKeys;
+    vector<int>* inputedKeys;
+    vector<int>* savedInputedKeys;
     bool autoInput;
     int digitInput;
     int autoInputIndex;

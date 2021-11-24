@@ -276,11 +276,11 @@ configure:3594: result: no
 configure:3651: checking CPU type
 configure:3722: checking Operating System
 configure:3763: checking for main in -ldl
-configure:3782: clang-11 -o conftest -I. -g -DMDEBUG   conftest.c -ldl   >&5
+configure:3782: clang-11 -o conftest -I . -g -DMDEBUG   conftest.c -ldl   >&5
 configure:3782: $? = 0
 configure:3791: result: yes
 configure:3802: checking math.h usability
-configure:3802: clang-11 -c -I. -g -DMDEBUG  conftest.c >&5
+configure:3802: clang-11 -c -I . -g -DMDEBUG  conftest.c >&5
 configure:3802: $? = 0
 configure:3802: result: yes
 configure:3802: checking math.h presence
@@ -290,11 +290,11 @@ configure:3802: result: yes
 configure:3802: checking for math.h
 configure:3802: result: yes
 configure:3809: checking for main in -lm
-configure:3828: clang-11 -o conftest -I. -g -DMDEBUG   conftest.c -lm   -ldl >&5
+configure:3828: clang-11 -o conftest -I . -g -DMDEBUG   conftest.c -lm   -ldl >&5
 configure:3828: $? = 0
 configure:3837: result: yes
 configure:3844: checking iconv.h usability
-configure:3844: clang-11 -c -I. -g -DMDEBUG  conftest.c >&5
+configure:3844: clang-11 -c -I . -g -DMDEBUG  conftest.c >&5
 configure:3844: $? = 0
 configure:3844: result: yes
 configure:3844: checking iconv.h presence
@@ -304,7 +304,7 @@ configure:3844: result: yes
 configure:3844: checking for iconv.h
 configure:3844: result: yes
 configure:3852: checking pcre.h usability
-configure:3852: clang-11 -c -I. -g -DMDEBUG  conftest.c >&5
+configure:3852: clang-11 -c -I . -g -DMDEBUG  conftest.c >&5
 configure:3852: $? = 0
 configure:3852: result: yes
 configure:3852: checking pcre.h presence
@@ -314,15 +314,15 @@ configure:3852: result: yes
 configure:3852: checking for pcre.h
 configure:3852: result: yes
 configure:3859: checking for main in -lpcre
-configure:3878: clang-11 -o conftest -I. -g -DMDEBUG   conftest.c -lpcre   -ldl -lm >&5
+configure:3878: clang-11 -o conftest -I . -g -DMDEBUG   conftest.c -lpcre   -ldl -lm >&5
 configure:3878: $? = 0
 configure:3887: result: yes
 configure:3897: checking for main in -lgc
-configure:3916: clang-11 -o conftest -I. -g -DMDEBUG   conftest.c -lgc   -ldl -lm -lpcre >&5
+configure:3916: clang-11 -o conftest -I . -g -DMDEBUG   conftest.c -lgc   -ldl -lm -lpcre >&5
 configure:3916: $? = 0
 configure:3925: result: yes
 configure:3977: checking ncurses.h usability
-configure:3977: clang-11 -c -I. -g -DMDEBUG  conftest.c >&5
+configure:3977: clang-11 -c -I . -g -DMDEBUG  conftest.c >&5
 configure:3977: $? = 0
 configure:3977: result: yes
 configure:3977: checking ncurses.h presence
@@ -332,11 +332,11 @@ configure:3977: result: yes
 configure:3977: checking for ncurses.h
 configure:3977: result: yes
 configure:3984: checking for main in -lncursesw
-configure:4003: clang-11 -o conftest -I. -g -DMDEBUG   conftest.c -lncursesw   -ldl -lm -lpcre -lgc >&5
+configure:4003: clang-11 -o conftest -I . -g -DMDEBUG   conftest.c -lncursesw   -ldl -lm -lpcre -lgc >&5
 configure:4003: $? = 0
 configure:4012: result: yes
 configure:4020: checking readline/readline.h usability
-configure:4020: clang-11 -c -I. -g -DMDEBUG  conftest.c >&5
+configure:4020: clang-11 -c -I . -g -DMDEBUG  conftest.c >&5
 configure:4020: $? = 0
 configure:4020: result: yes
 configure:4020: checking readline/readline.h presence
@@ -346,15 +346,15 @@ configure:4020: result: yes
 configure:4020: checking for readline/readline.h
 configure:4020: result: yes
 configure:4027: checking for main in -lreadline
-configure:4046: clang-11 -o conftest -I. -g -DMDEBUG   conftest.c -lreadline   -ldl -lm -lpcre -lgc -lncursesw >&5
+configure:4046: clang-11 -o conftest -I . -g -DMDEBUG   conftest.c -lreadline   -ldl -lm -lpcre -lgc -lncursesw >&5
 configure:4046: $? = 0
 configure:4055: result: yes
 configure:4063: checking for main in -lrt
-configure:4082: clang-11 -o conftest -I. -g -DMDEBUG   conftest.c -lrt   -ldl -lm -lpcre -lgc -lncursesw -lreadline >&5
+configure:4082: clang-11 -o conftest -I . -g -DMDEBUG   conftest.c -lrt   -ldl -lm -lpcre -lgc -lncursesw -lreadline >&5
 configure:4082: $? = 0
 configure:4091: result: yes
 configure:4099: checking pthread.h usability
-configure:4099: clang-11 -c -I. -g -DMDEBUG  conftest.c >&5
+configure:4099: clang-11 -c -I . -g -DMDEBUG  conftest.c >&5
 configure:4099: $? = 0
 configure:4099: result: yes
 configure:4099: checking pthread.h presence
@@ -364,11 +364,11 @@ configure:4099: result: yes
 configure:4099: checking for pthread.h
 configure:4099: result: yes
 configure:4106: checking for main in -lpthread
-configure:4125: clang-11 -o conftest -I. -g -DMDEBUG   conftest.c -lpthread   -ldl -lm -lpcre -lgc -lncursesw -lreadline -lrt >&5
+configure:4125: clang-11 -o conftest -I . -g -DMDEBUG   conftest.c -lpthread   -ldl -lm -lpcre -lgc -lncursesw -lreadline -lrt >&5
 configure:4125: $? = 0
 configure:4134: result: yes
 configure:4155: checking for lchmod
-configure:4155: clang-11 -o conftest -I. -g -DMDEBUG   conftest.c  -ldl -lm -lpcre -lgc -lncursesw -lreadline -lrt -lpthread >&5
+configure:4155: clang-11 -o conftest -I . -g -DMDEBUG   conftest.c  -ldl -lm -lpcre -lgc -lncursesw -lreadline -lrt -lpthread >&5
 conftest.c:55:1: error: unknown type name 'choke'
 choke me
 ^
@@ -445,7 +445,7 @@ configure: failed program was:
 | }
 configure:4155: result: no
 configure:4166: checking for execvpe
-configure:4166: clang-11 -o conftest -I. -g -DMDEBUG   conftest.c  -ldl -lm -lpcre -lgc -lncursesw -lreadline -lrt -lpthread >&5
+configure:4166: clang-11 -o conftest -I . -g -DMDEBUG   conftest.c  -ldl -lm -lpcre -lgc -lncursesw -lreadline -lrt -lpthread >&5
 configure:4166: $? = 0
 configure:4166: result: yes
 configure:4287: creating ./config.status
@@ -467,6 +467,7 @@ on clover-lang.org
 
 config.status:811: creating Makefile
 config.status:811: creating config.h
+config.status:986: config.h is unchanged
 
 ## ---------------- ##
 ## Cache variables. ##
@@ -540,7 +541,7 @@ ac_cv_prog_cc_g=yes
 ## ----------------- ##
 
 CC='clang-11'
-CFLAGS='-I. -g -DMDEBUG'
+CFLAGS='-I . -g -DMDEBUG'
 CPP='gcc -E'
 CPPFLAGS=''
 DEFS='-DHAVE_CONFIG_H'
@@ -559,7 +560,7 @@ LIBOBJS=''
 LIBS=' -ldl -lm -lpcre -lgc -lncursesw -lreadline -lrt -lpthread'
 LTLIBOBJS=''
 NCC=''
-NCFLAGS=''
+NCFLAGS='-I . -I src'
 OBJEXT='o'
 OS=''
 PACKAGE_BUGREPORT=''

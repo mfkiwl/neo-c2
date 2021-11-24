@@ -26,7 +26,7 @@ static void compiler_final(char* sname)
     node_loop_final();
 }
 
-static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BOOL neo_c_header, char* macro_definition)
+static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BOOL neo_c_header, char* macro_definition, char* include_path)
 {
     if(access(fname, F_OK) != 0) {
         fprintf(stderr, "%s doesn't exist\n", fname);
@@ -44,12 +44,12 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
         if(getenv("CFLAGS")) {
             char tmp[PATH_MAX];
             strcpy(tmp, fname);
-            snprintf(cflags, 1024, "%s -I %s", getenv("CFLAGS"), dirname(tmp));
+            snprintf(cflags, 1024, "%s -I%s", getenv("CFLAGS"), dirname(tmp));
         }
         else {
             char tmp[PATH_MAX];
             strcpy(tmp, fname);
-            snprintf(cflags, 1024, "-I %s", dirname(tmp));
+            snprintf(cflags, 1024, "-I%s", dirname(tmp));
         }
     }
     else if(getenv("CFLAGS")) {
@@ -65,17 +65,17 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     char cmd[1024];
 #ifdef __DARWIN__
     if(gNCGC) {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I/usr/local/include -I%s/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ -DWITH_GC %s %s > %s", PREFIX, cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp %s -I/usr/local/include -I%s/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ -DWITH_GC %s %s > %s", include_path, PREFIX, cflags, fname, macro_definition, fname2);
     }
     else {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp -I/usr/local/include -I%s/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", PREFIX, cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp %s -I/usr/local/include -I%s/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", include_path, PREFIX, cflags, fname, macro_definition, fname2);
     }
 #else
     if(gNCGC) {
-        snprintf(cmd, 1024, "cpp -I%s/include %s -U__GNUC__ %s %s -DWITH_GC > %s", PREFIX,cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "cpp %s -I%s/include %s -U__GNUC__ %s %s -DWITH_GC > %s", include_path, PREFIX,cflags, fname, macro_definition, fname2);
     }
     else {
-        snprintf(cmd, 1024, "cpp -I%s/include %s -U__GNUC__ %s %s > %s", PREFIX,cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "cpp %s -I%s/include %s -U__GNUC__ %s %s > %s", include_path, PREFIX,cflags, fname, macro_definition, fname2);
     }
 #endif
 
@@ -239,6 +239,8 @@ int main(int argc, char** argv)
     int num_obj_files = 0;
     BOOL no_linker = FALSE;
     char exec_fname[PATH_MAX];
+    char include_paths[128][PATH_MAX];
+    int num_include_paths = 0;
 
     macro_definition[0] = '\0';
     exec_fname[0] = '\0';
@@ -319,26 +321,38 @@ int main(int argc, char** argv)
         else if(strcmp(argv[i], "-I") == 0)
         {
             if(i + 1 < argc) {
+                char real_path[PATH_MAX];
+                realpath(argv[i+1], real_path);
+                
                 xstrncat(c_include_path, ":", max_c_include_path);
-                xstrncat(c_include_path, argv[i+1], max_c_include_path);
+                xstrncat(c_include_path, real_path, max_c_include_path);
+                
+                xstrncpy(include_paths[num_include_paths], "-I ", PATH_MAX);
+                xstrncat(include_paths[num_include_paths++], real_path, PATH_MAX);
 
-                xstrncat(optiones, "-I ", 1024);
-                xstrncat(optiones, argv[i+1], 1024);
+                xstrncat(optiones, "-I", 1024);
+                xstrncat(optiones, real_path, 1024);
                 xstrncat(optiones, " ", 1024);
 
-                xstrncat(clang_optiones, "-I ", 1024);
-                xstrncat(clang_optiones, argv[i+1], 1024);
+                xstrncat(clang_optiones, "-I", 1024);
+                xstrncat(clang_optiones, real_path, 1024);
                 xstrncat(clang_optiones, " ", 1024);
                 i++;
             }
         }
         else if(argv[i][0] == '-' && argv[i][1] == 'I')
         {
+            char real_path[PATH_MAX];
+            realpath(argv[i] + 2, real_path);
+            
             xstrncat(c_include_path, ":", max_c_include_path);
-            xstrncat(c_include_path, argv[i] + 2, max_c_include_path);
+            xstrncat(c_include_path, real_path, max_c_include_path);
 
             xstrncat(optiones, argv[i], 1024);
             xstrncat(optiones, " ", 1024);
+            
+            xstrncpy(include_paths[num_include_paths], "-I", PATH_MAX);
+            xstrncat(include_paths[num_include_paths++], real_path, PATH_MAX);
 
             xstrncat(clang_optiones, argv[i], 1024);
             xstrncat(clang_optiones, " ", 1024);
@@ -452,7 +466,16 @@ int main(int argc, char** argv)
     
     BOOL optimize = TRUE;
     if(sname[0] != '\0') {
-        if(!compiler(sname, optimize, gModuleVarTable, FALSE, macro_definition))
+        char include_paths2[128*PATH_MAX];
+        include_paths2[0] = '\0';
+        
+        int i;
+        for(i=0; i<num_include_paths; i++) {
+            xstrncat(include_paths2, include_paths[i], 128*PATH_MAX);
+            xstrncat(include_paths2, " ", 128*PATH_MAX);
+        }
+        
+        if(!compiler(sname, optimize, gModuleVarTable, FALSE, macro_definition, include_paths2))
         {
             fprintf(stderr, "come can't compile(2) %s\n", sname);
             compiler_final(sname);

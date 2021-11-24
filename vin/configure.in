@@ -1,4 +1,4 @@
-AC_INIT(main.c)
+AC_INIT(src/main.c)
 
 AC_CONFIG_HEADER(config.h)
 
@@ -88,8 +88,8 @@ AC_MSG_CHECKING(Operating System)
 #########################################
 # CFLAGS settings
 #########################################
-CFLAGS="-I."
-NCFLAGS=""
+CFLAGS="-I ."
+NCFLAGS="-I . -I src"
 if test $DEBUGGING = 1
 then
     CFLAGS="$CFLAGS -g -DMDEBUG"

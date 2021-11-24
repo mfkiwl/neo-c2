@@ -582,7 +582,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 PACKAGE_URL=
 
-ac_unique_file="main.c"
+ac_unique_file="src/main.c"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -3756,8 +3756,8 @@ $as_echo_n "checking Operating System... " >&6; }
 #########################################
 # CFLAGS settings
 #########################################
-CFLAGS="-I."
-NCFLAGS=""
+CFLAGS="-I ."
+NCFLAGS="-I . -I src"
 if test $DEBUGGING = 1
 then
     CFLAGS="$CFLAGS -g -DMDEBUG"
