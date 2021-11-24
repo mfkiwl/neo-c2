@@ -44,7 +44,7 @@ struct ViWin
     list<tuple3<int, int, int>*>* returnPointStack;
 
     /// layer 5 ///
-    list<list<wstring>*>* undo;
+    list<list<wstring>*>* undoText;
     list<int>* undoScroll;
     list<int>* undoCursorX;
     list<int>* undoCursorY;

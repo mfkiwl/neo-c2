@@ -898,7 +898,7 @@ BOOL compile_clone(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
 
-    if(gc) {
+    if(gc || gNCGC) {
         sNodeType* left_type = clone_node_type(info->type);
         sNodeType* left_type2 = clone_node_type(left_type);
         left_type2->mHeap = FALSE;

@@ -234,6 +234,12 @@ impl vector<T>
         result.it = 0;
         result.items = borrow new T[result.size];
 
+#ifdef WITH_GC
+        for(int i=0; i<self.len; i++) 
+        {
+            result.items[i] = borrow clone self.items[i];
+        }
+#else
         if(isheap(T)) {
             for(int i=0; i<self.len; i++) 
             {
@@ -246,6 +252,7 @@ impl vector<T>
                 result.items[i] = self.items[i];
             }
         }
+#endif
 
         return result;
     }
@@ -421,12 +428,16 @@ impl list <T>
 
         list_item<T>* it = self.head;
         while(it != null) {
+#ifdef WITH_GC
+            result.push_back(clone it.item);
+#else
             if(isheap(T)) {
                 result.push_back(clone it.item);
             }
             else {
                 result.push_back(dummy_heap it.item);
             }
+#endif
 
             it = it.next;
         }
@@ -766,12 +777,16 @@ impl list <T>
         auto i = 0;
         while(it != null) {
             if(i >= begin && i < tail) {
+#ifdef WITH_GC
+                result.push_back(clone it.item);
+#else
                 if(isheap(T)) {
                     result.push_back(clone it.item);
                 }
                 else {
                     result.push_back(dummy_heap it.item);
                 }
+#endif
             }
             it = it.next;
             i++;
@@ -785,12 +800,16 @@ impl list <T>
 
         list_item<T>* it = self.tail;
         while(it != null) {
+#ifdef WITH_GC
+            result.push_back(clone it.item);
+#else
             if(isheap(T)) {
                 result.push_back(clone it.item);
             }
             else {
                 result.push_back(dummy_heap it.item);
             }
+#endif
             it = it.prev;
         };
 
@@ -813,22 +832,30 @@ impl list <T>
                 }
                 else if(compare(it.item, it2.item) <= 0) 
                 {
+#ifdef WITH_GC
+                    result.push_back(clone it.item);
+#else
                     if(isheap(T)) {
                         result.push_back(clone it.item);
                     }
                     else {
                         result.push_back(dummy_heap it.item);
                     }
+#endif
 
                     it = it.next;
                 }
                 else {
+#ifdef WITH_GC
+                    result.push_back(clone it2.item);
+#else
                     if(isheap(T)) {
                         result.push_back(clone it2.item);
                     }
                     else {
                         result.push_back(dummy_heap it2.item);
                     }
+#endif
 
 
                     it2 = it2.next;
@@ -838,12 +865,16 @@ impl list <T>
             if(it == null) {
                 if(it2 != null) {
                     while(it2 != null) {
+#ifdef WITH_GC
+                        result.push_back(clone it2.item);
+#else
                         if(isheap(T)) {
                             result.push_back(clone it2.item);
                         }
                         else {
                             result.push_back(dummy_heap it2.item);
                         }
+#endif
 
                         it2 = it2.next;
                     }
@@ -853,12 +884,16 @@ impl list <T>
             else if(it2 == null) {
                 if(it != null) {
                     while(it != null) {
+#ifdef WITH_GC
+                        result.push_back(clone it.item);
+#else
                         if(isheap(T)) {
                             result.push_back(clone it.item);
                         }
                         else {
                             result.push_back(dummy_heap it.item);
                         }
+#endif
 
                         it = it.next;
                     }
@@ -883,19 +918,27 @@ impl list <T>
         list_item<T>* it = self.head;
 
         while(true) {
+#ifdef WITH_GC
+            list1.push_back(clone it.item);
+#else
             if(isheap(T)) {
                 list1.push_back(clone it.item);
             }
             else {
                 list1.push_back(dummy_heap it.item);
             }
+#endif
 
+#ifdef WITH_GC
+            list2.push_back(clone it.next.item);
+#else
             if(isheap(T)) {
                 list2.push_back(clone it.next.item);
             }
             else {
                 list2.push_back(dummy_heap it.next.item);
             }
+#endif
 
             if(it.next.next == null) {
                 break;
@@ -904,12 +947,16 @@ impl list <T>
             it = it.next.next;
 
             if(it.next == null) {
+#ifdef WITH_GC
+                list1.push_back(clone it.item);
+#else
                 if(isheap(T)) {
                     list1.push_back(clone it.item);
                 }
                 else {
                     list1.push_back(dummy_heap it.item);
                 }
+#endif
                 break;
             }
         }
@@ -927,21 +974,29 @@ impl list <T>
             T& default_value;
             T& item_before = self.item(0, default_value);
 
+#ifdef WITH_GC
+            result.push_back(clone item_before);
+#else
             if(isheap(T)) {
                 result.push_back(clone item_before);
             }
             else {
                 result.push_back(dummy_heap item_before);
             }
+#endif
 
             foreach(it, self.sublist(1,-1)) {
                 if(!it.equals(item_before)) {
+#ifdef WITH_GC
+                    result.push_back(clone it);
+#else
                     if(isheap(T)) {
                         result.push_back(clone it);
                     }
                     else {
                         result.push_back(dummy_heap it);
                     }
+#endif
                 }
 
                 item_before = it;
@@ -1005,12 +1060,16 @@ impl vector<T>
         auto result = new list<T>.initialize();
         
         foreach(it, self) {
+#ifdef WITH_GC
+            result.push_back(clone it);
+#else
             if(isheap(T)) {
                 result.push_back(clone it);
             }
             else {
                 result.push_back(dummy_heap it);
             }
+#endif
         }
         
         return result;
@@ -1213,20 +1272,28 @@ impl map <T, T2>
             auto it2 = self.at(it, default_value);
 
             if(isheap(T)) {
+#ifdef WITH_GC
+                result.insert(clone it, clone it2);
+#else
                 if(isheap(T2)) {
                     result.insert(clone it, clone it2);
                 }
                 else {
                     result.insert(clone it, dummy_heap it2);
                 }
+#endif
             }
             else {
+#ifdef WITH_GC
+                result.insert(dummy_heap it, clone it2);
+#else
                 if(isheap(T2)) {
                     result.insert(dummy_heap it, clone it2);
                 }
                 else {
                     result.insert(dummy_heap it, dummy_heap it2);
                 }
+#endif
             }
         }
 
@@ -1343,12 +1410,16 @@ impl tuple1 <T>
     {
         tuple1<T>*% result = new tuple1<T>;
 
+#ifdef WITH_GC
+        result.v1 = clone self.v1;
+#else
         if(isheap(T)) {
             result.v1 = clone self.v1;
         }
         else {
             result.v1 = self.v1;
         }
+#endif
 
         return result;
     }
@@ -1381,6 +1452,10 @@ impl tuple2 <T, T2>
     {
         tuple2<T,T2>*% result = new tuple2<T, T2>;
 
+#ifdef WITH_GC
+        result.v1 = clone self.v1;
+        result.v2 = clone self.v2;
+#else
         if(isheap(T)) {
             result.v1 = clone self.v1;
         }
@@ -1393,6 +1468,7 @@ impl tuple2 <T, T2>
         else {
             result.v2 = self.v2;
         }
+#endif
 
         return result;
     }
@@ -1432,6 +1508,11 @@ impl tuple3 <T, T2, T3>
     {
         tuple3<T,T2,T3>*% result = new tuple3<T, T2, T3>;
 
+#ifdef WITH_GC
+        result.v1 = clone self.v1;
+        result.v2 = clone self.v2;
+        result.v3 = clone self.v3;
+#else
         if(isheap(T)) {
             result.v1 = clone self.v1;
         }
@@ -1450,6 +1531,7 @@ impl tuple3 <T, T2, T3>
         else {
             result.v3 = self.v3;
         }
+#endif
 
         return result;
     }
@@ -1496,6 +1578,12 @@ impl tuple4 <T, T2, T3, T4>
     {
         tuple4<T,T2,T3,T4>*% result = new tuple4<T, T2, T3, T4>;
 
+#ifdef WITH_GC
+        result.v1 = clone self.v1;
+        result.v2 = clone self.v2;
+        result.v3 = clone self.v3;
+        result.v4 = clone self.v4;
+#else
         if(isheap(T)) {
             result.v1 = clone self.v1;
         }
@@ -1520,6 +1608,7 @@ impl tuple4 <T, T2, T3, T4>
         else {
             result.v4 = self.v4;
         }
+#endif
 
 
         return result;
@@ -1712,12 +1801,16 @@ impl list<T>
         list_item<T>?* it = self.head;
         while(it != null) {
             if(block(parent, it.item)) {
+#ifdef WITH_GC
+                result.push_back(clone it.item);
+#else
                 if(isheap(T)) {
                     result.push_back(clone it.item);
                 }
                 else {
                     result.push_back(dummy_heap it.item);
                 }
+#endif
             }
 
             it = it.next;

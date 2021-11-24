@@ -579,6 +579,7 @@ void ViWin::replaceCursorCharactor(ViWin* self)
 */
         auto line = self.texts.item(self.scroll+self.cursorY, null);
         line[self.cursorX] = (wchar_t)key;
+        
 //    }
 }
 
@@ -1001,13 +1002,13 @@ Vi* Vi::initialize(Vi* self) version 10
     result.events.replace('r', void lambda(Vi* self, int key) {
         self.activeWin.replaceCursorCharactor();
         self.activeWin.writed = true;
-
-        self.activeWin.saveInputedKey();
     });
     result.events.replace('s', void lambda(Vi* self, int key) {
         self.activeWin.replaceCursorCharactor();
         self.activeWin.writed = true;
         self.enterInsertMode();
+
+        self.activeWin.saveInputedKey();
     });
     result.events.replace('S', void lambda(Vi* self, int key) {
         self.activeWin.moveToHead();

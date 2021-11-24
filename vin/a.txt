@@ -1,11 +1,3 @@
-asdfa asfas fas adABC
-aaaDEF
-GHI
-
-ABC
-ABC
-ABC
-
 int main() {
     int a = 1;
     printf("%d\n", a);

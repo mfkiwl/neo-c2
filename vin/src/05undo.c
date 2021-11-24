@@ -11,7 +11,7 @@ ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* v
 {
     auto result = inherit(self, y, x, width, height, vi);
 
-    result.undo = new list<list<wstring>*>.initialize();
+    result.undoText = new list<list<wstring>*>.initialize();
     result.undoScroll = new list<int>.initialize();
     result.undoCursorX = new list<int>.initialize();
     result.undoCursorY = new list<int>.initialize();
@@ -22,14 +22,14 @@ ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* v
 
 void ViWin::pushUndo(ViWin* self) version 5
 {
-    self.undo.delete(self.undoIndex, -1);
+    self.undoText.delete(self.undoIndex, -1);
     self.undoScroll.delete(self.undoIndex, -1);
     self.undoCursorX.delete(self.undoIndex, -1);
     self.undoCursorY.delete(self.undoIndex, -1);
 
-    auto undo = clone self.texts;
+    auto undo_text = clone self.texts;
 
-    self.undo.push_back(undo);
+    self.undoText.push_back(undo_text);
 
     self.undoCursorX.push_back(self.cursorX);
     self.undoScroll.push_back(self.scroll);
@@ -39,18 +39,18 @@ void ViWin::pushUndo(ViWin* self) version 5
 
 void ViWin::redo(ViWin* self) 
 {
-    if(self.undoIndex < self.undo.length()-1) 
+    if(self.undoIndex < self.undoText.length()-1) 
     {
         self.undoIndex++;
 
-        auto undo = clone self.undo.item(self.undoIndex, null);
+        auto undo_text = clone self.undoText.item(self.undoIndex, null);
         auto cursor_x = self.undoCursorX.item(self.undoIndex, -1);
         auto scroll = self.undoScroll.item(self.undoIndex, -1);
         auto cursor_y = self.undoCursorY.item(self.undoIndex, -1);
 
-        if(undo != null && cursor_x != -1 && cursor_y != -1 && scroll != -1) 
+        if(undo_text != null && cursor_x != -1 && cursor_y != -1 && scroll != -1) 
         {
-            self.texts = undo;
+            self.texts = undo_text;
             self.cursorX = cursor_x;
             self.cursorY = cursor_y;
             self.scroll = scroll;
@@ -60,7 +60,7 @@ void ViWin::redo(ViWin* self)
 
 void ViWin::undo(ViWin* self) 
 {
-    if(self.undoIndex == self.undo.length())
+    if(self.undoIndex == self.undoText.length())
     {
         self.pushUndo();
         self.undoIndex--;
@@ -69,14 +69,14 @@ void ViWin::undo(ViWin* self)
     if(self.undoIndex > 0) {
         self.undoIndex--;
 
-        auto undo = clone self.undo.item(self.undoIndex, null);
+        auto undo_text = clone self.undoText.item(self.undoIndex, null);
         auto cursor_x = self.undoCursorX.item(self.undoIndex, -1);
         auto cursor_y = self.undoCursorY.item(self.undoIndex, -1);
         auto scroll = self.undoScroll.item(self.undoIndex, -1);
 
-        if(undo != null && cursor_x != -1 && cursor_y != -1 && scroll != -1) 
+        if(undo_text != null && cursor_x != -1 && cursor_y != -1 && scroll != -1) 
         {
-            self.texts = undo;
+            self.texts = undo_text;
             self.cursorX = cursor_x;
             self.cursorY = cursor_y;
             self.scroll = scroll;
