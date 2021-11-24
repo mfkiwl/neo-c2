@@ -1,6 +1,6 @@
 #include "common.h"
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 6
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 6
 {
     auto result = inherit(self, y, x, width, height, vi);
 
@@ -205,7 +205,7 @@ void Vi::openNewFile(Vi* self, char* file_name)
 
     int height = maxy / (self.wins.length() + 1);
 
-    auto win = borrow new ViWin.initialize(0,0, maxx-1, height, self);
+    auto win = new ViWin.initialize(0,0, maxx-1, height, self);
     
     win.openFile(file_name, -1);
 
@@ -269,7 +269,7 @@ void Vi::prevWin(Vi* self) {
     }
 }
 
-Vi*% Vi::initialize(Vi*% self) version 6
+Vi* Vi::initialize(Vi* self) version 6
 {
     auto result = inherit(self);
 
@@ -391,7 +391,7 @@ void Vi::openFile(Vi* self, char* file_name, int line_num) version 6
             auto maxx = xgetmaxx();
             auto maxy = xgetmaxy();
             
-            auto win = borrow new ViWin.initialize(0,0, maxx-1, maxy, self);
+            auto win = new ViWin.initialize(0,0, maxx-1, maxy, self);
     
             self.activeWin = win;
             self.wins.push_back(win);
@@ -409,7 +409,7 @@ void Vi::openFile(Vi* self, char* file_name, int line_num) version 6
             auto maxx = xgetmaxx();
             auto maxy = xgetmaxy();
             
-            auto win = borrow new ViWin.initialize(0,0, maxx-1, maxy, self);
+            auto win = new ViWin.initialize(0,0, maxx-1, maxy, self);
     
             self.activeWin = win;
             self.wins.push_back(win);

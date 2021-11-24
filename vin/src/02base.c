@@ -9,19 +9,13 @@
 #include <wctype.h>
 
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 2
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 2
 {
     auto result = inherit(self, y, x, width, height, vi);
     
-    result.returnPointStack = borrow new list<tuple3<int, int, int>*%>.initialize();
+    result.returnPointStack = new list<tuple3<int, int, int>*>.initialize();
 
     return result;
-}
-
-void ViWin::finalize(ViWin* self) version 2
-{
-    inherit(self);
-    delete self.returnPointStack;
 }
 
 void ViWin::textsView(ViWin* self, Vi* nvi)
@@ -528,18 +522,18 @@ void ViWin::joinLines2(ViWin* self)  version 2
 
 // Vi
 
-Vi*% Vi::initialize(Vi* self) version 2
+Vi* Vi::initialize(Vi* self) version 2
 {
     setlocale(LC_ALL, "");
     
     self.init_curses();
 
-    self.wins = borrow new list<ViWin*%>.initialize();
+    self.wins = new list<ViWin*>.initialize();
 
     auto maxx = xgetmaxx();
     auto maxy = xgetmaxy();
 
-    auto win = borrow new ViWin.initialize(0,0, maxx-1, maxy, self);
+    auto win = new ViWin.initialize(0,0, maxx-1, maxy, self);
 
     win.texts.push_back(wstring("ABC"));
     win.texts.push_back(wstring("DEF"));
@@ -551,7 +545,7 @@ Vi*% Vi::initialize(Vi* self) version 2
 
     self.appEnd = false;
 
-    self.events = borrow new vector<void (*lambda)(Vi*, int)>.initialize();
+    self.events = new vector<void (*lambda)(Vi*, int)>.initialize();
     
     for(int i=0; i<KEY_MAX; i++) {
         self.events.push_back(null);
@@ -677,11 +671,6 @@ Vi*% Vi::initialize(Vi* self) version 2
     });
 
     return self;
-}
-
-void Vi::finalize(Vi* self) version 2
-{
-    inherit(self);
 }
 
 void Vi::exitFromApp(Vi* self) version 2

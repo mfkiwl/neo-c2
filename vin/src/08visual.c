@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi)  version 8
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi)  version 8
 {
     auto result = inherit(self, y, x, width, height, vi);
 
@@ -126,7 +126,7 @@ void ViWin::indentVisualMode(ViWin* self, Vi* nvi)
     
     int it2 = 0;
     foreach(it, self.texts.sublist(head, tail+1)) {
-        auto new_line = borrow xsprintf("%ls%ls"
+        auto new_line = xsprintf("%ls%ls"
                     , wstring("    ")
                     , it).to_wstring();
 
@@ -152,7 +152,7 @@ void ViWin::backIndentVisualMode(ViWin* self, Vi* nvi)
 
     int it2 = 0;
     foreach(it, self.texts.sublist(head, tail+1)) {
-        auto new_line = borrow clone it;
+        auto new_line = clone it;
 
         if(new_line.index(wstring("    "), -1) == 0) {
             for(int i=0; i<4; i++) {
@@ -183,7 +183,7 @@ void ViWin::changeCaseVisualMode(ViWin* self, Vi* nvi)
 
     int it2 = 0;
     foreach(it, self.texts.sublist(head, tail+1)) {
-        auto new_line = borrow clone it;
+        auto new_line = clone it;
         
         for(int i=0; i<new_line.length(); i++) {
             wchar_t c = new_line[i];
@@ -227,7 +227,7 @@ void ViWin::joinVisualMode(ViWin* self, Vi* nvi)
 
     len++;
 
-    auto new_line = borrow new wchar_t[len];
+    auto new_line = new wchar_t[len];
 
     new_line[0] = 0;
 
@@ -318,7 +318,7 @@ void ViWin::equalVisualMode(ViWin* self, Vi* nvi)
             head_str.append_str("    ");
         }
         
-        auto new_line2 = borrow xsprintf("%ls%ls"
+        auto new_line2 = xsprintf("%ls%ls"
                     , head_str.to_string().to_wstring()
                     , new_line).to_wstring();
         
@@ -369,7 +369,7 @@ void ViWin::rewriteVisualMode(ViWin* self, Vi* nvi)
             buf.append_str(xsprintf("%lc", c));
         }
 
-        auto new_line = borrow buf.to_string().to_wstring();
+        auto new_line = buf.to_string().to_wstring();
 
         self.texts.replace(it2+head, new_line);
         it2++;
@@ -581,7 +581,7 @@ void ViWin::gotoBraceEnd(ViWin* self, Vi* nvi) version 8
     /// implemeted after layer
 }
 
-Vi*% Vi::initialize(Vi*% self) version 8
+Vi* Vi::initialize(Vi* self) version 8
 {
     auto result = inherit(self);
 

@@ -39,7 +39,7 @@ void ViWin::insertText(ViWin* self, wstring text) {
     else {
         auto old_line = self.texts.item(self.scroll+self.cursorY, wstring(""));
 
-        auto new_line = borrow wstring(xsprintf("%ls%ls%ls", old_line.substring(0, self.cursorX), text, old_line.substring(self.cursorX, -1)));
+        auto new_line = wstring(xsprintf("%ls%ls%ls", old_line.substring(0, self.cursorX), text, old_line.substring(self.cursorX, -1)));
 
         self.texts.replace(self.scroll+self.cursorY, new_line);
         self.cursorX += text.length();
@@ -69,8 +69,8 @@ void ViWin::enterNewLine(ViWin* self)
         wcsncat(head_new_line, wstring(" "), num_spaces+1);
     }
 
-    auto new_line1 = borrow old_line.substring(0, self.cursorX);
-    auto new_line2 = borrow wstring(xsprintf("%ls%ls", head_new_line, old_line.substring(self.cursorX, -1)));
+    auto new_line1 = old_line.substring(0, self.cursorX);
+    auto new_line2 = wstring(xsprintf("%ls%ls", head_new_line, old_line.substring(self.cursorX, -1)));
 
     self.texts.replace(self.scroll+self.cursorY, new_line1);
     self.texts.insert(self.scroll+self.cursorY+1, new_line2);
@@ -94,7 +94,7 @@ void ViWin::enterNewLine2(ViWin* self)
         }
     }
 
-    auto new_line = borrow new wchar_t[num_spaces+1];
+    auto new_line = new wchar_t[num_spaces+1];
 
     wcsncpy(new_line, wstring(""), num_spaces+1);
 
@@ -339,7 +339,7 @@ void Vi::exitFromInsertMode(Vi* self) version 3
     self.activeWin.saveInputedKey();
 }
 
-Vi*% Vi::initialize(Vi*% self) version 3
+Vi* Vi::initialize(Vi* self) version 3
 {
     auto result = inherit(self);
 

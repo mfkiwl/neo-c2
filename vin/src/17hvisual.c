@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-ViWin*% ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 17
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 17
 {
     auto result = inherit(self, y, x, width, height, vi);
     
@@ -615,7 +615,7 @@ void Vi::enterHorizonVisualMode(Vi* self)
     self.activeWin.visualModeHorizonHeadY = self.activeWin.cursorY;
 }
 
-Vi*% Vi::initialize(Vi*% self)  version 17
+Vi* Vi::initialize(Vi* self)  version 17
 {
     auto result = inherit(self);
 

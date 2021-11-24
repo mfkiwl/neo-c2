@@ -71,6 +71,7 @@ int main(int argc, char** argv)
     
     int result = vi.main_loop();
 
+    vi.saveSearchString("searchString.vin");
     endwin();
 
     return result;

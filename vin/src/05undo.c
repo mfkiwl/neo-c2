@@ -7,27 +7,17 @@
 #include <unistd.h>
 #include <wctype.h>
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 5
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 5
 {
     auto result = inherit(self, y, x, width, height, vi);
 
-    result.undo = borrow new list<list<wstring>*%>.initialize();
-    result.undoScroll = borrow new list<int>.initialize();
-    result.undoCursorX = borrow new list<int>.initialize();
-    result.undoCursorY = borrow new list<int>.initialize();
+    result.undo = new list<list<wstring>*>.initialize();
+    result.undoScroll = new list<int>.initialize();
+    result.undoCursorX = new list<int>.initialize();
+    result.undoCursorY = new list<int>.initialize();
     result.undoIndex = 0;
 
     return result;
-}
-
-void ViWin::finalize(ViWin* self) version 5
-{
-    inherit(self);
-
-    delete self.undo;
-    delete self.undoScroll;
-    delete self.undoCursorX;
-    delete self.undoCursorY;
 }
 
 void ViWin::pushUndo(ViWin* self) version 5
@@ -37,7 +27,7 @@ void ViWin::pushUndo(ViWin* self) version 5
     self.undoCursorX.delete(self.undoIndex, -1);
     self.undoCursorY.delete(self.undoIndex, -1);
 
-    auto undo = borrow clone self.texts;
+    auto undo = clone self.texts;
 
     self.undo.push_back(undo);
 
@@ -53,7 +43,7 @@ void ViWin::redo(ViWin* self)
     {
         self.undoIndex++;
 
-        auto undo = borrow clone self.undo.item(self.undoIndex, null);
+        auto undo = clone self.undo.item(self.undoIndex, null);
         auto cursor_x = self.undoCursorX.item(self.undoIndex, -1);
         auto scroll = self.undoScroll.item(self.undoIndex, -1);
         auto cursor_y = self.undoCursorY.item(self.undoIndex, -1);
@@ -79,7 +69,7 @@ void ViWin::undo(ViWin* self)
     if(self.undoIndex > 0) {
         self.undoIndex--;
 
-        auto undo = borrow clone self.undo.item(self.undoIndex, null);
+        auto undo = clone self.undo.item(self.undoIndex, null);
         auto cursor_x = self.undoCursorX.item(self.undoIndex, -1);
         auto cursor_y = self.undoCursorY.item(self.undoIndex, -1);
         auto scroll = self.undoScroll.item(self.undoIndex, -1);
@@ -94,7 +84,7 @@ void ViWin::undo(ViWin* self)
     }
 }
 
-Vi*% Vi::initialize(Vi*% self) version 5
+Vi* Vi::initialize(Vi* self) version 5
 {
     auto result = inherit(self);
 

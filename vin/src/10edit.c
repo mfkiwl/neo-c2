@@ -1,6 +1,6 @@
 #include "common.h"
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 10
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 10
 {
     auto result = inherit(self, y, x, width, height, vi);
     
@@ -525,7 +525,7 @@ void ViWin::incrementNumber(ViWin* self)
             
             n += num;
             
-            auto new_line = borrow xsprintf("%ls%d%ls", line.substring(0, head), n, line.substring(tail, -1)).to_wstring();
+            auto new_line = xsprintf("%ls%d%ls", line.substring(0, head), n, line.substring(tail, -1)).to_wstring();
             
             self.texts.replace(self.scroll+self.cursorY, new_line);
         }
@@ -548,7 +548,7 @@ void ViWin::incrementNumber(ViWin* self)
             
             n++;
             
-            auto new_line = borrow xsprintf("%ls%d%ls", line.substring(0, head), n, line.substring(tail, -1)).to_wstring();
+            auto new_line = xsprintf("%ls%d%ls", line.substring(0, head), n, line.substring(tail, -1)).to_wstring();
             
             self.texts.replace(self.scroll+self.cursorY, new_line);
         }
@@ -623,7 +623,7 @@ void ViWin::joinLines(ViWin* self)
         auto line = self.texts.item(self.scroll+self.cursorY, null);
         auto next_line = self.texts.item(self.scroll+self.cursorY+1, null);
 
-        auto line2 = borrow xsprintf("%ls %ls", line, next_line).to_wstring();
+        auto line2 = xsprintf("%ls %ls", line, next_line).to_wstring();
 
         self.texts.replace(self.scroll+self.cursorY, line2);
         self.texts.delete(self.scroll+self.cursorY+1, self.scroll+self.cursorY+1+1);
@@ -670,7 +670,7 @@ void ViWin::joinLines2(ViWin* self) version 10
 
     if(self.scroll+self.cursorY+1 < self.texts.length()) {
         auto line = self.texts.item(self.scroll+self.cursorY, null);
-        auto next_line = borrow clone self.texts.item(self.scroll+self.cursorY+1, null);
+        auto next_line = clone self.texts.item(self.scroll+self.cursorY+1, null);
 
         self.texts.replace(self.scroll+self.cursorY, xsprintf("%ls%ls", line, next_line).to_wstring());
         self.texts.delete(self.scroll+self.cursorY+1, self.scroll+self.cursorY+1+1);
@@ -872,7 +872,7 @@ void ViWin::moveToHead(ViWin* self)
     self.cursorX = i;
 }
 
-Vi*% Vi::initialize(Vi*% self) version 10
+Vi* Vi::initialize(Vi* self) version 10
 {
     auto result = inherit(self);
 

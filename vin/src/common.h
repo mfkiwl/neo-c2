@@ -81,15 +81,15 @@ struct ViWin
     int autoInputIndex;
     bool pressedDot;
 
-    map<int, vector<vector<int>*%>*%>*% macro;
+    map<int, vector<vector<int>*>*>* macro;
     int recordingMacroKey;
-    vector<vector<int>*%>*% recordingMacro;
-    vector<vector<int>*%>*% runningMacro;
+    vector<vector<int>*>* recordingMacro;
+    vector<vector<int>*>* runningMacro;
     int runningMacroIndex1;
     int runningMacroIndex2;
 
     /// layer 16 ///
-    map<wchar_t, tuple3<int,int, int>*%>*% mark;
+    map<wchar_t, tuple3<int,int, int>*>* mark;
 
     /// layer 17 ///
     int visualModeHorizonHeadScroll;
@@ -110,11 +110,11 @@ struct ViWin
 struct Vi 
 {
     /// layer 1 ///
-    list<ViWin*%>* wins;
+    list<ViWin*>* wins;
     ViWin* activeWin;
 
     /// layer 2 ///
-    vector<void (*lambda)(Vi*, int)>*% events;
+    vector<void (*lambda)(Vi*, int)>* events;
     bool appEnd;
 
     /// layer 3 ///
@@ -124,8 +124,8 @@ struct Vi
     int toggleWin;
 
     /// layer 7 ///
-    list<wstring>*% yank;
-    list<wstring>*% fileYank;
+    list<wstring>* yank;
+    list<wstring>* fileYank;
     int yankKind;
 
     /// layer 9 ///
@@ -137,15 +137,13 @@ struct Vi
 extern Vi* gApp;
 
 /// Vi ///
-Vi*% Vi::initialize(Vi*% self) version 1;
-void Vi::finalize(Vi* self) version 1;
+Vi* Vi::initialize(Vi* self) version 1;
 
 void Vi::init_curses(Vi* self);
 int Vi::main_loop(Vi* self) version 1;
 
 /// ViWin ///
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 1;
-void ViWin::finalize(ViWin* self) version 1;
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 1;
 
 void ViWin::view(ViWin* self, Vi* nvi) version 1;
 void ViWin::input(ViWin* self, Vi* nvi) version 1;
@@ -156,8 +154,7 @@ bool ViWin::equals(ViWin* left, ViWin* right);
 ///////////////////////////////////////////////////////////////////////////////
 
 /// VinWin ///
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 2;
-void ViWin::finalize(ViWin* self) version 2;
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 2;
 
 void ViWin::textsView(ViWin* self, Vi* nvi);
 void ViWin::statusBarView(ViWin* self, Vi* nvi) version 2;
@@ -195,8 +192,7 @@ void ViWin::openFile(ViWin* self, char* file_name, int line_num) version 2;
 void ViWin::saveInputedKeyOnTheMovingCursor(ViWin* self) version 2;
 
 // vi ///
-Vi*% Vi::initialize(Vi*% self) version 2;
-void Vi::finalize(Vi* self) version 2;
+Vi* Vi::initialize(Vi* self) version 2;
 
 int Vi::main_loop(Vi* self) version 2;
 
@@ -229,7 +225,7 @@ void ViWin::saveInputedKey(ViWin* self) version 3;
 
 void ViWin::backwardWord(ViWin* self) version 3; // implement after
 
-Vi*% Vi::initialize(Vi*% self) version 3;
+Vi* Vi::initialize(Vi* self) version 3;
 
 void Vi::enterInsertMode(Vi* self) version 3;
 void Vi::enterInsertMode2(Vi* self) version 3;
@@ -242,27 +238,26 @@ int Vi::main_loop(Vi* self) version 3;
 void ViWin::forwardWord(ViWin* self);
 void ViWin::backwardWord(ViWin* self) version 4;
 
-Vi*% Vi::initialize(Vi*% self) version 4;
+Vi* Vi::initialize(Vi* self) version 4;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 5word.h
 ///////////////////////////////////////////////////////////////////////////////
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 5;
-void ViWin::finalize(ViWin* self) version 5;
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 5;
 
 void ViWin::pushUndo(ViWin* self) version 5;
 
 void ViWin::undo(ViWin* self);
 void ViWin::redo(ViWin* self);
 
-Vi*% Vi::initialize(Vi*% self) version 5;
+Vi* Vi::initialize(Vi* self) version 5;
 
 void Vi::enterInsertMode(Vi* self) version 5;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 6file.h
 ///////////////////////////////////////////////////////////////////////////////
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 6;
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 6;
 
 void ViWin::statusBarView(ViWin* self, Vi* nvi) version 6;
 void ViWin::openFile(ViWin* self, char* file_name, int line_num) version 6;
@@ -270,7 +265,7 @@ void ViWin::writeFile(ViWin* self);
 void ViWin::writedFlagOn(ViWin* self) version 6;
 bool ViWin::saveDotToFile(ViWin* self, Vi* nvi) version 6;
 
-Vi*% Vi::initialize(Vi*% self) version 6;
+Vi* Vi::initialize(Vi* self) version 6;
 
 void Vi::saveLastOpenFile(Vi* self, char* file_name);
 string Vi::readLastOpenFile(Vi* self);
@@ -291,8 +286,7 @@ bool ViWin::saveFileYankToFile(ViWin* self, Vi* nvi);
 
 enum { kYankKindLine, kYankKindNoLine };
 
-Vi*% Vi::initialize(Vi*% self) version 7;
-void Vi::finalize(Vi* self) version 7;
+Vi* Vi::initialize(Vi* self) version 7;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 8visual.h
@@ -300,7 +294,7 @@ void Vi::finalize(Vi* self) version 7;
 enum { kYankKindLine, kYankKindNoLine };
 enum eMode { kVisualMode = kInsertMode + 1 };
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 8;
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 8;
 
 void ViWin::visualModeView(ViWin* self, Vi* nvi);
 void ViWin::view(ViWin* self, Vi* nvi) version 8;
@@ -311,7 +305,7 @@ void ViWin::makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 8;
 void ViWin::makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 8;
 void ViWin::gotoBraceEnd(ViWin* self, Vi* nvi) version 8;
 
-Vi*% Vi::initialize(Vi*% self) version 8;
+Vi* Vi::initialize(Vi* self) version 8;
 void Vi::enterVisualMode(Vi* self);
 void Vi::reenterVisualMode(Vi* self);
 void Vi::exitFromVisualMode(Vi* self);
@@ -321,7 +315,7 @@ void Vi::exitFromVisualMode(Vi* self);
 ///////////////////////////////////////////////////////////////////////////////
 enum eMode { kSearchMode = kVisualMode + 1 };
 
-void ViWin::saveSearchString(Vi* self, char* file_name);
+void Vi::saveSearchString(Vi* self, char* file_name);
 void ViWin::readSearchString(Vi* self, char* file_name);
 
 void ViWin::searchModeView(ViWin* self, Vi* nvi);
@@ -330,8 +324,7 @@ void ViWin::view(ViWin* self, Vi* nvi) version 9;
 void ViWin::inputSearchlMode(ViWin* self, Vi* nvi);
 void ViWin::input(ViWin* self, Vi* nvi) version 9;
 
-Vi*% Vi::initialize(Vi*% self) version 9;
-void Vi::finalize(Vi* self) version 9;
+Vi* Vi::initialize(Vi* self) version 9;
 
 void Vi::enterSearchMode(Vi* self, bool regex_search, bool search_reverse) version 9;
 void Vi::exitFromSearchMode(Vi* self);
@@ -343,19 +336,19 @@ enum eRepeatForwardNextCharacter {
 ///////////////////////////////////////////////////////////////////////////////
 /// 10edit.h
 ///////////////////////////////////////////////////////////////////////////////
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 10;
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 10;
 void ViWin::deleteOneLine(ViWin* self, Vi* nvi) version 10;
 void ViWin::joinLines2(ViWin* self) version 10;
 void ViWin::deleteUntilTail(ViWin* self);
 
-Vi*% Vi::initialize(Vi*% self) version 10;
+Vi* Vi::initialize(Vi* self) version 10;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 11move.h
 ///////////////////////////////////////////////////////////////////////////////
 void ViWin::gotoBraceEnd(ViWin* self, Vi* nvi) version 11;
 
-Vi*% Vi::initialize(Vi*% self) version 11;
+Vi* Vi::initialize(Vi* self) version 11;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 12command.h
@@ -367,7 +360,7 @@ void ViWin::input(ViWin* self, Vi* nvi) version 12;
 
 void Vi::enterComandMode(Vi* nvi);
 void Vi::exitFromComandMode(Vi* self);
-Vi*% Vi::initialize(Vi*% self) version 12;
+Vi* Vi::initialize(Vi* self) version 12;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 13completion.h
@@ -378,8 +371,7 @@ wstring&? ViWin::selector2(ViWin* self, list<wstring>* lines);
 ///////////////////////////////////////////////////////////////////////////////
 /// 14dot.h
 ///////////////////////////////////////////////////////////////////////////////
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 14;
-void ViWin::finalize(ViWin* self) version 14;
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 14;
 
 bool ViWin::saveDotToFile(ViWin* self, Vi* nvi) version 14;
 bool ViWin::loadDotFromFile(ViWin* self, Vi* nvi);
@@ -391,38 +383,37 @@ void ViWin::makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 14;
 void ViWin::makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 14;
 void ViWin::saveInputedKeyOnTheMovingCursor(ViWin* self) version 14;
 
-Vi*% Vi::initialize(Vi*% self) version 14;
+Vi* Vi::initialize(Vi* self) version 14;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 16mark.h
 ///////////////////////////////////////////////////////////////////////////////
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 16;
-void ViWin::finalize(ViWin* self) version 16;
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 16;
 
-Vi*% Vi::initialize(Vi*% self) version 16;
+Vi* Vi::initialize(Vi* self) version 16;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 17hvisual.h
 ///////////////////////////////////////////////////////////////////////////////
 enum eMode { kHorizonVisualMode = kCommandMode + 1 };
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 17;
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 17;
 void ViWin::view(ViWin* self, Vi* nvi) version 17;
 void ViWin::input(ViWin* self, Vi* nvi) version 17;
 
-Vi*% Vi::initialize(Vi*% self) version 17;
+Vi* Vi::initialize(Vi* self) version 17;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 18vvisual.h
 ///////////////////////////////////////////////////////////////////////////////
 enum eMode { kVerticalVisualMode = kHorizonVisualMode +1 };
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 18;
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 18;
 
 void ViWin::view(ViWin* self, Vi* nvi) version 18;
 void ViWin::input(ViWin* self, Vi* nvi) version 18;
 
-Vi*% Vi::initialize(Vi*% self) version 18;
+Vi* Vi::initialize(Vi* self) version 18;
 
 enum eMode { kRewriteMode = kVerticalVisualMode + 1 };
 
@@ -432,7 +423,7 @@ enum eMode { kRewriteMode = kVerticalVisualMode + 1 };
 void ViWin::view(ViWin* self, Vi* nvi) version 19;
 void ViWin::input(ViWin* self, Vi* nvi) version 19;
 
-Vi*% Vi::initialize(Vi*% self) version 19;
+Vi* Vi::initialize(Vi* self) version 19;
 int Vi::main_loop(Vi* self) version 19;
 
 

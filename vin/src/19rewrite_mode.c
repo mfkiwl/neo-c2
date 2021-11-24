@@ -74,7 +74,7 @@ void ViWin::inputRewritetMode(ViWin* self, Vi* nvi)
         bool dollar_endonly = false;
         bool ungreedy = false;
 
-        regex_struct*% reg = regex("^$|^[ ]+$", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
+        regex_struct* reg = regex("^$|^[ ]+$", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
         if(str.to_string().match(reg, null)) {
             self.insertText2(wstring("    "));
         }
@@ -190,7 +190,7 @@ void Vi::exitFromRewiteMode(Vi* self)
     self.activeWin.saveInputedKey();
 }
 
-Vi*% Vi::initialize(Vi*% self) version 19
+Vi* Vi::initialize(Vi* self) version 19
 {
     auto result = inherit(self);
 

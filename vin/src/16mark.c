@@ -13,29 +13,18 @@ static bool int_equals(int left, int right)
     return left == right;
 }
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 16
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 16
 {
     auto result = inherit(self, y, x, width, height, vi);
     
-    result.mark = borrow new map<wchar_t, tuple3<int,int, int>*%>.initialize();
+    result.mark = new map<wchar_t, tuple3<int,int, int>*>.initialize();
 
     return result;
 }
 
-void ViWin::finalize(ViWin* self) version 16
-{
-    inherit(self);
-
-    delete self.mark;
-
-    if(self.returnPoint) {
-        delete self.returnPoint;
-    }
-}
-
 void ViWin::markAtCurrentPoint(ViWin* self, wchar_t c) 
 {
-    auto point = borrow new tuple3<int, int, int>;
+    auto point = new tuple3<int, int, int>;
 
     point.v1 = self.scroll;
     point.v2 = self.cursorY;
@@ -63,7 +52,7 @@ void ViWin::returnAtMarkedPoint(ViWin* self, wchar_t c)
 
 void ViWin::returnBack(ViWin* self) 
 {
-    auto point = borrow self.returnPoint;
+    auto point = self.returnPoint;
     
     if(point != null) {
         int cursor_y = self.cursorY;
@@ -78,7 +67,7 @@ void ViWin::returnBack(ViWin* self)
         self.modifyOverCursorYValue();
         self.modifyOverCursorXValue();
         
-        auto return_point = borrow new tuple3<int,int,int>;
+        auto return_point = new tuple3<int,int,int>;
 
         return_point.v1 = cursor_y;
         return_point.v2 = cursor_x;
@@ -105,7 +94,7 @@ void ViWin::returnBackOfStack(ViWin* self)
     }
 }
 
-Vi*% Vi::initialize(Vi*% self) version 16
+Vi* Vi::initialize(Vi* self) version 16
 {
     auto result = inherit(self);
 

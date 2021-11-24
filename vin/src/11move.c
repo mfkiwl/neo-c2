@@ -297,7 +297,7 @@ void ViWin::gotoFunctionTop(ViWin* self, Vi* nvi)
     bool dollar_endonly = false;
     bool ungreedy = false;
 
-    regex_struct*% reg = regex("^{", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
+    regex_struct* reg = regex("^{", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
 
     int it2 = 0;
     foreach(it, self.texts.sublist(0, self.scroll+self.cursorY).reverse()) {
@@ -328,7 +328,7 @@ void ViWin::gotoFunctionBottom(ViWin* self, Vi* nvi)
     bool dollar_endonly = false;
     bool ungreedy = false;
 
-    regex_struct*% reg = regex("^}", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
+    regex_struct* reg = regex("^}", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
 
     int it2 = 0;
     foreach(it, self.texts.sublist(self.scroll+self.cursorY+1, -1)) {
@@ -347,7 +347,7 @@ void ViWin::gotoFunctionBottom(ViWin* self, Vi* nvi)
     }
 }
 
-Vi*% Vi::initialize(Vi*% self) version 11
+Vi* Vi::initialize(Vi* self) version 11
 {
     auto result = inherit(self);
 

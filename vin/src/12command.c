@@ -190,7 +190,7 @@ void ViWin::fileCompetion(ViWin* self, Vi* nvi)
             stat(path, &stat_);
             
             if(S_ISDIR(stat_.st_mode)) {
-                auto item = borrow xsprintf("%s/", entry->d_name);
+                auto item = xsprintf("%s/", entry->d_name);
                 words.push_back(item);
             }
             else {
@@ -226,7 +226,7 @@ void ViWin::fileCompetion(ViWin* self, Vi* nvi)
             stat(path, &stat_);
             
             if(S_ISDIR(stat_.st_mode)) {
-                auto item = borrow xsprintf("%s%s/", dir_name, entry->d_name);
+                auto item = xsprintf("%s%s/", dir_name, entry->d_name);
                 words.push_back(item);
             }
             else {
@@ -262,7 +262,7 @@ void ViWin::fileCompetion(ViWin* self, Vi* nvi)
             stat(path, &stat_);
             
             if(S_ISDIR(stat_.st_mode)) {
-                auto item = borrow xsprintf("%s%s/", dir_name, entry->d_name);
+                auto item = xsprintf("%s%s/", dir_name, entry->d_name);
                 words.push_back(item);
             }
             else {
@@ -357,7 +357,7 @@ void ViWin::subAllTextsFromCommandMode(ViWin* self, Vi* nvi)
     bool dollar_endonly = false;
     bool ungreedy = false;
 
-    regex_struct*% reg = regex("%s\/\(.+\)\/\(.*\)\/*?", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
+    regex_struct* reg = regex("%s\/\(.+\)\/\(.*\)\/*?", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
 
     auto command = string(nvi.commandString).scan(reg);
 
@@ -377,9 +377,9 @@ void ViWin::subAllTextsFromCommandMode(ViWin* self, Vi* nvi)
             bool dollar_endonly = false;
             bool ungreedy = false;
 
-            regex_struct*% reg = regex(str, ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
+            regex_struct* reg = regex(str, ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
 
-            auto new_line = borrow it.to_string().sub(reg, replace, null).to_wstring();
+            auto new_line = it.to_string().sub(reg, replace, null).to_wstring();
             
             self.texts.replace(it2, new_line);
 
@@ -406,7 +406,7 @@ void Vi::exitFromComandMode(Vi* self)
         bool dollar_endonly = false;
         bool ungreedy = false;
 
-        regex_struct*% reg = regex("sp \(.+\)", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
+        regex_struct* reg = regex("sp \(.+\)", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
 
         auto file_name = clone string(self.commandString).scan(reg).item(1, null);
 
@@ -446,7 +446,7 @@ void Vi::exitFromComandMode(Vi* self)
     self.mode = kEditMode;
 }
 
-Vi*% Vi::initialize(Vi*% self) version 12
+Vi* Vi::initialize(Vi* self) version 12
 {
     auto result = inherit(self);
 

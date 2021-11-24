@@ -543,7 +543,7 @@ void ViWin::backwardWord(ViWin* self) version 4
     }
 }
 
-Vi*% Vi::initialize(Vi*% self) version 4
+Vi* Vi::initialize(Vi* self) version 4
 {
     auto result = inherit(self);
 

@@ -57,16 +57,16 @@ void mreset_tty()
     //system("tset");
 }
 
-ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi* vi) version 14
+ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 14
 {
     auto result = inherit(self, y, x, width, height, vi);
 
-    result.inputedKeys = borrow new vector<int>.initialize();
+    result.inputedKeys = new vector<int>.initialize();
     result.autoInput = false;
     result.digitInput = 0;
     result.autoInputIndex = 0;
     
-    result.macro = borrow new map<int, vector<vector<int>*%>*%>.initialize();
+    result.macro = new map<int, vector<vector<int>*>*>.initialize();
     result.recordingMacroKey = -1;
     result.recordingMacro = null;
     
@@ -75,17 +75,6 @@ ViWin*% ViWin::initialize(ViWin*% self, int y, int x, int width, int height, Vi*
     (void)result.loadDotFromFile(vi);
 
     return result;
-}
-
-void ViWin::finalize(ViWin* self) version 14
-{
-    inherit(self);
-
-    delete self.inputedKeys;
-    if(self.savedInputedKeys) {
-        delete self.savedInputedKeys;
-    }
-    delete self.macro;
 }
 
 bool ViWin::saveDotToFile(ViWin* self, Vi* nvi) version 14
@@ -132,10 +121,7 @@ bool ViWin::loadDotFromFile(ViWin* self, Vi* nvi)
         return false;
     }
 
-    if(self.savedInputedKeys) {
-        delete self.savedInputedKeys;
-    }
-    self.savedInputedKeys = borrow new vector<int>.initialize();
+    self.savedInputedKeys = new vector<int>.initialize();
     
     while(true) {
         char c;
@@ -274,10 +260,7 @@ void ViWin::saveInputedKey(ViWin* self) version 14
         if(self.digitInput > 0) {
             self.autoInput = true;
             self.autoInputIndex = 0;
-            if(self.savedInputedKeys) {
-                delete self.savedInputedKeys;
-            }
-            self.savedInputedKeys = borrow new vector<int>.initialize();
+            self.savedInputedKeys = new vector<int>.initialize();
             for(int i=0; i<self.digitInput; i++) {
                 foreach(it, self.inputedKeys) {
                     self.savedInputedKeys.push_back(it);
@@ -286,10 +269,7 @@ void ViWin::saveInputedKey(ViWin* self) version 14
             self.digitInput = 0;
         }
         else {
-            if(self.savedInputedKeys) {
-                delete self.savedInputedKeys;
-            }
-            self.savedInputedKeys = borrow clone self.inputedKeys;
+            self.savedInputedKeys = clone self.inputedKeys;
         }
     }
     
@@ -300,10 +280,7 @@ void ViWin::saveInputedKey(ViWin* self) version 14
 
 void ViWin::makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 14
 {
-    if(self.inputedKeys) {
-        delete self.inputedKeys;
-    }
-    self.inputedKeys = borrow new vector<int>.initialize();
+    self.inputedKeys = new vector<int>.initialize();
     
     self.inputedKeys.push_back('g');
     self.inputedKeys.push_back('v');
@@ -314,10 +291,7 @@ void ViWin::makeInputedKeyGVIndent(ViWin* self, Vi* nvi) version 14
 
 void ViWin::makeInputedKeyGVDeIndent(ViWin* self, Vi* nvi) version 14
 {
-    if(self.inputedKeys) {
-        delete self.inputedKeys;
-    }
-    self.inputedKeys = borrow new vector<int>.initialize();
+    self.inputedKeys = new vector<int>.initialize();
     
     self.inputedKeys.push_back('g');
     self.inputedKeys.push_back('v');
@@ -332,10 +306,10 @@ void ViWin::recordMacro(ViWin* self)
         int key = self.getKey(false);
         
         self.recordingMacroKey = key;
-        self.recordingMacro = borrow new vector<vector<int>*%>.initialize();
+        self.recordingMacro = new vector<vector<int>*>.initialize();
     }
     else {
-        auto macro_ = borrow clone self.recordingMacro;
+        auto macro_ = clone self.recordingMacro;
         self.macro.insert(self.recordingMacroKey, macro_);
         
         self.recordingMacroKey = -1;
@@ -350,13 +324,13 @@ void ViWin::runMacro(ViWin* self)
     auto macro_ = self.macro.at(key, null);
     
     if(macro_) {
-        self.runningMacro = borrow clone macro_;
+        self.runningMacro = clone macro_;
         self.runningMacroIndex1 = 0;
         self.runningMacroIndex2 = 0;
     }
 }
 
-Vi*% Vi::initialize(Vi*% self) version 14
+Vi* Vi::initialize(Vi* self) version 14
 {
     auto result = inherit(self);
     

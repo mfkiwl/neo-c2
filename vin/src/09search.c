@@ -70,7 +70,7 @@ void ViWin::search(ViWin* self, Vi* nvi)
                 bool dollar_endonly = false;
                 bool ungreedy = false;
 
-                regex_struct*% reg = regex(nvi.searchString.to_string(), ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
+                regex_struct* reg = regex(nvi.searchString.to_string(), ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
                 x = it.to_string().index_regex(reg, -1);
             }
             else {
@@ -127,7 +127,7 @@ void ViWin::searchReverse(ViWin* self, Vi* nvi)
                 bool dollar_endonly = false;
                 bool ungreedy = false;
 
-                regex_struct*% reg = regex(nvi.searchString.to_string(), ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
+                regex_struct* reg = regex(nvi.searchString.to_string(), ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
                 x = it.to_string().index_regex(reg, -1);
             }
             else {
@@ -322,15 +322,13 @@ void Vi::saveSearchString(Vi* self, char* file_name)
     snprintf(file_name2, PATH_MAX, "%s/.vin/%s", home, file_name);
     
     FILE* f = fopen(file_name2, "w");
+    
 
     if(f == null) {
         return;
     }
     
-    if(wcscmp(self.searchString, wstring("")) != 0) 
-    {
-        fprintf(f, "%ls\n", self.searchString);
-    }
+    fprintf(f, "%ls\n", self.searchString);
     
     fclose(f);
 }
@@ -357,18 +355,16 @@ void Vi::readSearchString(Vi* self, char* file_name)
     
     char line[4096];
 
-    int len = fread(line, 1, 4096, f);
-    if(len <= 0) {
-        fclose(f);
-        wcsncpy(self.searchString, wstring(""), 128);
-        return;
+    if(fgets(line, 4096, f) == NULL) {
+        line[0] = '\0';
     }
-    
-    line[len] = '\0';
+    else {
+        line[strlen(line)-1] = '\0';
+    }
 
     fclose(f);
     
-    wcsncpy(self.searchString, wstring(line), 128);
+    wcscpy(self.searchString, wstring(line));
 }
 
 void Vi::enterSearchMode(Vi* self, bool regex_search, bool reverse) version 9
@@ -384,7 +380,7 @@ void Vi::exitFromSearchMode(Vi* self)
     self.mode = kEditMode;
 }
 
-Vi*% Vi::initialize(Vi*% self) version 9
+Vi* Vi::initialize(Vi* self) version 9
 {
     auto result = inherit(self);
     
@@ -437,12 +433,5 @@ Vi*% Vi::initialize(Vi*% self) version 9
     });
 
     return result;
-}
-    
-void Vi::finalize(Vi* self) version 9
-{
-    self.saveSearchString("searchString.vin");
-    
-    inherit(self);
 }
 
