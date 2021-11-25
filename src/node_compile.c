@@ -471,50 +471,8 @@ BOOL compile(unsigned int node, sCompileInfo* info)
             }
             break;
 
-        case kNodeTypeIsHeap:
-            if(!compile_is_heap(node, info))
-            {
-                return FALSE;
-            }
-            break;
-
         case kNodeTypeSizeOfExpression:
             if(!compile_sizeof_expression(node, info))
-            {
-                return FALSE;
-            }
-            break;
-
-        case kNodeTypeDelete:
-            if(!compile_delete(node, info))
-            {
-                return FALSE;
-            }
-            break;
-
-        case kNodeTypeBorrow:
-            if(!compile_borrow(node, info))
-            {
-                return FALSE;
-            }
-            break;
-
-        case kNodeTypeNoMove:
-            if(!compile_nomove(node, info))
-            {
-                return FALSE;
-            }
-            break;
-
-        case kNodeTypeDummyHeap:
-            if(!compile_dummy_heap(node, info))
-            {
-                return FALSE;
-            }
-            break;
-
-        case kNodeTypeManaged:
-            if(!compile_managed(node, info))
             {
                 return FALSE;
             }

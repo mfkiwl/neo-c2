@@ -12,8 +12,6 @@ int strcmp(const char* s1, const char* s2);
 
 void exit(int status);
 
-typedef char*% string;
-
 char *strcpy(char *dest, const char *src);
 
 char *strncpy(char *dest, const char *src, size_t n);
@@ -32,21 +30,6 @@ void xassert(const char* msg, bool exp)
         puts("false");
         exit(2);
     }
-}
-
-string string(char* str)
-{
-    int len = strlen(str) + 1;
-    char%* msg = dummy_heap calloc(len, sizeof(char));
-
-    strncpy(msg, str, len);
-
-    return msg;
-}
-
-string string2(char* str) 
-{
-    return string(str);
 }
 
 inline void inline_fun() 
@@ -73,11 +56,6 @@ inline int inline_fun4(int x, int y)
 inline int inline_fun5(int x, int y)
 {
     return inline_fun4(x, y);
-}
-
-inline string string3(char* msg)
-{
-    return string(msg);
 }
 
 struct sData
@@ -141,17 +119,6 @@ char gGlobalArray7[4] = { "ABC" };
 char gGlobalArray8[4] = "ABC";
 
 int vasprintf(char **strp, const char *fmt, va_list ap);
-
-string xsprintf(char* msg, ...)
-{
-    va_list args;
-    va_start(args, msg);
-    char* tmp;
-    int len = vasprintf(&tmp, msg, args);
-    va_end(args);
-
-    return dummy_heap tmp;
-}
 
 static void funA()
 {
@@ -439,14 +406,6 @@ int main()
 
     xassert("auto cast test", 1L + 1 == 2);
 
-    string b = string("ABC");
-
-    xassert("string test", strcmp(b, "ABC") == 0);
-
-    xassert("string test2", strcmp(string("DEF"), "DEF") == 0);
-
-    xassert("string test3", strcmp(string2("GHI"), "GHI") == 0);
-
     inline_fun();
 
     inline_fun2("HELLO HELLO");
@@ -456,8 +415,6 @@ int main()
     xassert("inline function test", inline_fun4(1, 2) == 3);
 
     xassert("inline function test2", inline_fun5(1, 2) == 3);
-
-    xassert("inline function test3", strcmp(string3("GHI"), "GHI") == 0);
 
     sData c;
 
@@ -618,10 +575,6 @@ int main()
 
     xassert("array test12", strcmp(str3, "ABC") == 0);
 
-    char* msx = "MSX";
-    puts(xsprintf("%s", msx));
-
-
     funA();
     funA();
 
@@ -735,10 +688,6 @@ test_label:
     *value = 123
 
     printf("value %d\n", *value);
-
-    char*% value2 = string("ABC");
-
-    printf("%s\n", value2);
 
     sData2*% data = new sData2;
 

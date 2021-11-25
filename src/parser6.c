@@ -444,34 +444,6 @@ BOOL get_oct_number(unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
-BOOL parse_is_heap(unsigned int* node, sParserInfo* info)
-{
-    expect_next_character_with_one_forward("(", info);
-
-    char* p_before = info->p;
-    int sline_before = info->sline;
-
-    char buf[VAR_NAME_MAX+1];
-    (void)parse_word(buf, VAR_NAME_MAX, info, FALSE, FALSE);
-
-    info->p = p_before;
-    info->sline = sline_before;
-
-    if(is_type_name(buf, info)) {
-        sNodeType* node_type = NULL;
-
-        if(!parse_type(&node_type, info, NULL, FALSE, FALSE, NULL, FALSE)) {
-            return FALSE;
-        }
-
-        expect_next_character_with_one_forward(")", info);
-
-        *node = sNodeTree_create_is_heap(node_type, info);
-    }
-
-    return TRUE;
-}
-
 BOOL parse_impl(unsigned int* node, sParserInfo* info)
 {
     char struct_name[VAR_NAME_MAX];

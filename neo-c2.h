@@ -16,33 +16,19 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
+#define foreach(o1, o2) for(auto _obj = (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 
-typedef char*% string;
+typedef char* string;
 
-static void*% ncmemdup(void*% block)
+static void* ncmemdup(void* block)
 {
-    managed block;
-
-#ifdef WITH_GC
     size_t size = GC_size(block);
-#else
-#ifdef __DARWIN__
-    size_t size = malloc_size(block);
-#else
-    size_t size = malloc_usable_size(block);
-#endif
-#endif
 
     if(!block) {
         return null;
     }
 
-#ifdef WITH_GC
-    void*% ret = GC_malloc(size);
-#else
-    void*% ret = dummy_heap calloc(1, size);
-#endif
+    void* ret = GC_malloc(size);
 
     if (ret) {
         char* p = ret;
@@ -74,15 +60,11 @@ inline void xassert(const char* msg, bool exp)
 inline string string(char* str)
 {
     int len = strlen(str) + 1;
-#ifdef WITH_GC
     char* result = (char*)GC_malloc(sizeof(char)*len);
-#else
-    char* result = (char*)calloc(len, sizeof(char));
-#endif
 
     strncpy(result, str, len);
 
-    return dummy_heap result;
+    return result;
 }
 
 static string xsprintf(char* msg, ...)
@@ -109,7 +91,7 @@ static string xsprintf(char* msg, ...)
 static string char::reverse(char* str) 
 {
     int len = strlen(str);
-    char*% result = new char[len + 1];
+    char* result = new char[len + 1];
 
     for(int i=0; i<len; i++) {
         result[i] = str[len-i-1];
@@ -186,7 +168,7 @@ static int char::get_hash_key(char* value)
     return result;
 }
 
-static bool char::equals(string& left, string& right)
+static bool char::equals(string left, string right)
 {
     return strcmp(left, right) == 0;
 }
@@ -207,7 +189,7 @@ static int char::compare(int left, int right)
 /// vector ///
 struct vector<T> 
 {
-    T&* items;
+    T* items;
     int len;
     int size;
 
@@ -216,67 +198,43 @@ struct vector<T>
 
 impl vector<T> 
 {
-    vector<T>*% initialize(vector<T>*% self) 
+    vector<T>* initialize(vector<T>* self) 
     {
         self.size = 16;
         self.len = 0;
-        self.items = borrow new T[self.size];
+        self.items = new T[self.size];
 
         return self;
     }
 
-    vector<T>*% clone(vector<T>* self)
+    vector<T>* clone(vector<T>* self)
     {
-        vector<T>*% result = new vector<T>;
+        vector<T>* result = new vector<T>;
 
         result.len = self.len;
         result.size = self.size;
         result.it = 0;
-        result.items = borrow new T[result.size];
+        result.items = new T[result.size];
 
-#ifdef WITH_GC
         for(int i=0; i<self.len; i++) 
         {
-            result.items[i] = borrow clone self.items[i];
-        }
-#else
-        if(isheap(T)) {
-            for(int i=0; i<self.len; i++) 
-            {
-                result.items[i] = borrow clone self.items[i];
+            if(GC_is_heap_ptr(self.items[i])) {
+                result.items[i] = clone self.items[i];
             }
-        }
-        else {
-            for(int i=0; i<self.len; i++) 
-            {
+            else {
                 result.items[i] = self.items[i];
             }
         }
-#endif
 
         return result;
     }
-
-    void finalize(vector<T>* self)
-    {
-        if(isheap(T)) {
-            for(int i=0; i<self.len; i++) 
-            {
-                delete self.items[i];
-
-            }
-        }
-        delete self.items;
-    }
     
     void push_back(vector<T>* self, T item) {
-        managed item;
-
         if(self.len == self.size) {
             auto new_size = self.size * 2;
             auto items = self.items;
 
-            self.items = calloc(1, sizeof(T)*new_size);
+            self.items = GC_malloc(sizeof(T)*new_size);
 
             int i;
             for(i=0; i<self.size; i++) {
@@ -284,15 +242,13 @@ impl vector<T>
             }
 
             self.size = new_size;
-
-            delete items;
         }
 
         self.items[self.len] = item;
         self.len++;
     }
 
-    T& item(vector<T>* self, int index, T& default_value) 
+    T item(vector<T>* self, int index, T default_value) 
     {
         if(index < 0) {
             index += self.len;
@@ -324,18 +280,12 @@ impl vector<T>
 
     bool replace(vector<T>* self, int index, T value) 
     {
-        managed value;
-
         if(index < 0) {
             index += self.len;
         }
 
         if(index >= 0 && index < self.len)
         {
-            if(isheap(T)) {
-                delete self.items[index];
-            }
-
             self.items[index] = value;
 
             return true;
@@ -344,7 +294,7 @@ impl vector<T>
         return false;
     }
 
-    int find(vector<T>* self, T& item, int default_value) {
+    int find(vector<T>* self, T item, int default_value) {
         int it2 = 0;
         foreach(it, self) {
             if(it.equals(item)) {
@@ -365,17 +315,17 @@ impl vector<T>
         self.len = 0;
     }
 
-    T& begin(vector<T>* self) {
+    T begin(vector<T>* self) {
         self.it = 0;
 
-        T& default_value;
+        T default_value;
         return self.item(0, default_value);
     }
 
-    T& next(vector<T>* self) {
+    T next(vector<T>* self) {
         self.it++;
 
-        T& default_value
+        T default_value
         return self.item(self.it, default_value);
     }
 
@@ -387,7 +337,7 @@ impl vector<T>
 /// list ///
 struct list_item<T>
 {
-    T& item;
+    T item;
     list_item<T>* prev;
     list_item<T>* next;
 };
@@ -404,7 +354,7 @@ struct list<T>
 /// list ///
 impl list <T>
 {
-    list<T>*% initialize(list<T>*% self) {
+    list<T>* initialize(list<T>* self) {
         self.head = null;
         self.tail = null;
         self.len = 0;
@@ -412,32 +362,17 @@ impl list <T>
         return self;
     }
 
-    void finalize(list<T>* self) {
-        list_item<T>* it = self->head;
-        while(it != null) {
-            if(isheap(T)) {
-                delete it.item;
-            }
-            auto prev_it = it;
-            it = it.next;
-            delete prev_it;
-        }
-    }
-    list<T>*% clone(list<T>* self) {
+    list<T>* clone(list<T>* self) {
         auto result = new list<T>.initialize();
 
         list_item<T>* it = self.head;
         while(it != null) {
-#ifdef WITH_GC
-            result.push_back(clone it.item);
-#else
-            if(isheap(T)) {
+            if(GC_is_heap_ptr(it.item)) {
                 result.push_back(clone it.item);
             }
             else {
-                result.push_back(dummy_heap it.item);
+                result.push_back(it.item);
             }
-#endif
 
             it = it.next;
         }
@@ -451,10 +386,8 @@ impl list <T>
     }
     void push_back(list<T>* self, T item) 
     {
-        managed item;
-
         if(self.len == 0) {
-            list_item<T>* litem = borrow new list_item<T>;
+            list_item<T>* litem = new list_item<T>;
 
             litem.prev = null;
             litem.next = null;
@@ -464,7 +397,7 @@ impl list <T>
             self.head = litem;
         }
         else if(self.len == 1) {
-            list_item<T>* litem = borrow new list_item<T>;
+            list_item<T>* litem = new list_item<T>;
 
             litem.prev = self.head;
             litem.next = null;
@@ -474,7 +407,7 @@ impl list <T>
             self.head.next = litem;
         }
         else {
-            list_item<T>* litem = borrow new list_item<T>;
+            list_item<T>* litem = new list_item<T>;
 
             litem.prev = self.tail;
             litem.next = null;
@@ -487,7 +420,7 @@ impl list <T>
         self.len++;
     }
     
-    T& item(list<T>* self, int position, T& default_value) 
+    T item(list<T>* self, int position, T default_value) 
     {
         if(position < 0) {
             position += self.len;
@@ -508,8 +441,6 @@ impl list <T>
 
     void insert(list<T>* self, int position, T item)
     {
-        managed item;
-
         if(position < 0) {
             position += self.len + 1;
         }
@@ -523,7 +454,7 @@ impl list <T>
         }
 
         if(position == 0) {
-            list_item<T>* litem = borrow new list_item<T>;
+            list_item<T>* litem = new list_item<T>;
 
             litem.prev = null;
             litem.next = self.head;
@@ -535,7 +466,7 @@ impl list <T>
             self.len++;
         }
         else if(self.len == 1) {
-            auto litem = borrow new list_item<T>;
+            auto litem = new list_item<T>;
 
             litem.prev = self.head;
             litem.next = self.tail;
@@ -551,7 +482,7 @@ impl list <T>
             auto i = 0;
             while(it != null) {
                 if(position == i) {
-                    list_item<T>* litem = borrow new list_item<T>;
+                    list_item<T>* litem = new list_item<T>;
 
                     litem.prev = it.prev;
                     litem.next = it;
@@ -572,12 +503,8 @@ impl list <T>
     void reset(list<T>* self) {
         list_item<T>* it = self.head;
         while(it != null) {
-            if(isheap(T)) {
-                delete it.item;
-            }
             auto prev_it = it;
             it = it.next;
-            delete prev_it;
         }
 
         self.head = null;
@@ -622,15 +549,10 @@ impl list <T>
             auto i = 0;
             while(it != null) {
                 if(i < tail) {
-                    if(isheap(T)) {
-                        delete it.item;
-                    }
                     list_item<T>* prev_it = it;
 
                     it = it.next;
                     i++;
-
-                    delete prev_it;
 
                     self.len--;
                 }
@@ -655,15 +577,10 @@ impl list <T>
                 }
 
                 if(i >= head) {
-                    if(isheap(T)) {
-                        delete it.item;
-                    }
                     list_item<T>* prev_it = it;
 
                     it = it.next;
                     i++;
-
-                    delete prev_it;
 
                     self.len--;
                 }
@@ -679,7 +596,6 @@ impl list <T>
             list_item<T>* head_prev_it = null;
             list_item<T>* tail_it = null;
 
-
             auto i = 0;
             while(it != null) {
                 if(i == head) {
@@ -691,15 +607,10 @@ impl list <T>
 
                 if(i >= head && i < tail) 
                 {
-                    if(isheap(T)) {
-                        delete it.item;
-                    }
                     list_item<T>* prev_it = it;
 
                     it = it.next;
                     i++;
-
-                    delete prev_it;
 
                     self.len--;
                 }
@@ -720,20 +631,14 @@ impl list <T>
 
     void replace(list<T>* self, int position, T item)
     {
-        managed item;
-
         if(position < 0) {
             position += self.len;
         }
 
         list_item<T>* it = self.head;
-        auto i = 0;
+        int i = 0;
         while(it != null) {
             if(position == i) {
-                if(isheap(T)) {
-                    delete it.item;
-                }
-
                 it.item = item;
                 break;
             }
@@ -742,7 +647,7 @@ impl list <T>
         }
     }
 
-    int find(list<T>* self, T& item, int default_value) {
+    int find(list<T>* self, T item, int default_value) {
         int it2 = 0;
         foreach(it, self) {
             if(it.equals(item)) {
@@ -754,8 +659,8 @@ impl list <T>
         return default_value;
     }
 
-    list<T>*% sublist(list<T>* self, int begin, int tail) {
-        list<T>%* result = new list<T>.initialize();
+    list<T>* sublist(list<T>* self, int begin, int tail) {
+        list<T>* result = new list<T>.initialize();
 
         if(begin < 0) {
             begin += self.len;
@@ -774,19 +679,15 @@ impl list <T>
         }
 
         list_item<T>* it = self.head;
-        auto i = 0;
+        int i = 0;
         while(it != null) {
             if(i >= begin && i < tail) {
-#ifdef WITH_GC
-                result.push_back(clone it.item);
-#else
-                if(isheap(T)) {
+                if(GC_is_heap_ptr(it.item)) {
                     result.push_back(clone it.item);
                 }
                 else {
-                    result.push_back(dummy_heap it.item);
+                    result.push_back(it.item);
                 }
-#endif
             }
             it = it.next;
             i++;
@@ -795,28 +696,24 @@ impl list <T>
         return result;
     }
 
-    list<T>*% reverse(list<T>* self) {
-        list<T>%* result = new list<T>.initialize();
+    list<T>* reverse(list<T>* self) {
+        list<T>* result = new list<T>.initialize();
 
         list_item<T>* it = self.tail;
         while(it != null) {
-#ifdef WITH_GC
-            result.push_back(clone it.item);
-#else
-            if(isheap(T)) {
+            if(GC_is_heap_ptr(it.item)) {
                 result.push_back(clone it.item);
             }
             else {
-                result.push_back(dummy_heap it.item);
+                result.push_back(it.item);
             }
-#endif
             it = it.prev;
         };
 
         return result;
     }
 
-    list<T>*% merge_list(list<T>* left, list<T>* right, int (*compare)(T&,T&)) {
+    list<T>* merge_list(list<T>* left, list<T>* right, int (*compare)(T,T)) {
         auto result = new list<T>.initialize();
 
         list_item<T>*? it = left.head;
@@ -832,31 +729,22 @@ impl list <T>
                 }
                 else if(compare(it.item, it2.item) <= 0) 
                 {
-#ifdef WITH_GC
-                    result.push_back(clone it.item);
-#else
-                    if(isheap(T)) {
+                    if(GC_is_heap_ptr(it.item)) {
                         result.push_back(clone it.item);
                     }
                     else {
-                        result.push_back(dummy_heap it.item);
+                        result.push_back(it.item);
                     }
-#endif
 
                     it = it.next;
                 }
                 else {
-#ifdef WITH_GC
-                    result.push_back(clone it2.item);
-#else
-                    if(isheap(T)) {
+                    if(GC_is_heap_ptr(it.item)) {
                         result.push_back(clone it2.item);
                     }
                     else {
-                        result.push_back(dummy_heap it2.item);
+                        result.push_back(it2.item);
                     }
-#endif
-
 
                     it2 = it2.next;
                 }
@@ -865,16 +753,12 @@ impl list <T>
             if(it == null) {
                 if(it2 != null) {
                     while(it2 != null) {
-#ifdef WITH_GC
-                        result.push_back(clone it2.item);
-#else
-                        if(isheap(T)) {
+                        if(GC_is_heap_ptr(it2.item)) {
                             result.push_back(clone it2.item);
                         }
                         else {
-                            result.push_back(dummy_heap it2.item);
+                            result.push_back(it2.item);
                         }
-#endif
 
                         it2 = it2.next;
                     }
@@ -884,16 +768,12 @@ impl list <T>
             else if(it2 == null) {
                 if(it != null) {
                     while(it != null) {
-#ifdef WITH_GC
-                        result.push_back(clone it.item);
-#else
-                        if(isheap(T)) {
+                        if(GC_is_heap_ptr(it.item)) {
                             result.push_back(clone it.item);
                         }
                         else {
-                            result.push_back(dummy_heap it.item);
+                            result.push_back(it.item);
                         }
-#endif
 
                         it = it.next;
                     }
@@ -904,7 +784,7 @@ impl list <T>
 
         return result;
     }
-    list<T>*% merge_sort(list<T>* self, int (*compare)(T&,T&)) {
+    list<T>* merge_sort(list<T>* self, int (*compare)(T&,T&)) {
         if(self.head == null) {
             return clone self;
         }
@@ -918,27 +798,19 @@ impl list <T>
         list_item<T>* it = self.head;
 
         while(true) {
-#ifdef WITH_GC
-            list1.push_back(clone it.item);
-#else
-            if(isheap(T)) {
+            if(GC_is_heap_ptr(it.item)) {
                 list1.push_back(clone it.item);
             }
             else {
-                list1.push_back(dummy_heap it.item);
+                list1.push_back(it.item);
             }
-#endif
 
-#ifdef WITH_GC
-            list2.push_back(clone it.next.item);
-#else
-            if(isheap(T)) {
+            if(GC_is_heap_ptr(it.next.item)) {
                 list2.push_back(clone it.next.item);
             }
             else {
-                list2.push_back(dummy_heap it.next.item);
+                list2.push_back(it.next.item);
             }
-#endif
 
             if(it.next.next == null) {
                 break;
@@ -947,56 +819,44 @@ impl list <T>
             it = it.next.next;
 
             if(it.next == null) {
-#ifdef WITH_GC
-                list1.push_back(clone it.item);
-#else
-                if(isheap(T)) {
+                if(GC_is_heap_ptr(it.item)) {
                     list1.push_back(clone it.item);
                 }
                 else {
-                    list1.push_back(dummy_heap it.item);
+                    list1.push_back(it.item);
                 }
-#endif
                 break;
             }
         }
 
         return list1.merge_sort(compare).merge_list( list2.merge_sort(compare), compare);
     }
-    list<T>*% sort(list<T>* self, int (*compare)(T&,T&)) {
+    list<T>* sort(list<T>* self, int (*compare)(T&,T&)) {
         return self.merge_sort(compare);
     }
 
-    list<T>*% uniq(list<T>* self) {
-        list<T>*% result = new list<T>.initialize();
+    list<T>* uniq(list<T>* self) {
+        list<T>* result = new list<T>.initialize();
 
         if(self.length() > 0) {
-            T& default_value;
-            T& item_before = self.item(0, default_value);
+            T default_value;
+            T item_before = self.item(0, default_value);
 
-#ifdef WITH_GC
-            result.push_back(clone item_before);
-#else
-            if(isheap(T)) {
+            if(GC_is_heap_ptr(item_before)) {
                 result.push_back(clone item_before);
             }
             else {
-                result.push_back(dummy_heap item_before);
+                result.push_back(item_before);
             }
-#endif
 
             foreach(it, self.sublist(1,-1)) {
                 if(!it.equals(item_before)) {
-#ifdef WITH_GC
-                    result.push_back(clone it);
-#else
-                    if(isheap(T)) {
+                    if(GC_is_heap_ptr(it)) {
                         result.push_back(clone it);
                     }
                     else {
-                        result.push_back(dummy_heap it);
+                        result.push_back(it);
                     }
-#endif
                 }
 
                 item_before = it;
@@ -1027,7 +887,7 @@ impl list <T>
         return true;
     }
 
-    T& begin(list<T>* self) {
+    T begin(list<T>* self) {
         self.it = self.head;
 
         if(self.it) {
@@ -1038,7 +898,7 @@ impl list <T>
         }
     }
 
-    T& next(list<T>* self) {
+    T next(list<T>* self) {
         self.it = self.it.next;
 
         if(self.it) {
@@ -1056,20 +916,16 @@ impl list <T>
 
 impl vector<T> 
 {
-    list<T>*% to_list(vector<T>* self) {
+    list<T>* to_list(vector<T>* self) {
         auto result = new list<T>.initialize();
         
         foreach(it, self) {
-#ifdef WITH_GC
-            result.push_back(clone it);
-#else
-            if(isheap(T)) {
+            if(GC_is_heap_ptr(it)) {
                 result.push_back(clone it);
             }
             else {
-                result.push_back(dummy_heap it);
+                result.push_back(it);
             }
-#endif
         }
         
         return result;
@@ -1078,9 +934,9 @@ impl vector<T>
 
 struct map<T, T2>
 {
-    T&* keys;
+    T* keys;
     bool* item_existance;
-    T2&* items;
+    T2* items;
     int size;
     int len;
 
@@ -1091,10 +947,10 @@ struct map<T, T2>
 
 impl map <T, T2>
 {
-    map<T,T2>*% initialize(map<T,T2>*% self) {
-        self.keys = borrow new T[MAP_TABLE_DEFAULT_SIZE];
-        self.items = borrow new T2[MAP_TABLE_DEFAULT_SIZE];
-        self.item_existance = borrow new bool[MAP_TABLE_DEFAULT_SIZE];
+    map<T,T2>* initialize(map<T,T2>* self) {
+        self.keys = new T[MAP_TABLE_DEFAULT_SIZE];
+        self.items = new T2[MAP_TABLE_DEFAULT_SIZE];
+        self.item_existance = new bool[MAP_TABLE_DEFAULT_SIZE];
 
         for(int i=0; i<MAP_TABLE_DEFAULT_SIZE; i++)
         {
@@ -1109,29 +965,8 @@ impl map <T, T2>
         return self;
     }
 
-    void finalize(map<T,T2>* self) {
-        for(int i=0; i<self.size; i++) {
-            if(self.item_existance[i]) {
-                if(isheap(T2)) {
-                    delete self.items[i];
-                }
-            }
-        }
-        delete self.items;
 
-        for(int i=0; i<self.size; i++) {
-            if(self.item_existance[i]) {
-                if(isheap(T)) {
-                    delete self.keys[i];
-                }
-            }
-        }
-        delete self.keys;
-
-        delete self.item_existance;
-    }
-
-    T2& at(map<T, T2>* self, T& key, T2& default_value) 
+    T2 at(map<T, T2>* self, T key, T2 default_value) 
     {
         int hash = ((T)key).get_hash_key() % self.size;
         int it = hash;
@@ -1163,15 +998,15 @@ impl map <T, T2>
 
     void rehash(map<T,T2>* self) {
         int size = self.size * 3;
-        T&* keys = borrow new T[size];
-        T2&* items = borrow new T2[size];
-        bool* item_existance = borrow new bool[size];
+        T* keys = new T[size];
+        T2* items = new T2[size];
+        bool* item_existance =  new bool[size];
 
         int len = 0;
 
         for(auto it = self.begin(); !self.end(); it = self.next()) {
-            T2& default_value;
-            T2& it2 = self.at(it, default_value);
+            T2 default_value;
+            T2 it2 = self.at(it, default_value);
             int hash = it.get_hash_key() % size;
             int n = hash;
 
@@ -1191,7 +1026,7 @@ impl map <T, T2>
                 else {
                     item_existance[n] = true;
                     keys[n] = it;
-                    T2& default_value;
+                    T2 default_value;
                     items[n] = self.at(it, default_value);
 
                     len++;
@@ -1199,10 +1034,6 @@ impl map <T, T2>
                 }
             }
         }
-
-        delete self.items;
-        delete self.item_existance;
-        delete self.keys;
 
         self.keys = keys;
         self.items = items;
@@ -1214,9 +1045,6 @@ impl map <T, T2>
 
     void insert(map<T,T2>* self, T key, T2 item) 
     {
-        managed key;
-        managed item;
-
         if(self.len*2 >= self.size) {
             self.rehash();
         }
@@ -1229,12 +1057,6 @@ impl map <T, T2>
             {
                 if(self.keys[it].equals(key)) 
                 {
-                    if(isheap(T)) {
-                        delete dummy_heap self.keys[it];
-                    }
-                    if(isheap(T2)) {
-                        delete dummy_heap self.items[it];
-                    }
                     self.keys[it] = key;
                     self.items[it] = item;
 
@@ -1263,44 +1085,36 @@ impl map <T, T2>
         }
     }
 
-    map<T, T2>*% clone(map<T, T2>* self)
+    map<T, T2>* clone(map<T, T2>* self)
     {
         auto result = new map<T,T2>.initialize();
 
         for(auto it = self.begin(); !self.end(); it = self.next()) {
-            T2& default_value;
+            T2 default_value;
             auto it2 = self.at(it, default_value);
 
-            if(isheap(T)) {
-#ifdef WITH_GC
-                result.insert(clone it, clone it2);
-#else
-                if(isheap(T2)) {
+            if(GC_is_heap_ptr(it)) {
+                if(GC_is_heap_ptr(it2)) {
                     result.insert(clone it, clone it2);
                 }
                 else {
-                    result.insert(clone it, dummy_heap it2);
+                    result.insert(clone it, it2);
                 }
-#endif
             }
             else {
-#ifdef WITH_GC
-                result.insert(dummy_heap it, clone it2);
-#else
-                if(isheap(T2)) {
-                    result.insert(dummy_heap it, clone it2);
+                if(GC_is_heap_ptr(it2)) {
+                    result.insert(it, clone it2);
                 }
                 else {
-                    result.insert(dummy_heap it, dummy_heap it2);
+                    result.insert(it, it2);
                 }
-#endif
             }
         }
 
         return result;
     }
 
-    bool find(map<T, T2>* self, T& key) {
+    bool find(map<T, T2>* self, T key) {
         int hash = ((T)key).get_hash_key() % self.size;
         int it = hash;
 
@@ -1338,11 +1152,11 @@ impl map <T, T2>
         bool result = true;
         foreach(it, left) {
             T2 default_value;
-            T2& it2 = left.at(it, default_value);
+            T2 it2 = left.at(it, default_value);
 
             if(right.find(it)) {
-                T2& default_value;
-                T2& item = right.at(it, default_value);
+                T2 default_value;
+                T2 item = right.at(it, default_value);
                 if(!it2.equals(item)) {
                     result = false;
                 }
@@ -1359,7 +1173,7 @@ impl map <T, T2>
         return self.len;
     }
 
-    T& begin(map<T, T2>* self) {
+    T begin(map<T, T2>* self) {
         self.it = 0;
         while(self.it < self.size) {
             if(self.item_existance[self.it]) {
@@ -1371,7 +1185,7 @@ impl map <T, T2>
         return null;
     }
 
-    T& next(map<T, T2>* self) {
+    T next(map<T, T2>* self) {
         while(self.it < self.size) {
             if(self.item_existance[self.it]) {
                 return self.keys[self.it++];
@@ -1406,30 +1220,20 @@ struct tuple1<T>
 
 impl tuple1 <T>
 {
-    tuple1<T>*% clone(tuple1<T>* self)
+    tuple1<T>* clone(tuple1<T>* self)
     {
-        tuple1<T>*% result = new tuple1<T>;
+        tuple1<T>* result = new tuple1<T>;
 
-#ifdef WITH_GC
-        result.v1 = clone self.v1;
-#else
-        if(isheap(T)) {
+        if(GC_is_heap_ptr(self.v1)) {
             result.v1 = clone self.v1;
         }
         else {
             result.v1 = self.v1;
         }
-#endif
 
         return result;
     }
 
-    void finalize(tuple1<T>* self)
-    {
-        if(isheap(T)) {
-            delete self.v1;
-        }
-    }
     bool equals(tuple1<T>* left, tuple1<T>* right)
     {
         if(!left.v1.equals(right.v1)) {
@@ -1448,40 +1252,26 @@ struct tuple2<T, T2>
 
 impl tuple2 <T, T2>
 {
-    tuple2<T,T2>*% clone(tuple2<T, T2>* self)
+    tuple2<T,T2>* clone(tuple2<T, T2>* self)
     {
-        tuple2<T,T2>*% result = new tuple2<T, T2>;
+        tuple2<T,T2>* result = new tuple2<T, T2>;
 
-#ifdef WITH_GC
-        result.v1 = clone self.v1;
-        result.v2 = clone self.v2;
-#else
-        if(isheap(T)) {
+        if(GC_is_heap_ptr(self.v1)) {
             result.v1 = clone self.v1;
         }
         else {
             result.v1 = self.v1;
         }
-        if(isheap(T2)) {
+        if(GC_is_heap_ptr(self.v2)) {
             result.v2 = clone self.v2;
         }
         else {
             result.v2 = self.v2;
         }
-#endif
 
         return result;
     }
 
-    void finalize(tuple2<T, T2>* self)
-    {
-        if(isheap(T)) {
-            delete self.v1;
-        }
-        if(isheap(T2)) {
-            delete self.v2;
-        }
-    }
     bool equals(tuple2<T, T2>* left, tuple2<T, T2>* right)
     {
         if(!left.v1.equals(right.v1)) {
@@ -1504,50 +1294,32 @@ struct tuple3<T, T2, T3>
 
 impl tuple3 <T, T2, T3>
 {
-    tuple3<T,T2, T3>*% clone(tuple3<T, T2, T3>* self)
+    tuple3<T,T2, T3>* clone(tuple3<T, T2, T3>* self)
     {
-        tuple3<T,T2,T3>*% result = new tuple3<T, T2, T3>;
+        tuple3<T,T2,T3>* result = new tuple3<T, T2, T3>;
 
-#ifdef WITH_GC
-        result.v1 = clone self.v1;
-        result.v2 = clone self.v2;
-        result.v3 = clone self.v3;
-#else
-        if(isheap(T)) {
+        if(GC_is_heap_ptr(self.v1)) {
             result.v1 = clone self.v1;
         }
         else {
             result.v1 = self.v1;
         }
-        if(isheap(T2)) {
+        if(GC_is_heap_ptr(self.v2)) {
             result.v2 = clone self.v2;
         }
         else {
             result.v2 = self.v2;
         }
-        if(isheap(T3)) {
+        if(GC_is_heap_ptr(self.v3)) {
             result.v3 = clone self.v3;
         }
         else {
             result.v3 = self.v3;
         }
-#endif
 
         return result;
     }
 
-    void finalize(tuple3<T, T2, T3>* self)
-    {
-        if(isheap(T)) {
-            delete self.v1;
-        }
-        if(isheap(T2)) {
-            delete self.v2;
-        }
-        if(isheap(T3)) {
-            delete self.v3;
-        }
-    }
     bool equals(tuple3<T, T2, T3>* left, tuple3<T, T2, T3>* right)
     {
         if(!left.v1.equals(right.v1)) {
@@ -1574,61 +1346,38 @@ struct tuple4<T, T2, T3, T4>
 
 impl tuple4 <T, T2, T3, T4>
 {
-    tuple4<T,T2, T3, T4>*% clone(tuple4<T, T2, T3, T4>* self)
+    tuple4<T,T2, T3, T4>* clone(tuple4<T, T2, T3, T4>* self)
     {
-        tuple4<T,T2,T3,T4>*% result = new tuple4<T, T2, T3, T4>;
+        tuple4<T,T2,T3,T4>* result = new tuple4<T, T2, T3, T4>;
 
-#ifdef WITH_GC
-        result.v1 = clone self.v1;
-        result.v2 = clone self.v2;
-        result.v3 = clone self.v3;
-        result.v4 = clone self.v4;
-#else
-        if(isheap(T)) {
+        if(GC_is_heap_ptr(self.v1)) {
             result.v1 = clone self.v1;
         }
         else {
             result.v1 = self.v1;
         }
-        if(isheap(T2)) {
+        if(GC_is_heap_ptr(self.v2)) {
             result.v2 = clone self.v2;
         }
         else {
             result.v2 = self.v2;
         }
-        if(isheap(T3)) {
+        if(GC_is_heap_ptr(self.v3)) {
             result.v3 = clone self.v3;
         }
         else {
             result.v3 = self.v3;
         }
-        if(isheap(T4)) {
+        if(GC_is_heap_ptr(self.v4)) {
             result.v4 = clone self.v4;
         }
         else {
             result.v4 = self.v4;
         }
-#endif
-
 
         return result;
     }
 
-    void finalize(tuple4<T, T2, T3, T4>* self)
-    {
-        if(isheap(T)) {
-            delete self.v1;
-        }
-        if(isheap(T2)) {
-            delete self.v2;
-        }
-        if(isheap(T3)) {
-            delete self.v3;
-        }
-        if(isheap(T4)) {
-            delete self.v4;
-        }
-    }
     bool equals(tuple4<T, T2, T3, T4>* left, tuple4<T, T2, T3, T4>* right)
     {
         if(!left.v1.equals(right.v1)) {
@@ -1654,19 +1403,14 @@ struct buffer {
     int size;
 };
 
-static buffer*% buffer_initialize(buffer*% self) 
+static buffer* buffer_initialize(buffer* self) 
 {
     self.size = 128;
-    self.buf = calloc(1, self.size);
+    self.buf = GC_malloc(self.size);
     self.buf[0] = '\0'
     self.len = 0;
 
     return self;
-}
-
-static void buffer_finalize(buffer* self)
-{
-    free(self.buf);
 }
 
 static int buffer_length(buffer* self) 
@@ -1678,7 +1422,7 @@ static void buffer_append(buffer* self, char* mem, size_t size)
 {
     if(self.len + size + 1 + 1 >= self.size) {
         int new_size = (self.size + size + 1) * 2;
-        self.buf = realloc(self.buf, new_size);
+        self.buf = GC_realloc(self.buf, new_size);
         self.size = new_size;
     }
 
@@ -1692,7 +1436,7 @@ static void buffer_append_char(buffer* self, char c)
 {
     if(self.len + 1 + 1 + 1 >= self.size) {
         int new_size = (self.size + 10 + 1) * 2;
-        self.buf = realloc(self.buf, new_size);
+        self.buf = GC_realloc(self.buf, new_size);
         self.size = new_size;
     }
 
@@ -1740,7 +1484,7 @@ static void buffer_alignment(buffer* self)
     
     if(len >= self.size) {
         int new_size = (self.size + 1 + 1) * 2;
-        self.buf = realloc(self.buf, new_size);
+        self.buf = GC_realloc(self.buf, new_size);
         self.size = new_size;
     }
 
@@ -1756,7 +1500,7 @@ static int buffer_compare(buffer* left, buffer* right)
     return strcmp(left.buf, right.buf);
 }
 
-static buffer*% char::to_buffer(char* self) 
+static buffer* char::to_buffer(char* self) 
 {
     auto result = new buffer.initialize();
 
@@ -1794,23 +1538,19 @@ static void int::times(int self, void* parent, void (*block)(void* parent))
 
 impl list<T>
 {
-    list<T>*% filter(list<T>* self, void* parent, bool (*block)(void*, T&))
+    list<T>* filter(list<T>* self, void* parent, bool (*block)(void*, T))
     {
         auto result = new list<T>.initialize();
 
         list_item<T>?* it = self.head;
         while(it != null) {
             if(block(parent, it.item)) {
-#ifdef WITH_GC
-                result.push_back(clone it.item);
-#else
-                if(isheap(T)) {
+                if(GC_is_heap_ptr(it.item)) {
                     result.push_back(clone it.item);
                 }
                 else {
-                    result.push_back(dummy_heap it.item);
+                    result.push_back(it.item);
                 }
-#endif
             }
 
             it = it.next;
@@ -1818,7 +1558,7 @@ impl list<T>
 
         return result;
     } 
-    list<T>* each(list<T>* self, void* parent, void (*block_)(void*, T&,int,bool*)) {
+    list<T>* each(list<T>* self, void* parent, void (*block_)(void*, T,int,bool*)) {
         list_item<T>?* it = self.head;
         int i = 0;
         while(it != null) {
@@ -1834,7 +1574,7 @@ impl list<T>
 
         return self;
     }
-    template <R> list<R>*% map(list<T>* self, void* parent, R (*block)(void*, T&))
+    template <R> list<R>* map(list<T>* self, void* parent, R (*block)(void*, T))
     {
         auto result = new list<R>.initialize();
 
@@ -1945,8 +1685,6 @@ static string xrealpath(char* path)
 }
 
 
-
-#define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 
 static void come_fd_zero(fd_set* fds)
 {

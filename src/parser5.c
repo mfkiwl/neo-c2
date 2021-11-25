@@ -754,21 +754,6 @@ BOOL parse_for(unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
-BOOL parse_delete(unsigned int* node, sParserInfo* info)
-{
-    unsigned int object_node;
-    BOOL no_comma_operator = info->no_comma_operator;
-    info->no_comma_operator = TRUE;
-    if(!expression(&object_node, FALSE, info)) {
-        return FALSE;
-    }
-    info->no_comma_operator = no_comma_operator;
-
-    *node = sNodeTree_create_delete(object_node, info);
-
-    return TRUE;
-}
-
 BOOL parse_select(unsigned int* node, sParserInfo* info)
 {
     int num_pipes = 0;
@@ -857,56 +842,6 @@ BOOL parse_pselect(unsigned int* node, sParserInfo* info)
     }
 
     *node = sNodeTree_create_pselect(num_pipes, pipes2, pipe_blocks, default_block, info);
-
-    return TRUE;
-}
-
-BOOL parse_borrow(unsigned int* node, sParserInfo* info)
-{
-    unsigned int object_node;
-    if(!expression(&object_node, FALSE, info)) {
-        return FALSE;
-    };
-
-    *node = sNodeTree_create_borrow(object_node, info);
-
-    return TRUE;
-}
-
-BOOL parse_nomove(unsigned int* node, sParserInfo* info)
-{
-    unsigned int object_node;
-    if(!expression(&object_node, FALSE, info)) {
-        return FALSE;
-    };
-
-    *node = sNodeTree_create_nomove(object_node, info);
-
-    return TRUE;
-}
-
-BOOL parse_dummy_heap(unsigned int* node, sParserInfo* info)
-{
-    unsigned int object_node;
-    if(!expression(&object_node, FALSE, info)) {
-        return FALSE;
-    };
-
-    *node = sNodeTree_create_dummy_heap(object_node, info);
-
-    return TRUE;
-}
-
-BOOL parse_managed(unsigned int* node, sParserInfo* info)
-{
-    char buf[VAR_NAME_MAX+1];
-
-    if(!parse_word(buf, VAR_NAME_MAX, info, TRUE, FALSE))
-    {
-        return FALSE;
-    };
-
-    *node = sNodeTree_create_managed(buf, info);
 
     return TRUE;
 }

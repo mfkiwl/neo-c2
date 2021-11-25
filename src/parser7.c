@@ -822,31 +822,6 @@ BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* in
                 return FALSE;
             }
         }
-        else if(strcmp(buf, "delete") == 0) {
-            if(!parse_delete(node, info)) {
-                return FALSE;
-            }
-        }
-        else if(strcmp(buf, "borrow") == 0) {
-            if(!parse_borrow(node, info)) {
-                return FALSE;
-            }
-        }
-        else if(strcmp(buf, "nomove") == 0) {
-            if(!parse_nomove(node, info)) {
-                return FALSE;
-            }
-        }
-        else if(strcmp(buf, "dummy_heap") == 0) {
-            if(!parse_dummy_heap(node, info)) {
-                return FALSE;
-            }
-        }
-        else if(strcmp(buf, "managed") == 0) {
-            if(!parse_managed(node, info)) {
-                return FALSE;
-            }
-        }
         else if(strcmp(buf, "alloca") == 0 || strcmp(buf, "__builtin_alloca") == 0) {
             if(!parse_alloca(node, info)) {
                 return FALSE;
@@ -870,11 +845,6 @@ BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* in
         }
         else if(strcmp(buf, "clone") == 0) {
             if(!parse_clone(node, info)) {
-                return FALSE;
-            }
-        }
-        else if(strcmp(buf, "isheap") == 0) {
-            if(!parse_is_heap(node, info)) {
                 return FALSE;
             }
         }

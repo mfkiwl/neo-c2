@@ -3,7 +3,7 @@
 #include <pcre.h>
 #include <sys/ioctl.h>
 
-typedef wchar_t*% wstring;
+typedef wchar_t* wstring;
 
 struct regex_struct 
 {
@@ -24,9 +24,9 @@ struct regex_struct
     pcre* re;
 };
 
-typedef regex_struct*% nregex;
+typedef regex_struct* nregex;
 
-regex_struct*% regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy)
+regex_struct* regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy)
 {
     auto result = new regex_struct;
 
@@ -96,7 +96,7 @@ bool char::match(char* self, regex_struct* reg, list<string>?* group_strings)
         else if(regex_result > 1) {
             group_strings.reset();
             for(int i = 1; i<regex_result; i++) {
-                auto match_string = borrow self.substring(start[i], end[i]);
+                auto match_string = self.substring(start[i], end[i]);
                 group_strings.push_back(match_string);
             }
 
@@ -260,7 +260,7 @@ string char::multiply(char* str, int n)
 {
     int len = strlen(str) * n + 1;
 
-    char*% result = new char[len];
+    char* result = new char[len];
 
     result[0] = '\0';
 
@@ -341,7 +341,7 @@ string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* gr
             }
 
             for(int i = 1; i<regex_result; i++) {
-                auto match_string = borrow self.substring(start[i], end[i]);
+                auto match_string = self.substring(start[i], end[i]);
                 group_strings.push_back(match_string);
             }
 
@@ -363,7 +363,7 @@ string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* gr
     return result.to_string();
 }
 
-list<string>*% char::scan(char* self, regex_struct* reg)
+list<string>* char::scan(char* self, regex_struct* reg)
 {
     auto result = new list<string>.initialize();
 
@@ -397,7 +397,7 @@ list<string>*% char::scan(char* self, regex_struct* reg)
         /// match and no group strings ///
         if(regex_result == 1)
         {
-            auto str = borrow self.substring(start[0], end[0]);
+            auto str = self.substring(start[0], end[0]);
             result.push_back(str);
 
             if(offset == end[0]) {
@@ -409,7 +409,7 @@ list<string>*% char::scan(char* self, regex_struct* reg)
         }
         /// group strings ///
         else if(regex_result > 1) {
-            auto str = borrow self.substring(start[0], end[0]);
+            auto str = self.substring(start[0], end[0]);
             result.push_back(str);
 
             if(offset == end[0]) {
@@ -420,7 +420,7 @@ list<string>*% char::scan(char* self, regex_struct* reg)
             }
 
             for(int i= 1; i<regex_result; i++) {
-                auto match_string = borrow self.substring(start[i], end[i]);
+                auto match_string = self.substring(start[i], end[i]);
                 result.push_back(match_string);
             }
         }
@@ -434,7 +434,7 @@ list<string>*% char::scan(char* self, regex_struct* reg)
     return result;
 }
 
-list<string>*% char::split(char* self, regex_struct* reg)
+list<string>* char::split(char* self, regex_struct* reg)
 {
     const char* err;
     int erro_ofs;
@@ -511,7 +511,7 @@ list<string>*% char::split(char* self, regex_struct* reg)
     return result;
 }
 
-list<string>*% char::split_char(string& self, char c) 
+list<string>* char::split_char(string& self, char c) 
 {
     auto result = new list<string>.initialize();
 
@@ -771,7 +771,7 @@ wstring int::multiply(wchar_t* str, int n)
 {
     int len = wcslen(str) * n + 1;
 
-    wchar_t*% result = new wchar_t[len];
+    wchar_t* result = new wchar_t[len];
 
     result[0] = '\0';
 

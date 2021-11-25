@@ -3,7 +3,7 @@
 #include <pcre.h>
 #include <sys/ioctl.h>
 
-typedef wchar_t*% wstring;
+typedef wchar_t* wstring;
 
 struct regex_struct 
 {
@@ -24,9 +24,9 @@ struct regex_struct
     pcre* re;
 };
 
-typedef regex_struct*% nregex;
+typedef regex_struct* nregex;
 
-regex_struct*% regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy);
+regex_struct* regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy);
 bool char::match(char* self, regex_struct* reg, list<string>?* group_strings);
 int char::index(char* str, char* search_str, int default_value);
 int char::rindex(char* str, char* search_str, int default_value);
@@ -35,9 +35,9 @@ int char::rindex_regex(char* self, regex_struct* reg, int default_value);
 void char::replace(char* self, int index, char c);
 string char::multiply(char* str, int n);
 string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings);
-list<string>*% char::scan(char* self, regex_struct* reg);
-list<string>*% char::split(char* self, regex_struct* reg);
-list<string>*% char::split_char(string& self, char c) ;
+list<string>* char::scan(char* self, regex_struct* reg);
+list<string>* char::split(char* self, regex_struct* reg);
+list<string>* char::split_char(string& self, char c) ;
 nregex char::to_regex(char* self) ;
 string char::printable(char* str);
 char* char::delete(char* str, int head, int tail) ;
