@@ -1,6 +1,6 @@
 # neo-c2
 
-The original C compiler. It has some compatibility with C language. It has a collection and string library using the original heap system or Boehm GC.
+The original C compiler. It has some compatibility with C language. It has a collection and string library using Boehm GC.
 
 オリジナルのCコンパイラ。C言語とある程度の互換性があります。BoehmGCを使ったコレクション、文字列ライブラリを備えます。
 
