@@ -485,7 +485,7 @@ impl vector<T>
     list<T>* to_list(vector<T>* self);
 }
 
-#define foreach(o1, o2) for(auto _obj = nomove (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
+#define foreach(o1, o2) for(auto _obj = (o2), auto o1 = _obj.begin(); !_obj.end(); o1 = _obj.next())
 ```
 
 ```
@@ -1397,9 +1397,9 @@ int main()
 }
 ```
 
-If you use these functions, add #include <neo-c2-pcre.h>. If you use -gc, nothing is required because it is automatically -lpcre, but by default -lpcre is required.
+If you use these functions, add #include <neo-c2-pcre.h>. 
 
-もしこれらの関数を使うときは#include <neo-c2-pcre.h>をつけてください。-gcを使う場合は何も自動的に-lpcreされるため必要ありませんが、デフォルトでは-lpcreが必要です。
+もしこれらの関数を使うときは#include <neo-c2-pcre.h>をつけてください。
 
 # Macro
 
