@@ -2,7 +2,7 @@
 
 The original C compiler. It has some compatibility with C language. It has a collection and string library using the original heap system or Boehm GC.
 
-オリジナルのCコンパイラ。C言語とある程度の互換性があります。オリジナルのヒープシステムもしくはBoehmGCを使ったコレクション、文字列ライブラリを備えます。
+オリジナルのCコンパイラ。C言語とある程度の互換性があります。BoehmGCを使ったコレクション、文字列ライブラリを備えます。
 
 This language is self-hosted.
 
