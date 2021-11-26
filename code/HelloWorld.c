@@ -137,30 +137,6 @@ void int_show(int self)
     printf("int_show %d\n", self);
 }
 
-struct sData2 {
-    int value1;
-    int value2;
-};
-
-sData2*% sData2(int value1, int value2)
-{
-    sData2*% self = new sData2;
-
-    self.value1 = value1;
-    self.value2 = value2;
-
-    return self;
-}
-
-void sData2_finalize(sData2* self)
-{
-    printf("finalize %d %d\n", self.value1, self.value2);
-}
-
-void sData2_show(sData2* self)
-{
-    printf("show %d %d\n", self.value1, self.value2);
-}
 
 struct GenericsType<T, T2> 
 {
@@ -210,114 +186,7 @@ struct Data <T>
     T b;
 };
 
-struct Data2<T,T2>
-{
-    T a;
-    T2 b;
-};
-
-impl Data2<T,T2>
-{
-    int fun(Data2<T,T2>* self) {
-        return 2;
-    }
-}
-
-impl Data <T>
-{
-    int fun(Data<T>* self,int a, int b) {
-        return a+b;
-    }
-
-    int fun2(Data<T>* self, int a, int b) {
-        Data2<T, char*>*% c = new Data2<int, char*>;
-        return c.fun();
-    }
-}
-
-struct sData3<T>
-{
-    T data;
-    T data2;
-};
-
-impl sData3<T>
-{
-    int fun(sData3<T>* self, T data)
-    {
-        self.data = data;
-
-        return self.data;
-    }
-}
-
-impl Data<T>
-{
-    void finalize(Data<T>* self) {
-        xassert("Data finalizer", true);
-    }
-}
-
-struct sData3<T>
-{
-    T data;
-    T data2;
-};
-
-struct sDataX <T>
-{
-    T data;
-};
-
-impl sData3<T>
-{
-    int fun(sData3<T>* self, T data)
-    {
-        T data2 = data;
-        sDataX<T>*% x = new sDataX<T>;
-
-        xassert("generics test", data2 == 123);
-
-        x.data = data;
-
-        xassert("generics test", x.data == 123);
-
-        self.data = data;
-
-        xassert("generics test", self.data == 123);
-
-        return x.data;
-    }
-}
-
-struct GData<T>
-{
-    T data;
-};
-
-impl GData<T>
-{
-    GData<T>*% initialize(GData<T>*% self)
-    {
-        self.data = 123;
-
-        return self;
-    }
-
-    void fun(GData<T>* self, char* a)
-    {
-    }
-    void fun2(GData<T>* self, char*% a)
-    {
-    }
-}
-
 inline void inline_funX(char* a)
-{
-    puts(a);
-}
-
-inline void inline_funX2(char*% a)
 {
     puts(a);
 }
@@ -325,16 +194,6 @@ inline void inline_funX2(char*% a)
 void normal_fun(char* a)
 {
     puts(a);
-}
-
-void normal_fun2(char*% a)
-{
-    puts(a);
-}
-
-char*% get_char()
-{
-    return new char[123];
 }
 
 enum AAA
@@ -682,98 +541,6 @@ test_label:
     ppp++;
 
     xassert("pointer sub test", ppp - array == 1);
-
-    int*% value = new int;
-
-    *value = 123
-
-    printf("value %d\n", *value);
-
-    sData2*% data = new sData2;
-
-    data.value1 = 111;
-    data.value2 = 222;
-
-    data.show();
-
-    3.show();
-
-    sData2*% data2 = sData2(123, 345);
-
-    data2.show();
-
-    GenericsType<int, char*>*% data4 = new GenericsType<int, char*>;
-
-    data4.item = 123;
-    data4.item2 = "aaa";
-
-    xassert("generics type", data4.item == 123 && strcmp(data4.item2, "aaa") == 0);
-
-    data4.fun();
-
-    xassert("generics method call", data4.fun2() == 124);
-
-    xassert("generics method call2", data4.fun3() == 126);
-
-    xassert("generics method call3", data4.fun4() == 3);
-
-    Data<int>*% axz = new Data<int>;
-
-    xassert("generics method call4", axz.fun2(1,2) == 2);
-
-    sData3<int>*% xyi = new sData3<int>;
-
-    xassert("generics mthod call5", xyi.fun(123) == 123);
-
-    GData<int>*% xvi = new GData<int>.initialize();
-
-    xassert("xvi", xvi.data == 123);
-
-    xvi.fun(new char[123]);
-    xvi.fun2(new char[123]);
-
-    char*% xy = new char[123];
-
-    xvi.fun(xy);
-    xvi.fun2(xy);
-
-    xvi.fun(get_char());
-    xvi.fun2(get_char());
-
-    normal_fun(new char[123]);
-    normal_fun2(new char[123]);
-
-    char*% azizi = new char[123];
-
-    normal_fun(azizi);
-    normal_fun2(azizi);
-
-    normal_fun(get_char());
-    normal_fun2(get_char());
-
-    char*% bzizi = new char[123];
-    char*% czizi = bzizi;
-    normal_fun2(czizi);
-
-    inline_funX(new char[123]);
-    inline_funX2(new char[123]);
-
-    inline_funX(get_char());
-    inline_funX2(get_char());
-
-    char*% aazizizizizzizi = new char[123];
-    inline_funX(aazizizizizzizi);
-
-    char*% bbziziizizizizizzi = new char[123];
-    inline_funX2(bbziziizizizizizzi);
-
-    int abibibibibi[3];
-
-    int* bbibibibibib = abibibibibi;
-
-    bbibibibibib[0] = 123;
-
-    xassert("pointer test", bbibibibibib[0] == 123);
 
     auto lam = int lambda(int x, int y) { return x + y };
 

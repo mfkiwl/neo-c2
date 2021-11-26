@@ -511,7 +511,7 @@ list<string>* char::split(char* self, regex_struct* reg)
     return result;
 }
 
-list<string>* char::split_char(string& self, char c) 
+list<string>* char::split_char(string self, char c) 
 {
     auto result = new list<string>.initialize();
 

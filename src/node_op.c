@@ -75,7 +75,6 @@ BOOL compile_add(unsigned int node, sCompileInfo* info)
         right_value = LLVMBuildMul(gBuilder, right_value, alloc_size_value, "mul");
 
         sNodeType* left_type2 = clone_node_type(left_type);
-        left_type2->mHeap = FALSE;
 
         LVALUE llvm_value;
         llvm_value.value = LLVMBuildAdd(gBuilder, left_value2, right_value, "add");
@@ -123,7 +122,6 @@ BOOL compile_add(unsigned int node, sCompileInfo* info)
         right_value = LLVMBuildMul(gBuilder, right_value, alloc_size_value, "mul");
 
         sNodeType* left_type2 = clone_node_type(left_type);
-        left_type2->mHeap = FALSE;
 
         LVALUE llvm_value;
         llvm_value.value = LLVMBuildAdd(gBuilder, left_value, right_value, "add");
@@ -258,7 +256,6 @@ BOOL compile_sub(unsigned int node, sCompileInfo* info)
         right_value = LLVMBuildMul(gBuilder, right_value, alloc_size_value, "mul");
 
         sNodeType* left_type2 = clone_node_type(left_type);
-        left_type2->mHeap = FALSE;
 
         LVALUE llvm_value;
         llvm_value.value = LLVMBuildSub(gBuilder, left_value, right_value, "sub");
@@ -371,7 +368,6 @@ BOOL compile_sub(unsigned int node, sCompileInfo* info)
         right_value = LLVMBuildMul(gBuilder, right_value, alloc_size_value, "mul");
 
         sNodeType* left_type2 = clone_node_type(left_type);
-        left_type2->mHeap = FALSE;
 
         LVALUE llvm_value;
         llvm_value.value = LLVMBuildSub(gBuilder, left_value, right_value, "sub");

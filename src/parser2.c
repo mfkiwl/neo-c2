@@ -43,7 +43,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
 
     *result_type = NULL;
 
-    BOOL heap = FALSE;
     BOOL nullable = FALSE;
     BOOL constant = FALSE;
     BOOL unsigned_ = FALSE;
@@ -54,7 +53,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
     BOOL volatile_ = FALSE;
     BOOL static_ = FALSE;
     BOOL signed_ = FALSE;
-    BOOL no_heap = FALSE;
     BOOL managed_ = FALSE;
     BOOL channel = FALSE;
     int pointer_num = 0;
@@ -487,7 +485,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
                     long_long = TRUE;
                 }
 
-                heap = (*result_type)->mHeap;
                 channel = (*result_type)->mChannel;
                 nullable = (*result_type)->mNullable;
                 constant = (*result_type)->mConstant;
@@ -495,7 +492,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
                 register_ = (*result_type)->mRegister;
                 volatile_ = (*result_type)->mVolatile;
                 //static_ = (*result_type)->mStatic;
-                no_heap = (*result_type)->mNoHeap;
                 pointer_num = (*result_type)->mPointerNum;
 
                 xstrncpy((*result_type)->mTypeName, type_name, VAR_NAME_MAX);
@@ -565,7 +561,7 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
     }
 
     if(definition_typedef && func_pointer_name) {
-        if(xisalpha(*info->p) || *info->p == '_' || *info->p == '*' || *info->p == '%' || *info->p == '(') 
+        if(xisalpha(*info->p) || *info->p == '_' || *info->p == '*' || *info->p == '(') 
         {
             char* p_before = info->p;
             int sline_before = info->sline;
@@ -575,13 +571,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
                     info->p++;
                     skip_spaces_and_lf(info);
                     (*result_type)->mPointerNum++;
-                }
-                else if(*info->p == '%') {
-                    info->p++;
-                    skip_spaces_and_lf(info);
-                    if(!gNCGC) {
-                        (*result_type)->mHeap = TRUE;
-                    }
                 }
                 else {
                     break;
@@ -1007,27 +996,11 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
             info->p++;
             skip_spaces_and_lf(info);
         }
-        else if(*info->p == '%') {
-            info->p++;
-            skip_spaces_and_lf(info);
-
-            if(!gNCGC) {
-                heap = TRUE;
-            }
-        }
         else if(*info->p == '@') {
             info->p++;
             skip_spaces_and_lf(info);
 
             channel = TRUE;
-        }
-        else if(*info->p == '&') {
-            info->p++;
-            skip_spaces_and_lf(info);
-
-            if(!gNCGC) {
-                no_heap = TRUE;
-            }
         }
         else if(*info->p == '$') {
             info->p++;
@@ -1072,7 +1045,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
     }
 
     (*result_type)->mPointerNum = pointer_num;
-    (*result_type)->mHeap = heap;
     (*result_type)->mChannel = channel;
     (*result_type)->mNullable = nullable;
     (*result_type)->mConstant = constant;
@@ -1081,7 +1053,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
     (*result_type)->mVolatile = volatile_;
     (*result_type)->mStatic = static_;
     (*result_type)->mUniq = uniq;
-    (*result_type)->mNoHeap = no_heap;
 
     if(strcmp((*result_type)->mTypeName, "") != 0)
     {

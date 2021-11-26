@@ -366,7 +366,7 @@ Vi* Vi::initialize(Vi* self) version 12;
 /// 13completion.h
 ///////////////////////////////////////////////////////////////////////////////
 void ViWin::completion(ViWin* self, Vi* nvi) version 13;
-wstring&? ViWin::selector2(ViWin* self, list<wstring>* lines);
+wstring? ViWin::selector2(ViWin* self, list<wstring>* lines);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 14dot.h

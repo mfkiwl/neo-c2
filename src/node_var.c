@@ -695,14 +695,6 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         }
     }
 
-    /// std::move ///
-    if(left_type->mHeap && right_type->mHeap) {
-        sVar* var = rvalue.var;
-        if(var) {
-            var->mLLVMValue = NULL;
-        }
-    }
-
     BOOL constant = var->mConstant;
 
     if(alloc) {
@@ -876,7 +868,6 @@ BOOL compile_clone(unsigned int node, sCompileInfo* info)
 
     sNodeType* left_type = clone_node_type(info->type);
     sNodeType* left_type2 = clone_node_type(left_type);
-    left_type2->mHeap = FALSE;
 
     LLVMValueRef obj = clone_object(left_type, lvalue.value, info);
 
@@ -1124,7 +1115,6 @@ BOOL compile_store_element(unsigned int node, sCompileInfo* info)
     else {
         var_type->mPointerNum-=num_dimention;
     }
-    var_type->mHeap = right_type->mHeap;
 
     if(is_typeof_type(var_type))
     {
@@ -2447,7 +2437,6 @@ BOOL compile_object(unsigned int node, sCompileInfo* info)
     }
 
     sNodeType* node_type2 = clone_node_type(node_type);
-    node_type2->mHeap = TRUE;
     node_type2->mPointerNum = 0;
 
     if(is_typeof_type(node_type2))
@@ -2580,7 +2569,6 @@ BOOL compile_object(unsigned int node, sCompileInfo* info)
         LLVMValueRef address = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "fun_result");
 
         node_type2->mPointerNum++;
-        node_type2->mHeap = FALSE;
 
         LLVMTypeRef llvm_type2 = create_llvm_type_from_node_type(node_type2);
 
@@ -2633,7 +2621,6 @@ BOOL compile_object(unsigned int node, sCompileInfo* info)
         LLVMValueRef address = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "fun_result");
 
         node_type2->mPointerNum++;
-        node_type2->mHeap = TRUE;
 
         LLVMTypeRef llvm_type2 = create_llvm_type_from_node_type(node_type2);
 
@@ -2682,7 +2669,6 @@ BOOL compile_stack_object(unsigned int node, sCompileInfo* info)
 
     sNodeType* node_type2 = clone_node_type(node_type);
     node_type2->mPointerNum++;
-    node_type2->mHeap = FALSE;
 
     if(is_typeof_type(node_type2))
     {
@@ -2917,14 +2903,6 @@ BOOL compile_store_field(unsigned int node, sCompileInfo* info)
         info->type = create_node_type_with_class_name("int"); // dummy
 
         return TRUE;
-    }
-
-    /// std::move ///
-    if(field_type->mHeap && right_type->mHeap) {
-        sVar* var = rvalue.var;
-        if(var) {
-            var->mLLVMValue = NULL;
-        }
     }
 
     LLVMValueRef field_address;
@@ -3175,7 +3153,6 @@ BOOL compile_load_field(unsigned int node, sCompileInfo* info)
 
                 return FALSE;
             }
-            field_type->mHeap = info->generics_type->mHeap;
         }
 
         LVALUE llvm_value;
@@ -3210,8 +3187,6 @@ BOOL compile_load_field(unsigned int node, sCompileInfo* info)
         info->type = clone_node_type(field_type);
     }
     
-
-//    info->type->mHeap = FALSE;
 
     return TRUE;
 }
@@ -3297,8 +3272,6 @@ BOOL compile_load_channel_element(unsigned int node, sCompileInfo* info)
     push_value_to_stack_ptr(&llvm_value, info);
 
     info->type = clone_node_type(element_type);
-
-    info->type->mHeap = FALSE;
 
     return TRUE;
 }
@@ -3945,8 +3918,6 @@ BOOL compile_load_element(unsigned int node, sCompileInfo* info)
         compile_err_msg(info, "come lang supports under 3 dimention array. this is %d dimetion", left_type->mArrayDimentionNum);
         return FALSE;
     }
-
-    info->type->mHeap = FALSE;
 
     return TRUE;
 }

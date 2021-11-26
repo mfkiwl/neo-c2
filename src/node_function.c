@@ -468,25 +468,6 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
         }
     }
 
-    /// std move //
-    for(i=0; i<fun->mNumParams; i++) {
-        LVALUE param = lvalue_params[i];
-
-        sNodeType* fun_param_type = clone_node_type(fun->mParamTypes[i]);
-        sNodeType* param_type = param_types[i];
-
-        if(!solve_type(&fun_param_type, generics_type, num_method_generics_types, method_generics_types, info)) {
-            return FALSE;
-        }
-
-        if(fun_param_type->mHeap && param.type->mHeap && !param.type->mDummyHeap) {
-            sVar* var = param.var;
-            if(var) {
-                var->mLLVMValue = NULL;
-            }
-        }
-    }
-
     if(strcmp(fun_name, "llvm.va_start") == 0 || strcmp(fun_name, "llvm.va_end") == 0)
     {
 #ifdef __DARWIN__

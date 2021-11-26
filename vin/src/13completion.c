@@ -17,9 +17,9 @@ static bool int_equals(wchar_t* left, wchar_t* right)
     return wcscmp(left, right) == 0;
 }
 
-wstring&? ViWin::selector2(ViWin* self, list<wstring>* lines) 
+wstring? ViWin::selector2(ViWin* self, list<wstring>* lines) 
 {
-    wstring&? result = null;
+    wstring? result = null;
 
     bool end_of_select = false;
     bool canceled = false;

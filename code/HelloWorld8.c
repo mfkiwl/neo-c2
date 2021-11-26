@@ -46,7 +46,7 @@ int main(int argc, char** argv)
         printf("a %d\n", *parent.a);
     }
 
-    sStruct<int>*% data = new sStruct<int>;
+    sStruct<int>* data = new sStruct<int>;
     data.fun(123, __stack__, void lambda(__current__* parent, int a) {
         printf("%d\n", a);
     });

@@ -784,7 +784,7 @@ impl list <T>
 
         return result;
     }
-    list<T>* merge_sort(list<T>* self, int (*compare)(T&,T&)) {
+    list<T>* merge_sort(list<T>* self, int (*compare)(T,T)) {
         if(self.head == null) {
             return clone self;
         }
@@ -831,7 +831,7 @@ impl list <T>
 
         return list1.merge_sort(compare).merge_list( list2.merge_sort(compare), compare);
     }
-    list<T>* sort(list<T>* self, int (*compare)(T&,T&)) {
+    list<T>* sort(list<T>* self, int (*compare)(T,T)) {
         return self.merge_sort(compare);
     }
 
