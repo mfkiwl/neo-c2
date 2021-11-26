@@ -473,11 +473,6 @@ BOOL compile_lambda_call(unsigned int node, sCompileInfo* info)
         push_value_to_stack_ptr(&llvm_value, info);
 
         info->type = result_type;
-
-
-        if(result_type->mHeap) {
-            append_object_to_right_values(llvm_value.value, result_type, info);
-        }
     }
 
     return TRUE;

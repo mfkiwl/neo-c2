@@ -302,12 +302,8 @@ void show_vtable_current_only(sVarTable* table);
 
 int get_parent_var_num_of_sum(sVarTable* table);
 
-void free_objects(sVarTable* table, struct sCompileInfoStruct* info);
-
 // result: (null) not found (sVar*) found
 sVar* get_variable_from_this_table_only(sVarTable* table, char* name);
-
-void free_objects_on_return(struct sNodeBlockStruct* current_node_block, struct sCompileInfoStruct* info, LLVMValueRef ret_value, BOOL top_block);
 
 //////////////////////////////
 /// node_block.c
@@ -548,8 +544,6 @@ struct sCompileInfoStruct
 
     int mBlockLevel;
 
-    BOOL prevent_from_free_right_value_objects;
-
     struct sNodeBlockStruct* current_node_block;
 
     struct sNodeBlockStruct* function_node_block;
@@ -575,8 +569,6 @@ struct sCompileInfoStruct
     int generics_sline;
 
     LLVMBasicBlockRef block_after_creating_generics;
-
-    struct sRightValueObject* right_value_objects;
 
     BOOL in_thread_function;
 
@@ -880,14 +872,6 @@ void append_node_to_node_block(sNodeBlock* node_block, unsigned int node);
 
 void compile_err_msg(sCompileInfo* info, const char* msg, ...);
 LLVMValueRef clone_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info);
-void free_object(sNodeType* node_type, LLVMValueRef address, sCompileInfo* info);
-void free_object_on_return(struct sNodeBlockStruct* current_node_block, struct sCompileInfoStruct* info, BOOL top_block);
-void free_right_value_objects(sCompileInfo* info);
-
-void clear_right_value_objects(sCompileInfo* info);
-void append_object_to_right_values(LLVMValueRef obj, sNodeType* node_type, sCompileInfo* info);
-void remove_object_from_right_values(LLVMValueRef obj, sCompileInfo* info);
-BOOL is_right_values(LLVMValueRef obj, sCompileInfo* info);
 
 void show_node(unsigned int node);
 BOOL compile(unsigned int node, sCompileInfo* info);

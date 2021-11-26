@@ -16,200 +16,8 @@ char gFunctionName[VAR_NAME_MAX];
 LVALUE* gLLVMStack;
 LVALUE* gLLVMStackHead;
 
-void clear_right_value_objects(sCompileInfo* info)
-{
-    struct sRightValueObject* it = info->right_value_objects;
-    while(it) {
-        struct sRightValueObject* it_next = it->next;
-        free(it);
-        it = it_next;
-    }
-
-    info->right_value_objects = NULL;
-}
-
-void append_object_to_right_values(LLVMValueRef obj, sNodeType* node_type, sCompileInfo* info)
-{
-    struct sRightValueObject* new_list_item = calloc(1, sizeof(struct sRightValueObject));
-    new_list_item->obj = obj;
-    new_list_item->node_type = clone_node_type(node_type);
-    new_list_item->next = info->right_value_objects;
-    new_list_item->freed = FALSE;
-    xstrncpy(new_list_item->fun_name, gFunctionName, VAR_NAME_MAX);
-    info->right_value_objects = new_list_item;
-}
-
-void remove_object_from_right_values(LLVMValueRef obj, sCompileInfo* info)
-{
-    struct sRightValueObject* it = info->right_value_objects;
-    struct sRightValueObject* it_before = NULL;
-    while(it) {
-        struct sRightValueObject* it_next = it->next;
-
-        if(it->obj == obj) {
-            if(it_before == NULL) {
-                info->right_value_objects = it_next;
-                free(it);
-                it_before = NULL;
-            }
-            else {
-                it_before->next = it_next;
-                free(it);
-            }
-
-            it = it_next;
-        }
-        else {
-            it_before = it;
-            it = it_next;
-        }
-    }
-}
-
-BOOL is_right_values(LLVMValueRef obj, sCompileInfo* info)
-{
-    struct sRightValueObject* it = info->right_value_objects;
-    while(it) {
-        if(it->obj == obj) {
-            return TRUE;
-        }
-        it = it->next;
-    }
-
-    return FALSE;
-}
-
-void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info);
-
-void free_right_value_objects(sCompileInfo* info)
-{
-    struct sRightValueObject* it = info->right_value_objects;
-
-    while(it) {
-        struct sRightValueObject* it_next = it->next;
-        if(!it->freed) {
-            if(strcmp(it->fun_name, gFunctionName) == 0) {
-                sNodeType* node_type = clone_node_type(it->node_type);
-
-                if(is_typeof_type(node_type))
-                {
-                    if(!solve_typeof(&node_type, info))
-                    {
-                        compile_err_msg(info, "Can't solve typeof types");
-                        show_node_type(node_type);
-                        info->err_num++;
-                        return;
-                    }
-                }
-
-                if(info->generics_type) {
-                    if(!solve_generics(&node_type, info->generics_type)) 
-                    {
-                        compile_err_msg(info, "Can't solve generics types(3)");
-                        show_node_type(node_type);
-                        show_node_type(info->generics_type);
-                        info->err_num++;
-
-                        return;
-                    }
-                }
-
-                free_object(node_type, it->obj, info);
-
-                it->freed = TRUE;
-            }
-        }
-
-        it = it_next;
-    }
-}
-
 LLVMTypeRef create_llvm_type_with_class_name(char* class_name);
 sFunction* get_function_from_table(char* name);
-
-void free_object(sNodeType* node_type, LLVMValueRef obj, sCompileInfo* info)
-{
-    if(node_type->mPointerNum > 0) {
-        sCLClass* klass = node_type->mClass;
-
-        char* class_name = CLASS_NAME(klass);
-
-        char fun_name[VAR_NAME_MAX];
-        snprintf(fun_name, VAR_NAME_MAX, "%s_finalize", class_name);
-
-        int i;
-        sFunction* finalizer = NULL;
-        for(i=FUN_VERSION_MAX-1; i>=1; i--) {
-            char new_fun_name[VAR_NAME_MAX];
-            snprintf(new_fun_name, VAR_NAME_MAX, "%s_v%d", fun_name, i);
-            finalizer = get_function_from_table(new_fun_name);
-            
-            if(finalizer) {
-                xstrncpy(fun_name, new_fun_name, VAR_NAME_MAX);
-                break;
-            }
-        }
-        
-        if(finalizer == NULL) {
-            finalizer = get_function_from_table(fun_name);
-        }
-
-        if(node_type->mHeap && finalizer != NULL) {
-            if(finalizer->mGenericsFunction) {
-                LLVMValueRef llvm_fun = NULL;
-
-                if(!create_generics_function(&llvm_fun, finalizer, fun_name, node_type, 0, NULL, info)) {
-                    fprintf(stderr, "can't craete generics finalizer %s\n", fun_name);
-                    return;
-                }
-
-                int num_params = 1;
-
-                LLVMValueRef llvm_params[PARAMS_MAX];
-                memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
-
-                llvm_params[0] = obj;
-
-                LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
-            }
-            else {
-                int num_params = 1;
-
-                LLVMValueRef llvm_params[PARAMS_MAX];
-                memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
-
-                llvm_params[0] = obj;
-
-                LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
-                LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
-            }
-        }
-
-        /// free ///
-        int num_params = 1;
-
-        LLVMValueRef llvm_params[PARAMS_MAX];
-        memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
-
-
-        char* fun_name2 = "free";
-        //char* fun_name2 = "ncfree";
-
-        LLVMTypeRef llvm_type = create_llvm_type_with_class_name("char*");
-
-        obj = LLVMBuildCast(gBuilder, LLVMBitCast, obj, llvm_type, "castAK");
-
-        llvm_params[0] = obj;
-
-        LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name2);
-        LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "");
-
-        /// remove right value objects from list
-        //remove_object_from_right_values(obj, info);
-    }
-}
-
-
 
 LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type);
 
@@ -3069,10 +2877,7 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
 
     BOOL last_expression_is_return = FALSE;
 
-    clear_right_value_objects(info);
-
     if(block->mNumNodes == 0) {
-        free_right_value_objects(info);
         info->type = create_node_type_with_class_name("void");
     }
     else {
@@ -3127,18 +2932,10 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
             else {
                 last_expression_is_return = FALSE;
             }
-
-            if(!last_expression_is_return) {
-                free_right_value_objects(info);
-            }
         }
 
 
         info->last_expression_is_return = last_expression_is_return;
-    }
-
-    if(!info->last_expression_is_return) {
-        free_objects(info->pinfo->lv_table, info);
     }
 
     info->pinfo->sline = sline_before;

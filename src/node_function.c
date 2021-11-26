@@ -571,10 +571,6 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
             {
                 return FALSE;
             }
-
-            if(fun_param_type->mHeap) {
-                remove_object_from_right_values(llvm_params[i], info);
-            }
         }
 
         LLVMValueRef llvm_fun= NULL;
@@ -609,10 +605,6 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
             push_value_to_stack_ptr(&llvm_value, info);
 
             info->type = clone_node_type(result_type);
-
-            if(result_type->mHeap) {
-                append_object_to_right_values(llvm_value.value, result_type, info);
-            }
         }
 
     }
@@ -698,10 +690,6 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
                     return FALSE;
                 }
 
-                if(node_type->mHeap) {
-                    remove_object_from_right_values(llvm_params[i], info);
-                }
-
                 var->mLLVMValue = param;
             }
         }
@@ -716,9 +704,6 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
         LLVMBasicBlockRef inline_func_end_before = info->inline_func_end;
         LLVMBasicBlockRef inline_func_end = LLVMAppendBasicBlockInContext(gContext, gFunction, fun_end_label);
         info->inline_func_end = inline_func_end;
-
-        struct sRightValueObject* right_value_objects = info->right_value_objects;
-        info->right_value_objects = NULL;
 
         sNodeType* come_function_result_type = gComeFunctionResultType;
         gComeFunctionResultType = clone_node_type(fun->mResultType);
@@ -737,8 +722,6 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
 
         llvm_change_block(inline_func_end, info);
 
-        info->right_value_objects = right_value_objects;
-
         if(type_identify_with_class_name(result_type, "void") && result_type->mPointerNum == 0) {
             dec_stack_ptr(num_params, info);
 
@@ -755,10 +738,6 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
 
             dec_stack_ptr(num_params, info);
             push_value_to_stack_ptr(&llvm_value, info);
-
-            if(result_type->mHeap) {
-                append_object_to_right_values(llvm_value.value, result_type, info);
-            }
         }
 
         info->type = clone_node_type(result_type);
@@ -773,10 +752,6 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
 
             if(!solve_type(&node_type, generics_type, num_method_generics_types, method_generics_types, info)) {
                 return FALSE;
-            }
-
-            if(node_type->mHeap) {
-                remove_object_from_right_values(llvm_params[i], info);
             }
         }
 
@@ -818,10 +793,6 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
             push_value_to_stack_ptr(&llvm_value, info);
 
             info->type = clone_node_type(result_type);
-
-            if(result_type->mHeap) {
-                append_object_to_right_values(llvm_value.value, result_type, info);
-            }
         }
     }
 

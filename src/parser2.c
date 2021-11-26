@@ -487,15 +487,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
                     long_long = TRUE;
                 }
 
-                BOOL remove_heap_mark = FALSE;
-                if(*info->p == '&') {
-                    info->p++;
-                    skip_spaces_and_lf(info);
-                    if(!gNCGC) {
-                        remove_heap_mark = TRUE;
-                    }
-                }
-
                 heap = (*result_type)->mHeap;
                 channel = (*result_type)->mChannel;
                 nullable = (*result_type)->mNullable;
@@ -506,10 +497,6 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
                 //static_ = (*result_type)->mStatic;
                 no_heap = (*result_type)->mNoHeap;
                 pointer_num = (*result_type)->mPointerNum;
-
-                if(remove_heap_mark) {
-                   heap = FALSE; 
-                }
 
                 xstrncpy((*result_type)->mTypeName, type_name, VAR_NAME_MAX);
             }

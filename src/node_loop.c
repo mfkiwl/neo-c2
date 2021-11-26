@@ -222,8 +222,6 @@ BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
     }
     LLVMBasicBlockRef cond_end_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "cond_end");
 
-    free_right_value_objects(info);
-
     if(elif_num > 0) {
         LLVMBuildCondBr(gBuilder, conditional_value.value, cond_then_block, cond_elif_block[0]);
     }
@@ -293,8 +291,6 @@ BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
 
                 return TRUE;
             }
-
-            free_right_value_objects(info);
 
             if(i == elif_num-1) {
                 if(else_node_block) {
@@ -447,8 +443,6 @@ BOOL compile_while_expression(unsigned int node, sCompileInfo* info)
 
         return TRUE;
     }
-
-    free_right_value_objects(info);
 
     LLVMBuildCondBr(gBuilder, conditional_value.value, cond_then_block, cond_end_block);
 
@@ -639,8 +633,6 @@ BOOL compile_and_and(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    free_right_value_objects(info);
-
     sNodeType* left_type = info->type;
 
     LVALUE conditional_value = *get_value_from_stack(-1);
@@ -685,8 +677,6 @@ BOOL compile_and_and(unsigned int node, sCompileInfo* info)
     if(!compile(right_node, info)) {
         return FALSE;
     }
-
-    free_right_value_objects(info);
 
     sNodeType* right_type = info->type;
 
@@ -775,8 +765,6 @@ BOOL compile_or_or(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    free_right_value_objects(info);
-
     sNodeType* left_type = info->type;
 
     LVALUE conditional_value = *get_value_from_stack(-1);
@@ -820,8 +808,6 @@ BOOL compile_or_or(unsigned int node, sCompileInfo* info)
     if(!compile(right_node, info)) {
         return FALSE;
     }
-
-    free_right_value_objects(info);
 
     sNodeType* right_type = info->type;
 
@@ -919,7 +905,6 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
     /// compile expression ///
     LLVMBasicBlockRef loop_top_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "loop_top_block");
-    free_right_value_objects(info);
 
     LLVMBuildBr(gBuilder, loop_top_block);
 
@@ -994,7 +979,6 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
         return TRUE;
     }
-    free_right_value_objects(info);
 
     LLVMBuildCondBr(gBuilder, conditional_value.value, cond_then_block, cond_end_block);
 
@@ -1028,7 +1012,6 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     }
 
     if(!info->last_expression_is_return) {
-        free_right_value_objects(info);
         LLVMBuildBr(gBuilder, loop_top_block);
     }
 
@@ -1039,7 +1022,6 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     llvm_change_block(cond_end_block, info);
     info->num_loop--;
 
-    free_objects(info->pinfo->lv_table, info);
     info->pinfo->lv_table = lv_table_before;
 
     info->type = create_node_type_with_class_name("void");
@@ -1087,20 +1069,11 @@ BOOL compile_return(unsigned int node, sCompileInfo* info)
             cast_right_type_to_left_type(result_type, &right_type, &llvm_value, info);
         }
 
-        if(result_type->mHeap) {
-            remove_object_from_right_values(llvm_value.value, info);
-        }
-
-        free_right_value_objects(info);
-
         if(info->in_inline_function) {
-            free_objects_on_return(info->function_node_block, info, llvm_value.address, FALSE);
             LLVMBuildStore(gBuilder, llvm_value.value, info->inline_result_variable);
             LLVMBuildBr(gBuilder, info->inline_func_end);
         }
         else {
-            free_objects_on_return(info->function_node_block, info, llvm_value.address, TRUE);
-
             if(info->defer_block) {
                 LLVMBuildBr(gBuilder, info->defer_block);
                 llvm_change_block(info->defer_block, info);
@@ -1112,15 +1085,10 @@ BOOL compile_return(unsigned int node, sCompileInfo* info)
         dec_stack_ptr(1, info);
     }
     else {
-        free_right_value_objects(info);
-
         if(info->in_inline_function) {
-            free_objects_on_return(info->function_node_block, info, NULL, FALSE);
             LLVMBuildBr(gBuilder, info->inline_func_end);
         }
         else {
-            free_objects_on_return(info->function_node_block, info, NULL, TRUE);
-
             if(info->defer_block) {
                 LLVMBuildBr(gBuilder, info->defer_block);
                 llvm_change_block(info->defer_block, info);
@@ -1442,11 +1410,6 @@ BOOL compile_break_expression(unsigned int node, sCompileInfo* info)
     LLVMBasicBlockRef loop_end_block = (LLVMBasicBlockRef)info->loop_end_block[info->num_loop-1];
     //info->num_loop--;
 
-    if(info->switch_expression == NULL && info->current_node_block) {
-        free_objects_on_return(info->current_node_block, info, NULL, TRUE);
-    }
-    free_right_value_objects(info);
-
     LLVMBuildBr(gBuilder, loop_end_block);
 
     LLVMBasicBlockRef after_break = LLVMAppendBasicBlockInContext(gContext, gFunction, "after_break");
@@ -1488,7 +1451,6 @@ BOOL compile_continue_expression(unsigned int node, sCompileInfo* info)
     LLVMBasicBlockRef loop_begin_block = (LLVMBasicBlockRef)info->loop_begin_block[info->num_loop2-1];
     info->num_loop2--;
 
-    free_right_value_objects(info);
     LLVMBuildBr(gBuilder, loop_begin_block);
 
     LLVMBasicBlockRef after_continue = LLVMAppendBasicBlockInContext(gContext, gFunction, "after_continue");
@@ -1532,7 +1494,6 @@ BOOL compile_label_expression(unsigned int node, sCompileInfo* info)
         }
     }
 
-    free_right_value_objects(info);
     LLVMBuildBr(gBuilder, block);
 
     llvm_change_block(block, info);
@@ -1572,7 +1533,6 @@ BOOL compile_goto_expression(unsigned int node, sCompileInfo* info)
         return FALSE;
     }
 
-    free_right_value_objects(info);
     LLVMBuildBr(gBuilder, block);
 
     LLVMBasicBlockRef block2 = LLVMAppendBasicBlockInContext(gContext, gFunction, "after goto");
@@ -1681,7 +1641,6 @@ BOOL compile_conditional(unsigned int node, sCompileInfo* info)
         LLVMBasicBlockRef cond_else_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "cond_else_block");
 
         LLVMBasicBlockRef cond_end_block = LLVMAppendBasicBlockInContext(gContext, gFunction, "cond_end");
-        free_right_value_objects(info);
 
         LLVMBuildCondBr(gBuilder, conditional_value.value, cond_then_block, cond_else_block);
 
@@ -1699,7 +1658,6 @@ BOOL compile_conditional(unsigned int node, sCompileInfo* info)
 
         sNodeType* value1_result_type = clone_node_type(info->type);
 
-        free_right_value_objects(info);
         LVALUE value1;
         LLVMValueRef result_value;
         int result_value_alignment;
@@ -1759,7 +1717,6 @@ BOOL compile_conditional(unsigned int node, sCompileInfo* info)
         {
             return FALSE;
         }
-        free_right_value_objects(info);
 
         LVALUE value2;
         if(type_identify_with_class_name(info->type, "void")) {

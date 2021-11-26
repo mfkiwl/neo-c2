@@ -710,10 +710,6 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
             var->mLLVMValue = rvalue.value;
 
             info->type = left_type;
-
-            if(left_type->mHeap) {
-                remove_object_from_right_values(rvalue.value, info);
-            }
         }
         else if(global) {
             LLVMValueRef global = LLVMGetNamedGlobal(gModule, var_name);
@@ -744,10 +740,6 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
             var->mLLVMValue = alloca_value;
 
             info->type = left_type;
-
-            if(left_type->mHeap) {
-                remove_object_from_right_values(rvalue.value, info);
-            }
         }
         else if(static_) {
             LLVMTypeRef llvm_type = create_llvm_type_from_node_type(left_type);
@@ -771,10 +763,6 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
                 var->mLLVMValue = alloca_value;
 
                 info->type = left_type;
-
-                if(left_type->mHeap) {
-                    remove_object_from_right_values(rvalue.value, info);
-                }
             }
         }
         else {
@@ -803,18 +791,10 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
             var->mLLVMValue = alloca_value;
 
             info->type = left_type;
-
-            if(left_type->mHeap) {
-                remove_object_from_right_values(rvalue.value, info);
-            }
         }
     }
     else if(constant) {
         var->mLLVMValue = rvalue.value;
-
-        if(left_type->mHeap) {
-            remove_object_from_right_values(rvalue.value, info);
-        }
 
         info->type = left_type;
     }
@@ -832,10 +812,6 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
         LLVMBuildStore(gBuilder, rvalue.value, alloca_value);
 
         info->type = left_type;
-
-        if(left_type->mHeap) {
-            remove_object_from_right_values(rvalue.value, info);
-        }
     }
 
     return TRUE;
@@ -2621,8 +2597,6 @@ BOOL compile_object(unsigned int node, sCompileInfo* info)
 
         push_value_to_stack_ptr(&llvm_value, info);
 
-        //append_object_to_right_values(address, node_type2, info);
-
         info->type = clone_node_type(node_type2);
     }
     else {
@@ -2675,8 +2649,6 @@ BOOL compile_object(unsigned int node, sCompileInfo* info)
         llvm_value.load_field = FALSE;
 
         push_value_to_stack_ptr(&llvm_value, info);
-
-        append_object_to_right_values(address, node_type2, info);
 
         info->type = clone_node_type(node_type2);
     }
@@ -2953,10 +2925,6 @@ BOOL compile_store_field(unsigned int node, sCompileInfo* info)
         if(var) {
             var->mLLVMValue = NULL;
         }
-    }
-    
-    if(field_type->mHeap) {
-        remove_object_from_right_values(rvalue.value, info);
     }
 
     LLVMValueRef field_address;
