@@ -20,6 +20,7 @@ static bool int_equals(wchar_t left, wchar_t right)
 
 void mreset_tty()
 {
+/*
     struct termios t;
 
     t.c_cc[VINTR] =  3;
@@ -53,8 +54,9 @@ void mreset_tty()
 
     int fd = open("/dev/tty", O_RDWR);
 
-    tcsetattr(fd, TCSANOW, &t);
-    //system("tset");
+ //   tcsetattr(fd, TCSANOW, &t);
+ */
+    system("tset");
 }
 
 ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* vi) version 14
