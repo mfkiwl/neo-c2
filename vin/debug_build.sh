@@ -1,1 +1,1 @@
-./configure --with-debug && make && sudo make install
+./configure --with-debug && make && sudo make uninstall && sudo make install
