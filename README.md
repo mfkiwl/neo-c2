@@ -133,6 +133,7 @@ cd neo-c2
 
 ./configure --with-optimize
 make
+sudo make uninstall
 sudo make install
 make test
 
@@ -152,6 +153,7 @@ cd neo-c2
 
 ./configure --with-optimize
 make no-self-host
+sudo make uninstall
 sudo make install
 make test
 
@@ -171,6 +173,7 @@ cd neo-c2
 
 ./configure --with-optimize --prefix=$HOME
 make
+sudo make uninstall
 sudo make install
 make test
 
@@ -190,6 +193,7 @@ cd neo-c2
 
 ./configure --with-debug
 make
+sudo make uninstall
 sudo make install
 make test
 
@@ -209,6 +213,7 @@ cd neo-c2
 
 ./configure --with-debug
 make no-self-host
+sudo make uninstall
 sudo make install
 make test
 
