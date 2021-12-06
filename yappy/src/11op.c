@@ -1,0 +1,121 @@
+#include "common.h"
+#include <ctype.h>
+
+static sNode* create_equal_node(sNode* left, sNode* right, sParserInfo* info)
+{
+    sNode* result = new sNode;
+    
+    result.kind = kOpEq;
+    
+    result.fname = info->fname;
+    result.sline = info->sline;
+    result.value.opValue.left = left;
+    result.value.opValue.right = right;
+    
+    return result;
+}
+
+static sNode* create_not_equal_node(sNode* left, sNode* right, sParserInfo* info)
+{
+    sNode* result = new sNode;
+    
+    result.kind = kOpNotEq;
+    
+    result.fname = string(info->fname);
+    result.sline = info->sline;
+    result.value.opValue.left = left;
+    result.value.opValue.right = right;
+    
+    return result;
+}
+
+static sNode* op_eq_node(sParserInfo* info)
+{
+    sNode* result = op_add_node(info);
+    
+    while((*info->p == '=' && *(info->p+1) == '=') || (*info->p == '!' && *(info->p+1) == '=')) {
+        if(*info->p == '=' && *(info->p+1) == '=') {
+            info->p+=2;
+            skip_spaces_until_eol(info);
+            
+            sNode* right = op_eq_node(info);
+            
+            if(right == null) {
+                return null;
+            }
+            
+            result = create_equal_node(result, right, info);
+        }
+        else if(*info->p == '!' && *(info->p+1) == '=') {
+            info->p+=2;
+            skip_spaces_until_eol(info);
+            
+            sNode* right = op_eq_node(info);
+            
+            if(right == null) {
+                return null;
+            }
+            
+            result = create_not_equal_node(result, right, info);
+        }
+    }
+    
+    return result;
+}
+
+bool expression(sNode** node, sParserInfo* info) version 11
+{
+    *node = op_eq_node(info);
+    
+    if(*node == null) {
+        return false;
+    }
+    
+    return true;
+}
+
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 11
+{
+    inherit(node, codes, info);
+    
+    if(node.kind == kOpEq) {
+        sNode* left = node.opValue.left
+        
+        if(!compile(left, codes, info)) {
+            return false;
+        }
+        
+        sNode* right = node.opValue.right;
+        
+        if(!compile(right, codes, info)) {
+            return false;
+        }
+        
+        codes.append_int(OP_EQ);
+        
+        info->stack_num -= 2;
+        info->stack_num++;
+        
+    }
+    else if(node.kind == kOpNotEq) {
+        sNode* left = node.opValue.left
+        
+        if(!compile(left, codes, info)) {
+            return false;
+        }
+        
+        sNode* right = node.opValue.right;
+        
+        if(!compile(right, codes, info)) {
+            return false;
+        }
+        
+        codes.append_int(OP_NOT_EQ);
+        
+        info->stack_num -= 2;
+        info->stack_num++;
+    }
+    
+    return true;
+}
+

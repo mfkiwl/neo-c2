@@ -29,7 +29,7 @@ static sNode* create_sub_node(sNode* left, sNode* right, sParserInfo* info)
     return result;
 }
 
-static sNode* op_add_node(sParserInfo* info)
+sNode* op_add_node(sParserInfo* info)
 {
     sNode* result = exp_node(info);
     

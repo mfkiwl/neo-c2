@@ -56,7 +56,7 @@ sNode*? exp_node(sParserInfo* info) version 5
             if(strcmp(buf.to_string(), "def") == 0) {
                 return def_node(info);
             }
-            else if(*info->p == '=') {
+            else if(*info->p == '=' && *(info->p+1) != '=') {
                 info->p++;
                 skip_spaces_until_eol(info);
                 

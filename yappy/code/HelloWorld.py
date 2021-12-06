@@ -27,4 +27,9 @@ else:
 a=123
 print a
 
+a=234
+
+print(a==234)
+
 print "TEST FINISH"
+

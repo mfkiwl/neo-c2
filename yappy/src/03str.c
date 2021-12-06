@@ -5,7 +5,7 @@ static sNode* create_string_node(char* str, sParserInfo* info)
 {
     sNode* result = new sNode;
     
-    result.kind = kStringValue;
+    result.kind = kStringValueNode;
     
     result.fname = info->fname;
     result.sline = info->sline;
@@ -98,7 +98,7 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 3
 {
     inherit(node, codes, info);
     
-    if(node.kind == kStringValue) {
+    if(node.kind == kStringValueNode) {
         codes.append_int(OP_STRING_VALUE);
         
         char* str = node.value.stringValue;

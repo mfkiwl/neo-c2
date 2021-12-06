@@ -304,6 +304,36 @@ bool vm(buffer* codes, map<string, ZVALUE>* params)
                 }
                 break;
                 
+            case OP_EQ: {
+                p++;
+                
+                int lvalue = stack[stack_num-1].intValue;
+                int rvalue = stack[stack_num-2].intValue;
+                
+                stack_num-=2;
+                
+                stack[stack_num].kind = kBoolValue;
+                stack[stack_num].value.boolValue = lvalue == rvalue;
+                stack_num++;
+                
+                }
+                break;
+                
+            case OP_NOT_EQ: {
+                p++;
+                
+                int lvalue = stack[stack_num-1].intValue;
+                int rvalue = stack[stack_num-2].intValue;
+                
+                stack_num-=2;
+                
+                stack[stack_num].kind = kBoolValue;
+                stack[stack_num].value.boolValue = lvalue != rvalue;
+                stack_num++;
+                
+                }
+                break;
+                
             default:
                 printf("invalid op code %d\n", *p);
                 exit(1);

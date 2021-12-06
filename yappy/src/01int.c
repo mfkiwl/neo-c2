@@ -5,7 +5,7 @@ static sNode* create_int_node(int value, sParserInfo* info)
 {
     sNode* result = new sNode;
     
-    result.kind = kIntValue;
+    result.kind = kIntValueNode;
     
     result.fname = info->fname;
     result.sline = info->sline;
@@ -43,7 +43,7 @@ bool expression(sNode** node, sParserInfo* info) version 1
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 1
 {
-    if(node.kind == kIntValue) {
+    if(node.kind == kIntValueNode) {
         codes.append_int(OP_INT_VALUE);
         codes.append_int(node.value.intValue);
         

@@ -4,7 +4,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValue, kOpAdd, kOpSub, kStringValue, kPrint, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak } kind;
+    enum { kIntValueNode, kOpAdd, kOpSub, kStringValueNode, kPrint, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak, kOpEq, kOpNotEq } kind;
     
     char* fname;
     int sline;
@@ -106,6 +106,8 @@ struct sVar
 #define OP_BOOL_VALUE 10
 #define OP_IF 11
 #define OP_GOTO 12
+#define OP_EQ 13
+#define OP_NOT_EQ 14
 
 /// main.c ///
 void skip_spaces(sParserInfo* info);
@@ -127,6 +129,8 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 1;
 sNode*? exp_node(sParserInfo* info) version 1;
 
 /// 02add.c ///
+sNode* op_add_node(sParserInfo* info);
+
 bool expression(sNode** node, sParserInfo* info) version 2;
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 2;
 
@@ -175,3 +179,7 @@ bool expression(sNode** node, sParserInfo* info) version 9;
 /// 10while.c ///
 sNode*? exp_node(sParserInfo* info) version 10;
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 10;
+
+/// 11op.c ///
+bool expression(sNode** node, sParserInfo* info) version 11;
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 11;
