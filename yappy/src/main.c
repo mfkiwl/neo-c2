@@ -193,7 +193,12 @@ int main(int argc, char** argv)
         
         buffer* codes = compile_nodes(nodes, &info);
         
-        vm(codes, null).expect {
+        sVMInfo vm_info;
+        
+        memset(&vm_info, 0, sizeof(sVMInfo));
+        
+        vm(codes, null, &vm_info).expect {
+            print_exception(parent->vm_info->exception);
             exit(1);
         }
         

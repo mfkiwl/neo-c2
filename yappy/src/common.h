@@ -4,7 +4,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValueNode, kOpAdd, kOpSub, kStringValueNode, kPrint, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak, kOpEq, kOpNotEq } kind;
+    enum { kIntValueNode, kOpAdd, kOpSub, kStringValueNode, kPrint, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak, kOpEq, kOpNotEq, kOpDiv, kOpMult } kind;
     
     char* fname;
     int sline;
@@ -75,7 +75,7 @@ struct sParserInfo
 
 struct ZVALUE 
 {
-    enum { kIntValue, kBoolValue, kLongValue, kStringValue, kObjValue, kNullValue } kind;
+    enum { kIntValue, kBoolValue, kLongValue, kStringValue, kObjValue, kNullValue, kExceptionValue } kind;
     
     union {
         int intValue;
@@ -83,8 +83,26 @@ struct ZVALUE
         long longValue;
         char* stringValue;
         void* objValue;
+        enum { kExceptionDivisionByZero, kExceptionNameError } expValue;
     } value;
 };
+
+inline void print_exception(ZVALUE exception)
+{
+    if(exception.kind != kExceptionValue) {
+        fprintf(stderr, "not exception\n");
+        exit(1);
+    }
+    switch(exception.value.expValue) {
+        case kExceptionDivisionByZero:
+            fprintf(stderr, "DivisionByZerro Excetpion\n");
+            break;
+            
+        case kExceptionNameError:
+            fprintf(stderr, "NameError Excetpion\n");
+            break;
+    }
+}
 
 struct sVar
 {
@@ -108,6 +126,8 @@ struct sVar
 #define OP_GOTO 12
 #define OP_EQ 13
 #define OP_NOT_EQ 14
+#define OP_MULT 15
+#define OP_DIV 16
 
 /// main.c ///
 void skip_spaces(sParserInfo* info);
@@ -120,7 +140,12 @@ buffer* compile_block(sParserInfo* info);
 void initialize_modules() version 1;
 void finalize_modules() version 1;
 
-bool vm(buffer* codes, map<string, ZVALUE>* params);
+struct sVMInfo 
+{
+    ZVALUE exception;
+};
+
+bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info);
 
 /// 01int.c ///
 bool expression(sNode** node, sParserInfo* info) version 1;
@@ -159,7 +184,7 @@ void initialize_modules() version 6;
 sNode*? fun_node(string fun_name, sParserInfo* info) version 6;
 sNode*? def_node(sParserInfo* info) version 6;
 
-bool function_call(char* fun_name, ZVALUE* stack, int stack_num);
+bool function_call(char* fun_name, ZVALUE* stack, int stack_num, sVMInfo* info);
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6;
 

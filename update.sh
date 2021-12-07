@@ -5,9 +5,9 @@ then
     (cd vin && make distclean)
 fi
 
-if [ -e yapy/Makefile ]
+if [ -e yappy/Makefile ]
 then
-    (cd yapy && make distclean)
+    (cd yappy && make distclean)
 fi
 
 

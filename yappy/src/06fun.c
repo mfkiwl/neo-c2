@@ -194,12 +194,13 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
     return true;
 }
 
-bool function_call(char* fun_name, ZVALUE* stack, int stack_num)
+bool function_call(char* fun_name, ZVALUE* stack, int stack_num, sVMInfo* info)
 {
     sFunction* fun = gFuncs.at(fun_name, null);
     
     if(fun == null) {
-        fprintf(stderr, "%s %d: function not found(%s)\n", fun_name);
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionNameError;
         return false;
     }
     
@@ -216,7 +217,7 @@ bool function_call(char* fun_name, ZVALUE* stack, int stack_num)
         i++;
     }
     
-    if(!vm(codes, null)) {
+    if(!vm(codes, null, info)) {
         return false;
     }
     

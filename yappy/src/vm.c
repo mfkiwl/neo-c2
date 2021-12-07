@@ -84,7 +84,7 @@ void print_op(int op)
     }
 }
 
-bool vm(buffer* codes, map<string, ZVALUE>* params)
+bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
 {
     ZVALUE stack[ZSTACK_MAX];
     int stack_num = 0;
@@ -130,8 +130,8 @@ bool vm(buffer* codes, map<string, ZVALUE>* params)
             case OP_ADD: {
                 p++;
                 
-                int lvalue = stack[stack_num-1].intValue;
-                int rvalue = stack[stack_num-2].intValue;
+                int lvalue = stack[stack_num-2].intValue;
+                int rvalue = stack[stack_num-1].intValue;
                 
                 stack_num-=2;
                 
@@ -145,8 +145,8 @@ bool vm(buffer* codes, map<string, ZVALUE>* params)
             case OP_SUB: {
                 p++;
                 
-                int lvalue = stack[stack_num-1].intValue;
-                int rvalue = stack[stack_num-2].intValue;
+                int lvalue = stack[stack_num-2].intValue;
+                int rvalue = stack[stack_num-1].intValue;
                 
                 stack_num-=2;
                 
@@ -263,7 +263,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params)
                 
                 p += offset;
                 
-                if(!function_call(fun_name, stack, stack_num)) {
+                if(!function_call(fun_name, stack, stack_num, info)) {
                     return false;
                 }
                 break;
@@ -307,8 +307,8 @@ bool vm(buffer* codes, map<string, ZVALUE>* params)
             case OP_EQ: {
                 p++;
                 
-                int lvalue = stack[stack_num-1].intValue;
-                int rvalue = stack[stack_num-2].intValue;
+                int lvalue = stack[stack_num-2].intValue;
+                int rvalue = stack[stack_num-1].intValue;
                 
                 stack_num-=2;
                 
@@ -322,8 +322,8 @@ bool vm(buffer* codes, map<string, ZVALUE>* params)
             case OP_NOT_EQ: {
                 p++;
                 
-                int lvalue = stack[stack_num-1].intValue;
-                int rvalue = stack[stack_num-2].intValue;
+                int lvalue = stack[stack_num-2].intValue;
+                int rvalue = stack[stack_num-1].intValue;
                 
                 stack_num-=2;
                 
@@ -334,14 +334,50 @@ bool vm(buffer* codes, map<string, ZVALUE>* params)
                 }
                 break;
                 
+            case OP_MULT: {
+                p++;
+                
+                int lvalue = stack[stack_num-2].intValue;
+                int rvalue = stack[stack_num-1].intValue;
+                
+                stack_num-=2;
+                
+                stack[stack_num].kind = kIntValue;
+                stack[stack_num].value.intValue = lvalue * rvalue;
+                stack_num++;
+                
+                }
+                break;
+                
+            case OP_DIV: {
+                p++;
+                
+                int lvalue = stack[stack_num-2].intValue;
+                int rvalue = stack[stack_num-1].intValue;
+                
+                stack_num-=2;
+                
+                if(rvalue == 0) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionDivisionByZero;
+                    return false;
+                }
+                
+                stack[stack_num].kind = kIntValue;
+                stack[stack_num].value.intValue = lvalue / rvalue;
+                stack_num++;
+                
+                }
+                break;
+                
             default:
-                printf("invalid op code %d\n", *p);
+                printf("Interpreter Bug occurs. invalid op code %d\n", *p);
                 exit(1);
         }
         
         if(stack_num < 0 || stack_num >= ZSTACK_MAX) {
-            fprintf(stderr, "invalid stack num\n");
-            return false;
+            fprintf(stderr, "Inerpreter Bug occurs. invalid stack num\n");
+            exit(1);
         }
     }
     
