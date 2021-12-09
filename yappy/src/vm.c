@@ -100,7 +100,13 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             
             ZVALUE item = params.at(string(it), gNullValue);
             
-            vtable.insert(key, item);
+            if(item.kind == kNullValue) {
+                info->exception.kind = kExceptionValue;
+                info->exception.value.expValue = kExceptionVarNotFound;
+                return false;
+            }
+            
+            vtable.insert(string(key), item);
         }
     }
     
@@ -162,12 +168,19 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 int offset = *p;
                 p++;
                 
+                int len = *p;
+                p++;
+                
                 char* str = (char*)p;
+                
+                char str2[len+1];
+                memcpy(str2, str, len);
+                str2[len] = '\0'
                 
                 p += offset;
                 
                 stack[stack_num].kind = kStringValue;
-                stack[stack_num].stringValue = str;
+                stack[stack_num].stringValue = str2;
                 stack_num++;
                 }
                 break;
@@ -201,7 +214,14 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 int offset = *p;
                 p++;
                 
+                int len = *p;
+                p++;
+                
                 char* var_name = (char*)p;
+                
+                char var_name2[len+1];
+                memcpy(var_name2, var_name, len);
+                var_name2[len] = '\0'
                 
                 p += offset;
                 
@@ -209,23 +229,32 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 p++;
                 
                 if(in_global_context) {
-                    stack[stack_num] = gGlobalVar.at(var_name, gNullValue);
+                    stack[stack_num] = gGlobalVar.at(var_name2, gNullValue);
+                    
+                    if(stack[stack_num].kind == kNullValue) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionVarNotFound;
+                        return false;
+                    }
+                    
                     stack_num++;
                 }
                 else {
-                    stack[stack_num] = vtable.at(var_name, gNullValue);
+                    stack[stack_num] = vtable.at(var_name2, gNullValue);
+                    stack_num++;
                     
                     if(stack[stack_num-1].kind == kNullValue) {
-                        fprintf(stderr, "var not found(%s)\n", var_name);
+                        stack[stack_num] = gGlobalVar.at(var_name2, gNullValue);
+                        stack_num++;
+                        
+                        if(stack[stack_num-1].kind == kNullValue) {
+                            info->exception.kind = kExceptionValue;
+                            info->exception.value.expValue = kExceptionVarNotFound;
+                            return false;
+                        }
                     }
-                    
-                    stack[stack_num] = gGlobalVar.at(var_name, gNullValue);
-                    stack_num++;
                 }
                 
-                if(stack[stack_num-1].kind == kNullValue) {
-                    fprintf(stderr, "var not found(%s)\n", var_name);
-                }
                 }
                 break;
                 
@@ -235,7 +264,14 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 int offset = *p;
                 p++;
                 
+                int len = *p;
+                p++;
+                
                 char* var_name = (char*)p;
+                
+                char var_name2[len+1];
+                memcpy(var_name2, var_name, len);
+                var_name2[len] = '\0'
                 
                 p += offset;
                 
@@ -244,11 +280,11 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 
                 if(in_global_context) {
                     ZVALUE right = stack[stack_num-1];
-                    gGlobalVar.insert(var_name, right);
+                    gGlobalVar.insert(var_name2, right);
                 }
                 else {
                     ZVALUE right = stack[stack_num-1];
-                    vtable.insert(var_name, right);
+                    vtable.insert(string(var_name2), right);
                 }
                 }
                 break;
@@ -259,11 +295,18 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 int offset = *p;
                 p++;
                 
+                int len = *p;
+                p++;
+                
                 char* fun_name = (char*)p;
+                
+                char fun_name2[len+1];
+                memcpy(fun_name2, fun_name, len);
+                fun_name2[len] = '\0'
                 
                 p += offset;
                 
-                if(!function_call(fun_name, stack, stack_num, info)) {
+                if(!function_call(fun_name2, stack, stack_num, info)) {
                     return false;
                 }
                 break;

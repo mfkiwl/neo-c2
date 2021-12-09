@@ -31,6 +31,13 @@ a=234
 
 print(a==234)
 
+def funX(b):
+    print a
+    print b
+    print "FUN X"
+
+funX(3594)
+
 print "TEST FINISH"
 
 

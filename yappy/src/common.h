@@ -83,7 +83,7 @@ struct ZVALUE
         long longValue;
         char* stringValue;
         void* objValue;
-        enum { kExceptionDivisionByZero, kExceptionNameError } expValue;
+        enum { kExceptionVarNotFound, kExceptionDivisionByZero, kExceptionNameError } expValue;
     } value;
 };
 
@@ -100,6 +100,10 @@ inline void print_exception(ZVALUE exception)
             
         case kExceptionNameError:
             fprintf(stderr, "NameError Excetpion\n");
+            break;
+            
+        case kExceptionVarNotFound:
+            fprintf(stderr, "VarNotFound Excetpion\n");
             break;
     }
 }

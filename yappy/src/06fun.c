@@ -169,6 +169,14 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
         gFuncs.insert(name, fun);
     }
     else if(node.kind == kFunCall) {
+        vector<sNode*>* params = node.value.funCallValue.params;
+        
+        foreach(it, params) {
+            if(!compile(it, codes, info)) {
+                return false;
+            }
+        }
+        
         codes.append_int(OP_FUNCALL);
         
         char* name = node.value.funCallValue.name;
@@ -178,17 +186,10 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
         offset /= sizeof(int);
         
         codes.append_int(offset);
+        codes.append_int(len);
         
         codes.append_str(name);
         codes.alignment();
-        
-        vector<sNode*>* params = node.value.funCallValue.params;
-        
-        foreach(it, params) {
-            if(!compile(it, codes, info)) {
-                return false;
-            }
-        }
     }
     
     return true;
@@ -212,12 +213,12 @@ bool function_call(char* fun_name, ZVALUE* stack, int stack_num, sVMInfo* info)
     int i = 0;
     foreach(it, param_names) {
         ZVALUE value = stack[stack_num-param_names.length()+i];
-        params.insert(it, value);
+        params.insert(string(it), value);
         
         i++;
     }
     
-    if(!vm(codes, null, info)) {
+    if(!vm(codes, params, info)) {
         return false;
     }
     

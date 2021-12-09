@@ -108,6 +108,7 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 3
         offset /= sizeof(int);
         
         codes.append_int(offset);
+        codes.append_int(len);
         codes.append_str(str);
         codes.alignment();
         
