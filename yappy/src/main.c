@@ -37,20 +37,25 @@ static bool read_source(char* fname, buffer* source)
     return true;
 }
 
-static list<sNode*>* parse(sParserInfo* info, int space_num)
+static list<sNode*>* parse(sParserInfo* info, int block_space_num)
 {
-    info->space_num = space_num;
-    
     list<sNode*>* nodes = new list<sNode*>.initialize();
     
     while(*info->p) {
         sNode* node = null;
+        
+        if(info.space_num < block_space_num) {
+            break;
+        }
+        
         if(!expression(&node, info)) {
             fprintf(stderr, "%s %d: unexpected character (%c)\n", info->fname, info->sline, *info->p);
             exit(2);
         }
         
-        nodes.push_back(node);
+        if(node != 0) {
+            nodes.push_back(node);
+        }
         
         if(*info->p == ';') {
             info->p++;
@@ -69,7 +74,9 @@ static list<sNode*>* parse(sParserInfo* info, int space_num)
                 space_num++;
             }
             
-            if(space_num < info->space_num) {
+            info.space_num = space_num;
+
+            if(info.space_num < block_space_num) {
                 break;
             }
             else if(space_num > info->space_num) {
@@ -78,6 +85,37 @@ static list<sNode*>* parse(sParserInfo* info, int space_num)
             }
         }
     }
+    
+    return nodes;
+}
+
+list<sNode*>* parse_block(sParserInfo* info)
+{
+    bool in_global_context = info.in_global_context;
+    info.in_global_context = false;
+    
+    list<sNode*>* nodes = null;
+    
+    /// multi line ///
+    if(*info->p == '\n') {
+        info->p++;
+        info->sline++;
+        
+        int block_space_num = 0;
+        while(*info->p == ' ' || *info->p == '\t') {
+            info->p++;
+            block_space_num++;
+            
+            info.space_num = block_space_num;
+        }
+        
+        nodes = parse(info, block_space_num);
+    }
+    /// one line ///
+    else {
+    }
+    
+    info.in_global_context = in_global_context;
     
     return nodes;
 }
@@ -103,37 +141,6 @@ buffer* compile_nodes(list<sNode*>* nodes, sParserInfo* info)
     }
     
     return codes;
-}
-
-list<sNode*>* parse_block(sParserInfo* info)
-{
-    int space_num = info.space_num;
-    bool in_global_context = info.in_global_context;
-    info.in_global_context = false;
-    
-    list<sNode*>* nodes = null;
-    
-    /// multi line ///
-    if(*info->p == '\n') {
-        info->p++;
-        info->sline++;
-        
-        int space_num = 0;
-        while(*info->p == ' ' || *info->p == '\t') {
-            info->p++;
-            space_num++;
-        }
-        
-        nodes = parse(info, space_num);
-    }
-    /// one line ///
-    else {
-    }
-    
-    info.in_global_context = in_global_context;
-    info.space_num = space_num;
-    
-    return nodes;
 }
 
 buffer* compile_block(sParserInfo* info)

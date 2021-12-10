@@ -77,6 +77,14 @@ void print_op(int op)
         case OP_IF: 
             puts("OP_IF");
             break;
+            
+        case OP_EXIT: 
+            puts("OP_EXIT");
+            break;
+            
+        case OP_RETURN: 
+            puts("OP_RETURN");
+            break;
                 
         default:
             printf("invalid op code %d\n", op);
@@ -88,6 +96,8 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
 {
     ZVALUE stack[ZSTACK_MAX];
     int stack_num = 0;
+    
+    info->return_value = gNullValue;
     
     int* p = (int*)codes.buf;
     int* head = (int*)codes.buf;
@@ -289,7 +299,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 }
                 break;
                 
-            case OP_FUNCALL:
+            case OP_FUNCALL: {
                 p++;
                 
                 int offset = *p;
@@ -306,8 +316,25 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 
                 p += offset;
                 
-                if(!function_call(fun_name2, stack, stack_num, info)) {
+                int num_params = *p;
+                p++;
+                
+                vector<ZVALUE>* param_values = new vector<ZVALUE>.initialize();
+                
+                for(int i=0; i<num_params; i++) {
+                    ZVALUE value = stack[stack_num-num_params+i];
+                    
+                    param_values.push_back(value);
+                }
+                
+                if(!function_call(fun_name2, param_values, info)) {
                     return false;
+                }
+                
+                stack_num -= param_values.length();
+                
+                stack[stack_num] = info->return_value;
+                stack_num++;
                 }
                 break;
                 
@@ -413,13 +440,39 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 }
                 break;
                 
+            case OP_EXIT: 
+                p++;
+                
+                if(stack[stack_num-1].kind == kIntValue) {
+                    int rcode = stack[stack_num-1].value.intValue;
+                    exit(rcode);
+                }
+                else {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                break;
+                
+            case OP_RETURN: 
+                p++;
+                
+                ZVALUE return_value = stack[stack_num-1];
+                
+                stack_num--;
+                
+                info->return_value = return_value;
+                
+                return true;
+                break;
+                
             default:
                 printf("Interpreter Bug occurs. invalid op code %d\n", *p);
                 exit(1);
         }
         
         if(stack_num < 0 || stack_num >= ZSTACK_MAX) {
-            fprintf(stderr, "Inerpreter Bug occurs. invalid stack num\n");
+            fprintf(stderr, "Inerpreter Bug occurs. invalid stack num %d\n", stack_num);
             exit(1);
         }
     }

@@ -169,6 +169,8 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
         gFuncs.insert(name, fun);
     }
     else if(node.kind == kFunCall) {
+        int stack_num = info.stack_num;
+        
         vector<sNode*>* params = node.value.funCallValue.params;
         
         foreach(it, params) {
@@ -176,10 +178,12 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
                 return false;
             }
         }
+        info.stack_num = stack_num;
         
         codes.append_int(OP_FUNCALL);
         
         char* name = node.value.funCallValue.name;
+        int num_params = params.length();
         
         int len = strlen(name);
         int offset = (len + 3) & ~3;
@@ -190,12 +194,16 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
         
         codes.append_str(name);
         codes.alignment();
+        
+        codes.append_int(num_params);
+        
+        stack_num++;
     }
     
     return true;
 }
 
-bool function_call(char* fun_name, ZVALUE* stack, int stack_num, sVMInfo* info)
+bool function_call(char* fun_name, vector<ZVALUE>* param_values, sVMInfo* info)
 {
     sFunction* fun = gFuncs.at(fun_name, null);
     
@@ -212,7 +220,10 @@ bool function_call(char* fun_name, ZVALUE* stack, int stack_num, sVMInfo* info)
     
     int i = 0;
     foreach(it, param_names) {
-        ZVALUE value = stack[stack_num-param_names.length()+i];
+        ZVALUE null_value;
+        memset(&null_value, 0, sizeof(ZVALUE));
+        
+        ZVALUE value = param_values.item(i, null_value);
         params.insert(string(it), value);
         
         i++;

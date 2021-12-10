@@ -4,7 +4,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValueNode, kOpAdd, kOpSub, kStringValueNode, kPrint, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak, kOpEq, kOpNotEq, kOpDiv, kOpMult } kind;
+    enum { kIntValueNode, kOpAdd, kOpSub, kStringValueNode, kPrint, kExit, kReturn, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak, kOpEq, kOpNotEq, kOpDiv, kOpMult } kind;
     
     char* fname;
     int sline;
@@ -83,7 +83,7 @@ struct ZVALUE
         long longValue;
         char* stringValue;
         void* objValue;
-        enum { kExceptionVarNotFound, kExceptionDivisionByZero, kExceptionNameError } expValue;
+        enum { kExceptionVarNotFound, kExceptionDivisionByZero, kExceptionNameError, kExceptionTypeError } expValue;
     } value;
 };
 
@@ -104,6 +104,10 @@ inline void print_exception(ZVALUE exception)
             
         case kExceptionVarNotFound:
             fprintf(stderr, "VarNotFound Excetpion\n");
+            break;
+            
+        case kExceptionTypeError:
+            fprintf(stderr, "Type Error Excetpion\n");
             break;
     }
 }
@@ -132,6 +136,8 @@ struct sVar
 #define OP_NOT_EQ 14
 #define OP_MULT 15
 #define OP_DIV 16
+#define OP_EXIT 17
+#define OP_RETURN 18
 
 /// main.c ///
 void skip_spaces(sParserInfo* info);
@@ -147,6 +153,7 @@ void finalize_modules() version 1;
 struct sVMInfo 
 {
     ZVALUE exception;
+    ZVALUE return_value;
 };
 
 bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info);
@@ -188,7 +195,7 @@ void initialize_modules() version 6;
 sNode*? fun_node(string fun_name, sParserInfo* info) version 6;
 sNode*? def_node(sParserInfo* info) version 6;
 
-bool function_call(char* fun_name, ZVALUE* stack, int stack_num, sVMInfo* info);
+bool function_call(char* fun_name, vector<ZVALUE>* param_values, sVMInfo* info);
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6;
 
@@ -203,7 +210,7 @@ sNode*? exp_node(sParserInfo* info) version 8;
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 8;
 
 /// 09comment.c ///
-bool expression(sNode** node, sParserInfo* info) version 9;
+bool expression(sNode** node, sParserInfo* info) version 99;
 
 /// 10while.c ///
 sNode*? exp_node(sParserInfo* info) version 10;
