@@ -4,7 +4,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValueNode, kOpAdd, kOpSub, kStringValueNode, kPrint, kExit, kReturn, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak, kOpEq, kOpNotEq, kOpDiv, kOpMult } kind;
+    enum { kIntValueNode, kOpAdd, kOpSub, kStringValueNode, kPrint, kExit, kReturn, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak, kOpEq, kOpNotEq, kOpDiv, kOpMult, kImport, kMethodCall, kLoadField, kStoreField } kind;
     
     char* fname;
     int sline;
@@ -55,6 +55,27 @@ struct sNode
             list<sNode*>* while_nodes;
             list<sNode*>* else_nodes;
         } whileValue;
+        
+        struct {
+            string name;
+        } importValue;
+        
+        struct {
+            string name;
+            sNode* left;
+            sNode* right;
+        } storeField;
+        
+        struct {
+            string name;
+            sNode* left;
+        } loadField;
+        
+        struct {
+            string name;
+            vector<sNode*>* params;
+            sNode* left;
+        } methodCallValue;
     } value;
 };
 
@@ -75,7 +96,7 @@ struct sParserInfo
 
 struct ZVALUE 
 {
-    enum { kIntValue, kBoolValue, kLongValue, kStringValue, kObjValue, kNullValue, kExceptionValue } kind;
+    enum { kIntValue, kBoolValue, kLongValue, kStringValue, kObjValue, kNullValue, kExceptionValue, kModuleValue } kind;
     
     union {
         int intValue;
@@ -84,6 +105,7 @@ struct ZVALUE
         char* stringValue;
         void* objValue;
         enum { kExceptionVarNotFound, kExceptionDivisionByZero, kExceptionNameError, kExceptionTypeError } expValue;
+        void* moduleValue;
     } value;
 };
 
@@ -138,22 +160,34 @@ struct sVar
 #define OP_DIV 16
 #define OP_EXIT 17
 #define OP_RETURN 18
+#define OP_FUN 19
+#define OP_IMPORT 20
+#define OP_METHOD_CALL 21
+#define OP_LOAD_FIELD 22
+#define OP_STORE_FIELD 23
 
 /// main.c ///
 void skip_spaces(sParserInfo* info);
 void skip_spaces_until_eol(sParserInfo* info);
+string parse_word(sParserInfo* info);
 list<sNode*>* parse_block(sParserInfo* info);
 buffer* compile_nodes(list<sNode*>* nodes, sParserInfo* info);
 buffer* compile_block(sParserInfo* info);
+
+bool import_module(char* module_name);
 
 /// vm.c ///
 void initialize_modules() version 1;
 void finalize_modules() version 1;
 
+void add_module(char* module_name) ;
+
 struct sVMInfo 
 {
     ZVALUE exception;
     ZVALUE return_value;
+    
+    string module_name;
 };
 
 bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info);
@@ -190,12 +224,8 @@ sNode*? def_node(sParserInfo* info) version 5;   // implemented after layer
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 5;
 
 /// 06fun.c ///
-void initialize_modules() version 6;
-
 sNode*? fun_node(string fun_name, sParserInfo* info) version 6;
 sNode*? def_node(sParserInfo* info) version 6;
-
-bool function_call(char* fun_name, vector<ZVALUE>* param_values, sVMInfo* info);
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6;
 
@@ -219,3 +249,8 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 10;
 /// 11op.c ///
 bool expression(sNode** node, sParserInfo* info) version 11;
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 11;
+
+/// 12module.c ///
+sNode*? exp_node(sParserInfo* info) version 12;
+bool compile(sNode* node, buffer* codes, sParserInfo* info) version 12;
+

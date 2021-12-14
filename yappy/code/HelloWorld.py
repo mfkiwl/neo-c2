@@ -22,6 +22,16 @@ def fun2(a,b):
 
 xassert("fun test2", fun2(1,2) == 3)
 
+import Module
+
+print Module.fun();
+
+xassert("Module test", Module.fun() == 1)
+
+xassert("Module test2", Module.a == 2)
+Module.a = 3
+
+xassert("Module test3", Module.a == 3)
 
 #print "HELLO WORLD"
 

@@ -1,35 +1,5 @@
 #include "common.h"
 
-struct sFunction
-{
-    string name;
-    buffer* codes;
-    vector<string>* param_names;
-};
-
-sFunction* sFunction_initialize(sFunction* self, char* name, buffer* codes, vector<string>* param_names)
-{
-    self.name = clone name;
-    self.codes = clone codes;
-    self.param_names = clone param_names;
-    
-    return self;
-}
-
-static map<string, sFunction*>* gFuncs;
-
-void initialize_modules() version 6
-{
-    inherit();
-    
-    gFuncs = new map<string, sFunction*>.initialize();
-}
-
-void finalize_modules() version 6
-{
-    inherit();
-}
-
 static sNode* create_fun(char* fun_name, buffer* codes, vector<string>* param_names, sParserInfo* info)
 {
     sNode* result = new sNode;
@@ -160,13 +130,43 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
     inherit(node, codes, info);
     
     if(node.kind == kFun) {
+        codes.append_int(OP_FUN);
+        
         char* name = node.value.funValue.name;
-        buffer* codes = node.value.funValue.codes;
+        
+        int len = strlen(name);
+        int offset = (len + 3) & ~3;
+        offset /= sizeof(int);
+        
+        codes.append_int(offset);
+        codes.append_int(len);
+        
+        codes.append_str(name);
+        codes.alignment();
+        
+        buffer* codes2 = node.value.funValue.codes;
+        
+        codes.append_int(codes2.len);
+        
+        codes.append(codes2.buf, codes2.len);
+        
         vector<string>* param_names = node.value.funValue.param_names;
         
-        sFunction* fun = new sFunction.initialize(name, codes, param_names);
+        codes.append_int(param_names.length());
         
-        gFuncs.insert(name, fun);
+        foreach(it, param_names) {
+            char* name = it;
+            
+            int len = strlen(name);
+            int offset = (len + 3) & ~3;
+            offset /= sizeof(int);
+            
+            codes.append_int(offset);
+            codes.append_int(len);
+            
+            codes.append_str(name);
+            codes.alignment();
+        }
     }
     else if(node.kind == kFunCall) {
         int stack_num = info.stack_num;
@@ -203,35 +203,3 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
     return true;
 }
 
-bool function_call(char* fun_name, vector<ZVALUE>* param_values, sVMInfo* info)
-{
-    sFunction* fun = gFuncs.at(fun_name, null);
-    
-    if(fun == null) {
-        info->exception.kind = kExceptionValue;
-        info->exception.value.expValue = kExceptionNameError;
-        return false;
-    }
-    
-    buffer* codes = fun->codes;
-    vector<string>* param_names = fun->param_names;
-    
-    map<string, ZVALUE>* params = new map<string, ZVALUE>.initialize();
-    
-    int i = 0;
-    foreach(it, param_names) {
-        ZVALUE null_value;
-        memset(&null_value, 0, sizeof(ZVALUE));
-        
-        ZVALUE value = param_values.item(i, null_value);
-        params.insert(string(it), value);
-        
-        i++;
-    }
-    
-    if(!vm(codes, params, info)) {
-        return false;
-    }
-    
-    return true;
-}

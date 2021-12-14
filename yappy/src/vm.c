@@ -1,13 +1,54 @@
 #include "common.h"
 
-static map<char*, ZVALUE>* gGlobalVar;
+static map<string, ZVALUE>* gGlobalVars;
 static ZVALUE gNullValue;
+
+struct sFunction
+{
+    string name;
+    buffer* codes;
+    vector<string>* param_names;
+};
+
+static map<string, sFunction*>* gFuncs;
+
+static sFunction* sFunction_initialize(sFunction* self, char* name, buffer* codes, vector<string>* param_names)
+{
+    self.name = clone name;
+    self.codes = clone codes;
+    self.param_names = clone param_names;
+    
+    return self;
+}
+
+struct sModule
+{
+    string name;
+    map<string, sFunction*>* funcs;
+    map<string, ZVALUE>* global_vars;
+};
+
+sModule* sModule_initialize(sModule* self, char* module_name)
+{
+    self.name = string(module_name);
+    
+    self.funcs = new map<string, sFunction*>.initialize();
+    self.global_vars = new map<string, ZVALUE>.initialize();
+    
+    return self;
+}
+
+static map<string, sModule*>* gModules;
 
 void initialize_modules() version 1
 {
-    gGlobalVar = new map<char*, ZVALUE>.initialize();
+    gGlobalVars = new map<string, ZVALUE>.initialize();
     gNullValue.kind = kNullValue;
     gNullValue.objValue = null;
+    
+    gFuncs = new map<string, sFunction*>.initialize();
+    
+    gModules = new map<string, sModule*>.initialize();
 }
 
 void finalize_modules() version 1
@@ -65,6 +106,10 @@ void print_op(int op)
         case OP_FUNCALL:
             puts("OP_FUNCALL");
             break;
+            
+        case OP_METHOD_CALL:
+            puts("OP_METHOD_CALL");
+            break;
                 
         case OP_BOOL_VALUE: 
             puts("OP_BOOL_VALUE");
@@ -85,11 +130,61 @@ void print_op(int op)
         case OP_RETURN: 
             puts("OP_RETURN");
             break;
+            
+        case OP_FUN: 
+            puts("OP_FUN");
+            break;
                 
         default:
             printf("invalid op code %d\n", op);
             break;
     }
+}
+
+bool function_call(sModule* module, char* fun_name, vector<ZVALUE>* param_values, sVMInfo* info)
+{
+    sFunction* fun;
+    if(module) {
+        fun = module.funcs.at(fun_name, null);
+    }
+    else {
+        fun = gFuncs.at(fun_name, null);
+    }
+    
+    if(fun == null) {
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionNameError;
+        return false;
+    }
+    
+    buffer* codes = fun->codes;
+    vector<string>* param_names = fun->param_names;
+    
+    map<string, ZVALUE>* params = new map<string, ZVALUE>.initialize();
+    
+    int i = 0;
+    foreach(it, param_names) {
+        ZVALUE null_value;
+        memset(&null_value, 0, sizeof(ZVALUE));
+        
+        ZVALUE value = param_values.item(i, null_value);
+        params.insert(string(it), value);
+        
+        i++;
+    }
+    
+    if(!vm(codes, params, info)) {
+        return false;
+    }
+    
+    return true;
+}
+
+void add_module(char* module_name)
+{
+    sModule* module = new sModule.initialize(module_name);
+    
+    gModules.insert(string(module_name), module);
 }
 
 bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
@@ -238,8 +333,15 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 bool in_global_context = (bool)*p;
                 p++;
                 
-                if(in_global_context) {
-                    stack[stack_num] = gGlobalVar.at(var_name2, gNullValue);
+                sModule* module = gModules.at(string(var_name2), null);
+                
+                if(module) {
+                    stack[stack_num].kind = kModuleValue;
+                    stack[stack_num].value.moduleValue = module;
+                    stack_num++;
+                }
+                else if(in_global_context) {
+                    stack[stack_num] = gGlobalVars.at(string(var_name2), gNullValue);
                     
                     if(stack[stack_num].kind == kNullValue) {
                         info->exception.kind = kExceptionValue;
@@ -254,7 +356,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     stack_num++;
                     
                     if(stack[stack_num-1].kind == kNullValue) {
-                        stack[stack_num] = gGlobalVar.at(var_name2, gNullValue);
+                        stack[stack_num] = gGlobalVars.at(string(var_name2), gNullValue);
                         stack_num++;
                         
                         if(stack[stack_num-1].kind == kNullValue) {
@@ -289,12 +391,84 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 p++;
                 
                 if(in_global_context) {
-                    ZVALUE right = stack[stack_num-1];
-                    gGlobalVar.insert(var_name2, right);
+                    if(info.module_name) {
+                        sModule* module = gModules.at(info.module_name, null);
+                        
+                        ZVALUE right = stack[stack_num-1];
+                        module.global_vars.insert(string(var_name2), right);
+                    }
+                    else {
+                        ZVALUE right = stack[stack_num-1];
+                        gGlobalVars.insert(string(var_name2), right);
+                    }
                 }
                 else {
                     ZVALUE right = stack[stack_num-1];
                     vtable.insert(string(var_name2), right);
+                }
+                }
+                break;
+                
+            case OP_FUN: {
+                p++;
+                
+                int offset = *p;
+                p++;
+                
+                int len = *p;
+                p++;
+                
+                char* name = (char*)p;
+                
+                char name2[len+1];
+                memcpy(name2, name, len);
+                name2[len] = '\0'
+                
+                p += offset;
+                
+                int len_codes = *p;
+                p++;
+                
+                char* codes = (char*)p;
+                
+                p += len_codes / sizeof(int);
+                
+                buffer* codes2 = new buffer.initialize();
+                
+                codes2.append(codes, len_codes);
+                
+                int len_param_names = *p;
+                p++;
+                
+                vector<string>* param_names = new vector<string>.initialize();
+                
+                for(int i=0; i<len_param_names; i++) {
+                    int offset = *p;
+                    p++;
+                    
+                    int len = *p;
+                    p++;
+                    
+                    char* name = (char*)p;
+                    
+                    char name2[len+1];
+                    memcpy(name2, name, len);
+                    name2[len] = '\0'
+                    
+                    p += offset;
+                    
+                    param_names.push_back(string(name2));
+                }
+                
+                sFunction* fun = new sFunction.initialize(string(name2), codes2, param_names);
+                
+                if(info.module_name) {
+                    sModule* module = gModules.at(info.module_name, null);
+                    
+                    module.funcs.insert(string(name2), fun);
+                }
+                else {
+                    gFuncs.insert(string(name2), fun);
                 }
                 }
                 break;
@@ -327,7 +501,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     param_values.push_back(value);
                 }
                 
-                if(!function_call(fun_name2, param_values, info)) {
+                if(!function_call(null, fun_name2, param_values, info)) {
                     return false;
                 }
                 
@@ -464,6 +638,144 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 info->return_value = return_value;
                 
                 return true;
+                break;
+                
+            case OP_IMPORT:
+                p++;
+                
+                int offset = *p;
+                p++;
+                
+                int len = *p;
+                p++;
+                
+                char* str = (char*)p;
+                
+                char str2[len+1];
+                memcpy(str2, str, len);
+                str2[len] = '\0'
+                
+                p += offset;
+                
+                if(!import_module(str2)) {
+                    return false;
+                }
+                
+                
+                break;
+                
+            case OP_METHOD_CALL: {
+                p++;
+                
+                int offset = *p;
+                p++;
+                
+                int len = *p;
+                p++;
+                
+                char* fun_name = (char*)p;
+                
+                char fun_name2[len+1];
+                memcpy(fun_name2, fun_name, len);
+                fun_name2[len] = '\0'
+                
+                p += offset;
+                
+                int num_params = *p;
+                p++;
+                
+                if(stack[stack_num-1].kind == kModuleValue) {
+                    sModule* module = (sModule*)stack[stack_num-1].moduleValue;
+                    stack_num--;
+                    
+                    vector<ZVALUE>* param_values = new vector<ZVALUE>.initialize();
+                    
+                    for(int i=0; i<num_params; i++) {
+                        ZVALUE value = stack[stack_num-num_params+i];
+                        
+                        param_values.push_back(value);
+                    }
+                    
+                    if(!function_call(module, fun_name2, param_values, info)) {
+                        return false;
+                    }
+                    
+                    stack_num -= param_values.length();
+                    
+                    stack[stack_num] = info->return_value;
+                    stack_num++;
+                }
+                else {
+                }
+                }
+                break;
+                
+            case OP_LOAD_FIELD: {
+                p++;
+                
+                int offset = *p;
+                p++;
+                
+                int len = *p;
+                p++;
+                
+                char* field_name = (char*)p;
+                
+                char field_name2[len+1];
+                memcpy(field_name2, field_name, len);
+                field_name2[len] = '\0'
+                
+                p += offset;
+                
+                if(stack[stack_num-1].kind == kModuleValue) {
+                    sModule* module = (sModule*)stack[stack_num-1].moduleValue;
+                    stack_num--;
+                    
+                    stack[stack_num] = module->global_vars.at(string(field_name2), gNullValue);
+                    stack_num++;
+                    
+                    if(stack[stack_num-1].kind == kNullValue) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionVarNotFound;
+                        return false;
+                    }
+                }
+                else {
+                }
+                }
+                break;
+                
+            case OP_STORE_FIELD: {
+                p++;
+                
+                int offset = *p;
+                p++;
+                
+                int len = *p;
+                p++;
+                
+                char* field_name = (char*)p;
+                
+                char field_name2[len+1];
+                memcpy(field_name2, field_name, len);
+                field_name2[len] = '\0'
+                
+                p += offset;
+                
+                ZVALUE left = stack[stack_num-2];
+                ZVALUE right = stack[stack_num-1];
+                
+                if(left.kind == kModuleValue) {
+                    sModule* module = (sModule*)left.moduleValue;
+                    
+                    module->global_vars.insert(string(field_name2), right);
+                    stack_num++;
+                    
+                    stack_num -= 2;
+                }
+                else {
+                }
+                }
                 break;
                 
             default:

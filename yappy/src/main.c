@@ -14,6 +14,20 @@ void skip_spaces_until_eol(sParserInfo* info)
     }
 }
 
+string parse_word(sParserInfo* info)
+{
+    buffer* result = new buffer.initialize();
+    
+    while((*info->p >= 'a' && *info->p <= 'z')
+        || (*info->p >= 'A' && *info->p <= 'Z') || *info->p == '_')
+    {
+        result.append_char(*info->p);
+        info->p++;
+    }
+    
+    return result.to_string();
+}
+
 static bool read_source(char* fname, buffer* source)
 {
     FILE* f = fopen(fname, "r");
@@ -149,6 +163,58 @@ buffer* compile_block(sParserInfo* info)
     buffer* buffer = compile_nodes(nodes, info);
     
     return buffer;
+}
+
+bool import_module(char* module_name)
+{
+    buffer* source = new buffer.initialize();
+    
+    string fname = xsprintf("%s.py", module_name);
+    
+    read_source(fname, source).expect {
+        exit(1);
+    }
+    
+    sParserInfo info;
+    
+    string source2 = source.to_string();
+    
+    info.p = source2;
+    info.fname = fname;
+    info.sline = 1;
+    info.stack_num = 0;
+    info.in_global_context = true;
+    info.space_num = 0;
+    info.loop_head = -1;
+    
+    while(true) {
+        skip_spaces_until_eol(&info);
+        if(*info.p == '\n') {
+            info.p++;
+        }
+        else {
+            break;
+        }
+    }
+    
+    list<sNode*>* nodes = parse(&info, 0`space_num);
+    
+    buffer* codes = compile_nodes(nodes, &info);
+    
+    sVMInfo vm_info;
+    
+    memset(&vm_info, 0, sizeof(sVMInfo));
+    
+    vm_info.module_name = string(module_name);
+    
+    add_module(module_name);
+    
+    vm(codes, null, &vm_info).expect {
+        print_exception(parent->vm_info->exception);
+        exit(1);
+    }
+
+    return true;
 }
 
 int main(int argc, char** argv)
