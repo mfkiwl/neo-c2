@@ -33,6 +33,13 @@ Module.a = 3
 
 xassert("Module test3", Module.a == 3)
 
+class ClassA():
+    a = 1
+
+xassert("Class test1", ClassA.a == 1)
+
+xassert("Class test2", Module.ClassB.a == 3)
+
 #print "HELLO WORLD"
 
 #def fun():

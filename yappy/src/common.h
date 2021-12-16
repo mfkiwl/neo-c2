@@ -4,7 +4,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValueNode, kOpAdd, kOpSub, kStringValueNode, kPrint, kExit, kReturn, kLoadVar, kStoreVar, kFun, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak, kOpEq, kOpNotEq, kOpDiv, kOpMult, kImport, kMethodCall, kLoadField, kStoreField } kind;
+    enum { kIntValueNode, kOpAdd, kOpSub, kStringValueNode, kPrint, kExit, kReturn, kLoadVar, kStoreVar, kFun, kClass, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak, kOpEq, kOpNotEq, kOpDiv, kOpMult, kImport, kMethodCall, kLoadField, kStoreField } kind;
     
     char* fname;
     int sline;
@@ -76,6 +76,11 @@ struct sNode
             vector<sNode*>* params;
             sNode* left;
         } methodCallValue;
+        
+        struct {
+            string name;
+            vector<sNode*>* methods;
+        } classValue;
     } value;
 };
 
@@ -96,7 +101,7 @@ struct sParserInfo
 
 struct ZVALUE 
 {
-    enum { kIntValue, kBoolValue, kLongValue, kStringValue, kObjValue, kNullValue, kExceptionValue, kModuleValue } kind;
+    enum { kIntValue, kBoolValue, kLongValue, kStringValue, kObjValue, kNullValue, kExceptionValue, kModuleValue, kClassValue } kind;
     
     union {
         int intValue;
@@ -106,6 +111,7 @@ struct ZVALUE
         void* objValue;
         enum { kExceptionVarNotFound, kExceptionDivisionByZero, kExceptionNameError, kExceptionTypeError } expValue;
         void* moduleValue;
+        void* classValue;
     } value;
 };
 
@@ -165,6 +171,7 @@ struct sVar
 #define OP_METHOD_CALL 21
 #define OP_LOAD_FIELD 22
 #define OP_STORE_FIELD 23
+#define OP_CLASS 24
 
 /// main.c ///
 void skip_spaces(sParserInfo* info);
@@ -188,6 +195,7 @@ struct sVMInfo
     ZVALUE return_value;
     
     string module_name;
+    string class_name;
 };
 
 bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info);
@@ -220,12 +228,14 @@ sNode*? exp_node(sParserInfo* info) version 4;
 sNode*? exp_node(sParserInfo* info) version 5;
 sNode*? fun_node(string fun_name, sParserInfo* info) version 5;   // implemented after layer
 sNode*? def_node(sParserInfo* info) version 5;   // implemented after layer
+sNode*? class_node(sParserInfo* info) version 5;   // implemented after layer
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 5;
 
 /// 06fun.c ///
 sNode*? fun_node(string fun_name, sParserInfo* info) version 6;
 sNode*? def_node(sParserInfo* info) version 6;
+sNode*? class_node(sParserInfo* info) version 6;   // implemented after layer
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6;
 
@@ -254,3 +264,4 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 11;
 sNode*? exp_node(sParserInfo* info) version 12;
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 12;
 
+sNode*? method_node(sNode* node, sParserInfo* info);

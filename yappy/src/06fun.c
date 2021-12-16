@@ -15,6 +15,22 @@ static sNode* create_fun(char* fun_name, buffer* codes, vector<string>* param_na
     return result;
 }
 
+static sNode* create_class(char* class_name, buffer* codes, vector<string>* param_names, sParserInfo* info)
+{
+    sNode* result = new sNode;
+    
+    result.kind = kClass;
+    
+    result.fname = info->fname;
+    result.sline = info->sline;
+    result.value.funValue.name = string(class_name);
+    result.value.funValue.codes = codes;
+    result.value.funValue.param_names = null;
+    result.value.funValue.param_names = param_names;
+    
+    return result;
+}
+
 static sNode* create_fun_call(char* fun_name, vector<sNode*>* params, sParserInfo* info)
 {
     sNode* result = new sNode;
@@ -125,6 +141,73 @@ sNode*? fun_node(string fun_name, sParserInfo* info) version 6
     return create_fun_call(fun_name, params, info);
 }
 
+sNode*? class_node(sParserInfo* info) version 6
+{
+    buffer* buf = new buffer.initialize();
+    
+    while(xisalnum(*info->p) || *info->p == '_') {
+        buf.append_char(*info->p);
+        info->p++;
+    }
+    skip_spaces_until_eol(info);
+    
+    string class_name = buf.to_string();
+    
+    if(*info->p == '(') {
+        info->p++;
+        skip_spaces_until_eol(info);
+    }
+    
+    vector<string>* param_names = new vector<string>.initialize();
+    
+    buffer* buf2 = new buffer.initialize();
+    
+    while(true) {
+        if(*info->p == ':') {
+            info->p++;
+            skip_spaces_until_eol(info);
+            break;
+        }
+        else if(*info->p == ')') {
+            info->p++;
+            skip_spaces_until_eol(info);
+            
+            if(*info->p == ':') {
+                info->p++;
+                skip_spaces_until_eol(info);
+                break;
+            }
+            else {
+                fprintf(stderr, "%s %d: require :\n", info->fname, info->sline);
+                exit(2);
+            }
+        }
+        else if(xisalpha(*info->p)) {
+            while(xisalnum(*info->p) || *info->p == '_') {
+                buf2.append_char(*info->p);
+                info->p++;
+            }
+            
+            param_names.push_back(buf2.to_string());
+            
+            buf2 = new buffer.initialize();
+            
+            if(*info->p == ',') {
+                info->p++;
+                skip_spaces_until_eol(info);
+            }
+        }
+        else {
+            fprintf(stderr, "%s %d: require parametor name or )\n", info->fname, info->sline);
+            exit(2);
+        }
+    }
+    
+    buffer* codes = compile_block(info);
+    
+    return create_class(class_name, codes, param_names, info);
+}
+
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
 {
     inherit(node, codes, info);
@@ -167,6 +250,27 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
             codes.append_str(name);
             codes.alignment();
         }
+    }
+    else if(node.kind == kClass) {
+        codes.append_int(OP_CLASS);
+        
+        char* name = node.value.funValue.name;
+        
+        int len = strlen(name);
+        int offset = (len + 3) & ~3;
+        offset /= sizeof(int);
+        
+        codes.append_int(offset);
+        codes.append_int(len);
+        
+        codes.append_str(name);
+        codes.alignment();
+        
+        buffer* codes2 = node.value.funValue.codes;
+        
+        codes.append_int(codes2.len);
+        
+        codes.append(codes2.buf, codes2.len);
     }
     else if(node.kind == kFunCall) {
         int stack_num = info.stack_num;

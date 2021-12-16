@@ -21,11 +21,34 @@ static sFunction* sFunction_initialize(sFunction* self, char* name, buffer* code
     return self;
 }
 
+struct sClass
+{
+    string name;
+    buffer* codes;
+    
+    map<string, ZVALUE>* class_vars;
+    map<string, sFunction*>* funcs;
+};
+
+static sClass* sClass_initialize(sClass* self, char* name, buffer* codes)
+{
+    self.name = clone name;
+    self.codes = clone codes;
+    
+    self.class_vars = new map<string, ZVALUE>.initialize();
+    self.funcs = new map<string, sFunction*>.initialize();
+    
+    return self;
+};
+
+static map<string, sClass*>* gClasses;
+
 struct sModule
 {
     string name;
     map<string, sFunction*>* funcs;
     map<string, ZVALUE>* global_vars;
+    map<string, sClass*>* classes;
 };
 
 sModule* sModule_initialize(sModule* self, char* module_name)
@@ -34,11 +57,26 @@ sModule* sModule_initialize(sModule* self, char* module_name)
     
     self.funcs = new map<string, sFunction*>.initialize();
     self.global_vars = new map<string, ZVALUE>.initialize();
+    self.classes = new map<string, sClass*>.initialize();
     
     return self;
 }
 
 static map<string, sModule*>* gModules;
+
+struct sObject
+{
+    sClass* klass;
+    map<string, ZVALUE>* fields;
+};
+
+sObject* sObject_initialize(sObject* self, sClass* klass)
+{
+    self.klass = klass;
+    self.fields = new map<string, ZVALUE>.initialize();
+    
+    return self;
+}
 
 void initialize_modules() version 1
 {
@@ -49,6 +87,7 @@ void initialize_modules() version 1
     gFuncs = new map<string, sFunction*>.initialize();
     
     gModules = new map<string, sModule*>.initialize();
+    gClasses = new map<string, sClass*>.initialize();
 }
 
 void finalize_modules() version 1
@@ -73,6 +112,14 @@ void print_op(int op)
     switch(op) {
         case OP_POP:
             puts("OP_POP");
+            break;
+            
+        case OP_EQ:
+            puts("OP_EQ");
+            break;
+            
+        case OP_CLASS:
+            puts("OP_EQ");
             break;
                 
         case OP_INT_VALUE: 
@@ -134,6 +181,14 @@ void print_op(int op)
         case OP_FUN: 
             puts("OP_FUN");
             break;
+            
+        case OP_LOAD_FIELD:
+            puts("OP_LOAD_FIELD");
+            break;
+            
+        case OP_LOAD_FIELD:
+            puts("OP_STORE_FIELD");
+            break;
                 
         default:
             printf("invalid op code %d\n", op);
@@ -176,6 +231,22 @@ bool function_call(sModule* module, char* fun_name, vector<ZVALUE>* param_values
     if(!vm(codes, params, info)) {
         return false;
     }
+    
+    return true;
+}
+
+bool class_call(sClass* klass, sVMInfo* info)
+{
+    buffer* codes = klass->codes;
+    
+    string class_name = info->class_name;
+    info->class_name = string(klass.name);
+    
+    if(!vm(codes, null, info)) {
+        return false;
+    }
+    
+    info->class_name = class_name;
     
     return true;
 }
@@ -335,9 +406,16 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 
                 sModule* module = gModules.at(string(var_name2), null);
                 
+                sClass* klass = gClasses.at(string(var_name2), null);
+                
                 if(module) {
                     stack[stack_num].kind = kModuleValue;
                     stack[stack_num].value.moduleValue = module;
+                    stack_num++;
+                }
+                else if(klass) {
+                    stack[stack_num].kind = kClassValue;
+                    stack[stack_num].value.classValue = klass;
                     stack_num++;
                 }
                 else if(in_global_context) {
@@ -394,6 +472,12 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     if(info.module_name) {
                         sModule* module = gModules.at(info.module_name, null);
                         
+                        if(module == null) {
+                            info->exception.kind = kExceptionValue;
+                            info->exception.value.expValue = kExceptionVarNotFound;
+                            return false;
+                        }
+                        
                         ZVALUE right = stack[stack_num-1];
                         module.global_vars.insert(string(var_name2), right);
                     }
@@ -403,8 +487,56 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     }
                 }
                 else {
-                    ZVALUE right = stack[stack_num-1];
-                    vtable.insert(string(var_name2), right);
+                    if(info.module_name) {
+                        sModule* module = gModules.at(info.module_name, null);
+                        
+                        if(module == null) {
+                            info->exception.kind = kExceptionValue;
+                            info->exception.value.expValue = kExceptionVarNotFound;
+                            return false;
+                        }
+                        
+                        if(info.class_name) {
+                            sClass* klass = module->classes.at(info.class_name, null);
+                            
+                            if(klass == null) {
+                                info->exception.kind = kExceptionValue;
+                                info->exception.value.expValue = kExceptionVarNotFound;
+                                return false;
+                            }
+                            
+                            ZVALUE right = stack[stack_num-1];
+                            klass.class_vars.insert(string(var_name2), right);
+                        }
+                        else {
+                            sClass* klass = gClasses.at(info.class_name, null);
+                            
+                            if(klass == null) {
+                                info->exception.kind = kExceptionValue;
+                                info->exception.value.expValue = kExceptionVarNotFound;
+                                return false;
+                            }
+                            
+                            ZVALUE right = stack[stack_num-1];
+                            klass.class_vars.insert(string(var_name2), right);
+                        }
+                    }
+                    else if(info.class_name) {
+                        sClass* klass = gClasses.at(info.class_name, null);
+                        
+                        if(klass == null) {
+                            info->exception.kind = kExceptionValue;
+                            info->exception.value.expValue = kExceptionVarNotFound;
+                            return false;
+                        }
+                        
+                        ZVALUE right = stack[stack_num-1];
+                        klass.class_vars.insert(string(var_name2), right);
+                    }
+                    else {
+                        ZVALUE right = stack[stack_num-1];
+                        vtable.insert(string(var_name2), right);
+                    }
                 }
                 }
                 break;
@@ -465,10 +597,67 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 if(info.module_name) {
                     sModule* module = gModules.at(info.module_name, null);
                     
+                    if(module == null) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionVarNotFound;
+                        return false;
+                    }
+                    
                     module.funcs.insert(string(name2), fun);
                 }
                 else {
                     gFuncs.insert(string(name2), fun);
+                }
+                }
+                break;
+                
+            case OP_CLASS: {
+                p++;
+                
+                int offset = *p;
+                p++;
+                
+                int len = *p;
+                p++;
+                
+                char* name = (char*)p;
+                
+                char name2[len+1];
+                memcpy(name2, name, len);
+                name2[len] = '\0'
+                
+                p += offset;
+                
+                int len_codes = *p;
+                p++;
+                
+                char* codes = (char*)p;
+                
+                p += len_codes / sizeof(int);
+                
+                buffer* codes2 = new buffer.initialize();
+                
+                codes2.append(codes, len_codes);
+                
+                sClass* klass = new sClass.initialize(string(name2), codes2);
+                
+                if(info.module_name) {
+                    sModule* module = gModules.at(info.module_name, null);
+                    
+                    if(module == null) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionVarNotFound;
+                        return false;
+                    }
+                    
+                    module.classes.insert(string(name2), klass);
+                }
+                else {
+                    gClasses.insert(string(name2), klass);
+                }
+                
+                if(!class_call(klass, info)) {
+                    return false;
                 }
                 }
                 break;
@@ -727,11 +916,35 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 
                 p += offset;
                 
+                
                 if(stack[stack_num-1].kind == kModuleValue) {
                     sModule* module = (sModule*)stack[stack_num-1].moduleValue;
                     stack_num--;
                     
-                    stack[stack_num] = module->global_vars.at(string(field_name2), gNullValue);
+                    
+                    sClass* klass = module->classes.at(string(field_name2), null);
+                    
+                    if(klass == null) {
+                        stack[stack_num] = module->global_vars.at(string(field_name2), gNullValue);
+                        stack_num++;
+                        
+                        if(stack[stack_num-1].kind == kNullValue) {
+                            info->exception.kind = kExceptionValue;
+                            info->exception.value.expValue = kExceptionVarNotFound;
+                            return false;
+                        }
+                    }
+                    else {
+                        stack[stack_num].kind = kClassValue;
+                        stack[stack_num].classValue = klass;
+                        stack_num++;
+                    }
+                }
+                else if(stack[stack_num-1].kind == kClassValue) {
+                    sClass* klass = (sClass*)stack[stack_num-1].classValue;
+                    stack_num--;
+                    
+                    stack[stack_num] = klass->class_vars.at(string(field_name2), gNullValue);
                     stack_num++;
                     
                     if(stack[stack_num-1].kind == kNullValue) {
@@ -740,7 +953,12 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                         return false;
                     }
                 }
+                else if(stack[stack_num-1].kind == kObjValue) {
+                }
                 else {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionVarNotFound;
+                    return false;
                 }
                 }
                 break;
@@ -769,9 +987,21 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     sModule* module = (sModule*)left.moduleValue;
                     
                     module->global_vars.insert(string(field_name2), right);
-                    stack_num++;
                     
                     stack_num -= 2;
+                    
+                    stack[stack_num] = right;
+                    stack_num++;
+                }
+                else if(left.kind == kClassValue) {
+                    sClass* klass = (sClass*)left.classValue;
+                    
+                    klass->class_vars.insert(string(field_name2), right);
+                    
+                    stack_num -= 2;
+                    
+                    stack[stack_num] = right;
+                    stack_num++;
                 }
                 else {
                 }

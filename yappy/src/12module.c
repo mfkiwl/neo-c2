@@ -71,7 +71,7 @@ static bool emb_funcmp(char* p, char* word2)
     return false;
 }
 
-static sNode*? method_node(sNode* node, sParserInfo* info)
+sNode*? method_node(sNode* node, sParserInfo* info)
 {
     info->p++;
     skip_spaces_until_eol(info);
@@ -95,7 +95,13 @@ static sNode*? method_node(sNode* node, sParserInfo* info)
                 return null;
             }
             
-            return create_store_field(node, buf.to_string(), right, info);
+            sNode* result = create_store_field(node, buf.to_string(), right, info);
+            
+            if(*info->p == '.') {
+                result = method_node(result, info);
+            }
+            
+            return result;
         }
         else if(*info->p == '(') {
             info->p++;
@@ -124,10 +130,22 @@ static sNode*? method_node(sNode* node, sParserInfo* info)
                 params.push_back(node);
             }
             
-            return create_method_call(node, buf.to_string(), params, info);
+            sNode* result = create_method_call(node, buf.to_string(), params, info);
+            
+            if(*info->p == '.') {
+                result = method_node(result, info);
+            }
+            
+            return result;
         }
         else {
-            return create_load_field(node, buf.to_string(), info);
+            sNode* result = create_load_field(node, buf.to_string(), info);
+            
+            if(*info->p == '.') {
+                result = method_node(result, info);
+            }
+            
+            return result;
         }
     }
 }
@@ -147,10 +165,6 @@ sNode*? exp_node(sParserInfo* info) version 12
     
     if(result == null) {
         result = inherit(info);
-        
-        if(*info->p == '.') {
-            result = method_node(result, info);
-        }
     }
     
     return result;
@@ -258,6 +272,8 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 12
         
         codes.append_str(name);
         codes.alignment();
+        
+        info->stack_num--;
     }
     
     return true;

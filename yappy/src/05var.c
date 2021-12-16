@@ -39,6 +39,24 @@ sNode*? def_node(sParserInfo* info) version 5   // implemented after layer
     return null;
 }
 
+sNode*? class_node(sParserInfo* info) version 5   // implemented after layer
+{
+    return null;
+}
+
+static bool emb_funcmp(char* p, char* word2)
+{
+    bool result = strstr(p, word2) == p;
+    
+    char c = p[strlen(word2)];
+    
+    if(result && (c == ' ' || c == '\t' || c == '\0' || c == '(' || c == '\n')) {
+        return true;
+    }
+    
+    return false;
+}
+
 sNode*? exp_node(sParserInfo* info) version 5
 {
     sNode* result = inherit(info);
@@ -56,6 +74,9 @@ sNode*? exp_node(sParserInfo* info) version 5
             if(strcmp(buf.to_string(), "def") == 0) {
                 return def_node(info);
             }
+            else if(strcmp(buf.to_string(), "class") == 0) {
+                return class_node(info);
+            }
             else if(*info->p == '=' && *(info->p+1) != '=') {
                 info->p++;
                 skip_spaces_until_eol(info);
@@ -69,10 +90,22 @@ sNode*? exp_node(sParserInfo* info) version 5
                 return create_store_var(buf.to_string(), right, info);
             }
             else if(*info->p == '(') {
-                return fun_node(buf.to_string(), info)
+                result = fun_node(buf.to_string(), info)
+                
+                if(*info->p == '.') {
+                    result = method_node(result, info);
+                }
+                
+                return result;
             }
             else {
-                return create_load_var(buf.to_string(), info);
+                result = create_load_var(buf.to_string(), info);
+                
+                if(*info->p == '.') {
+                    result = method_node(result, info);
+                }
+                
+                return result;
             }
         }
     }
