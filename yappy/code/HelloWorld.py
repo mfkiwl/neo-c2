@@ -35,10 +35,23 @@ xassert("Module test3", Module.a == 3)
 
 class ClassA():
     a = 1
+    
+    def __init__(self):
+        self.a = 9
+        print "HELLO METHOD"
+    
+    def method(self):
+        print self
+        return self.a
 
 xassert("Class test1", ClassA.a == 1)
 
 xassert("Class test2", Module.ClassB.a == 3)
+
+b = ClassA()
+
+xassert("Object test1", b.a == 9)
+xassert("Object test2", b.method() == 9)
 
 #print "HELLO WORLD"
 

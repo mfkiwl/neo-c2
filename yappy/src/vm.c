@@ -196,21 +196,8 @@ void print_op(int op)
     }
 }
 
-bool function_call(sModule* module, char* fun_name, vector<ZVALUE>* param_values, sVMInfo* info)
+bool function_call(sFunction* fun, vector<ZVALUE>* param_values, sVMInfo* info)
 {
-    sFunction* fun;
-    if(module) {
-        fun = module.funcs.at(fun_name, null);
-    }
-    else {
-        fun = gFuncs.at(fun_name, null);
-    }
-    
-    if(fun == null) {
-        info->exception.kind = kExceptionValue;
-        info->exception.value.expValue = kExceptionNameError;
-        return false;
-    }
     
     buffer* codes = fun->codes;
     vector<string>* param_names = fun->param_names;
@@ -379,6 +366,12 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                        }
                        else {
                            puts("false");
+                       }
+                       break;
+                       
+                   case kObjValue: {
+                       sObject* object = stack[stack_num-1].value.objValue;
+                       printf("%s object\n", object.klass.name);
                        }
                        break;
                 }
@@ -594,7 +587,39 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 
                 sFunction* fun = new sFunction.initialize(string(name2), codes2, param_names);
                 
-                if(info.module_name) {
+                if(info.class_name) {
+                    if(info.module_name) {
+                        sModule* module = gModules.at(info.module_name, null);
+                        
+                        if(module == null) {
+                            info->exception.kind = kExceptionValue;
+                            info->exception.value.expValue = kExceptionVarNotFound;
+                            return false;
+                        }
+                        
+                        sClass* klass = module.classes.at(info.class_name, null);
+                        
+                        if(klass == null) {
+                            info->exception.kind = kExceptionValue;
+                            info->exception.value.expValue = kExceptionVarNotFound;
+                            return false;
+                        }
+                        
+                        klass->funcs.insert(string(name2), fun);
+                    }
+                    else {
+                        sClass* klass = gClasses.at(info.class_name, null);
+                        
+                        if(klass == null) {
+                            info->exception.kind = kExceptionValue;
+                            info->exception.value.expValue = kExceptionVarNotFound;
+                            return false;
+                        }
+                        
+                        klass->funcs.insert(string(name2), fun);
+                    }
+                }
+                else if(info.module_name) {
                     sModule* module = gModules.at(info.module_name, null);
                     
                     if(module == null) {
@@ -682,22 +707,94 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 int num_params = *p;
                 p++;
                 
-                vector<ZVALUE>* param_values = new vector<ZVALUE>.initialize();
-                
-                for(int i=0; i<num_params; i++) {
-                    ZVALUE value = stack[stack_num-num_params+i];
+                sClass* klass = null;
+                if(info.module_name) {
+                    sModule* module = gModules.at(info.module_name, null);
                     
-                    param_values.push_back(value);
+                    if(module == null) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionVarNotFound;
+                        return false;
+                    }
+                    
+                    klass = module.classes.at(string(fun_name2), null);
+                }
+                else {
+                    klass = gClasses.at(string(fun_name2), null);
                 }
                 
-                if(!function_call(null, fun_name2, param_values, info)) {
-                    return false;
+                /// new object ///
+                if(klass) {
+                    sObject* object = new sObject.initialize(klass);
+                    
+                    sFunction* constructor = klass.funcs.at("__init__", null);
+                    
+                    if(constructor) {
+                        vector<ZVALUE>* param_values = new vector<ZVALUE>.initialize();
+                        
+                        ZVALUE object_value;
+                        object_value.kind = kObjValue;
+                        object_value.objValue = object;
+                        
+                        param_values.push_back(object_value);
+                        
+                        for(int i=0; i<num_params; i++) {
+                            ZVALUE value = stack[stack_num-num_params+i];
+                            
+                            param_values.push_back(value);
+                        }
+                        
+                        if(!function_call(constructor, param_values, info)) {
+                            return false;
+                        }
+                        
+                        stack_num -= param_values.length();
+                        
+                        stack[stack_num].kind = kObjValue;
+                        stack[stack_num].objValue = object;
+                        stack_num++;
+                    }
+                    else {
+                        stack[stack_num].kind = kObjValue;
+                        stack[stack_num].objValue = object;
+                        stack_num++;
+                    }
                 }
-                
-                stack_num -= param_values.length();
-                
-                stack[stack_num] = info->return_value;
-                stack_num++;
+                /// function call ///
+                else {
+                    vector<ZVALUE>* param_values = new vector<ZVALUE>.initialize();
+                    
+                    for(int i=0; i<num_params; i++) {
+                        ZVALUE value = stack[stack_num-num_params+i];
+                        
+                        param_values.push_back(value);
+                    }
+                    
+                    sFunction* fun = null;
+                    if(info.module_name) {
+                        sModule* module = gModules.at(info.module_name, null);
+                        
+                        fun = module.funcs.at(fun_name2, null);
+                    }
+                    else {
+                        fun = gFuncs.at(fun_name2, null);
+                    }
+                    
+                    if(fun == null) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionNameError;
+                        return false;
+                    }
+                    
+                    if(!function_call(fun, param_values, info)) {
+                        return false;
+                    }
+                    
+                    stack_num -= param_values.length();
+                    
+                    stack[stack_num] = info->return_value;
+                    stack_num++;
+                }
                 }
                 break;
                 
@@ -873,9 +970,8 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 int num_params = *p;
                 p++;
                 
-                if(stack[stack_num-1].kind == kModuleValue) {
-                    sModule* module = (sModule*)stack[stack_num-1].moduleValue;
-                    stack_num--;
+                if(stack[stack_num-1-num_params].kind == kModuleValue) {
+                    sModule* module = (sModule*)stack[stack_num-num_params-1].moduleValue;
                     
                     vector<ZVALUE>* param_values = new vector<ZVALUE>.initialize();
                     
@@ -885,7 +981,50 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                         param_values.push_back(value);
                     }
                     
-                    if(!function_call(module, fun_name2, param_values, info)) {
+                    sFunction* fun = module.funcs.at(fun_name2, null);
+                    
+                    if(fun == null) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionMethodNotFound;
+                        return false;
+                    }
+                    
+                    if(!function_call(fun, param_values, info)) {
+                        return false;
+                    }
+                    
+                    stack_num--;
+                    stack_num -= param_values.length();
+                    
+                    stack[stack_num] = info->return_value;
+                    stack_num++;
+                }
+                else if(stack[stack_num-num_params-1].kind == kObjValue) {
+                    sObject* object = (sObject*)stack[stack_num-num_params-1].objValue;
+                    
+                    vector<ZVALUE>* param_values = new vector<ZVALUE>.initialize();
+                    
+                    ZVALUE object_value;
+                    object_value.kind = kObjValue;
+                    object_value.objValue = object;
+                    
+                    param_values.push_back(object_value);
+                    
+                    for(int i=0; i<num_params; i++) {
+                        ZVALUE value = stack[stack_num-num_params+i];
+                        
+                        param_values.push_back(value);
+                    }
+                    
+                    sFunction* fun = object.klass.funcs.at(fun_name2, null);
+                    
+                    if(fun == null) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionMethodNotFound;
+                        return false;
+                    }
+                    
+                    if(!function_call(fun, param_values, info)) {
                         return false;
                     }
                     
@@ -895,6 +1034,9 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     stack_num++;
                 }
                 else {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionMethodNotFound;
+                    return false;
                 }
                 }
                 break;
@@ -954,6 +1096,17 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     }
                 }
                 else if(stack[stack_num-1].kind == kObjValue) {
+                    sObject* object = (sObject*)stack[stack_num-1].objValue;
+                    stack_num--;
+                    
+                    stack[stack_num] = object->fields.at(string(field_name2), gNullValue);
+                    stack_num++;
+                    
+                    if(stack[stack_num-1].kind == kNullValue) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionVarNotFound;
+                        return false;
+                    }
                 }
                 else {
                     info->exception.kind = kExceptionValue;
@@ -1003,7 +1156,20 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     stack[stack_num] = right;
                     stack_num++;
                 }
+                else if(left.kind == kObjValue) {
+                    sObject* obj = (sObject*)left.objValue;
+                    
+                    obj->fields.insert(string(field_name2), right);
+                    
+                    stack_num -= 2;
+                    
+                    stack[stack_num] = right;
+                    stack_num++;
+                }
                 else {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionVarNotFound;
+                    return false;
                 }
                 }
                 break;

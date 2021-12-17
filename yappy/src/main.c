@@ -83,9 +83,20 @@ static list<sNode*>* parse(sParserInfo* info, int block_space_num)
             }
             
             int space_num = 0;
-            while(*info->p == ' ' || *info->p == '\t') {
-                info->p++;
-                space_num++;
+            while(true) {
+                space_num = 0;
+                while(*info->p == ' ' || *info->p == '\t') {
+                    info->p++;
+                    space_num++;
+                }
+                
+                if(*info->p == '\n') {
+                    info->p++
+                    info->sline++;
+                }
+                else {
+                    break;
+                }
             }
             
             info.space_num = space_num;
@@ -116,11 +127,22 @@ list<sNode*>* parse_block(sParserInfo* info)
         info->sline++;
         
         int block_space_num = 0;
-        while(*info->p == ' ' || *info->p == '\t') {
-            info->p++;
-            block_space_num++;
+        while(true) {
+            block_space_num = 0;
+            while(*info->p == ' ' || *info->p == '\t') {
+                info->p++;
+                block_space_num++;
+                
+                info.space_num = block_space_num;
+            }
             
-            info.space_num = block_space_num;
+            if(*info->p == '\n') {
+                info->p++;
+                info->sline++;
+            }
+            else {
+                break;
+            }
         }
         
         nodes = parse(info, block_space_num);
