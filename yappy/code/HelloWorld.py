@@ -1,3 +1,5 @@
+import sys
+
 def xassert(msg:str, exp:bool) -> None:
    print(msg)
    if exp :
@@ -35,10 +37,10 @@ xassert("Module test3", Module.a == 3)
 xassert("Module test4", Module.fun3(1,8) == 9)
 
 class ClassA:
-    a = 1
+    A = 1
     
     def __init__(self):
-        self.a = 9
+        self.a:int = 9
         print("HELLO METHOD")
 
     def method(self) -> int:
@@ -48,7 +50,7 @@ class ClassA:
     def method2(self, a:int, b:int) -> int:
         return a + b
 
-xassert("Class test1", ClassA.a == 1)
+xassert("Class test1", ClassA.A == 1)
 
 xassert("Class test2", Module.ClassB.a == 3)
 

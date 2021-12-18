@@ -85,6 +85,8 @@ sNode*? method_node(sNode* node, sParserInfo* info)
         }
         skip_spaces_until_eol(info);
         
+        parse_type(info);
+        
         if(*info->p == '=' && *(info->p+1) != '=') {
             info->p++;
             skip_spaces_until_eol(info);
@@ -175,18 +177,20 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 12
     inherit(node, codes, info);
     
     if(node.kind == kImport) {
-        codes.append_int(OP_IMPORT);
-        
         string str = string(node.importValue.name);
         
-        int len = strlen(str);
-        int offset = (len + 3) & ~3;
-        offset /= sizeof(int);
-        
-        codes.append_int(offset);
-        codes.append_int(len);
-        codes.append_str(str);
-        codes.alignment();
+        if(strcmp(str, "sys") != 0) {
+            codes.append_int(OP_IMPORT);
+            
+            int len = strlen(str);
+            int offset = (len + 3) & ~3;
+            offset /= sizeof(int);
+            
+            codes.append_int(offset);
+            codes.append_int(len);
+            codes.append_str(str);
+            codes.alignment();
+        }
     }
     else if(node.kind == kMethodCall) {
         int stack_num = info.stack_num;
