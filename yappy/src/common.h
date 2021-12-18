@@ -1,5 +1,30 @@
 #include <neo-c2.h>
 
+/// type ///
+struct sPyClass {
+    string mName;
+
+    int mGenericsNum;
+    int mMethodGenericsNum;
+};
+
+struct sPyType;
+
+struct sPyType
+{
+    sPyClass* mClass;
+    
+    vector<sPyType*>* mGenericsTypes;
+};
+
+void add_type(char* name, vector<sPyType*>* generics_types);
+sPyType* get_type(char* name);
+
+sPyType* sPyType_initialize(sPyType* self, char* name, vector<sPyType*>* generics_types, int generics_num, int method_generics_num);
+
+void initialize_modules() version 2;
+void finalize_modules() version 2;
+
 struct sNode;
 
 struct sNode
@@ -24,6 +49,7 @@ struct sNode
             string name;
             sNode* right;
             bool in_global_context;
+            sPyType* type_;
         } storeVarValue;
         
         struct {
@@ -35,6 +61,8 @@ struct sNode
             string name;
             buffer* codes;
             vector<string>* param_names;
+            vector<sPyType*>* param_types;
+            sPyType* result_type;
         } funValue;
         
         struct {
@@ -97,6 +125,8 @@ struct sParserInfo
     
     int loop_head;
     vector<int>* breaks;
+    
+    sPyType* type;
 };
 
 struct ZVALUE 
@@ -235,6 +265,8 @@ sNode*? def_node(sParserInfo* info) version 5;   // implemented after layer
 sNode*? class_node(sParserInfo* info) version 5;   // implemented after layer
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 5;
+
+sPyType* parse_type(sParserInfo* info);
 
 /// 06fun.c ///
 sNode*? fun_node(string fun_name, sParserInfo* info) version 6;

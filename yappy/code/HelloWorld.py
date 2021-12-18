@@ -1,23 +1,23 @@
-def xassert(msg, exp):
-    print msg
-    if exp :
+def xassert(msg:str, exp:bool) -> None:
+   print msg
+   if exp :
         print "->OK"
     else :
         print "->error"
         exit 1
 
-a=123
+a:int=123
 xassert("var test", a == 123)
 
 a=234
 xassert("var test2", a == 234)
 
-def fun():
+def fun() -> int:
     return 1
 
 xassert("fun test", fun() == 1)
 
-def fun2(a,b):
+def fun2(a:int,b:int) -> int:
     return a + b
 
 xassert("fun test2", fun2(1,2) == 3)
@@ -32,17 +32,21 @@ xassert("Module test2", Module.a == 2)
 Module.a = 3
 
 xassert("Module test3", Module.a == 3)
+xassert("Module test4", Module.fun3(1,8) == 9)
 
-class ClassA():
+class ClassA:
     a = 1
     
     def __init__(self):
         self.a = 9
         print "HELLO METHOD"
-    
-    def method(self):
+
+    def method(self) -> int:
         print self
         return self.a
+    
+    def method2(self, a:int, b:int) -> int:
+        return a + b
 
 xassert("Class test1", ClassA.a == 1)
 
@@ -52,6 +56,7 @@ b = ClassA()
 
 xassert("Object test1", b.a == 9)
 xassert("Object test2", b.method() == 9)
+xassert("Object test3", b.method2(1+2) == 3)
 
 #print "HELLO WORLD"
 

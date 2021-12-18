@@ -14,7 +14,7 @@ static sNode* create_load_var(char* str, sParserInfo* info)
     return result;
 }
 
-static sNode* create_store_var(char* str, sNode* right, sParserInfo* info)
+static sNode* create_store_var(char* str, sNode* right, sPyType* type_, sParserInfo* info)
 {
     sNode* result = new sNode;
     
@@ -25,6 +25,7 @@ static sNode* create_store_var(char* str, sNode* right, sParserInfo* info)
     result.value.storeVarValue.name = string(str);
     result.value.storeVarValue.in_global_context = info->in_global_context;
     result.value.storeVarValue.right = right;
+    result.value.storeVarValue.type_ = type_;
     
     return result;
 }
@@ -57,6 +58,42 @@ static bool emb_funcmp(char* p, char* word2)
     return false;
 }
 
+sPyType* parse_type(sParserInfo* info)
+{
+    char* p = info->p;
+    int sline = info->sline;
+    
+    sPyType* type_ = null;
+    
+    if(*info->p == ':' || (*info->p == '-' && *(info->p+1) == '>')) {
+        if(*info->p == ':') {
+            info->p++;
+            skip_spaces_until_eol(info);
+        }
+        else {
+            info->p+=2;
+            skip_spaces_until_eol(info);
+        }
+        
+        if(*info->p == '\n') {
+            info->p = p;
+            info->sline = sline;
+            return null;
+        }
+        
+        buffer* buf = new buffer.initialize();
+        while(xisalnum(*info->p) || *info->p == '_') {
+            buf.appehd_char(*info->p);
+            info->p++;
+        }
+        skip_spaces_until_eol(info);
+        
+        type_ = get_type(buf.to_string());
+    }
+    
+    return type_;
+}
+
 sNode*? exp_node(sParserInfo* info) version 5
 {
     sNode* result = inherit(info);
@@ -70,6 +107,8 @@ sNode*? exp_node(sParserInfo* info) version 5
                 info->p++;
             }
             skip_spaces_until_eol(info);
+            
+            sPyType* type_ = parse_type(info);
             
             if(strcmp(buf.to_string(), "def") == 0) {
                 return def_node(info);
@@ -87,7 +126,7 @@ sNode*? exp_node(sParserInfo* info) version 5
                     return null;
                 }
                 
-                return create_store_var(buf.to_string(), right, info);
+                return create_store_var(buf.to_string(), right, type_, info);
             }
             else if(*info->p == '(') {
                 result = fun_node(buf.to_string(), info)

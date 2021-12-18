@@ -1,12 +1,15 @@
-def fun():
+def fun() -> int:
     return 1
 
-a=2
+a:int =2
 
 class ClassB:
-    a = 3
+    a:int = 3
 
-def fun2():
+def fun2() -> None:
     print "CALLED IMPORT"
+
+def fun3(a:int, b:int) -> int:
+    return a + b
 
 fun2()

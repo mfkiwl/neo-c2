@@ -1,6 +1,6 @@
 #include "common.h"
 
-static sNode* create_fun(char* fun_name, buffer* codes, vector<string>* param_names, sParserInfo* info)
+static sNode* create_fun(char* fun_name, buffer* codes, vector<string>* param_names, vector<sPyType*>* param_types, sPyType* result_type, sParserInfo* info)
 {
     sNode* result = new sNode;
     
@@ -11,11 +11,13 @@ static sNode* create_fun(char* fun_name, buffer* codes, vector<string>* param_na
     result.value.funValue.name = string(fun_name);
     result.value.funValue.codes = codes;
     result.value.funValue.param_names = param_names;
+    result.value.funValue.param_types = param_types;
+    result.value.funValue.result_type = result_type;
     
     return result;
 }
 
-static sNode* create_class(char* class_name, buffer* codes, vector<string>* param_names, sParserInfo* info)
+static sNode* create_class(char* class_name, buffer* codes, sParserInfo* info)
 {
     sNode* result = new sNode;
     
@@ -26,7 +28,8 @@ static sNode* create_class(char* class_name, buffer* codes, vector<string>* para
     result.value.funValue.name = string(class_name);
     result.value.funValue.codes = codes;
     result.value.funValue.param_names = null;
-    result.value.funValue.param_names = param_names;
+    result.value.funValue.param_types = null;
+    result.value.funValue.result_type = null;
     
     return result;
 }
@@ -66,13 +69,18 @@ sNode*? def_node(sParserInfo* info) version 6
     skip_spaces_until_eol(info);
     
     vector<string>* param_names = new vector<string>.initialize();
+    vector<sPyType*>* param_types = new vector<sPyType*>.initialize();
     
     buffer* buf2 = new buffer.initialize();
+    
+    sPyType* result_type = null;
     
     while(true) {
         if(*info->p == ')') {
             info->p++;
             skip_spaces_until_eol(info);
+            
+            result_type = parse_type(info);
             
             if(*info->p == ':') {
                 info->p++;
@@ -89,6 +97,9 @@ sNode*? def_node(sParserInfo* info) version 6
                 buf2.append_char(*info->p);
                 info->p++;
             }
+            
+            sPyType* type_ = parse_type(info);
+            param_types.push_back(type_);
             
             param_names.push_back(buf2.to_string());
             
@@ -107,7 +118,7 @@ sNode*? def_node(sParserInfo* info) version 6
     
     buffer* codes = compile_block(info);
     
-    return create_fun(fun_name, codes, param_names, info);
+    return create_fun(fun_name, codes, param_names, param_types, result_type, info);
 }
 
 sNode*? fun_node(string fun_name, sParserInfo* info) version 6
@@ -151,61 +162,16 @@ sNode*? class_node(sParserInfo* info) version 6
     }
     skip_spaces_until_eol(info);
     
-    string class_name = buf.to_string();
-    
-    if(*info->p == '(') {
+    if(*info->p == ':') {
         info->p++;
         skip_spaces_until_eol(info);
     }
     
-    vector<string>* param_names = new vector<string>.initialize();
-    
-    buffer* buf2 = new buffer.initialize();
-    
-    while(true) {
-        if(*info->p == ':') {
-            info->p++;
-            skip_spaces_until_eol(info);
-            break;
-        }
-        else if(*info->p == ')') {
-            info->p++;
-            skip_spaces_until_eol(info);
-            
-            if(*info->p == ':') {
-                info->p++;
-                skip_spaces_until_eol(info);
-                break;
-            }
-            else {
-                fprintf(stderr, "%s %d: require :\n", info->fname, info->sline);
-                exit(2);
-            }
-        }
-        else if(xisalpha(*info->p)) {
-            while(xisalnum(*info->p) || *info->p == '_') {
-                buf2.append_char(*info->p);
-                info->p++;
-            }
-            
-            param_names.push_back(buf2.to_string());
-            
-            buf2 = new buffer.initialize();
-            
-            if(*info->p == ',') {
-                info->p++;
-                skip_spaces_until_eol(info);
-            }
-        }
-        else {
-            fprintf(stderr, "%s %d: require parametor name or )\n", info->fname, info->sline);
-            exit(2);
-        }
-    }
+    string class_name = buf.to_string();
     
     buffer* codes = compile_block(info);
     
-    return create_class(class_name, codes, param_names, info);
+    return create_class(class_name, codes, info);
 }
 
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
