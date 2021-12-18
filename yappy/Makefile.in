@@ -64,7 +64,7 @@ permission:
 # clean
 ########################################################
 clean:
-	rm -fR yappy yappy.dSYM src/*.o config.log config.status *.stackdump autom4te.cache .DS_Store core.* core a.out src/*.ll src/*.i
+	rm -fR yappy yappy.dSYM src/*.o config.log config.status *.stackdump autom4te.cache .DS_Store core.* core a.out src/*.ll src/*.i code/__pycache__
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache

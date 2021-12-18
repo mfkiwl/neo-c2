@@ -49,7 +49,6 @@ struct sNode
             string name;
             sNode* right;
             bool in_global_context;
-            sPyType* type_;
         } storeVarValue;
         
         struct {
@@ -61,8 +60,6 @@ struct sNode
             string name;
             buffer* codes;
             vector<string>* param_names;
-            vector<sPyType*>* param_types;
-            sPyType* result_type;
         } funValue;
         
         struct {
@@ -125,8 +122,6 @@ struct sParserInfo
     
     int loop_head;
     vector<int>* breaks;
-    
-    sPyType* type;
 };
 
 struct ZVALUE 

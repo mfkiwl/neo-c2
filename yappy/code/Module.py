@@ -7,7 +7,7 @@ class ClassB:
     a:int = 3
 
 def fun2() -> None:
-    print "CALLED IMPORT"
+    print("CALLED IMPORT")
 
 def fun3(a:int, b:int) -> int:
     return a + b

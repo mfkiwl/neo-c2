@@ -1,4 +1,7 @@
 #include "common.h"
+#include <libgen.h>
+
+string gDirName;
 
 void skip_spaces(sParserInfo* info)
 {
@@ -191,7 +194,8 @@ bool import_module(char* module_name)
 {
     buffer* source = new buffer.initialize();
     
-    string fname = xsprintf("%s.py", module_name);
+    string fname = xsprintf("%s/%s.py", gDirName, module_name);
+puts(fname);
     
     read_source(fname, source).expect {
         exit(1);
@@ -250,6 +254,8 @@ int main(int argc, char** argv)
             fname = argv[i];
         }
     }
+    
+    gDirName = string(dirname(string(fname)));
     
     if(fname == null) {
     }

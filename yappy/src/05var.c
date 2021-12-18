@@ -14,7 +14,7 @@ static sNode* create_load_var(char* str, sParserInfo* info)
     return result;
 }
 
-static sNode* create_store_var(char* str, sNode* right, sPyType* type_, sParserInfo* info)
+static sNode* create_store_var(char* str, sNode* right, sParserInfo* info)
 {
     sNode* result = new sNode;
     
@@ -25,7 +25,6 @@ static sNode* create_store_var(char* str, sNode* right, sPyType* type_, sParserI
     result.value.storeVarValue.name = string(str);
     result.value.storeVarValue.in_global_context = info->in_global_context;
     result.value.storeVarValue.right = right;
-    result.value.storeVarValue.type_ = type_;
     
     return result;
 }
@@ -108,7 +107,7 @@ sNode*? exp_node(sParserInfo* info) version 5
             }
             skip_spaces_until_eol(info);
             
-            sPyType* type_ = parse_type(info);
+            parse_type(info);
             
             if(strcmp(buf.to_string(), "def") == 0) {
                 return def_node(info);
@@ -126,7 +125,7 @@ sNode*? exp_node(sParserInfo* info) version 5
                     return null;
                 }
                 
-                return create_store_var(buf.to_string(), right, type_, info);
+                return create_store_var(buf.to_string(), right, info);
             }
             else if(*info->p == '(') {
                 result = fun_node(buf.to_string(), info)

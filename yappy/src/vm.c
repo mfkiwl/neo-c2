@@ -3,10 +3,13 @@
 static map<string, ZVALUE>* gGlobalVars;
 static ZVALUE gNullValue;
 
+typedef bool (*fNativeFun)(map<string, ZVALUE>* params, sVMInfo* info);
+
 struct sFunction
 {
     string name;
     buffer* codes;
+    fNativeFun* native_fun;
     vector<string>* param_names;
 };
 
@@ -14,9 +17,15 @@ static map<string, sFunction*>* gFuncs;
 
 static sFunction* sFunction_initialize(sFunction* self, char* name, buffer* codes, vector<string>* param_names)
 {
-    self.name = clone name;
-    self.codes = clone codes;
+    self.name = string(name);
+    if(codes) {
+        self.codes = clone codes;
+    }
+    else {
+        self.codes = null;
+    }
     self.param_names = clone param_names;
+    self.native_fun = null;
     
     return self;
 }
@@ -78,6 +87,15 @@ sObject* sObject_initialize(sObject* self, sClass* klass)
     return self;
 }
 
+bool native_sys_exit(map<string, ZVALUE>* params, sVMInfo* info)
+{
+    ZVALUE rcode = params.at("rcode", gNullValue);
+    
+    exit(rcode.value.intValue);
+    
+    return true;
+}
+
 void initialize_modules() version 1
 {
     gGlobalVars = new map<string, ZVALUE>.initialize();
@@ -88,6 +106,19 @@ void initialize_modules() version 1
     
     gModules = new map<string, sModule*>.initialize();
     gClasses = new map<string, sClass*>.initialize();
+    
+    sModule* sys_module = new sModule.initialize("sys");
+    gModules.insert("sys", sys_module);
+    
+    vector<string>* param_names = new vector<string>.initialize();
+    
+    param_names.push_back(string("rcode"));
+    
+    sFunction* sys_exit = new sFunction.initialize("exit", null, param_names);
+    
+    sys_exit.native_fun = native_sys_exit;
+    
+    sys_module.funcs.insert("exit", sys_exit);
 }
 
 void finalize_modules() version 1
@@ -786,8 +817,15 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                         return false;
                     }
                     
-                    if(!function_call(fun, param_values, info)) {
-                        return false;
+                    if(fun.native_fun) {
+                        if(!fun.native_fun(param_values, info)) {
+                            return false;
+                        }
+                    }
+                    else {
+                        if(!function_call(fun, param_values, info)) {
+                            return false;
+                        }
                     }
                     
                     stack_num -= param_values.length();

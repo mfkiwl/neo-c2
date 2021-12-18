@@ -1,6 +1,6 @@
 #include "common.h"
 
-static sNode* create_fun(char* fun_name, buffer* codes, vector<string>* param_names, vector<sPyType*>* param_types, sPyType* result_type, sParserInfo* info)
+static sNode* create_fun(char* fun_name, buffer* codes, vector<string>* param_names, sParserInfo* info)
 {
     sNode* result = new sNode;
     
@@ -11,8 +11,6 @@ static sNode* create_fun(char* fun_name, buffer* codes, vector<string>* param_na
     result.value.funValue.name = string(fun_name);
     result.value.funValue.codes = codes;
     result.value.funValue.param_names = param_names;
-    result.value.funValue.param_types = param_types;
-    result.value.funValue.result_type = result_type;
     
     return result;
 }
@@ -28,8 +26,6 @@ static sNode* create_class(char* class_name, buffer* codes, sParserInfo* info)
     result.value.funValue.name = string(class_name);
     result.value.funValue.codes = codes;
     result.value.funValue.param_names = null;
-    result.value.funValue.param_types = null;
-    result.value.funValue.result_type = null;
     
     return result;
 }
@@ -69,18 +65,15 @@ sNode*? def_node(sParserInfo* info) version 6
     skip_spaces_until_eol(info);
     
     vector<string>* param_names = new vector<string>.initialize();
-    vector<sPyType*>* param_types = new vector<sPyType*>.initialize();
     
     buffer* buf2 = new buffer.initialize();
-    
-    sPyType* result_type = null;
     
     while(true) {
         if(*info->p == ')') {
             info->p++;
             skip_spaces_until_eol(info);
             
-            result_type = parse_type(info);
+            parse_type(info);
             
             if(*info->p == ':') {
                 info->p++;
@@ -98,8 +91,7 @@ sNode*? def_node(sParserInfo* info) version 6
                 info->p++;
             }
             
-            sPyType* type_ = parse_type(info);
-            param_types.push_back(type_);
+            parse_type(info);
             
             param_names.push_back(buf2.to_string());
             
@@ -118,7 +110,7 @@ sNode*? def_node(sParserInfo* info) version 6
     
     buffer* codes = compile_block(info);
     
-    return create_fun(fun_name, codes, param_names, param_types, result_type, info);
+    return create_fun(fun_name, codes, param_names, info);
 }
 
 sNode*? fun_node(string fun_name, sParserInfo* info) version 6
