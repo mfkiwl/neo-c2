@@ -2,13 +2,15 @@
 
 vi clone implemented by neo-c2
 
-C-x --> completion for c and neo-c2
+C-x --> completion for clang and neo-c2
 tab --> word completion
+
+g,/ --> regex search
+/ --> normal search
 
 On visual mode
 C-y --> yank to another yank over another process
-
-C-p --> yank from another yank over another process
+C-p --> paste from another yank over another process
 
 version 1.0.5
 
