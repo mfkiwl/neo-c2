@@ -195,7 +195,6 @@ bool import_module(char* module_name)
     buffer* source = new buffer.initialize();
     
     string fname = xsprintf("%s/%s.py", gDirName, module_name);
-puts(fname);
     
     read_source(fname, source).expect {
         exit(1);
@@ -297,6 +296,10 @@ int main(int argc, char** argv)
         sVMInfo vm_info;
         
         memset(&vm_info, 0, sizeof(sVMInfo));
+        
+        vm_info.module_name = string("__main__");
+        
+        add_module("__main__");
         
         vm(codes, null, &vm_info).expect {
             print_exception(parent->vm_info->exception);
