@@ -166,6 +166,10 @@ void print_op(int op)
             puts("OP_PRINT");
             break;
                 
+        case OP_LEN: 
+            puts("OP_LEN");
+            break;
+                
         case OP_LOAD: 
             puts("OP_LOAD");
             break;
@@ -398,6 +402,19 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                        printf("%s.%s object at %p\n", object.module.name, object.klass.name, object);
                        }
                        break;
+                }
+                break;
+                
+            case OP_LEN: 
+                p++;
+                
+                if(stack[stack_num-1].kind == kStringValue) {
+                    wstring wstr = stack[stack_num-1].value.stringValue);
+                }
+                else {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
                 }
                 break;
                 

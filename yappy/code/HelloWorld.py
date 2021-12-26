@@ -59,6 +59,8 @@ b = ClassA()
 xassert("Object test1", b.a == 9)
 xassert("Object test2", b.method() == 9)
 xassert("Object test3", b.method2(1,2) == 3)
+xassert("len test", len("abc") == 3)
+
 #
 #print "HELLO WORLD"
 
