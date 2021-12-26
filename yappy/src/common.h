@@ -1,4 +1,5 @@
 #include <neo-c2.h>
+#include <neo-c2-pcre.h>
 
 /// type ///
 struct sPyClass {
@@ -43,7 +44,7 @@ struct sNode
             sNode* middle
         } opValue;
         
-        string stringValue;
+        wstring stringValue;
         
         struct {
             string name;
@@ -132,7 +133,7 @@ struct ZVALUE
         int intValue;
         bool boolValue;
         long longValue;
-        char* stringValue;
+        wstring stringValue;
         void* objValue;
         enum { kExceptionVarNotFound, kExceptionDivisionByZero, kExceptionNameError, kExceptionTypeError, kExceptionMethodNotFound } expValue;
         void* moduleValue;

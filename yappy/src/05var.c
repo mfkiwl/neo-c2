@@ -82,7 +82,7 @@ sPyType* parse_type(sParserInfo* info)
         
         buffer* buf = new buffer.initialize();
         while(xisalnum(*info->p) || *info->p == '_') {
-            buf.appehd_char(*info->p);
+            buf.append_char(*info->p);
             info->p++;
         }
         skip_spaces_until_eol(info);

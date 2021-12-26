@@ -126,7 +126,7 @@ void show_zvalue(ZVALUE value)
             break;
             
         case kStringValue:
-            printf("string value %s\n", value.value.stringValue);
+            printf("string value %ls\n", value.value.stringValue);
             break;
     }
 }
@@ -226,25 +226,49 @@ void print_op(int op)
 
 bool function_call(sFunction* fun, vector<ZVALUE>* param_values, sVMInfo* info)
 {
-    
-    buffer* codes = fun->codes;
-    vector<string>* param_names = fun->param_names;
-    
-    map<string, ZVALUE>* params = new map<string, ZVALUE>.initialize();
-    
-    int i = 0;
-    foreach(it, param_names) {
-        ZVALUE null_value;
-        memset(&null_value, 0, sizeof(ZVALUE));
+    if(fun.native_fun) {
+        fNativeFun* fun2 = fun.native_fun;
         
-        ZVALUE value = param_values.item(i, null_value);
-        params.insert(string(it), value);
+        vector<string>* param_names = fun->param_names;
         
-        i++;
+        map<string, ZVALUE>* params = new map<string, ZVALUE>.initialize();
+        
+        int i = 0;
+        foreach(it, param_names) {
+            ZVALUE null_value;
+            memset(&null_value, 0, sizeof(ZVALUE));
+            
+            ZVALUE value = param_values.item(i, null_value);
+            params.insert(string(it), value);
+            
+            i++;
+        }
+        
+        if(!fun2(params, info)) {
+            return false;
+        }
     }
-    
-    if(!vm(codes, params, info)) {
-        return false;
+    else {
+        buffer* codes = fun->codes;
+        
+        vector<string>* param_names = fun->param_names;
+        
+        map<string, ZVALUE>* params = new map<string, ZVALUE>.initialize();
+        
+        int i = 0;
+        foreach(it, param_names) {
+            ZVALUE null_value;
+            memset(&null_value, 0, sizeof(ZVALUE));
+            
+            ZVALUE value = param_values.item(i, null_value);
+            params.insert(string(it), value);
+            
+            i++;
+        }
+        
+        if(!vm(codes, params, info)) {
+            return false;
+        }
     }
     
     return true;
@@ -356,19 +380,16 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             case OP_STRING_VALUE: {
                 p++;
                 
-                int offset = *p;
-                p++;
-                
                 int len = *p;
                 p++;
                 
-                char* str = (char*)p;
+                wchar_t* str = (wchar_t*)p;
                 
-                char str2[len+1];
-                memcpy(str2, str, len);
+                wchar_t* str2 = new wchar_t[len+1];
+                memcpy(str2, str, sizeof(wchar_t)*len);
                 str2[len] = '\0'
                 
-                p += offset;
+                p += len;
                 
                 stack[stack_num].kind = kStringValue;
                 stack[stack_num].stringValue = str2;
@@ -381,7 +402,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 
                 switch(stack[stack_num-1].kind) {
                     case kStringValue: 
-                        puts(stack[stack_num-1].value.stringValue);
+                        puts(stack[stack_num-1].value.stringValue.to_string());
                         break;
                         
                     case kIntValue: 
@@ -409,7 +430,14 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 p++;
                 
                 if(stack[stack_num-1].kind == kStringValue) {
-                    wstring wstr = stack[stack_num-1].value.stringValue);
+                    wstring wstr = stack[stack_num-1].value.stringValue;
+                    int len = wstr.length();
+                    
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kIntValue;
+                    stack[stack_num].intValue = len;
+                    stack_num++;
                 }
                 else {
                     info->exception.kind = kExceptionValue;
@@ -768,15 +796,8 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                         return false;
                     }
                     
-                    if(fun.native_fun) {
-                        if(!fun.native_fun(param_values, info)) {
-                            return false;
-                        }
-                    }
-                    else {
-                        if(!function_call(fun, param_values, info)) {
-                            return false;
-                        }
+                    if(!function_call(fun, param_values, info)) {
+                        return false;
                     }
                     
                     stack_num -= param_values.length();
@@ -961,6 +982,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 
                 if(stack[stack_num-1-num_params].kind == kModuleValue) {
                     sModule* module = (sModule*)stack[stack_num-num_params-1].moduleValue;
+                    
                     
                     vector<ZVALUE>* param_values = new vector<ZVALUE>.initialize();
                     

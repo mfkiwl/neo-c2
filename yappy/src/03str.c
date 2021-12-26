@@ -9,7 +9,7 @@ static sNode* create_string_node(char* str, sParserInfo* info)
     
     result.fname = info->fname;
     result.sline = info->sline;
-    result.value.stringValue = string(str);
+    result.value.stringValue = wstring(str);
     
     return result;
 }
@@ -101,16 +101,12 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 3
     if(node.kind == kStringValueNode) {
         codes.append_int(OP_STRING_VALUE);
         
-        char* str = node.value.stringValue;
+        wstring str = node.value.stringValue;
         
-        int len = strlen(str);
-        int offset = (len + 3) & ~3;
-        offset /= sizeof(int);
+        int len = wcslen(str);
         
-        codes.append_int(offset);
         codes.append_int(len);
-        codes.append_str(str);
-        codes.alignment();
+        codes.append((char*)str, sizeof(wchar_t)*len);
         
         info->stack_num++;
     }
