@@ -1,4 +1,5 @@
 #include "common.h"
+#include <locale.h>
 
 static ZVALUE gNullValue;
 
@@ -95,6 +96,8 @@ bool native_sys_exit(map<string, ZVALUE>* params, sVMInfo* info)
 
 void initialize_modules() version 1
 {
+    setlocale(LC_ALL, "");
+    
     gNullValue.kind = kNullValue;
     gNullValue.objValue = null;
     
