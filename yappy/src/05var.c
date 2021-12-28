@@ -34,6 +34,11 @@ sNode*? fun_node(string fun_name, sParserInfo* info) version 5   // implemented 
     return null;
 }
 
+sNode*? index_node(string var_name, sParserInfo* info) version 5   // implemented after layer
+{
+    return null;
+}
+
 sNode*? def_node(sParserInfo* info) version 5   // implemented after layer
 {
     return null;
@@ -129,6 +134,15 @@ sNode*? exp_node(sParserInfo* info) version 5
             }
             else if(*info->p == '(') {
                 result = fun_node(buf.to_string(), info)
+                
+                if(*info->p == '.') {
+                    result = method_node(result, info);
+                }
+                
+                return result;
+            }
+            else if(*info->p == '[') {
+                result = index_node(buf.to_string(), info)
                 
                 if(*info->p == '.') {
                     result = method_node(result, info);

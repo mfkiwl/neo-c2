@@ -220,6 +220,14 @@ void print_op(int op)
         case OP_LOAD_FIELD:
             puts("OP_STORE_FIELD");
             break;
+            
+        case OP_LIST_VALUE:
+            puts("OP_LIST_VALUE");
+            break;
+            
+        case OP_LIST_INDEX:
+            puts("OP_LIST_INDEX");
+            break;
                 
         default:
             printf("invalid op code %d\n", op);
@@ -300,6 +308,66 @@ void add_module(char* module_name)
     gModules.insert(string(module_name), module);
 }
 
+void print_obj(ZVALUE obj, bool lf)
+{
+    switch(obj.kind) {
+        case kStringValue: 
+            printf("%s", obj.value.stringValue.to_string());
+            if(lf) {
+                puts("");
+            }
+            break;
+            
+        case kIntValue: 
+            printf("%d", obj.value.intValue);
+            if(lf) {
+                puts("");
+            }
+            break;
+            
+        case kBoolValue:
+           if(obj.value.boolValue) {
+               printf("true");
+               if(lf) {
+                   puts("");
+               }
+           }
+           else {
+               printf("false");
+               if(lf) {
+                   puts("");
+               }
+           }
+           break;
+           
+       case kObjValue: {
+           sObject* object = obj.value.objValue;
+           printf("%s.%s object at %p\n", object.module.name, object.klass.name, object);
+           if(lf) {
+               puts("");
+           }
+           }
+           break;
+           
+       case kListValue: {
+           list<ZVALUE>* li = obj.value.listValue;
+           
+           printf("[");
+           for(int i= 0; i<li.length(); i++) {
+               print_obj(li.item(i, gNullValue), false);
+               if(i != li.length()-1) {
+                   printf(",");
+               }
+           }
+           printf("]");
+           if(lf) {
+               puts("");
+           }
+           }
+           break;
+    }
+}
+
 bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
 {
     ZVALUE stack[ZSTACK_MAX];
@@ -354,13 +422,19 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             case OP_ADD: {
                 p++;
                 
-                int lvalue = stack[stack_num-2].intValue;
-                int rvalue = stack[stack_num-1].intValue;
+                ZVALUE lvalue = stack[stack_num-2];
+                ZVALUE rvalue = stack[stack_num-1];
                 
                 stack_num-=2;
                 
+                if(lvalue.kind != kIntValue && rvalue.kind != kIntValue) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                
                 stack[stack_num].kind = kIntValue;
-                stack[stack_num].value.intValue = lvalue + rvalue;
+                stack[stack_num].value.intValue = lvalue.intValue + rvalue.intValue;
                 stack_num++;
                 
                 }
@@ -369,14 +443,21 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             case OP_SUB: {
                 p++;
                 
-                int lvalue = stack[stack_num-2].intValue;
-                int rvalue = stack[stack_num-1].intValue;
+                ZVALUE lvalue = stack[stack_num-2];
+                ZVALUE rvalue = stack[stack_num-1];
                 
                 stack_num-=2;
                 
+                if(lvalue.kind != kIntValue && rvalue.kind != kIntValue) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                
                 stack[stack_num].kind = kIntValue;
-                stack[stack_num].intValue = lvalue - rvalue;
+                stack[stack_num].value.intValue = lvalue.intValue - rvalue.intValue;
                 stack_num++;
+                
                 }
                 break;
                  
@@ -403,30 +484,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             case OP_PRINT: 
                 p++;
                 
-                switch(stack[stack_num-1].kind) {
-                    case kStringValue: 
-                        puts(stack[stack_num-1].value.stringValue.to_string());
-                        break;
-                        
-                    case kIntValue: 
-                        printf("%d\n", stack[stack_num-1].value.intValue);
-                        break;
-                        
-                    case kBoolValue:
-                       if(stack[stack_num-1].value.boolValue) {
-                           puts("true");
-                       }
-                       else {
-                           puts("false");
-                       }
-                       break;
-                       
-                   case kObjValue: {
-                       sObject* object = stack[stack_num-1].value.objValue;
-                       printf("%s.%s object at %p\n", object.module.name, object.klass.name, object);
-                       }
-                       break;
-                }
+                print_obj(stack[stack_num-1], true);
                 break;
                 
             case OP_LEN: 
@@ -850,14 +908,36 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             case OP_EQ: {
                 p++;
                 
-                int lvalue = stack[stack_num-2].intValue;
-                int rvalue = stack[stack_num-1].intValue;
+                ZVALUE lvalue = stack[stack_num-2];
+                ZVALUE rvalue = stack[stack_num-1];
                 
                 stack_num-=2;
                 
-                stack[stack_num].kind = kBoolValue;
-                stack[stack_num].value.boolValue = lvalue == rvalue;
-                stack_num++;
+                if(lvalue.kind != rvalue.kind) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                
+                switch(lvalue.kind) {
+                    case kIntValue:
+                        stack[stack_num].kind = kBoolValue;
+                        stack[stack_num].value.boolValue = lvalue.intValue == rvalue.intValue;
+                        stack_num++;
+                        break;
+                        
+                    case kStringValue:
+                        stack[stack_num].kind = kBoolValue;
+                        stack[stack_num].value.boolValue = wcscmp(lvalue.stringValue, rvalue.stringValue) == 0;
+                        stack_num++;
+                        break;
+                        
+                    default:
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionTypeError;
+                        return false;
+                        break;
+                }
                 
                 }
                 break;
@@ -865,14 +945,36 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             case OP_NOT_EQ: {
                 p++;
                 
-                int lvalue = stack[stack_num-2].intValue;
-                int rvalue = stack[stack_num-1].intValue;
+                ZVALUE lvalue = stack[stack_num-2];
+                ZVALUE rvalue = stack[stack_num-1];
                 
                 stack_num-=2;
                 
-                stack[stack_num].kind = kBoolValue;
-                stack[stack_num].value.boolValue = lvalue != rvalue;
-                stack_num++;
+                if(lvalue.kind != rvalue.kind) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                
+                switch(lvalue.kind) {
+                    case kIntValue:
+                        stack[stack_num].kind = kBoolValue;
+                        stack[stack_num].value.boolValue = lvalue.intValue != rvalue.intValue;
+                        stack_num++;
+                        break;
+                        
+                    case kStringValue:
+                        stack[stack_num].kind = kBoolValue;
+                        stack[stack_num].value.boolValue = wcscmp(lvalue.stringValue, rvalue.stringValue) != 0;
+                        stack_num++;
+                        break;
+                        
+                    default:
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionTypeError;
+                        return false;
+                        break;
+                }
                 
                 }
                 break;
@@ -880,13 +982,19 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             case OP_MULT: {
                 p++;
                 
-                int lvalue = stack[stack_num-2].intValue;
-                int rvalue = stack[stack_num-1].intValue;
+                ZVALUE lvalue = stack[stack_num-2];
+                ZVALUE rvalue = stack[stack_num-1];
                 
                 stack_num-=2;
                 
+                if(lvalue.kind != kIntValue && rvalue.kind != kIntValue) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                
                 stack[stack_num].kind = kIntValue;
-                stack[stack_num].value.intValue = lvalue * rvalue;
+                stack[stack_num].value.intValue = lvalue.intValue * rvalue.intValue;
                 stack_num++;
                 
                 }
@@ -895,19 +1003,25 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             case OP_DIV: {
                 p++;
                 
-                int lvalue = stack[stack_num-2].intValue;
-                int rvalue = stack[stack_num-1].intValue;
+                ZVALUE lvalue = stack[stack_num-2];
+                ZVALUE rvalue = stack[stack_num-1];
                 
                 stack_num-=2;
                 
-                if(rvalue == 0) {
+                if(lvalue.kind != kIntValue && rvalue.kind != kIntValue) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                
+                if(rvalue.intValue == 0) {
                     info->exception.kind = kExceptionValue;
                     info->exception.value.expValue = kExceptionDivisionByZero;
                     return false;
                 }
                 
                 stack[stack_num].kind = kIntValue;
-                stack[stack_num].value.intValue = lvalue / rvalue;
+                stack[stack_num].value.intValue = lvalue.intValue / rvalue.intValue;
                 stack_num++;
                 
                 }
@@ -1185,6 +1299,102 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     info->exception.value.expValue = kExceptionVarNotFound;
                     return false;
                 }
+                }
+                break;
+                
+            case OP_LIST_VALUE: {
+                p++;
+                
+                int len = *p;
+                p++;
+                
+                list<ZVALUE>* list_object = new list<ZVALUE>.initialize();
+                
+                for(int i=0; i<len; i++) {
+                    ZVALUE element = stack[stack_num-len+i];
+                    
+                    list_object.push_back(element);
+                }
+                
+                stack_num -= len;
+                
+                stack[stack_num].kind = kListValue;
+                stack[stack_num].listValue = list_object;
+                stack_num++;
+                
+                }
+                break;
+                
+            case OP_LIST_INDEX: {
+                p++;
+                
+                ZVALUE array_value = stack[stack_num-2];
+                ZVALUE index_value = stack[stack_num-1];
+                
+                if(array_value.kind != kListValue) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                
+                if(index_value.kind != kIntValue) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                
+                list<ZVALUE>* list_object = array_value.listValue;
+                
+                int index = index_value.intValue;
+                
+                stack_num -=2;
+                
+                stack[stack_num] = list_object.item(index, gNullValue);
+                stack_num++;
+                
+                }
+                break;
+                
+            case OP_ANDAND: {
+                p++;
+                
+                ZVALUE lvalue = stack[stack_num-2];
+                ZVALUE rvalue = stack[stack_num-1];
+                
+                
+                if((lvalue.kind |= kBoolValue) && (rvalue.kind != kBoolValue)) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                
+                stack_num-=2;
+                
+                stack[stack_num].kind = kBoolValue;
+                stack[stack_num].value.boolValue = lvalue.boolValue && rvalue.boolValue;
+                stack_num++;
+                
+                }
+                break;
+                
+            case OP_OROR: {
+                p++;
+                
+                ZVALUE lvalue = stack[stack_num-2];
+                ZVALUE rvalue = stack[stack_num-1];
+                
+                if((lvalue.kind |= kBoolValue) && (rvalue.kind != kBoolValue)) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                
+                stack_num-=2;
+                
+                stack[stack_num].kind = kBoolValue;
+                stack[stack_num].value.boolValue = lvalue.boolValue || rvalue.boolValue;
+                stack_num++;
+                
                 }
                 break;
                 

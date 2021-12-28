@@ -60,8 +60,14 @@ xassert("Object test1", b.a == 9)
 xassert("Object test2", b.method() == 9)
 xassert("Object test3", b.method2(1,2) == 3)
 xassert("len test", len("abc") == 3)
-print len("あいう")
+print(len("あいう"))
 xassert("len test2", len("あいう") == 3)
+
+li = [1,"aaa",3]
+
+print(li)
+
+xassert("list test1", li[0] == 1 && li[1] == "aaa" && li[2] == 3);
 
 #
 #print "HELLO WORLD"
