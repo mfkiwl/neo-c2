@@ -262,6 +262,13 @@ BOOL compile(unsigned int node, sCompileInfo* info)
                 return FALSE;
             }
             break;
+            
+        case kNodeTypeIsGCHeap:
+            if(!compile_is_gc_heap(node, info))
+            { 
+                return FALSE;
+            }
+            break;
 
         case kNodeTypeLoadElement:
             if(!compile_load_element(node, info))

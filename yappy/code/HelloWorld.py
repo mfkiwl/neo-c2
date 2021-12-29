@@ -69,6 +69,10 @@ print(li)
 
 xassert("list test1", li[0] == 1 && li[1] == "aaa" && li[2] == 3);
 
+li2 = li[0:2]
+
+xassert("list test2", li[0] == 1 && li[1] == "aaa")
+
 #
 #print "HELLO WORLD"
 

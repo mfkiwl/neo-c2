@@ -888,6 +888,105 @@ BOOL compile_clone(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
+unsigned int sNodeTree_create_is_gc_heap(unsigned int left, sParserInfo* info)
+{
+    unsigned int node = alloc_node();
+
+    gNodes[node].mNodeType = kNodeTypeIsGCHeap;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    gNodes[node].mLeft = left;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    return node;
+}
+
+BOOL compile_is_gc_heap(unsigned int node, sCompileInfo* info)
+{
+    unsigned int left_node = gNodes[node].mLeft;
+
+    if(!compile(left_node, info)) {
+        return FALSE;
+    }
+
+    LVALUE lvalue = *get_value_from_stack(-1);
+
+    if(lvalue.value == NULL) {
+        compile_err_msg(info, "Can't get address of this value on clone operator");
+        info->err_num++;
+
+        info->type = create_node_type_with_class_name("int"); // dummy
+        return TRUE;
+    }
+
+    sNodeType* left_type = clone_node_type(info->type);
+    
+    if(left_type->mPointerNum == 0) {
+        dec_stack_ptr(1, info);
+        
+        LLVMTypeRef llvm_type = create_llvm_type_with_class_name("bool");
+        
+        LVALUE llvm_value;
+        llvm_value.value = LLVMConstInt(llvm_type, 0, FALSE);
+        llvm_value.type = create_node_type_with_class_name("bool");
+        llvm_value.address = NULL;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = FALSE;
+        llvm_value.load_field = FALSE;
+    
+        push_value_to_stack_ptr(&llvm_value, info);
+    
+        info->type = create_node_type_with_class_name("bool");
+    }
+    else {
+        int num_params = 1;
+        
+        LLVMValueRef llvm_params[PARAMS_MAX];
+        memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
+        
+        sNodeType* left_type2 = create_node_type_with_class_name("char*");
+        sNodeType* right_type2 = left_type;
+        
+        if(!cast_right_type_to_left_type(left_type2, &right_type2, &lvalue, info)) {
+            return FALSE;
+        }
+        
+        llvm_params[0] = lvalue.value;
+        
+        LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, "GC_is_heap_ptr");
+        
+        if(llvm_fun == NULL) {
+            fprintf(stderr, "reuire GC_is_heap_ptr function. incldue <neo-c2.h>\n");
+            exit(2);
+        }
+        
+        LVALUE llvm_value;
+        llvm_value.value = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "fun_result");
+        llvm_value.type = create_node_type_with_class_name("int");
+        llvm_value.address = NULL;
+        llvm_value.var = NULL;
+        llvm_value.binded_value = FALSE;
+        llvm_value.load_field = FALSE;
+        
+        sNodeType* left_type3 = create_node_type_with_class_name("bool");
+        sNodeType* right_type3 = create_node_type_with_class_name("int");
+        
+        if(!cast_right_type_to_left_type(left_type3, &right_type3, &llvm_value, info)) {
+            return FALSE;
+        }
+
+        dec_stack_ptr(num_params, info);
+        push_value_to_stack_ptr(&llvm_value, info);
+
+        info->type = create_node_type_with_class_name("bool");
+    }
+
+    return TRUE;
+}
+
 unsigned int sNodeTree_create_reffernce(unsigned int left_node, sParserInfo* info)
 {
     unsigned int node = alloc_node();

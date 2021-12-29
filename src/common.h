@@ -472,6 +472,7 @@ BOOL parse_alloca(unsigned int* node, sParserInfo* info);
 BOOL parse_sizeof(unsigned int* node, sParserInfo* info);
 BOOL parse_alignof(unsigned int* node, sParserInfo* info);
 BOOL parse_clone(unsigned int* node, sParserInfo* info);
+BOOL parse_is_gc_heap(unsigned int* node, sParserInfo* info);
 BOOL parse_typedef(unsigned int* node, sParserInfo* info);
 BOOL parse_switch(unsigned int* node, sParserInfo* info);
 BOOL parse_case(unsigned int* node, sParserInfo* info);
@@ -585,7 +586,7 @@ struct sCompileInfoStruct
 typedef struct sCompileInfoStruct sCompileInfo;
 extern LLVMBuilderRef gBuilder;
 
-enum eNodeType { kNodeTypeIntValue, kNodeTypeUIntValue, kNodeTypeLongValue, kNodeTypeULongValue, kNodeTypeAdd, kNodeTypeSub, kNodeTypeStoreVariable, kNodeTypeLoadVariable, kNodeTypeLoadChannelElement, kNodeTypeDefineVariable, kNodeTypeCString, kNodeTypeFunction, kNodeTypeExternalFunction, kNodeTypeFunctionCall, kNodeTypeComeFunctionCall, kNodeTypeIf, kNodeTypeEquals, kNodeTypeNotEquals, kNodeTypeStruct, kNodeTypeObject, kNodeTypeStackObject, kNodeTypeStoreField, kNodeTypeLoadField, kNodeTypeWhile, kNodeTypeDoWhile, kNodeTypeGteq, kNodeTypeLeeq, kNodeTypeGt, kNodeTypeLe, kNodeTypeLogicalDenial, kNodeTypeTrue, kNodeTypeFalse, kNodeTypeAndAnd, kNodeTypeOrOr, kNodeTypeFor, kNodeTypeLambdaCall, kNodeTypeDerefference, kNodeTypeRefference, kNodeTypeNull, kNodeTypeClone, kNodeTypeLoadElement, kNodeTypeStoreElement, kNodeTypeChar, kNodeTypeMult, kNodeTypeDiv, kNodeTypeMod, kNodeTypeCast, kNodeTypeGenericsFunction, kNodeTypeInlineFunction, kNodeTypeTypeDef, kNodeTypeUnion, kNodeTypeLeftShift, kNodeTypeRightShift, kNodeTypeAnd, kNodeTypeXor, kNodeTypeOr, kNodeTypeReturn, kNodeTypeSizeOf, kNodeTypeSizeOfExpression, kNodeTypeNodes, kNodeTypeLoadFunction, kNodeTypeArrayWithInitialization, kNodeTypeStructWithInitialization, kNodeTypeNormalBlock, kNodeTypeSelect, kNodeTypePSelect, kNodeTypeSwitch, kNodeTypeBreak, kNodeTypeContinue, kNodeTypeCase, kNodeTypeLabel, kNodeTypeGoto, kNodeTypeConditional, kNodeTypeAlignOf, kNodeTypeAlignOfExpression, kNodeTypeComplement, kNodeTypeStoreAddress, kNodeTypeLoadAddressValue, kNodeTypePlusPlus, kNodeTypeMinusMinus, kNodeTypeEqualPlus, kNodeTypeEqualMinus, kNodeTypeEqualMult, kNodeTypeEqualDiv, kNodeTypeEqualMod, kNodeTypeEqualLShift, kNodeTypeEqualRShift, kNodeTypeEqualAnd, kNodeTypeEqualXor, kNodeTypeEqualOr, kNodeTypeComma, kNodeTypeFunName, kNodeTypeJoin, kNodeTypeWriteChannel, kNodeTypeReadChannel, kNodeTypeStack, kNodeTypeMethodBlock, kNodeTypeDefer };
+enum eNodeType { kNodeTypeIntValue, kNodeTypeUIntValue, kNodeTypeLongValue, kNodeTypeULongValue, kNodeTypeAdd, kNodeTypeSub, kNodeTypeStoreVariable, kNodeTypeLoadVariable, kNodeTypeLoadChannelElement, kNodeTypeDefineVariable, kNodeTypeIsGCHeap, kNodeTypeCString, kNodeTypeFunction, kNodeTypeExternalFunction, kNodeTypeFunctionCall, kNodeTypeComeFunctionCall, kNodeTypeIf, kNodeTypeEquals, kNodeTypeNotEquals, kNodeTypeStruct, kNodeTypeObject, kNodeTypeStackObject, kNodeTypeStoreField, kNodeTypeLoadField, kNodeTypeWhile, kNodeTypeDoWhile, kNodeTypeGteq, kNodeTypeLeeq, kNodeTypeGt, kNodeTypeLe, kNodeTypeLogicalDenial, kNodeTypeTrue, kNodeTypeFalse, kNodeTypeAndAnd, kNodeTypeOrOr, kNodeTypeFor, kNodeTypeLambdaCall, kNodeTypeDerefference, kNodeTypeRefference, kNodeTypeNull, kNodeTypeClone, kNodeTypeLoadElement, kNodeTypeStoreElement, kNodeTypeChar, kNodeTypeMult, kNodeTypeDiv, kNodeTypeMod, kNodeTypeCast, kNodeTypeGenericsFunction, kNodeTypeInlineFunction, kNodeTypeTypeDef, kNodeTypeUnion, kNodeTypeLeftShift, kNodeTypeRightShift, kNodeTypeAnd, kNodeTypeXor, kNodeTypeOr, kNodeTypeReturn, kNodeTypeSizeOf, kNodeTypeSizeOfExpression, kNodeTypeNodes, kNodeTypeLoadFunction, kNodeTypeArrayWithInitialization, kNodeTypeStructWithInitialization, kNodeTypeNormalBlock, kNodeTypeSelect, kNodeTypePSelect, kNodeTypeSwitch, kNodeTypeBreak, kNodeTypeContinue, kNodeTypeCase, kNodeTypeLabel, kNodeTypeGoto, kNodeTypeConditional, kNodeTypeAlignOf, kNodeTypeAlignOfExpression, kNodeTypeComplement, kNodeTypeStoreAddress, kNodeTypeLoadAddressValue, kNodeTypePlusPlus, kNodeTypeMinusMinus, kNodeTypeEqualPlus, kNodeTypeEqualMinus, kNodeTypeEqualMult, kNodeTypeEqualDiv, kNodeTypeEqualMod, kNodeTypeEqualLShift, kNodeTypeEqualRShift, kNodeTypeEqualAnd, kNodeTypeEqualXor, kNodeTypeEqualOr, kNodeTypeComma, kNodeTypeFunName, kNodeTypeJoin, kNodeTypeWriteChannel, kNodeTypeReadChannel, kNodeTypeStack, kNodeTypeMethodBlock, kNodeTypeDefer };
 
 struct sNodeTreeStruct 
 {
@@ -1043,6 +1044,7 @@ unsigned int sNodeTree_create_stack_object(sNodeType* node_type, unsigned int ob
 unsigned int sNodeTree_create_dereffernce(unsigned int left_node, sParserInfo* info);
 unsigned int sNodeTree_create_reffernce(unsigned int left_node, sParserInfo* info);
 unsigned int sNodeTree_create_clone(unsigned int left, BOOL gc, sParserInfo* info);
+unsigned int sNodeTree_create_is_gc_heap(unsigned int left, sParserInfo* info);
 unsigned int sNodeTree_create_load_array_element(unsigned int array, unsigned int index_node[], int num_dimetion, sParserInfo* info);
 unsigned int sNodeTree_create_store_element(unsigned int array, unsigned int index_node[], int num_dimetion, unsigned int right_node, sParserInfo* info);
 unsigned int sNodeTree_create_func_name(sParserInfo* info);
@@ -1097,6 +1099,7 @@ BOOL compile_load_field(unsigned int node, sCompileInfo* info);
 BOOL compile_dereffernce(unsigned int node, sCompileInfo* info);
 BOOL compile_reffernce(unsigned int node, sCompileInfo* info);
 BOOL compile_clone(unsigned int node, sCompileInfo* info);
+BOOL compile_is_gc_heap(unsigned int node, sCompileInfo* info);
 BOOL compile_load_element(unsigned int node, sCompileInfo* info);
 BOOL compile_store_element(unsigned int node, sCompileInfo* info);
 BOOL compile_cast(unsigned int node, sCompileInfo* info);

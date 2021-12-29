@@ -14,7 +14,7 @@ static sNode* create_list_node(list<sNode*>* elements, sParserInfo* info)
     return result;
 }
 
-static sNode* create_index_node(string var_name, sNode* index_node, sParserInfo* info)
+static sNode* create_index_node(string var_name, sNode* index_node, sNode* index_node2, sParserInfo* info)
 {
     sNode* result = new sNode;
     
@@ -24,6 +24,7 @@ static sNode* create_index_node(string var_name, sNode* index_node, sParserInfo*
     result.sline = info->sline;
     result.value.indexValue.var_name = clone var_name;
     result.value.indexValue.index_node = index_node;
+    result.value.indexValue.index_node2 = index_node2;
     result.value.indexValue.in_global_context = info->in_global_context;
     
     return result;
@@ -40,6 +41,16 @@ sNode*? index_node(string var_name, sParserInfo* info) version 13
         return false;
     }
     
+    sNode* index_node2 = null;
+    if(*info->p == ':') {
+        info->p++;
+        skip_spaces_until_eol(info);
+        
+        if(!expression(&index_node2, info)) {
+            return false;
+        }
+    }
+    
     if(*info->p == ']'){
         info->p++;
         skip_spaces_until_eol(info);
@@ -49,7 +60,7 @@ sNode*? index_node(string var_name, sParserInfo* info) version 13
         return null;
     }
 
-    return create_index_node(var_name, index_node, info);
+    return create_index_node(var_name, index_node, index_node2, info);
 }
 
 sNode*? exp_node(sParserInfo* info) version 13
@@ -119,6 +130,7 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 13
     else if(node.kind == kListIndexNode) {
         string var_name = node.value.indexValue.var_name;
         sNode* index_node = node.value.indexValue.index_node;
+        sNode* index_node2 = node.value.indexValue.index_node2;
         bool in_global_context = node.value.indexValue.in_global_context;
         
         codes.append_int(OP_LOAD);
@@ -141,10 +153,25 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 13
             return  false;
         }
         
+        if(index_node2) {
+            if(!compile(index_node2, codes, info)) {
+                return false;
+            }
+        }
+        
         codes.append_int(OP_LIST_INDEX);
         
-        info->stack_num-=2;
-        info->stack_num++;
+        int slice = index_node2 ? 1 : 0;
+        codes.append_int(slice);
+        
+        if(slice) {
+            info->stack_num-=3;
+            info->stack_num++;
+        }
+        else {
+            info->stack_num-=2;
+            info->stack_num++;
+        }
     }
     
     return true;

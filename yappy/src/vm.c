@@ -1337,30 +1337,70 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             case OP_LIST_INDEX: {
                 p++;
                 
-                ZVALUE array_value = stack[stack_num-2];
-                ZVALUE index_value = stack[stack_num-1];
+                int slice = *p;
+                p++;
                 
-                if(array_value.kind != kListValue) {
-                    info->exception.kind = kExceptionValue;
-                    info->exception.value.expValue = kExceptionTypeError;
-                    return false;
+                if(slice) {
+                    ZVALUE array_value = stack[stack_num-3];
+                    ZVALUE index_value = stack[stack_num-2];
+                    ZVALUE index_value2 = stack[stack_num-1];
+                    
+                    if(array_value.kind != kListValue) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionTypeError;
+                        return false;
+                    }
+                    
+                    if(index_value.kind != kIntValue) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionTypeError;
+                        return false;
+                    }
+                    
+                    if(index_value2.kind != kIntValue) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionTypeError;
+                        return false;
+                    }
+                    
+                    list<ZVALUE>* list_object = array_value.listValue;
+                    
+                    int index = index_value.intValue;
+                    int index2 = index_value2.intValue;
+                    
+                    list<ZVALUE>* list_object2 = list_object.sublist(index, index2);
+                    
+                    stack_num -=3;
+                    
+                    stack[stack_num].kind = kListValue;
+                    stack[stack_num].value.listValue = list_object2;
+                    stack_num++;
                 }
-                
-                if(index_value.kind != kIntValue) {
-                    info->exception.kind = kExceptionValue;
-                    info->exception.value.expValue = kExceptionTypeError;
-                    return false;
+                else {
+                    ZVALUE array_value = stack[stack_num-2];
+                    ZVALUE index_value = stack[stack_num-1];
+                    
+                    if(array_value.kind != kListValue) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionTypeError;
+                        return false;
+                    }
+                    
+                    if(index_value.kind != kIntValue) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionTypeError;
+                        return false;
+                    }
+                    
+                    list<ZVALUE>* list_object = array_value.listValue;
+                    
+                    int index = index_value.intValue;
+                    
+                    stack_num -=2;
+                    
+                    stack[stack_num] = list_object.item(index, gNullValue);
+                    stack_num++;
                 }
-                
-                list<ZVALUE>* list_object = array_value.listValue;
-                
-                int index = index_value.intValue;
-                
-                stack_num -=2;
-                
-                stack[stack_num] = list_object.item(index, gNullValue);
-                stack_num++;
-                
                 }
                 break;
                 

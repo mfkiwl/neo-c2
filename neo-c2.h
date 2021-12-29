@@ -219,7 +219,7 @@ impl vector<T>
 
         for(int i=0; i<self.len; i++) 
         {
-            if(GC_is_heap_ptr(self.items[i])) {
+            if(is_gc_heap(self.items[i])) {
                 result.items[i] = clone self.items[i];
             }
             else {
@@ -368,7 +368,7 @@ impl list <T>
 
         list_item<T>* it = self.head;
         while(it != null) {
-            if(GC_is_heap_ptr(it.item)) {
+            if(is_gc_heap(it.item)) {
                 result.push_back(clone it.item);
             }
             else {
@@ -683,7 +683,7 @@ impl list <T>
         int i = 0;
         while(it != null) {
             if(i >= begin && i < tail) {
-                if(GC_is_heap_ptr(it.item)) {
+                if(is_gc_heap(it.item)) {
                     result.push_back(clone it.item);
                 }
                 else {
@@ -702,7 +702,7 @@ impl list <T>
 
         list_item<T>* it = self.tail;
         while(it != null) {
-            if(GC_is_heap_ptr(it.item)) {
+            if(is_gc_heap(it.item)) {
                 result.push_back(clone it.item);
             }
             else {
@@ -730,7 +730,7 @@ impl list <T>
                 }
                 else if(compare(it.item, it2.item) <= 0) 
                 {
-                    if(GC_is_heap_ptr(it.item)) {
+                    if(is_gc_heap(it.item)) {
                         result.push_back(clone it.item);
                     }
                     else {
@@ -740,7 +740,7 @@ impl list <T>
                     it = it.next;
                 }
                 else {
-                    if(GC_is_heap_ptr(it.item)) {
+                    if(is_gc_heap(it.item)) {
                         result.push_back(clone it2.item);
                     }
                     else {
@@ -754,7 +754,7 @@ impl list <T>
             if(it == null) {
                 if(it2 != null) {
                     while(it2 != null) {
-                        if(GC_is_heap_ptr(it2.item)) {
+                        if(is_gc_heap(it2.item)) {
                             result.push_back(clone it2.item);
                         }
                         else {
@@ -769,7 +769,7 @@ impl list <T>
             else if(it2 == null) {
                 if(it != null) {
                     while(it != null) {
-                        if(GC_is_heap_ptr(it.item)) {
+                        if(is_gc_heap(it.item)) {
                             result.push_back(clone it.item);
                         }
                         else {
@@ -799,14 +799,14 @@ impl list <T>
         list_item<T>* it = self.head;
 
         while(true) {
-            if(GC_is_heap_ptr(it.item)) {
+            if(is_gc_heap(it.item)) {
                 list1.push_back(clone it.item);
             }
             else {
                 list1.push_back(it.item);
             }
 
-            if(GC_is_heap_ptr(it.next.item)) {
+            if(is_gc_heap(it.next.item)) {
                 list2.push_back(clone it.next.item);
             }
             else {
@@ -820,7 +820,7 @@ impl list <T>
             it = it.next.next;
 
             if(it.next == null) {
-                if(GC_is_heap_ptr(it.item)) {
+                if(is_gc_heap(it.item)) {
                     list1.push_back(clone it.item);
                 }
                 else {
@@ -843,7 +843,7 @@ impl list <T>
             T default_value;
             T item_before = self.item(0, default_value);
 
-            if(GC_is_heap_ptr(item_before)) {
+            if(is_gc_heap(item_before)) {
                 result.push_back(clone item_before);
             }
             else {
@@ -852,7 +852,7 @@ impl list <T>
 
             foreach(it, self.sublist(1,-1)) {
                 if(!it.equals(item_before)) {
-                    if(GC_is_heap_ptr(it)) {
+                    if(is_gc_heap(it)) {
                         result.push_back(clone it);
                     }
                     else {
@@ -921,7 +921,7 @@ impl vector<T>
         auto result = new list<T>.initialize();
         
         foreach(it, self) {
-            if(GC_is_heap_ptr(it)) {
+            if(is_gc_heap(it)) {
                 result.push_back(clone it);
             }
             else {
@@ -1094,8 +1094,8 @@ impl map <T, T2>
             T2 default_value;
             auto it2 = self.at(it, default_value);
 
-            if(GC_is_heap_ptr(it)) {
-                if(GC_is_heap_ptr(it2)) {
+            if(is_gc_heap(it)) {
+                if(is_gc_heap(it2)) {
                     result.insert(clone it, clone it2);
                 }
                 else {
@@ -1103,7 +1103,7 @@ impl map <T, T2>
                 }
             }
             else {
-                if(GC_is_heap_ptr(it2)) {
+                if(is_gc_heap(it2)) {
                     result.insert(it, clone it2);
                 }
                 else {
@@ -1225,7 +1225,7 @@ impl tuple1 <T>
     {
         tuple1<T>* result = new tuple1<T>;
 
-        if(GC_is_heap_ptr(self.v1)) {
+        if(is_gc_heap(self.v1)) {
             result.v1 = clone self.v1;
         }
         else {
@@ -1257,13 +1257,13 @@ impl tuple2 <T, T2>
     {
         tuple2<T,T2>* result = new tuple2<T, T2>;
 
-        if(GC_is_heap_ptr(self.v1)) {
+        if(is_gc_heap(self.v1)) {
             result.v1 = clone self.v1;
         }
         else {
             result.v1 = self.v1;
         }
-        if(GC_is_heap_ptr(self.v2)) {
+        if(is_gc_heap(self.v2)) {
             result.v2 = clone self.v2;
         }
         else {
@@ -1299,19 +1299,19 @@ impl tuple3 <T, T2, T3>
     {
         tuple3<T,T2,T3>* result = new tuple3<T, T2, T3>;
 
-        if(GC_is_heap_ptr(self.v1)) {
+        if(is_gc_heap(self.v1)) {
             result.v1 = clone self.v1;
         }
         else {
             result.v1 = self.v1;
         }
-        if(GC_is_heap_ptr(self.v2)) {
+        if(is_gc_heap(self.v2)) {
             result.v2 = clone self.v2;
         }
         else {
             result.v2 = self.v2;
         }
-        if(GC_is_heap_ptr(self.v3)) {
+        if(is_gc_heap(self.v3)) {
             result.v3 = clone self.v3;
         }
         else {
@@ -1351,25 +1351,25 @@ impl tuple4 <T, T2, T3, T4>
     {
         tuple4<T,T2,T3,T4>* result = new tuple4<T, T2, T3, T4>;
 
-        if(GC_is_heap_ptr(self.v1)) {
+        if(is_gc_heap(self.v1)) {
             result.v1 = clone self.v1;
         }
         else {
             result.v1 = self.v1;
         }
-        if(GC_is_heap_ptr(self.v2)) {
+        if(is_gc_heap(self.v2)) {
             result.v2 = clone self.v2;
         }
         else {
             result.v2 = self.v2;
         }
-        if(GC_is_heap_ptr(self.v3)) {
+        if(is_gc_heap(self.v3)) {
             result.v3 = clone self.v3;
         }
         else {
             result.v3 = self.v3;
         }
-        if(GC_is_heap_ptr(self.v4)) {
+        if(is_gc_heap(self.v4)) {
             result.v4 = clone self.v4;
         }
         else {
@@ -1546,7 +1546,7 @@ impl list<T>
         list_item<T>?* it = self.head;
         while(it != null) {
             if(block(parent, it.item)) {
-                if(GC_is_heap_ptr(it.item)) {
+                if(is_gc_heap(it.item)) {
                     result.push_back(clone it.item);
                 }
                 else {

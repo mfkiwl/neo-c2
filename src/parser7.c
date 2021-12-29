@@ -863,6 +863,11 @@ BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* in
                 return FALSE;
             }
         }
+        else if(strcmp(buf, "is_gc_heap") == 0) {
+            if(!parse_is_gc_heap(node, info)) {
+                return FALSE;
+            }
+        }
         else if(strcmp(buf, "break") == 0) {
             *node = sNodeTree_create_break_expression(info);
         }

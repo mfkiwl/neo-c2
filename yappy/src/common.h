@@ -51,6 +51,7 @@ struct sNode
         struct {
             string var_name;
             sNode* index_node;
+            sNode* index_node2;
             bool in_global_context;
         } indexValue;
         

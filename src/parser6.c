@@ -36,6 +36,34 @@ BOOL parse_clone(unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
+BOOL parse_is_gc_heap(unsigned int* node, sParserInfo* info)
+{
+    *node = 0;
+    if(*info->p == '(') {
+        info->p++;
+        skip_spaces_and_lf(info);
+        
+        if(!expression(node, FALSE, info)) {
+            return FALSE;
+        }
+        
+        if(*info->p == ')') {
+            info->p++;
+            skip_spaces_and_lf(info);
+        }
+    }
+
+    if(*node == 0) {
+        parser_err_msg(info, "Require expression for is_gc_heap");
+        info->err_num++;
+        return TRUE;
+    };
+
+    *node = sNodeTree_create_is_gc_heap(*node, info);
+
+    return TRUE;
+}
+
 BOOL parse_typedef(unsigned int* node, sParserInfo* info)
 {
     char buf[VAR_NAME_MAX+1];
