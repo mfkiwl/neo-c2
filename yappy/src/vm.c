@@ -145,8 +145,16 @@ void print_op(int op)
             puts("OP_EQ");
             break;
             
+        case OP_ANDAND:
+            puts("OP_ANDAND");
+            break;
+            
+        case OP_OROR:
+            puts("OP_OROR");
+            break;
+            
         case OP_CLASS:
-            puts("OP_EQ");
+            puts("OP_CLASS");
             break;
                 
         case OP_INT_VALUE: 
@@ -398,6 +406,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
     
     while((p - head) < (codes.length() / sizeof(int))) {
 //print_op(*p);
+//printf("stack_num %d\n", stack_num);
         switch(*p) {
             case OP_POP: {
                 p++;
@@ -1361,8 +1370,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 ZVALUE lvalue = stack[stack_num-2];
                 ZVALUE rvalue = stack[stack_num-1];
                 
-                
-                if((lvalue.kind |= kBoolValue) && (rvalue.kind != kBoolValue)) {
+                if(lvalue.kind != kBoolValue || rvalue.kind != kBoolValue) {
                     info->exception.kind = kExceptionValue;
                     info->exception.value.expValue = kExceptionTypeError;
                     return false;
@@ -1383,7 +1391,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 ZVALUE lvalue = stack[stack_num-2];
                 ZVALUE rvalue = stack[stack_num-1];
                 
-                if((lvalue.kind |= kBoolValue) && (rvalue.kind != kBoolValue)) {
+                if((lvalue.kind != kBoolValue) || (rvalue.kind != kBoolValue)) {
                     info->exception.kind = kExceptionValue;
                     info->exception.value.expValue = kExceptionTypeError;
                     return false;
