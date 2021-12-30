@@ -1,7 +1,7 @@
 #include "common.h"
 #include <ctype.h>
 
-static sNode* create_int_node(int value, sParserInfo* info)
+sNode* create_int_node(int value, sParserInfo* info)
 {
     sNode* result = new sNode;
     

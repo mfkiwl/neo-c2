@@ -14,7 +14,7 @@ static sNode* create_list_node(list<sNode*>* elements, sParserInfo* info)
     return result;
 }
 
-static sNode* create_index_node(string var_name, sNode* index_node, sNode* index_node2, sParserInfo* info)
+static sNode* create_index_node(string var_name, sNode* index_node, sNode* index_node2, sNode* index_node3, sParserInfo* info)
 {
     sNode* result = new sNode;
     
@@ -25,6 +25,7 @@ static sNode* create_index_node(string var_name, sNode* index_node, sNode* index
     result.value.indexValue.var_name = clone var_name;
     result.value.indexValue.index_node = index_node;
     result.value.indexValue.index_node2 = index_node2;
+    result.value.indexValue.index_node3 = index_node3;
     result.value.indexValue.in_global_context = info->in_global_context;
     
     return result;
@@ -37,17 +38,107 @@ sNode*? index_node(string var_name, sParserInfo* info) version 13
     skip_spaces_until_eol(info);
     
     sNode* index_node = null;
-    if(!expression(&index_node, info)) {
-        return false;
-    }
-    
     sNode* index_node2 = null;
+    sNode* index_node3 = null;
+    
     if(*info->p == ':') {
         info->p++;
         skip_spaces_until_eol(info);
         
-        if(!expression(&index_node2, info)) {
+        if(*info->p == ':') {
+            info->p++;
+            skip_spaces_until_eol(info);
+            
+            if(*info->p == ']') {
+                index_node = create_int_node(0, info);
+                index_node2 = create_int_node(-1, info);
+                index_node3 = null;
+            }
+            else {
+                index_node = create_int_node(0, info);
+                index_node2 = create_int_node(-1, info);
+                
+                if(!expression(&index_node3, info)) {
+                    return false;
+                }
+            }
+        }
+        else if(*info->p == ']') {
+            index_node = create_int_node(0, info);
+            index_node2 = create_int_node(-1, info);
+            index_node3 = null;
+        }
+        else {
+            index_node = create_int_node(0, info);
+            
+            if(!expression(&index_node2, info)) {
+                return false;
+            }
+            
+            if(*info->p == ':') {
+                info->p++;
+                skip_spaces_until_eol(info);
+                
+                if(!expression(&index_node3, info)) {
+                    return false;
+                }
+            }
+            else {
+                index_node3 = null;
+            }
+        }
+    }
+    else {
+        if(!expression(&index_node, info)) {
             return false;
+        }
+        
+        if(*info->p == ':') {
+            info->p++;
+            skip_spaces_until_eol(info);
+            
+            if(*info->p == ']') {
+                index_node2 = create_int_node(-1, info);
+                index_node3 = null;
+            }
+            else if(*info->p == ':') {
+                info->p++;
+                skip_spaces_until_eol(info);
+                
+                index_node2 = create_int_node(-1, info);
+                
+                if(*info->p == ']') {
+                    index_node3 = null;
+                }
+                else {
+                    if(!expression(&index_node3, info)) {
+                        return false;
+                    }
+                }
+            }
+            else {
+                if(!expression(&index_node2, info)) {
+                    return false;
+                }
+                
+                if(*info->p == ':') {
+                    info->p++;
+                    skip_spaces_until_eol(info);
+                    
+                    if(*info->p == ']') {
+                        index_node3 = null;
+                    }
+                    else {
+                        if(!expression(&index_node3, info)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        else if(*info->p == ']') {
+            index_node2 = null;
+            index_node3 = null;
         }
     }
     
@@ -60,7 +151,7 @@ sNode*? index_node(string var_name, sParserInfo* info) version 13
         return null;
     }
 
-    return create_index_node(var_name, index_node, index_node2, info);
+    return create_index_node(var_name, index_node, index_node2, index_node3, info);
 }
 
 sNode*? exp_node(sParserInfo* info) version 13
@@ -124,13 +215,13 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 13
         
         codes.append_int(len);
         
-        info->stack_num+=len;
         info->stack_num++;
     }
     else if(node.kind == kListIndexNode) {
         string var_name = node.value.indexValue.var_name;
         sNode* index_node = node.value.indexValue.index_node;
         sNode* index_node2 = node.value.indexValue.index_node2;
+        sNode* index_node3 = node.value.indexValue.index_node3;
         bool in_global_context = node.value.indexValue.in_global_context;
         
         codes.append_int(OP_LOAD);
@@ -159,12 +250,25 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 13
             }
         }
         
+        if(index_node3) {
+            if(!compile(index_node3, codes, info)) {
+                return false;
+            }
+        }
+        
         codes.append_int(OP_LIST_INDEX);
         
-        int slice = index_node2 ? 1 : 0;
+        int slice = index_node2 ?1:0;
         codes.append_int(slice);
         
-        if(slice) {
+        int slice2 = index_node3 ? 1:0;
+        codes.append_int(slice2);
+        
+        if(slice && slice2) {
+            info->stack_num-=4;
+            info->stack_num++;
+        }
+        else if(slice || slice2) {
             info->stack_num-=3;
             info->stack_num++;
         }

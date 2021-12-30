@@ -67,11 +67,35 @@ li = [1,"aaa",3]
 
 print(li)
 
-xassert("list test1", li[0] == 1 && li[1] == "aaa" && li[2] == 3);
+xassert("list test1", li[0] == 1 && li[1] == "aaa" && li[2] == 3 && len(li) == 3);
 
 li2 = li[0:2]
 
-xassert("list test2", li[0] == 1 && li[1] == "aaa")
+xassert("list test2", li[0] == 1 && li[1] == "aaa" && len(li2) == 2)
+
+li3 = li[:]
+
+xassert("list test3", li3[0] == 1 && li3[1] == "aaa" && li3[2] == 3 && len(li3) == 3);
+
+li4 = li[1:]
+
+xassert("list test4", li4[0] == "aaa" && li4[1] == 3 && len(li4) == 2)
+
+li5 = li[:2]
+
+xassert("list test5", li5[0] == 1 && li[1] == "aaa" && len(li5) == 2)
+
+li6 = [0,1,2,3,4,5,6,7,8,9]
+
+li7 = li6[0:10:2]
+
+xassert("list test6", li7[0] == 0 && li7[1] == 2 && li7[2] == 4 && li7[3] == 6 && li7[4] == 8);
+
+li8 = li6[::2]
+
+xassert("list test7", li8[0] == 0 && li8[1] == 2 && li8[2] == 4 && li8[3] == 6 && li8[4] == 8);
+
+print li6[1::2]
 
 #
 #print "HELLO WORLD"

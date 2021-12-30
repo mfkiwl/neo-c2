@@ -52,6 +52,7 @@ struct sNode
             string var_name;
             sNode* index_node;
             sNode* index_node2;
+            sNode* index_node3;
             bool in_global_context;
         } indexValue;
         
@@ -250,6 +251,7 @@ bool expression(sNode** node, sParserInfo* info) version 1;
 bool compile(sNode* node, buffer* codes, sParserInfo* info) version 1;
 
 sNode*? exp_node(sParserInfo* info) version 1;
+sNode* create_int_node(int value, sParserInfo* info);
 
 /// 02add.c ///
 sNode* op_add_node(sParserInfo* info);

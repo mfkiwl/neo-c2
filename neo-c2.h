@@ -894,9 +894,11 @@ impl list <T>
         if(self.it) {
             return self.it.item;
         }
-        else {
-            return null;
-        }
+        
+        T null_object;
+        memset(&null_object, 0, sizeof(T));
+        
+        return null_object;
     }
 
     T next(list<T>* self) {
@@ -905,13 +907,17 @@ impl list <T>
         if(self.it) {
             return self.it.item;
         }
-        else {
-            return null;
-        }
+        
+        T null_object;
+        memset(&null_object, 0, sizeof(T));
+        return null_object;
     }
 
     bool end(list<T>* self) {
-        return self.it == null;
+        T null_object;
+        memset(&null_object, 0, sizeof(T));
+        
+        return memcmp(&self.it, &null_object, sizeof(T)) == 0;
     }
 }
 
@@ -1182,8 +1188,11 @@ impl map <T, T2>
             }
             self.it++;
         }
+        
+        T null_object;
+        memset(&null_object, 0, sizeof(T));
 
-        return null;
+        return null_object;
     }
 
     T next(map<T, T2>* self) {
@@ -1193,8 +1202,11 @@ impl map <T, T2>
             }
             self.it++;
         }
+        
+        T null_object;
+        memset(&null_object, 0, sizeof(T));
 
-        return null;
+        return null_object;
     }
 
     bool end(map<T, T2>* self) {
