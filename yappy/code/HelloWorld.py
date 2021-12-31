@@ -97,6 +97,30 @@ xassert("list test7", li8[0] == 0 && li8[1] == 2 && li8[2] == 4 && li8[3] == 6 &
 
 print li6[1::2]
 
+li9 = [1,2] + [3,4]
+
+xassert("list test8", li9[0] == 1 && li9[1] == 2 && li9[2] == 3 && li9[3] == 4 && len(li9) == 4)
+
+xassert("str test", "AAA" + "BBB" == "AAABBB")
+
+li10 = [1,2] * 2
+
+xassert("list test9", li10[0] == 1 && li10[1] == 2 && li10[2] == 1 && li10[3] == 2 && len(li10) == 4)
+
+xassert("str test2", "ABC" * 2 == "ABCABC")
+
+xassert("list test10", [1,2] == [1,2])
+
+xassert("list test11", [[1,2], [1,2]] == [[1,2], [1,2]])
+
+class ListTestClass:
+    def __init__(self,a,b):
+        self.a = a
+        self.b = b
+
+xassert("list test", [ListTestClass(1,2),ListTestClass(3,4)] == [ListTestClass(1,2),ListTestClass(3,4)])
+
+
 #
 #print "HELLO WORLD"
 
