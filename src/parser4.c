@@ -570,7 +570,9 @@ BOOL parse_inline_function(unsigned int* node, char* struct_name, sParserInfo* i
     }
 
     if(*info->p != '(') {
-        parser_err_msg(info, "require function definition\n");
+        char buf[128];
+        snprintf(buf, 128, "require function definition(%c)\n", *info->p);
+        parser_err_msg(info, buf);
         info->err_num++;
         return TRUE;
     }

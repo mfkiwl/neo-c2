@@ -57,7 +57,7 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
     BOOL method = gNodes[node].uValue.sFunctionCall.mMethod;
     BOOL inherit = gNodes[node].uValue.sFunctionCall.mInherit;
     int version = gNodes[node].uValue.sFunctionCall.mVersion;
-
+    
     if(inherit) {
         xstrncpy(fun_name, gFunctionName, VAR_NAME_MAX);
     }
@@ -591,6 +591,12 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
     }
     /// call inline function ///
     else if(fun->mBlockText) {
+        if(strcmp(fun->mName, info->in_inline_function_name) == 0 && info->in_inline_function) {
+            compile_err_msg(info, "inline function can't call itself(%s)\n", fun_name);
+            info->err_num++;
+            return TRUE;
+        }
+        
         int sline = gNodes[node].mLine;
 
         sParserInfo info2;
@@ -674,6 +680,10 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
                 var->mLLVMValue = param;
             }
         }
+        
+        char inline_function_before[VAR_NAME_MAX];
+        xstrncpy(inline_function_before, info->in_inline_function_name, VAR_NAME_MAX);
+        xstrncpy(info->in_inline_function_name, fun->mName, VAR_NAME_MAX);
 
         BOOL in_inline_function = info->in_inline_function;
         info->in_inline_function = TRUE;
@@ -725,6 +735,8 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
 
         info->inline_result_variable = inline_result_variable;
         info->inline_func_end = inline_func_end_before;
+        
+        xstrncpy(info->in_inline_function_name, inline_function_before, VAR_NAME_MAX);
     }
     /// call normal function ///
     else {

@@ -382,7 +382,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -421,7 +421,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -461,7 +461,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -500,7 +500,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -538,7 +538,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -573,7 +573,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -611,7 +611,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -649,7 +649,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -687,7 +687,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -725,7 +725,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -766,7 +766,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -807,7 +807,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -848,7 +848,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -889,7 +889,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -930,7 +930,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -971,7 +971,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -1012,7 +1012,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -1053,7 +1053,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -1091,7 +1091,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -1129,7 +1129,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -1167,7 +1167,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -1212,7 +1212,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -1260,7 +1260,7 @@ void init_nodes(char* sname)
 
         BOOL generics_function = FALSE;
         BOOL var_args = FALSE;
-        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL))
+        if(!add_function_to_table(name, num_params, param_names2, param_types, result_type, llvm_fun, block_text, generics_function, var_args, 0, NULL, FALSE, NULL, FALSE, NULL, "", -1))
         {
             fprintf(stderr, "overflow function number\n");
             exit(1);
@@ -2859,7 +2859,10 @@ void compile_err_msg(sCompileInfo* info, const char* msg, ...)
     static int output_num = 0;
 
     if(output_num < COMPILE_ERR_MSG_MAX && !info->pinfo->no_output_err_msg) {
-       fprintf(stderr, "%s:%d: %s\n", info->sname, info->sline, msg2);
+        if(info->in_generics_function) {
+            fprintf(stderr, "%s:%d generics function error\n", info->generics_sname, info->generics_sline);
+        }
+        fprintf(stderr, "%s:%d: %s\n", info->sname, info->sline, msg2);
         output_num++;
     }
 }
@@ -2890,11 +2893,7 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
             xstrncpy(sname, info->sname, VAR_NAME_MAX);
             int sline = info->sline;
 
-            if(info->in_generics_function) {
-                xstrncpy(info->sname, info->generics_sname, PATH_MAX);
-                info->sline = info->generics_sline;
-            }
-            else if(info->in_inline_function) {
+            if(info->in_inline_function) {
                 xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
                 info->sline = info->inline_sline;
             }

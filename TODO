@@ -5,8 +5,11 @@ method block parent bug
 
 struct with initialization
 
+switch return require break
+
 ---- implemented ----
 debug info
+generics file name error
 inline
 undefined struct;
 anonymous struct

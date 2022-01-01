@@ -550,6 +550,7 @@ struct sCompileInfoStruct
     struct sNodeBlockStruct* function_node_block;
 
     BOOL in_inline_function;
+    char in_inline_function_name[VAR_NAME_MAX];
     int inline_sline;
     LLVMBasicBlockRef inline_func_end;
 
@@ -894,6 +895,8 @@ struct sFunctionStruct
     char* mAsmFunName;
     BOOL mUser;
     char* mSource;
+    char mSName[PATH_MAX];
+    int mSLine;
 };
 
 typedef struct sFunctionStruct sFunction;
@@ -1140,7 +1143,7 @@ void node_function_final();
 void show_funcs();
 void show_func(sFunction* fun, BOOL code);
 
-BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name, BOOL user, char* source);
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name, BOOL user, char* source, char* sname, int sline);
 sFunction* get_function_from_table(char* name);
 
 unsigned int sNodeTree_create_lambda_call(unsigned int lambda_node, unsigned int* params, int num_params, sParserInfo* info);

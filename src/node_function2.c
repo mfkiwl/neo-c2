@@ -153,7 +153,7 @@ void rehash_funcs()
     gSizeFuncs = new_size_funcs;
 }
 
-BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name, BOOL user, char* source)
+BOOL add_function_to_table(char* name, int num_params, char** param_names, sNodeType** param_types, sNodeType* result_type, LLVMValueRef llvm_fun, char* block_text, BOOL generics_function, BOOL var_args, int num_generics, char** generics_type_names, BOOL extern_, char* asm_fun_name, BOOL user, char* source, char* sname, int sline)
 {
     if(gNumFuncs >= gSizeFuncs/3) {
         rehash_funcs();
@@ -199,6 +199,10 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
             else {
                 p->mAsmFunName = strdup(asm_fun_name);
             }
+            
+            xstrncpy(p->mSName, sname, VAR_NAME_MAX);
+            
+            p->mSLine = sline;
 
             gNumFuncs++;
 
@@ -255,6 +259,9 @@ BOOL add_function_to_table(char* name, int num_params, char** param_names, sNode
                 else {
                     p->mAsmFunName = strdup(asm_fun_name);
                 }
+                xstrncpy(p->mSName, sname, VAR_NAME_MAX);
+                
+                p->mSLine = sline;
 
                 return TRUE;
             }

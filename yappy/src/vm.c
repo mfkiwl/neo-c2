@@ -85,7 +85,7 @@ sObject* sObject_initialize(sObject* self, sModule* module, sClass* klass)
     return self;
 }
 
-bool ZVALUE::equals(ZVALUE self, ZVALUE right)
+bool ZVALUE_equals(ZVALUE self, ZVALUE right)
 {
     if(self.kind != right.kind) {
         return false;
@@ -169,6 +169,7 @@ bool ZVALUE::equals(ZVALUE self, ZVALUE right)
     
     return true;
 }
+
 
 bool native_sys_exit(map<string, ZVALUE>* params, sVMInfo* info)
 {
