@@ -683,11 +683,11 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
         
         char inline_function_before[VAR_NAME_MAX];
         xstrncpy(inline_function_before, info->in_inline_function_name, VAR_NAME_MAX);
-        xstrncpy(info->in_inline_function_name, fun->mName, VAR_NAME_MAX);
+        xstrncpy(info->in_inline_function_name, fun->mSName, VAR_NAME_MAX);
 
         BOOL in_inline_function = info->in_inline_function;
         info->in_inline_function = TRUE;
-        info->inline_sline = info->sline;
+        info->inline_sline = fun->mSLine + 1;
 
         char fun_end_label[PATH_MAX];
         snprintf(fun_end_label, PATH_MAX, "%s_end", fun_name);

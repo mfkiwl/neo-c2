@@ -830,6 +830,8 @@ struct sNodeTreeStruct
 
         struct {
             char* mBlockText;
+            char mBlockTextSName[PATH_MAX];
+            int mBlockTextSLine;
             sVarTable* mVarTable;
             sNodeType* mResultType;
         } sMethodBlock;
@@ -1157,7 +1159,7 @@ unsigned int sNodeTree_create_come_function_call(char* fun_name, unsigned int* p
 unsigned int sNodeTree_create_join(sParserInfo* info);
 unsigned int sNodeTree_create_generics_function(char* fun_name, sParserParam* params, int num_params, sNodeType* result_type, MANAGED char* block_text, char* struct_name, char* sname, int sline, BOOL va_arg, int version, sParserInfo* info);
 unsigned int sNodeTree_create_inline_function(char* fun_name, sParserParam* params, int num_params, sNodeType* result_type, MANAGED char* block_text, char* struct_name, char* sname, int sline, BOOL var_arg, sParserInfo* info);
-unsigned int sNodeTree_create_method_block(MANAGED char* block, sNodeType* result_type, sParserInfo* info);
+unsigned int sNodeTree_create_method_block(MANAGED char* block, char* block_text_sname, int block_text_sline, sNodeType* result_type, sParserInfo* info);
 
 void create_real_fun_name(char* real_fun_name, size_t size_real_fun_name, char* fun_name, char* struct_name);
 void llvm_change_block(LLVMBasicBlockRef current_block, sCompileInfo* info);

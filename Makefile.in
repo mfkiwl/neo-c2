@@ -191,12 +191,12 @@ test: debug-test
 	./code/HelloWorld3
 	PWD=`pwd` ./neo-c2 code/HelloWorld4.c
 	./code/HelloWorld4
-	PWD=`pwd` ./neo-c2 code/HelloWorld5.c
-	./code/HelloWorld5
-	PWD=`pwd` ./neo-c2 code/HelloWorld6.c
-	./code/HelloWorld6
-	PWD=`pwd` ./neo-c2 code/HelloWorld7.c
-	./code/HelloWorld7
+#	PWD=`pwd` ./neo-c2 code/HelloWorld5.c
+#	./code/HelloWorld5
+#	PWD=`pwd` ./neo-c2 code/HelloWorld6.c
+#	./code/HelloWorld6
+#	PWD=`pwd` ./neo-c2 code/HelloWorld7.c
+#	./code/HelloWorld7
 	PWD=`pwd` ./neo-c2 code/HelloWorld8.c
 	./code/HelloWorld8
 	PWD=`pwd` ./neo-c2 code/HelloWorld9.c
@@ -219,12 +219,12 @@ debug-test:
 	./code/HelloWorld3
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld4.c
 	./code/HelloWorld4
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld5.c
-	./code/HelloWorld5
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld6.c
-	./code/HelloWorld6
-	PWD=`pwd` ./neo-c2 -g code/HelloWorld7.c
-	./code/HelloWorld7
+#	PWD=`pwd` ./neo-c2 -g code/HelloWorld5.c
+#	./code/HelloWorld5
+#	PWD=`pwd` ./neo-c2 -g code/HelloWorld6.c
+#	./code/HelloWorld6
+#	PWD=`pwd` ./neo-c2 -g code/HelloWorld7.c
+#	./code/HelloWorld7
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld8.c
 	./code/HelloWorld8
 	PWD=`pwd` ./neo-c2 -g code/HelloWorld9.c

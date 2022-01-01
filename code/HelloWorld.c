@@ -542,7 +542,9 @@ test_label:
 
     xassert("pointer sub test", ppp - array == 1);
 
-    auto lam = int lambda(int x, int y) { return x + y };
+    auto lam = int lambda(int x, int y) { 
+        return x + y 
+    };
 
     xassert("lambda test", lam(1, 2) == 3);
 

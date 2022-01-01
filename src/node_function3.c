@@ -631,7 +631,7 @@ BOOL compile_inline_function(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
-unsigned int sNodeTree_create_method_block(MANAGED char* block, sNodeType* result_type, sParserInfo* info)
+unsigned int sNodeTree_create_method_block(MANAGED char* block, char* block_text_sname, int block_text_sline, sNodeType* result_type, sParserInfo* info)
 {
     unsigned int node = alloc_node();
     
@@ -641,6 +641,8 @@ unsigned int sNodeTree_create_method_block(MANAGED char* block, sNodeType* resul
     gNodes[node].mLine = info->sline;
 
     gNodes[node].uValue.sMethodBlock.mBlockText = MANAGED block;
+    xstrncpy(gNodes[node].uValue.sMethodBlock.mBlockTextSName, block_text_sname, PATH_MAX);
+    gNodes[node].uValue.sMethodBlock.mBlockTextSLine = block_text_sline;
     gNodes[node].uValue.sMethodBlock.mVarTable = info->lv_table;
     //gNodes[node].uValue.sMethodBlock.mVarTable = clone_var_table(info->lv_table);
     gNodes[node].uValue.sMethodBlock.mResultType = result_type;
@@ -659,6 +661,10 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
     sNodeType* result_type = gNodes[node].uValue.sMethodBlock.mResultType;
 
     sFunction* fun = get_function_from_table(info->calling_fun_name);
+    
+    char block_text_sname[PATH_MAX];
+    xstrncpy(block_text_sname, gNodes[node].uValue.sMethodBlock.mBlockTextSName, PATH_MAX);
+    int block_text_sline = gNodes[node].uValue.sMethodBlock.mBlockTextSLine;
 
     int sline = info->sline;
 
@@ -731,10 +737,10 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
     sParserInfo pinfo;
     pinfo = *info->pinfo;
     pinfo.p = block_text;
-    pinfo.sline = 1;
 
-    xstrncpy(pinfo.sname, "method_block", VAR_NAME_MAX);
-
+    xstrncpy(pinfo.sname, block_text_sname, PATH_MAX);
+    pinfo.sline = block_text_sline;
+    
     sVarTable* block_var_table = init_block_vtable(NULL, FALSE);
     pinfo.lv_table = block_var_table;
 

@@ -2861,8 +2861,15 @@ void compile_err_msg(sCompileInfo* info, const char* msg, ...)
     if(output_num < COMPILE_ERR_MSG_MAX && !info->pinfo->no_output_err_msg) {
         if(info->in_generics_function) {
             fprintf(stderr, "%s:%d generics function error\n", info->generics_sname, info->generics_sline);
+            fprintf(stderr, "%s:%d: %s\n", info->sname, info->sline, msg2);
         }
-        fprintf(stderr, "%s:%d: %s\n", info->sname, info->sline, msg2);
+        else if(info->in_inline_function) {
+            fprintf(stderr, "%s:%d inline function error\n", info->sname, info->sline);
+            fprintf(stderr, "%s:%d: %s\n", info->in_inline_function_name, info->inline_sline, msg2);
+        }
+        else {
+            fprintf(stderr, "%s:%d: %s\n", info->sname, info->sline, msg2);
+        }
         output_num++;
     }
 }
@@ -2893,18 +2900,16 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
             xstrncpy(sname, info->sname, VAR_NAME_MAX);
             int sline = info->sline;
 
-            if(info->in_inline_function) {
-                xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
-                info->sline = info->inline_sline;
-            }
-            else if(info->in_lambda_function) {
+/*
+            if(info->in_lambda_function) {
                 xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
                 info->sline = info->lambda_sline;
             }
             else {
+*/
                 xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
                 info->sline = gNodes[node].mLine;
-            }
+//            }
 
             if(gNCDebug) {
                 if(info->in_generics_function || info->in_inline_function || info->in_lambda_function || info->empty_function) {

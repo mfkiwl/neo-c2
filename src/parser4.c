@@ -740,6 +740,10 @@ BOOL parse_funcation_call_params(int* num_params, unsigned int* params, sParserI
         params[*num_params] = sNodeTree_create_stack(info);
         (*num_params)++;
         
+        char sname[PATH_MAX];
+        xstrncpy(sname, info->sname, PATH_MAX);
+        int sline = info->sline;
+        
         if(*num_params >= PARAMS_MAX) {
             parser_err_msg(info, "overflow parametor number for method call");
             return FALSE;
@@ -757,7 +761,7 @@ BOOL parse_funcation_call_params(int* num_params, unsigned int* params, sParserI
 
         sBuf_append(&buf, p, p2-p);
 
-        params[*num_params] = sNodeTree_create_method_block(MANAGED buf.mBuf, result_type, info);
+        params[*num_params] = sNodeTree_create_method_block(MANAGED buf.mBuf, sname, sline, result_type, info);
 
         (*num_params)++;
         
