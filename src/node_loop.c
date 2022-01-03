@@ -1257,12 +1257,14 @@ BOOL compile_switch_expression(unsigned int node, sCompileInfo* info)
     }
 
     LLVMBasicBlockRef case_else_block;
+/*
     if(gNodes[node2].mNodeType == kNodeTypeReturn) {
         case_else_block = NULL;
     }
     else {
+*/
         case_else_block = (LLVMBasicBlockRef)info->case_else_block;
-    }
+//    }
 
     if(case_else_block) {
         LLVMBuildBr(gBuilder, case_else_block);

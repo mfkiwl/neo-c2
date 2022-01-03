@@ -1196,7 +1196,6 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                         info->exception.kind = kExceptionValue;
                         info->exception.value.expValue = kExceptionTypeError;
                         return false;
-                        break;
                 }
                 
                 }
