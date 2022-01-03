@@ -1,21 +1,26 @@
 #include <stdio.h>
 
+struct sData
+{
+    int a;
+    int b;
+};
+
+sData fun(int a, int b)
+{
+    if(true) {
+        sData data;
+        data.a = a;
+        data.b = b;
+        return data
+    }
+}
+
 int main()
 {
-    int a = 1;
-    switch(a) {
-        case 1:
-            puts("BBB");
-            return 123;
-            
-        case 2:
-            puts("AAA");
-            return 1;
-            
-        default:
-            return 0;
-            break;
-    }
+    sData result = fun(1,2);
+    
+    printf("%d %d\n", result.a, result.b);
     
     return 0;
 }

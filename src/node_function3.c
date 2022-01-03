@@ -294,30 +294,6 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
     }
     else {
         if(!info->last_expression_is_return) {
-            LVALUE llvm_value;
-
-            sNodeType* node_type = create_node_type_with_class_name("int");
-
-            LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
-
-            int value = 0;
-            llvm_value.value = LLVMConstInt(llvm_type, value, FALSE);
-            llvm_value.type = create_node_type_with_class_name("int");
-            llvm_value.address = NULL;
-            llvm_value.var = NULL;
-            llvm_value.binded_value = FALSE;
-            llvm_value.load_field = FALSE;
-
-            if(!cast_right_type_to_left_type(result_type, &node_type, &llvm_value, info))
-            {
-                compile_err_msg(info, "Cast failed");
-                info->err_num++;
-
-                info->type = create_node_type_with_class_name("int"); // dummy
-
-                return TRUE;
-            }
-
             if(info->defer_block) {
                 LLVMBuildBr(gBuilder, info->defer_block);
                 llvm_change_block(info->defer_block, info);
@@ -329,8 +305,50 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
             if(info->empty_function) {
                 LLVMSetCurrentDebugLocation(gBuilder, NULL);
             }
-
-            LLVMBuildRet(gBuilder, llvm_value.value);
+            
+            if(((result_type->mClass->mFlags & CLASS_FLAGS_STRUCT) || (result_type->mClass->mFlags & CLASS_FLAGS_UNION)) && result_type->mPointerNum == 0) {
+                sNodeType* node_type = clone_node_type(result_type);
+                LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
+                
+                LVALUE llvm_value;
+                
+                llvm_value.value = LLVMBuildAlloca(gBuilder, llvm_type, "result_object");
+                llvm_value.value = LLVMBuildLoad(gBuilder, llvm_value.value, "result_object");
+                llvm_value.type = clone_node_type(result_type);
+                llvm_value.address = NULL;
+                llvm_value.var = NULL;
+                llvm_value.binded_value = FALSE;
+                llvm_value.load_field = FALSE;
+                
+                if(!cast_right_type_to_left_type(result_type, &node_type, &llvm_value, info)) {
+                    compile_err_msg(info, "result type can't be casted");
+                    return FALSE;
+                }
+    
+                LLVMBuildRet(gBuilder, llvm_value.value);
+            }
+            else {
+                LVALUE llvm_value;
+    
+                sNodeType* node_type = create_node_type_with_class_name("int");
+            
+                LLVMTypeRef llvm_type = create_llvm_type_from_node_type(node_type);
+    
+                int value = 0;
+                llvm_value.value = LLVMConstInt(llvm_type, value, FALSE);
+                llvm_value.type = clone_node_type(node_type);
+                llvm_value.address = NULL;
+                llvm_value.var = NULL;
+                llvm_value.binded_value = FALSE;
+                llvm_value.load_field = FALSE;
+                
+                if(!cast_right_type_to_left_type(result_type, &node_type, &llvm_value, info)) {
+                    compile_err_msg(info, "result type can't be casted");
+                    return FALSE;
+                }
+    
+                LLVMBuildRet(gBuilder, llvm_value.value);
+            }
         }
     }
 
