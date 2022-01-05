@@ -918,6 +918,7 @@ void push_value_to_stack_ptr(LVALUE* value, sCompileInfo* info);
 void dec_stack_ptr(int value, sCompileInfo* info);
 void arrange_stack(sCompileInfo* info, int top);
 LVALUE* get_value_from_stack(int offset);
+void set_debug_info_to_variable(LLVMValueRef value, sNodeType* node_type, char* name, int sline, sCompileInfo* info);
 
 struct sStructStruct {
     char* mName;

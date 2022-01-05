@@ -295,6 +295,7 @@ BOOL compile_define_variable(unsigned int node, sCompileInfo* info)
     xstrncpy(var_name, gNodes[node].uValue.sStoreVariable.mVarName, VAR_NAME_MAX);
     BOOL global = gNodes[node].uValue.sDefineVariable.mGlobal;
     BOOL extern_ = gNodes[node].uValue.sDefineVariable.mExtern;
+    int sline = gNodes[node].mLine;
 
     sVar* var = get_variable_from_table(info->pinfo->lv_table, var_name);
 
@@ -560,6 +561,8 @@ if(var_type->mPointerNum > 0) {
             llvm_change_block(this_block, info);
 
             var->mLLVMValue = alloca_value;
+            
+            set_debug_info_to_variable(alloca_value, var_type, var_name, sline, info);
         }
     }
 
@@ -593,8 +596,10 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
 {
     char var_name[VAR_NAME_MAX];
     xstrncpy(var_name, gNodes[node].uValue.sStoreVariable.mVarName, VAR_NAME_MAX);
+    
     BOOL alloc = gNodes[node].uValue.sStoreVariable.mAlloc;
     BOOL global = gNodes[node].uValue.sStoreVariable.mGlobal;
+    int sline = gNodes[node].mLine;
 
     unsigned int right_node = gNodes[node].mRight;
 
@@ -783,6 +788,8 @@ BOOL compile_store_variable(unsigned int node, sCompileInfo* info)
             var->mLLVMValue = alloca_value;
 
             info->type = left_type;
+            
+            set_debug_info_to_variable(alloca_value, left_type, var_name, sline, info);
         }
     }
     else if(constant) {

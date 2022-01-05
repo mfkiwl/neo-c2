@@ -1408,11 +1408,24 @@ LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
     LLVMMetadataRef result = NULL;
 
     if(node_type->mPointerNum > 0) {
+        sNodeType* basic_type = clone_node_type(node_type);
+        basic_type->mPointerNum = 0;
+        
+        LLVMMetadataRef llvm_basic_type = create_llvm_debug_type(basic_type);
+        
+        result = llvm_basic_type;
+        
+        int i;
+        for(i=0; i<node_type->mPointerNum; i++) {
+            result = LLVMDIBuilderCreatePointerType(gDIBuilder, result, sizeof(char*)*8, 0, 0, "pointer", strlen("pointer"));
+        }
+/*
 #if LLVM_VERSION <= 7
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0);
 #else
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0, 0);
 #endif
+*/
     }
     else if(node_type->mArrayDimentionNum > 0) {
 #if LLVM_VERSION <= 7
@@ -2975,3 +2988,42 @@ BOOL create_generics_struct_type(sNodeType* node_type)
     return TRUE;
 }
 
+
+void set_debug_info_to_variable(LLVMValueRef value, sNodeType* node_type, char* name, int sline, sCompileInfo* info)
+{
+    if(gNCDebug) {
+        char cwd[PATH_MAX];
+        getcwd(cwd, PATH_MAX);
+
+        char directory[PATH_MAX];
+
+        snprintf(directory, PATH_MAX, "%s", cwd);
+
+        int directory_len = strlen(directory);
+        
+        LLVMMetadataRef di_type = create_llvm_debug_type(node_type);
+        
+        int arg_no = 0;
+        
+        LLVMMetadataRef file = LLVMDIBuilderCreateFile(gDIBuilder, gFName, strlen(gFName), directory, directory_len);
+        LLVMMetadataRef scope = info->function_meta_data;
+        LLVMMetadataRef llvm_info = LLVMDIBuilderCreateParameterVariable(gDIBuilder
+                    , scope
+                    , name
+                    , strlen(name)
+                    , arg_no
+                    , file
+                    , sline
+                    , (LLVMMetadataRef)di_type
+                    , FALSE
+                    , 0);
+        
+        LLVMMetadataRef expr = LLVMDIBuilderCreateExpression(gDIBuilder, NULL, 0);
+        int colum = 0;
+        LLVMMetadataRef scope2 = info->function_meta_data;
+        LLVMMetadataRef inlinedat = NULL;
+        LLVMMetadataRef loc = LLVMDIBuilderCreateDebugLocation(gContext, sline, colum, scope2, inlinedat);
+        
+        LLVMDIBuilderInsertDeclareAtEnd(gDIBuilder, value, llvm_info, expr, loc, LLVMGetInsertBlock(gBuilder));
+    }
+}
