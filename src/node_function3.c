@@ -238,7 +238,10 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         int sline = gNodes[node].mLine;
         char fname[PATH_MAX];
         xstrncpy(fname, gNodes[node].mSName, PATH_MAX);
-        createDebugFunctionInfo(fname, sline, fun_name, fun, llvm_fun, gFName, info);
+        
+        createDebugFunctionInfo(fname, sline, fun_name, fun, gFName, info);
+        
+        LLVMSetSubprogram(llvm_fun, info->function_meta_data);
     }
 
 

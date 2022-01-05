@@ -1407,34 +1407,7 @@ LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
 {
     LLVMMetadataRef result = NULL;
 
-    if(node_type->mPointerNum > 0) {
-        sNodeType* basic_type = clone_node_type(node_type);
-        basic_type->mPointerNum = 0;
-        
-        LLVMMetadataRef llvm_basic_type = create_llvm_debug_type(basic_type);
-        
-        result = llvm_basic_type;
-        
-        int i;
-        for(i=0; i<node_type->mPointerNum; i++) {
-            result = LLVMDIBuilderCreatePointerType(gDIBuilder, result, sizeof(char*)*8, 0, 0, "pointer", strlen("pointer"));
-        }
-/*
-#if LLVM_VERSION <= 7
-        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0);
-#else
-        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0, 0);
-#endif
-*/
-    }
-    else if(node_type->mArrayDimentionNum > 0) {
-#if LLVM_VERSION <= 7
-        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0);
-#else
-        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0, 0);
-#endif
-    }
-    else if(type_identify_with_class_name(node_type, "int")) {
+    if(type_identify_with_class_name(node_type, "int")) {
 #if LLVM_VERSION <= 7
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "int", strlen("int"), 32, 0);
 #else
@@ -1501,11 +1474,39 @@ LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 128, 0, 0);
 #endif
     }
+    else if(node_type->mClass->mFlags & CLASS_FLAGS_STRUCT) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "struct", strlen("struct"), 64, 0);
+#else
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "struct", strlen("struct"), 64, 0, 0);
+#endif
+    }
+    else if(node_type->mClass->mFlags & CLASS_FLAGS_UNION) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "union", strlen("union"), 64, 0);
+#else
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "union", strlen("union"), 64, 0, 0);
+#endif
+    }
+    else if(node_type->mArrayDimentionNum > 0) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0);
+#else
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0, 0);
+#endif
+    }
+    
+    if(node_type->mPointerNum > 0) {
+        int i;
+        for(i=0; i<node_type->mPointerNum; i++) {
+            result = LLVMDIBuilderCreatePointerType(gDIBuilder, result, sizeof(char*)*8, 0, 0, "pointer", strlen("pointer"));
+        }
+    }
 
     return result;
 }
 
-void createDebugFunctionInfo(char* fname, int sline, char* fun_name, sFunction* function, LLVMValueRef llvm_function, char* module_name, sCompileInfo* info)
+void createDebugFunctionInfo(char* fname, int sline, char* fun_name, sFunction* function, char* module_name, sCompileInfo* info)
 {
     char cwd[PATH_MAX];
     getcwd(cwd, PATH_MAX);
@@ -1518,8 +1519,13 @@ void createDebugFunctionInfo(char* fname, int sline, char* fun_name, sFunction* 
 
     LLVMMetadataRef file = LLVMDIBuilderCreateFile(gDIBuilder, fname, strlen(fname), directory, directory_len);
 
-
-    int num_params = function->mNumParams;
+    int num_params;
+    if(function) {
+        num_params = function->mNumParams;
+    }
+    else {
+        num_params = 0;
+    }
     LLVMMetadataRef param_types[PARAMS_MAX];
 
     int i;
@@ -1542,8 +1548,6 @@ void createDebugFunctionInfo(char* fname, int sline, char* fun_name, sFunction* 
                                 file, sline, FunctionTy, TRUE, TRUE, sline, 0, FALSE);
 
     info->function_meta_data = function_meta_data;
-
-    LLVMSetSubprogram(llvm_function, function_meta_data);
 }
 
 void finishDebugFunctionInfo()
@@ -2991,7 +2995,8 @@ BOOL create_generics_struct_type(sNodeType* node_type)
 
 void set_debug_info_to_variable(LLVMValueRef value, sNodeType* node_type, char* name, int sline, sCompileInfo* info)
 {
-    if(gNCDebug) {
+/*
+    if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !info->empty_function && !info->in_thread_function) {
         char cwd[PATH_MAX];
         getcwd(cwd, PATH_MAX);
 
@@ -3026,4 +3031,5 @@ void set_debug_info_to_variable(LLVMValueRef value, sNodeType* node_type, char* 
         
         LLVMDIBuilderInsertDeclareAtEnd(gDIBuilder, value, llvm_info, expr, loc, LLVMGetInsertBlock(gBuilder));
     }
+*/
 }

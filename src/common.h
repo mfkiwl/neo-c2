@@ -908,7 +908,7 @@ extern sNodeType* gComeFunctionResultType;
 void setCurrentDebugLocation(int sline, sCompileInfo* info);
 void setNullCurrentDebugLocation(int sline, sCompileInfo* info);
 LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type);
-void createDebugFunctionInfo(char* fname, int sline, char* fun_name, sFunction* function, LLVMValueRef llvm_function, char* module_name, sCompileInfo* info);
+void createDebugFunctionInfo(char* fname, int sline, char* fun_name, sFunction* function, char* module_name, sCompileInfo* info);
 void finishDebugFunctionInfo();
 unsigned int alloc_node();
 sNodeBlock* sNodeBlock_alloc();
