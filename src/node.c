@@ -1414,6 +1414,13 @@ LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "int", strlen("int"), 32, 0, 0);
 #endif
     }
+    else if(type_identify_with_class_name(node_type, "bool")) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "bool", strlen("bool"), 1, 0);
+#else
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "bool", strlen("bool"), 1, 0, 0);
+#endif
+    }
     else if(type_identify_with_class_name(node_type, "char")) {
 #if LLVM_VERSION <= 7
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "char", strlen("char"), 8, 0);
@@ -2995,7 +3002,6 @@ BOOL create_generics_struct_type(sNodeType* node_type)
 
 void set_debug_info_to_variable(LLVMValueRef value, sNodeType* node_type, char* name, int sline, sCompileInfo* info)
 {
-/*
     if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !info->empty_function && !info->in_thread_function) {
         char cwd[PATH_MAX];
         getcwd(cwd, PATH_MAX);
@@ -3031,5 +3037,4 @@ void set_debug_info_to_variable(LLVMValueRef value, sNodeType* node_type, char* 
         
         LLVMDIBuilderInsertDeclareAtEnd(gDIBuilder, value, llvm_info, expr, loc, LLVMGetInsertBlock(gBuilder));
     }
-*/
 }
