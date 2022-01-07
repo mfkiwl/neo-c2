@@ -8,8 +8,9 @@ BOOL postposition_operator(unsigned int* node, BOOL enable_assginment, sParserIn
     }
 
     while(*info->p) {
+        char c = *(info->p+1);
         /// call method or access field ///
-        if(*info->p == '.' || (*info->p == '-' && *(info->p+1) == '>'))
+        if((*info->p == '.' || (*info->p == '-' && *(info->p+1) == '>')) && ((c >= 'a' && c <= 'z') || c == '_' || 'c' >= 'A' && c <= 'Z'))
         {
             if(!parse_sharp(info)) {
                 return FALSE;
@@ -347,7 +348,7 @@ BOOL postposition_operator(unsigned int* node, BOOL enable_assginment, sParserIn
                     }
                 }
             }
-            else {
+            else if(!(c >= '0' && c <= '9')) {
                 char msg[1024];
                 snprintf(msg, 1024, "require method name or field name after . (%c)", *info->p);
                 parser_err_msg(info, msg);

@@ -35,6 +35,18 @@ BOOL compile(unsigned int node, sCompileInfo* info)
             }
             break;
 
+        case kNodeTypeFloatValue:
+            if(!compile_float_value(node, info)) {
+                return FALSE;
+            }
+            break;
+
+        case kNodeTypeDoubleValue:
+            if(!compile_double_value(node, info)) {
+                return FALSE;
+            }
+            break;
+
         case kNodeTypeUIntValue:
             if(!compile_uint_value(node, info)) {
                 return FALSE;

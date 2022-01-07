@@ -1403,7 +1403,7 @@ void setNullCurrentDebugLocation(int sline, sCompileInfo* info)
 
 
 
-LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
+LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type, sCompileInfo* info)
 {
     LLVMMetadataRef result = NULL;
 
@@ -1444,9 +1444,16 @@ LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
     }
     else if(type_identify_with_class_name(node_type, "float")) {
 #if LLVM_VERSION <= 7
-        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 16, 0);
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 32, 0);
 #else
-        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 16, 0, 0);
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "float", strlen("float"), 32, 0, 0);
+#endif
+    }
+    else if(type_identify_with_class_name(node_type, "double")) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "double", strlen("doube"), 64, 0);
+#else
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "double", strlen("double"), 64, 0, 0);
 #endif
     }
     else if(type_identify_with_class_name(node_type, "_Float16") || type_identify_with_class_name(node_type, "_Float16x")) 
@@ -1482,11 +1489,82 @@ LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type)
 #endif
     }
     else if(node_type->mClass->mFlags & CLASS_FLAGS_STRUCT) {
+        sCLClass* klass = node_type->mClass;
+        char* class_name = klass->mName;
+        
+        char* fname = info->sname;
+        
+        char cwd[PATH_MAX];
+        getcwd(cwd, PATH_MAX);
+    
+        char directory[PATH_MAX];
+        
+        snprintf(directory, PATH_MAX, "%s", cwd);
+        int directory_len = strlen(directory);
+    
+        LLVMMetadataRef scope = LLVMDIBuilderCreateFile(gDIBuilder, fname, strlen(fname), directory, directory_len);
+        
+        LLVMMetadataRef llvm_debug_fields[STRUCT_FIELD_MAX];
+        
+        int num_fields = klass->mNumFields;
+        
+        for(int i=0; i<num_fields; i++) {
+            LLVMMetadataRef llvm_debug_type;
+            
+            if(type_identify(node_type, klass->mFields[i])) {
 #if LLVM_VERSION <= 7
-        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "struct", strlen("struct"), 64, 0);
+                llvm_debug_type = LLVMDIBuilderCreateBasicType(gDIBuilder, "union", strlen("union"), 64, 0);
 #else
-        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "struct", strlen("struct"), 64, 0, 0);
+                llvm_debug_type = LLVMDIBuilderCreateBasicType(gDIBuilder, "union", strlen("union"), 64, 0, 0);
 #endif
+            }
+            else {
+                llvm_debug_type = create_llvm_debug_type(klass->mFields[i], info);
+            }
+            
+            char* name = klass->mFieldName[i];
+            LLVMMetadataRef file = scope;
+            int sline = info->sline;
+            
+            sNodeType* field_type = clone_node_type(klass->mFields[i]);
+            
+            int alignment = 0;
+            uint64_t size_in_bits = get_size_from_node_type(field_type, &alignment) * 8;
+            uint32_t align_in_bits = alignment * 8;
+            
+            klass->mNumFields = i+1;
+            uint64_t offset_in_bits;
+            if(i == 0) {
+                offset_in_bits = 0;
+            }
+            else if(i+1 > num_fields) {
+                klass->mNumFields = num_fields;
+            }
+            else {
+                offset_in_bits = get_size_from_node_type(node_type, &alignment) * 8 - size_in_bits;
+            }
+            klass->mNumFields = num_fields;
+            LLVMDIFlags flags = 0;
+            
+            llvm_debug_fields[i] = LLVMDIBuilderCreateMemberType(
+                gDIBuilder, scope, name, strlen(name), file, sline, size_in_bits, align_in_bits,
+                offset_in_bits, flags, llvm_debug_type);
+        }
+        
+        LLVMMetadataRef file = scope;
+        unsigned line_number = info->sline;
+        int alignment = 0;
+        uint64_t size_in_bits = get_size_from_node_type(node_type, &alignment) * 8;
+        uint32_t align_in_bits = alignment * 8;
+        LLVMDIFlags flags = 0;
+        LLVMMetadataRef deriverd_from = NULL;
+        unsigned run_time_lang = 0;
+        const char* unique_id = class_name;
+        LLVMMetadataRef vtable_holder = NULL;
+        
+        result = LLVMDIBuilderCreateStructType(gDIBuilder, scope, class_name, strlen(class_name), file, line_number, size_in_bits,
+            align_in_bits, flags, deriverd_from, llvm_debug_fields, klass->mNumFields, run_time_lang, vtable_holder,
+            unique_id, strlen(unique_id));
     }
     else if(node_type->mClass->mFlags & CLASS_FLAGS_UNION) {
 #if LLVM_VERSION <= 7
@@ -1537,7 +1615,7 @@ void createDebugFunctionInfo(char* fname, int sline, char* fun_name, sFunction* 
 
     int i;
     for(i=0; i<num_params; i++) {
-        param_types[i] = create_llvm_debug_type(function->mParamTypes[i]);
+        param_types[i] = create_llvm_debug_type(function->mParamTypes[i], info);
     }
 
     LLVMMetadataRef FunctionTy = LLVMDIBuilderCreateSubroutineType(gDIBuilder, file, param_types, num_params, 0);
@@ -2045,6 +2123,36 @@ BOOL cast_right_type_to_left_type(sNodeType* left_type, sNodeType** right_type, 
         }
 
         *right_type = create_node_type_with_class_name("int");
+    }
+    else if(type_identify_with_class_name(left_type, "float") && left_type->mPointerNum == 0)
+    {
+        if(rvalue) {
+            if((*right_type)->mPointerNum == 0 && (type_identify_with_class_name(*right_type, "double")))
+            {
+                LLVMTypeRef llvm_type = create_llvm_type_with_class_name("float");
+
+                rvalue->value = LLVMBuildCast(gBuilder, LLVMFPTrunc, rvalue->value, llvm_type, "icastK");
+            }
+
+            rvalue->type = create_node_type_with_class_name("float");
+        }
+
+        *right_type = create_node_type_with_class_name("float");
+    }
+    else if(type_identify_with_class_name(left_type, "double") && left_type->mPointerNum == 0)
+    {
+        if(rvalue) {
+            if((*right_type)->mPointerNum == 0 && (type_identify_with_class_name(*right_type, "float")))
+            {
+                LLVMTypeRef llvm_type = create_llvm_type_with_class_name("double");
+
+                rvalue->value = LLVMBuildCast(gBuilder, LLVMFPExt, rvalue->value, llvm_type, "icastK");
+            }
+
+            rvalue->type = create_node_type_with_class_name("double");
+        }
+
+        *right_type = create_node_type_with_class_name("double");
     }
 
     return TRUE;
@@ -3012,7 +3120,7 @@ void set_debug_info_to_variable(LLVMValueRef value, sNodeType* node_type, char* 
 
         int directory_len = strlen(directory);
         
-        LLVMMetadataRef di_type = create_llvm_debug_type(node_type);
+        LLVMMetadataRef di_type = create_llvm_debug_type(node_type, info);
         
         int arg_no = 0;
         

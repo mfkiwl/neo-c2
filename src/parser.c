@@ -298,8 +298,48 @@ BOOL get_number(BOOL minus, unsigned int* node, sParserInfo* info)
         };
         *p2 = 0;
         skip_spaces_and_lf(info);
+        
+        char c = *(info->p+1);
 
-        if(*info->p == 'u' || *info->p == 'U')
+        if(*info->p == '.' && xisdigit(c)) {
+            *p2++ = *info->p;
+            
+            if(p2 - buf >= buf_size) {
+                parser_err_msg(info, "overflow node of number");
+                return FALSE;
+            }
+            
+            info->p++;
+            skip_spaces_and_lf(info);
+            
+            while(xisdigit(*info->p) || *info->p == '_') {
+                if(*info->p ==  '_') {
+                    info->p++;
+                }
+                else {
+                    *p2++ = *info->p;
+                    info->p++;
+                }
+    
+                if(p2 - buf >= buf_size) {
+                    parser_err_msg(info, "overflow node of number");
+                    return FALSE;
+                }
+            };
+            *p2 = 0;
+            skip_spaces_and_lf(info);
+            
+            if(*info->p == 'f') {
+                info->p++;
+                skip_spaces_and_lf(info);
+                
+                *node = sNodeTree_create_float_value(strtof(buf, NULL), info);
+            }
+            else {
+                *node = sNodeTree_create_double_value(strtod(buf, NULL), info);
+            }
+        }
+        else if(*info->p == 'u' || *info->p == 'U')
         {
             info->p++;
             skip_spaces_and_lf(info);

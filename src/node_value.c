@@ -334,3 +334,83 @@ BOOL compile_char_value(unsigned int node, sCompileInfo* info)
     return TRUE;
 }
 
+
+unsigned int sNodeTree_create_float_value(float value, sParserInfo* info)
+{
+    unsigned node = alloc_node();
+
+    gNodes[node].mNodeType = kNodeTypeFloatValue;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    gNodes[node].uValue.mFloatValue = value;
+
+    gNodes[node].mLeft = 0;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    return node;
+}
+
+BOOL compile_float_value(unsigned int node, sCompileInfo* info)
+{
+    float value = gNodes[node].uValue.mFloatValue;
+
+    LVALUE llvm_value;
+
+    LLVMTypeRef llvm_type = create_llvm_type_with_class_name("float");
+
+    llvm_value.value = LLVMConstReal(llvm_type, value);
+    llvm_value.type = create_node_type_with_class_name("float");
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = create_node_type_with_class_name("float");
+
+    return TRUE;
+}
+
+unsigned int sNodeTree_create_double_value(double value, sParserInfo* info)
+{
+    unsigned node = alloc_node();
+
+    gNodes[node].mNodeType = kNodeTypeDoubleValue;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = info->sline;
+
+    gNodes[node].uValue.mDoubleValue = value;
+
+    gNodes[node].mLeft = 0;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    return node;
+}
+
+BOOL compile_double_value(unsigned int node, sCompileInfo* info)
+{
+    double value = gNodes[node].uValue.mDoubleValue;
+
+    LVALUE llvm_value;
+
+    LLVMTypeRef llvm_type = create_llvm_type_with_class_name("double");
+
+    llvm_value.value = LLVMConstReal(llvm_type, value);
+    llvm_value.type = create_node_type_with_class_name("double");
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = create_node_type_with_class_name("double");
+
+    return TRUE;
+}
