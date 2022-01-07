@@ -10,7 +10,7 @@ BOOL postposition_operator(unsigned int* node, BOOL enable_assginment, sParserIn
     while(*info->p) {
         char c = *(info->p+1);
         /// call method or access field ///
-        if((*info->p == '.' || (*info->p == '-' && *(info->p+1) == '>')) && ((c >= 'a' && c <= 'z') || c == '_' || 'c' >= 'A' && c <= 'Z'))
+        if(*info->p == '.' || (*info->p == '-' && *(info->p+1) == '>'))
         {
             if(!parse_sharp(info)) {
                 return FALSE;

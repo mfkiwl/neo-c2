@@ -361,7 +361,7 @@ BOOL compile_float_value(unsigned int node, sCompileInfo* info)
 
     LLVMTypeRef llvm_type = create_llvm_type_with_class_name("float");
 
-    llvm_value.value = LLVMConstReal(llvm_type, value);
+    llvm_value.value = LLVMConstReal(llvm_type, (double)value);
     llvm_value.type = create_node_type_with_class_name("float");
     llvm_value.address = NULL;
     llvm_value.var = NULL;
