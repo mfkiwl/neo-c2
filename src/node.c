@@ -3032,16 +3032,8 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
             xstrncpy(sname, info->sname, VAR_NAME_MAX);
             int sline = info->sline;
 
-/*
-            if(info->in_lambda_function) {
-                xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
-                info->sline = info->lambda_sline;
-            }
-            else {
-*/
-                xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
-                info->sline = gNodes[node].mLine;
-//            }
+            xstrncpy(info->sname, gNodes[node].mSName, PATH_MAX);
+            info->sline = gNodes[node].mLine;
 
             if(gNCDebug) {
                 if(info->in_generics_function || info->in_inline_function || info->in_lambda_function || info->empty_function) {
@@ -3053,6 +3045,9 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
             }
 
             if(!compile(node, info)) {
+                if(gNCType && !gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef) {
+                    show_node_type(info->type);
+                }
                 info->pinfo->lv_table = old_table;
                 return FALSE;
             }
@@ -3070,13 +3065,20 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
             }
         }
 
-
         info->last_expression_is_return = last_expression_is_return;
     }
 
     info->pinfo->sline = sline_before;
 
     info->pinfo->lv_table = old_table;
+    
+    if(gNCType && block->mTerminated) {
+        if(!gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef) {
+            show_node_type(info->type);
+            return FALSE;
+        }
+        return TRUE;
+    }
 
     return TRUE;
 }

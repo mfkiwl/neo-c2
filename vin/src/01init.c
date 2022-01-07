@@ -11,11 +11,11 @@ ViWin* ViWin::initialize(ViWin* self, int y, int x, int width, int height, Vi* v
 
     self.scroll = 0;
     self.vi = vi;
-
+    
     static int id = 0;
     self.id = id;
     id++;
-
+    
     id++;
 
     WINDOW* win = newwin(height, width, y, x);

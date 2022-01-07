@@ -61,12 +61,12 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
             break;
         }
     }
-
+    
     bool method_completion = false;
     if(*p == '.') {
         method_completion = true;
     }
-
+    
     p++;
     
     int len = (line + self.cursorX - p);
@@ -74,7 +74,12 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
 
     auto word = line.substring(self.cursorX-len, self.cursorX);
 
-    FILE* f = fopen("neo_c2_completion.tmp", "w");
+    char dname[PATH_MAX];
+    strncpy(dname, self.fileName, PATH_MAX);
+
+    char* dname2 = dirname(dname);
+    
+    FILE* f = fopen(xsprintf("%s/neo_c2_completion.tmp", dname2), "w");
     
     int i = 0;
     foreach(it, self.texts) {
@@ -91,9 +96,9 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
     }
     
     fclose(f);
-
+    
     if(method_completion) {
-        FILE* f = fopen("neo_c2_completion2.tmp", "w");
+        FILE* f = fopen(xsprintf("%s/neo_c2_completion2.tmp", dname2), "w");
         
         int i = 0;
         foreach(it, self.texts) {
@@ -115,7 +120,7 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
         fclose(f);
 
         char cmdline[128];
-        snprintf(cmdline, 128, "neo-c2 -I. type neo_c2_completion2.tmp");
+        snprintf(cmdline, 128, "neo-c2 -I. -I%s type %s/neo_c2_completion2.tmp", dname2, dname2);
         
         auto command_result = new buffer.initialize();
         
@@ -135,7 +140,7 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
 
                 char* dname2 = dirname(dname);
 
-                snprintf(cmdline, 128, "neo-c2 -I. -I%s function neo_c2_completion.tmp | egrep '^[a-zA-Z0-9_]+'", dname2);
+                snprintf(cmdline, 128, "neo-c2 -I. -I%s function %s/neo_c2_completion.tmp | egrep '^[a-zA-Z0-9_]+'", dname2, dname2);
                 
                 auto candidates = new list<wstring>.initialize();
                 
@@ -224,9 +229,6 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
                 }
             }
         }
-    
-        system("rm -f neo_c2_completion2.tmp");
-        system("rm -f neo_c2_completion2.tmp.i");
     }
     else {
         char dname[PATH_MAX];
@@ -235,7 +237,7 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
         char* dname2 = dirname(dname);
 
         char cmdline[128];
-        snprintf(cmdline, 128, "neo-c2 -I. -I%s function neo_c2_completion.tmp | egrep '^[a-zA-Z0-9_]+'", dname2);
+        snprintf(cmdline, 128, "neo-c2 -I. -I%s function %s/neo_c2_completion.tmp | egrep '^[a-zA-Z0-9_]+'", dname2, dname2);
         
         auto candidates = new list<wstring>.initialize();
         
@@ -275,6 +277,6 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
         }
     }
     
-    system("rm -f neo_c2_completion.tmp");
-    system("rm -f neo_c2_completion.tmp.i");
+    system(xsprintf("rm -f %s/neo_c2_completion.tmp", dname2));
+    system(xsprintf("rm -f %s/neo_c2_completion.tmp.i", dname2));
 }

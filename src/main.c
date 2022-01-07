@@ -26,7 +26,7 @@ static void compiler_final(char* sname)
     node_loop_final();
 }
 
-static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BOOL neo_c_header, char* macro_definition, char* include_path)
+static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BOOL neo_c_header, char* macro_definition, char* include_path, BOOL output_cpp)
 {
     if(access(fname, F_OK) != 0) {
         fprintf(stderr, "%s doesn't exist\n", fname);
@@ -65,25 +65,28 @@ static BOOL compiler(char* fname, BOOL optimize, sVarTable* module_var_table, BO
     char cmd[1024];
 #ifdef __DARWIN__
     if(gNCGC) {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp %s -I/usr/local/include -I%s/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ -DWITH_GC %s %s > %s", include_path, PREFIX, cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp %s -I. -I/usr/local/include -I%s/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ -DWITH_GC %s %s > %s", include_path, PREFIX, cflags, fname, macro_definition, fname2);
     }
     else {
-        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp %s -I/usr/local/include -I%s/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", include_path, PREFIX, cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "/usr/local/opt/llvm/bin/clnag-cpp %s -I. -I/usr/local/include -I%s/include %s -D__DARWIN__ -D__GNUC__=7 -U__GNUC__ %s %s > %s", include_path, PREFIX, cflags, fname, macro_definition, fname2);
     }
 #else
     if(gNCGC) {
-        snprintf(cmd, 1024, "cpp %s -I%s/include %s -U__GNUC__ %s %s -DWITH_GC > %s", include_path, PREFIX,cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "cpp %s -I. -I%s/include %s -U__GNUC__ %s %s -DWITH_GC > %s", include_path, PREFIX,cflags, fname, macro_definition, fname2);
     }
     else {
-        snprintf(cmd, 1024, "cpp %s -I%s/include %s -U__GNUC__ %s %s > %s", include_path, PREFIX,cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "cpp %s -I. -I%s/include %s -U__GNUC__ %s %s > %s", include_path, PREFIX,cflags, fname, macro_definition, fname2);
     }
 #endif
 
-    puts(cmd);
+    if(output_cpp) {
+        puts(cmd);
+    }
+    
     int rc = system(cmd);
     if(rc != 0) {
         char cmd[1024];
-        snprintf(cmd, 1024, "cpp -I%s/include %s -C %s %s > %s", PREFIX, cflags, fname, macro_definition, fname2);
+        snprintf(cmd, 1024, "cpp -I. -I%s/include %s -C %s %s > %s", PREFIX, cflags, fname, macro_definition, fname2);
 
         puts(cmd);
         rc = system(cmd);
@@ -252,6 +255,8 @@ int main(int argc, char** argv)
     clang_optiones[0] = '\0';
     optiones[0] = '\0';
     
+    BOOL output_cpp = TRUE;
+    
     int i;
     for(i=1; i<argc; i++) {
         if(strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-version") == 0 || strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "-V") == 0)
@@ -283,18 +288,21 @@ int main(int argc, char** argv)
         else if(strcmp(argv[i], "type") == 0)
         {
             gNCType = TRUE;
+            output_cpp = FALSE;
             xstrncat(optiones, "type ", 1024);
         }
         else if(strcmp(argv[i], "global") == 0)
         {
             gNCGlobal = TRUE;
             gNCType = TRUE;
+            output_cpp = FALSE;
             xstrncat(optiones, "global ", 1024);
         }
         else if(strcmp(argv[i], "class") == 0)
         {
             gNCClass = TRUE;
             gNCType = TRUE;
+            output_cpp = FALSE;
 
             xstrncat(optiones, "class ", 1024);
         }
@@ -302,6 +310,7 @@ int main(int argc, char** argv)
         {
             gNCTypedef = TRUE;
             gNCType = TRUE;
+            output_cpp = FALSE;
 
             xstrncat(optiones, "typedef ", 1024);
         }
@@ -309,6 +318,7 @@ int main(int argc, char** argv)
         {
             gNCFunction = TRUE;
             gNCType = TRUE;
+            output_cpp = FALSE;
 
             xstrncat(optiones, "function ", 1024);
         }
@@ -475,9 +485,11 @@ int main(int argc, char** argv)
             xstrncat(include_paths2, " ", 128*PATH_MAX);
         }
         
-        if(!compiler(sname, optimize, gModuleVarTable, FALSE, macro_definition, include_paths2))
+        if(!compiler(sname, optimize, gModuleVarTable, FALSE, macro_definition, include_paths2, output_cpp))
         {
-            fprintf(stderr, "come can't compile(2) %s\n", sname);
+            if(!gNCType) {
+                fprintf(stderr, "come can't compile(2) %s\n", sname);
+            }
             compiler_final(sname);
     
             return 1;
