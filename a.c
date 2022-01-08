@@ -3,7 +3,9 @@ struct sData {
     double b;
     double* c;
     double* d;
-    int* e;
+    char e;
+    char f;
+    int* g;
 };
 
 int main()
@@ -14,9 +16,9 @@ int main()
     data.b = 11.1;
     data.c = &data.b;
     data.d = &data.b;
-    data.e = (int*)0;
+    data.g = (int*)0;
     
-    *data.e = 1;
+    *data.g = 1;
     
     return 0;
 }

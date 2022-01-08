@@ -596,6 +596,8 @@ struct sNodeTreeStruct
     unsigned int mLeft;
     unsigned int mRight;
     unsigned int mMiddle;
+    
+    BOOL mTerminated;
 
     char mSName[PATH_MAX];
     int mLine;
@@ -953,6 +955,7 @@ BOOL create_llvm_union_type(sNodeType* node_type, sNodeType* generics_type, BOOL
 int get_llvm_alignment_from_node_type(sNodeType* node_type);
 void compile_err_msg(sCompileInfo* info, const char* msg, ...);
 BOOL compile_block(sNodeBlock* block, sCompileInfo* info);
+BOOL compile_conditional_expression(unsigned int node, sCompileInfo* info);
 
 struct sGenericsStructTypeStruct
 {

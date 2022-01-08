@@ -213,11 +213,11 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
             exit(2);
         }
     }
-
+    
     return TRUE;
 }
 
-char* gVersion = "2.1.2";
+char* gVersion = "2.1.3";
 BOOL gNCDebug = FALSE;
 BOOL gNCGC = TRUE;
 char gFName[PATH_MAX];
@@ -487,10 +487,7 @@ int main(int argc, char** argv)
         
         if(!compiler(sname, optimize, gModuleVarTable, FALSE, macro_definition, include_paths2, output_cpp))
         {
-            if(!gNCType) {
-                fprintf(stderr, "come can't compile(2) %s\n", sname);
-            }
-            compiler_final(sname);
+            //compiler_final(sname);
     
             return 1;
         }

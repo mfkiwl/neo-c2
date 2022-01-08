@@ -599,6 +599,12 @@ BOOL parse_while(unsigned int* node, sParserInfo* info)
         return TRUE;
     }
 
+    if(*info->p == '\0') {
+        gNodes[expression_node].mTerminated = TRUE;
+        *node = sNodeTree_while_expression(expression_node, NULL, info);
+        return TRUE;
+    }
+
     expect_next_character_with_one_forward(")", info);
 
     sNodeBlock* while_node_block = NULL;
@@ -645,6 +651,12 @@ BOOL parse_do(unsigned int* node, sParserInfo* info)
         info->err_num++;
         return TRUE;
     }
+    
+    if(*info->p == '\0') {
+        gNodes[expression_node].mTerminated = TRUE;
+        *node = sNodeTree_do_while_expression(expression_node, NULL, info);
+        return TRUE;
+    }
 
     expect_next_character_with_one_forward(")", info);
 
@@ -665,6 +677,15 @@ BOOL parse_for(unsigned int* node, sParserInfo* info)
     if(!expression(&expression_node, TRUE, info)) {
         return FALSE;
     }
+    
+    if(*info->p == '\0') {
+        sVarTable* old_vtable2 = info->lv_table;
+        sNodeBlock* for_node_block = ALLOC sNodeBlock_alloc();
+        for_node_block->mLVTable = init_block_vtable(old_vtable2, FALSE);
+        gNodes[expression_node].mTerminated = TRUE;
+        *node = sNodeTree_for_expression(expression_node, 0, 0, for_node_block, info);
+        return TRUE;
+    }
 
     if(expression_node == 0) {
         parser_err_msg(info, "require expression for \"for\"");
@@ -684,6 +705,15 @@ BOOL parse_for(unsigned int* node, sParserInfo* info)
     unsigned int expression_node2 = 0;
     if(!expression(&expression_node2, TRUE, info)) {
         return FALSE;
+    }
+    
+    if(*info->p == '\0') {
+        sVarTable* old_vtable2 = info->lv_table;
+        sNodeBlock* for_node_block = ALLOC sNodeBlock_alloc();
+        for_node_block->mLVTable = init_block_vtable(old_vtable2, FALSE);
+        gNodes[expression_node2].mTerminated = TRUE;
+        *node = sNodeTree_for_expression(expression_node, expression_node2, 0, for_node_block, info);
+        return TRUE;
     }
 
     if(expression_node2 == 0) {
@@ -709,6 +739,15 @@ BOOL parse_for(unsigned int* node, sParserInfo* info)
     if(expression_node3 == 0) {
         parser_err_msg(info, "require expression3 for \"for\"");
         info->err_num++;
+        return TRUE;
+    }
+    
+    if(*info->p == '\0') {
+        sVarTable* old_vtable2 = info->lv_table;
+        sNodeBlock* for_node_block = ALLOC sNodeBlock_alloc();
+        for_node_block->mLVTable = init_block_vtable(old_vtable2, FALSE);
+        gNodes[expression_node3].mTerminated = TRUE;
+        *node = sNodeTree_for_expression(expression_node, expression_node2, expression_node3, for_node_block, info);
         return TRUE;
     }
 

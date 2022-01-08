@@ -794,6 +794,12 @@ BOOL parse_if(unsigned int* node, sParserInfo* info)
         return TRUE;
     }
 
+    if(*info->p == '\0') {
+        gNodes[expression_node].mTerminated = TRUE;
+        *node = sNodeTree_if_expression(expression_node, NULL, 0, NULL, 0, NULL, info, sname, sline);
+        return TRUE;
+    }
+    
     expect_next_character_with_one_forward(")", info);
 
     sNodeBlock* if_node_block = NULL;
@@ -841,6 +847,13 @@ BOOL parse_if(unsigned int* node, sParserInfo* info)
                 if(elif_expression_nodes[elif_num] == 0) {
                     parser_err_msg(info, "require elif expression");
                     info->err_num++;
+                    return TRUE;
+                }
+            
+                if(*info->p == '\0') {
+                    gNodes[elif_expression_nodes[elif_num]].mTerminated = TRUE;
+                    elif_num++;
+                    *node = sNodeTree_if_expression(expression_node, MANAGED if_node_block, elif_expression_nodes, elif_node_blocks, elif_num, NULL, info, sname, sline);
                     return TRUE;
                 }
 

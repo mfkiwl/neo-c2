@@ -273,6 +273,7 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
                     auto append = candidate.substring(0, len2+1).substring(len, -1);
                     self.insertText(append);
                 }
+                
             }
         }
     }

@@ -1,0 +1,117 @@
+#include "common.h"
+#include <libgen.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <ncurses.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <limits.h>
+
+static int int_compare(wchar_t* left, wchar_t* right) 
+{
+    return wcscmp(left, right);
+}
+
+static bool int_equals(wchar_t* left, wchar_t* right) 
+{
+    return wcscmp(left, right) == 0;
+}
+
+static bool get_command_result2(buffer* command_result, char* cmdline)
+{
+    char buf[BUFSIZ];
+
+    FILE* f = popen(cmdline, "r");
+    if(f == NULL) {
+        perror("popen");
+        fprintf(stderr, "popen(2) is failed at %s\n", cmdline);
+        return false;
+    }
+
+    while(1) {
+        int size = fread(buf, 1, BUFSIZ, f);
+        command_result.append(buf, size);
+
+        if(size < BUFSIZ) {
+            break;
+        }
+    }
+    if(pclose(f) < 0) {
+        fprintf(stderr, "pclose(2) is failed at %s\n", cmdline);
+        return false;
+    }
+
+    return true;
+}
+
+void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
+{
+    auto line = self.texts.item(self.scroll+self.cursorY, null);
+
+    wchar_t* p = line + self.cursorX;
+    p--;
+
+    while(p >= line) {
+        if((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == '_')
+        {
+            p--;
+        }
+        else {
+            break;
+        }
+    }
+    
+    bool method_completion = false;
+    if(*p == '.') {
+        method_completion = true;
+    }
+    
+    p++;
+    
+    int len = (line + self.cursorX - p);
+    int len2 = (p-line-1);
+
+    auto word = line.substring(self.cursorX-len, self.cursorX);
+
+    char dname[PATH_MAX];
+    strncpy(dname, self.fileName, PATH_MAX);
+
+    char* dname2 = dirname(dname);
+    
+    FILE* f = fopen(xsprintf("%s/neo_c2_completion.tmp", dname2), "w");
+    
+    int i = 0;
+    foreach(it, self.texts) {
+        auto line = self.texts.item(i, null);
+        
+        if(i < self.cursorY+self.scroll) {
+            fprintf(f, "%ls\n", line);
+        }
+        else {
+            break;
+        }
+        
+        i++;
+    }
+    
+    fclose(f);
+    
+    if(method_completion) {
+        FILE* f = fopen(xsprintf("%s/neo_c2_completion2.tmp", dname2), "w");
+        
+        int i = 0;
+        foreach(it, self.texts) {
+            auto line = self.texts.item(i, null);
+            
+            if(i < self.cursorY+self.scroll) {
+                fprintf(f, "%ls\n", line);
+            }
+            else if(i == self.cursorY+self.scroll) {
+                fprintf(f, "%ls\n", line.substring(0, len2));
+            }
+            else {
+                break;
+            }
+            
+            switch("AAA"

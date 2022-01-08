@@ -153,6 +153,12 @@ BOOL parse_switch(unsigned int* node, sParserInfo* info)
         return TRUE;
     }
 
+    if(*info->p == '\0') {
+        gNodes[expression_node].mTerminated = TRUE;
+        *node = sNodeTree_switch_expression(expression_node, 0, NULL, info);
+        return TRUE;
+    }
+
     expect_next_character_with_one_forward(")", info);
     expect_next_character_with_one_forward("{", info);
 

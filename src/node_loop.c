@@ -165,7 +165,7 @@ BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
 
     info->sline = gNodes[expression_node].mLine;
 
-    if(!compile(expression_node, info)) {
+    if(!compile_conditional_expression(expression_node, info)) {
         return FALSE;
     }
 
@@ -259,7 +259,7 @@ BOOL compile_if_expression(unsigned int node, sCompileInfo* info)
 
             info->sline = gNodes[expression_node].mLine;
 
-            if(!compile(expression_node, info)) {
+            if(!compile_conditional_expression(expression_node, info)) {
                 return FALSE;
             }
 
@@ -386,7 +386,7 @@ BOOL compile_while_expression(unsigned int node, sCompileInfo* info)
 
     info->sline = gNodes[expression_node].mLine;
 
-    if(!compile(expression_node, info)) {
+    if(!compile_conditional_expression(expression_node, info)) {
         return FALSE;
     }
 
@@ -542,8 +542,10 @@ BOOL compile_do_while_expression(unsigned int node, sCompileInfo* info)
     sNodeBlock* current_node_block = info->current_node_block;
     info->current_node_block = while_node_block;
 
-    if(!compile_block(while_node_block, info)) {
-        return FALSE;
+    if(while_node_block) {
+        if(!compile_block(while_node_block, info)) {
+            return FALSE;
+        }
     }
 
     info->current_node_block = current_node_block;
@@ -553,7 +555,7 @@ BOOL compile_do_while_expression(unsigned int node, sCompileInfo* info)
 
     info->sline = gNodes[expression_node].mLine;
 
-    if(!compile(expression_node, info)) {
+    if(!compile_conditional_expression(expression_node, info)) {
         return FALSE;
     }
 
@@ -887,7 +889,10 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     sNodeBlock* for_block = gNodes[node].uValue.sFor.mForNodeBlock;
 
     sVarTable* lv_table_before = info->pinfo->lv_table;
-    info->pinfo->lv_table = for_block->mLVTable->mParent;
+    
+    if(for_block) {
+        info->pinfo->lv_table = for_block->mLVTable->mParent;
+    }
 
     /// compile expression ///
     int stack_num_before = info->stack_num;
@@ -896,7 +901,7 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
     info->sline = gNodes[expression_node].mLine;
 
-    if(!compile(expression_node, info)) {
+    if(!compile_conditional_expression(expression_node, info)) {
         info->pinfo->lv_table = lv_table_before;
         return FALSE;
     }
@@ -915,7 +920,7 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
     info->sline = gNodes[expression_node2].mLine;
 
-    if(!compile(expression_node2, info)) {
+    if(!compile_conditional_expression(expression_node2, info)) {
         info->pinfo->lv_table = lv_table_before;
         return FALSE;
     }
@@ -988,11 +993,13 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
     info->current_node_block = for_block;
 
     /// block of for expression ///
-    if(!compile_block(for_block, info))
-    {
-        info->num_loop--;
-        info->pinfo->lv_table = lv_table_before;
-        return FALSE;
+    if(for_block) {
+        if(!compile_block(for_block, info))
+        {
+            info->num_loop--;
+            info->pinfo->lv_table = lv_table_before;
+            return FALSE;
+        }
     }
 
     info->current_node_block = current_node_block;
@@ -1006,7 +1013,7 @@ BOOL compile_for_expression(unsigned int node, sCompileInfo* info)
 
     info->sline = gNodes[expression_node3].mLine;
 
-    if(!compile(expression_node3, info)) {
+    if(!compile_conditional_expression(expression_node3, info)) {
         info->pinfo->lv_table = lv_table_before;
         return FALSE;
     }
@@ -1225,7 +1232,7 @@ BOOL compile_switch_expression(unsigned int node, sCompileInfo* info)
 
     info->sline = gNodes[expression_node].mLine;
 
-    if(!compile(expression_node, info)) {
+    if(!compile_conditional_expression(expression_node, info)) {
         return FALSE;
     }
 

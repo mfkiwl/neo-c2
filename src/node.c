@@ -3043,10 +3043,11 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
                     setCurrentDebugLocation(info->sline, info);
                 }
             }
-
+            
             if(!compile(node, info)) {
                 if(gNCType && !gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef) {
                     show_node_type(info->type);
+                    gNCType = FALSE;
                 }
                 info->pinfo->lv_table = old_table;
                 return FALSE;
@@ -3075,9 +3076,31 @@ BOOL compile_block(sNodeBlock* block, sCompileInfo* info)
     if(gNCType && block->mTerminated) {
         if(!gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef) {
             show_node_type(info->type);
+            gNCType = FALSE;
             return FALSE;
         }
         return TRUE;
+    }
+
+    return TRUE;
+}
+
+BOOL compile_conditional_expression(unsigned int node, sCompileInfo* info)
+{
+    if(!compile(node, info)) {
+        if(gNCType && !gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef) {
+            show_node_type(info->type);
+            gNCType = FALSE;
+        }
+        return FALSE;
+    }
+    
+    if(gNodes[node].mTerminated) {
+        if(gNCType && !gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef) {
+            show_node_type(info->type);
+            gNCType = FALSE;
+        }
+        return FALSE;
     }
 
     return TRUE;

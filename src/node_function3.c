@@ -278,7 +278,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
     if(gNCType && node_block->mTerminated) {
         if(!gNCGlobal && !gNCFunction && !gNCClass && !gNCTypedef) {
-            show_node_type(info->type);
+            //show_node_type(info->type);
         }
         return TRUE;
     }

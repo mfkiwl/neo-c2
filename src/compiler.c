@@ -183,7 +183,7 @@ BOOL compile_source(char* fname, char** source, BOOL optimize, sVarTable* module
 
     char module_name[PATH_MAX];
     xstrncpy(module_name, fname, PATH_MAX);
-
+    
     char* module_name2 = basename(module_name);
 
     char module_name3[PATH_MAX];
@@ -367,7 +367,7 @@ BOOL compile_source(char* fname, char** source, BOOL optimize, sVarTable* module
     else if(gNCFunction) {
         show_funcs();
     }
-
+    
     return TRUE;
 }
 
