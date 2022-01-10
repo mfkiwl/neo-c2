@@ -120,6 +120,7 @@ class ListTestClass:
 
 xassert("list test", [ListTestClass(1,2),ListTestClass(3,4)] == [ListTestClass(1,2),ListTestClass(3,4)])
 
+xassert("str test 3", int("1") + int("2") == 3);
 
 #
 #print "HELLO WORLD"

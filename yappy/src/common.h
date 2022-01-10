@@ -30,7 +30,7 @@ struct sNode;
 
 struct sNode
 {
-    enum { kIntValueNode, kOpAdd, kOpSub, kStringValueNode, kPrint, kLen, kExit, kReturn, kLoadVar, kStoreVar, kFun, kClass, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak, kOpEq, kOpNotEq, kOpDiv, kOpMult, kImport, kMethodCall, kLoadField, kStoreField, kListValueNode, kListIndexNode, kOpAndAnd, kOpOrOr } kind;
+    enum { kIntValueNode, kOpAdd, kOpSub, kStringValueNode, kPrint, kLen, kInt, kExit, kReturn, kLoadVar, kStoreVar, kFun, kClass, kFunCall, kTrue, kFalse, kIf, kWhile, kContinue, kBreak, kOpEq, kOpNotEq, kOpDiv, kOpMult, kImport, kMethodCall, kLoadField, kStoreField, kListValueNode, kListIndexNode, kOpAndAnd, kOpOrOr } kind;
     
     char* fname;
     int sline;
@@ -218,6 +218,7 @@ struct sVar
 #define OP_LIST_INDEX 27
 #define OP_OROR 28
 #define OP_ANDAND 29
+#define OP_INT 30
 
 /// main.c ///
 void skip_spaces(sParserInfo* info);

@@ -270,6 +270,10 @@ void print_op(int op)
             puts("OP_LEN");
             break;
                 
+        case OP_INT: 
+            puts("OP_INT");
+            break;
+                
         case OP_LOAD: 
             puts("OP_LOAD");
             break;
@@ -648,6 +652,26 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     
                     stack[stack_num].kind = kIntValue;
                     stack[stack_num].intValue = len;
+                    stack_num++;
+                }
+                else {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                break;
+                
+            case OP_INT: 
+                p++;
+                
+                if(stack[stack_num-1].kind == kStringValue) {
+                    wstring wstr = stack[stack_num-1].value.stringValue;
+                    int n = wcstol(wstr, NULL, 0);
+                    
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kIntValue;
+                    stack[stack_num].intValue = n;
                     stack_num++;
                 }
                 else {
