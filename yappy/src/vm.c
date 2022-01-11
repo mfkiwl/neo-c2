@@ -2,6 +2,7 @@
 #include <locale.h>
 
 static ZVALUE gNullValue;
+static ZVALUE gNoneValue;
 
 typedef bool (*fNativeFun)(map<string, ZVALUE>* params, sVMInfo* info);
 
@@ -144,7 +145,6 @@ bool ZVALUE_equals(ZVALUE self, ZVALUE right)
             
         case kNullValue:
             return true;
-            break;
             
         case kExceptionValue:
             if(self.expValue != right.expValue) {
@@ -220,6 +220,124 @@ void show_zvalue(ZVALUE value)
     }
 }
 
+string zvalue_to_str(ZVALUE value)
+{
+    switch(value.kind) {
+        case kIntValue:
+            return xsprintf("%d", value.intValue);
+            
+        case kBoolValue:
+            if(value.boolValue) {
+                return string("True");
+            }
+            else {
+                return string("False");
+            }
+            break;
+            
+        case kStringValue:
+            return value.stringValue.to_string();
+            
+        case kNullValue:
+            return string("None");
+            
+        case kObjValue: {
+            sObject* object = value.value.objValue;
+            
+            return xsprintf("%s.%s at %p", object.klass.name, object.module.name, object);
+            }
+            break;
+            
+        case kListValue: {
+            list<ZVALUE>* li = value.value.listValue;
+            
+            buffer* buf = new buffer.initialize();
+            
+            buf.append_str("[");
+            for(int i= 0; i<li.length(); i++) {
+                buf.append_str(zvalue_to_str(li.item(i, gNullValue)));
+                if(i != li.length()-1) {
+                    buf.append_str(",");
+                }
+            }
+            buf.append_str("]");
+            
+            return buf.to_string();
+            }
+            break;
+    }
+}
+
+void print_obj(ZVALUE obj, bool lf)
+{
+    switch(obj.kind) {
+        case kStringValue: 
+            printf("%s", obj.value.stringValue.to_string());
+            if(lf) {
+                puts("");
+            }
+            break;
+            
+        case kIntValue: 
+            printf("%d", obj.value.intValue);
+            if(lf) {
+                puts("");
+            }
+            break;
+            
+        case kBoolValue:
+           if(obj.value.boolValue) {
+               printf("true");
+               if(lf) {
+                   puts("");
+               }
+           }
+           else {
+               printf("false");
+               if(lf) {
+                   puts("");
+               }
+           }
+           break;
+           
+       case kNullValue: {
+           printf("None");
+           if(lf) {
+               puts("");
+           }
+           }
+           break;
+           
+       case kObjValue: {
+           sObject* object = obj.value.objValue;
+           printf("%s.%s object at %p\n", object.module.name, object.klass.name, object);
+           if(lf) {
+               puts("");
+           }
+           }
+           break;
+           
+       
+           
+       case kListValue: {
+           list<ZVALUE>* li = obj.value.listValue;
+           
+           printf("[");
+           for(int i= 0; i<li.length(); i++) {
+               print_obj(li.item(i, gNullValue), false);
+               if(i != li.length()-1) {
+                   printf(",");
+               }
+           }
+           printf("]");
+           if(lf) {
+               puts("");
+           }
+           }
+           break;
+    }
+}
+
 void print_op(int op)
 {
     switch(op) {
@@ -292,6 +410,10 @@ void print_op(int op)
                 
         case OP_BOOL_VALUE: 
             puts("OP_BOOL_VALUE");
+            break;
+            
+        case OP_NULL_VALUE: 
+            puts("OP_NULL_VALUE");
             break;
                 
         case OP_GOTO: 
@@ -409,65 +531,6 @@ void add_module(char* module_name)
     gModules.insert(string(module_name), module);
 }
 
-void print_obj(ZVALUE obj, bool lf)
-{
-    switch(obj.kind) {
-        case kStringValue: 
-            printf("%s", obj.value.stringValue.to_string());
-            if(lf) {
-                puts("");
-            }
-            break;
-            
-        case kIntValue: 
-            printf("%d", obj.value.intValue);
-            if(lf) {
-                puts("");
-            }
-            break;
-            
-        case kBoolValue:
-           if(obj.value.boolValue) {
-               printf("true");
-               if(lf) {
-                   puts("");
-               }
-           }
-           else {
-               printf("false");
-               if(lf) {
-                   puts("");
-               }
-           }
-           break;
-           
-       case kObjValue: {
-           sObject* object = obj.value.objValue;
-           printf("%s.%s object at %p\n", object.module.name, object.klass.name, object);
-           if(lf) {
-               puts("");
-           }
-           }
-           break;
-           
-       case kListValue: {
-           list<ZVALUE>* li = obj.value.listValue;
-           
-           printf("[");
-           for(int i= 0; i<li.length(); i++) {
-               print_obj(li.item(i, gNullValue), false);
-               if(i != li.length()-1) {
-                   printf(",");
-               }
-           }
-           printf("]");
-           if(lf) {
-               puts("");
-           }
-           }
-           break;
-    }
-}
 
 bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
 {
@@ -672,6 +735,26 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     
                     stack[stack_num].kind = kIntValue;
                     stack[stack_num].intValue = n;
+                    stack_num++;
+                }
+                else {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                break;
+                
+            case OP_STR: 
+                p++;
+                
+                if(stack[stack_num-1].kind == kListValue || stack[stack_num-1].kind == kBoolValue || stack[stack_num-1].kind == kIntValue || stack[stack_num-1].kind == kNullValue || stack[stack_num].kind == kObjValue) 
+                {
+                    string str = zvalue_to_str(stack[stack_num-1]);
+                    
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kStringValue;
+                    stack[stack_num].stringValue = str.to_wstring();
                     stack_num++;
                 }
                 else {
@@ -1053,6 +1136,15 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 stack_num++;
                 }
                 break;
+                
+            case OP_NULL_VALUE: {
+                p++;
+                
+                stack[stack_num].kind = kNullValue;
+                stack_num++;
+                }
+                break;
+                
                 
             case OP_GOTO: {
                 p++;

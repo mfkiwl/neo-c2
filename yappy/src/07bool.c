@@ -24,6 +24,18 @@ static sNode* create_false(sParserInfo* info)
     return result;
 }
 
+static sNode* create_null(sParserInfo* info)
+{
+    sNode* result = new sNode;
+    
+    result.kind = kNull;
+    
+    result.fname = info->fname;
+    result.sline = info->sline;
+    
+    return result;
+}
+
 static bool word_cmp(char* p, char* word2)
 {
     bool result = strstr(p, word2) == p;
@@ -53,6 +65,12 @@ sNode*? exp_node(sParserInfo* info) version 7
         
         result = create_false(info);
     }
+    else if(word_cmp(info->p, "None")) {
+        info->p += strlen("None");
+        skip_spaces_until_eol(info);
+        
+        result = create_null(info);
+    }
     
     if(result == null) {
         result = inherit(info);
@@ -76,6 +94,11 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 7
         codes.append_int(OP_BOOL_VALUE);
         
         codes.append_int(0);
+        
+        info->stack_num++;
+    }
+    else if(node.kind == kNull) {
+        codes.append_int(OP_NULL_VALUE);
         
         info->stack_num++;
     }

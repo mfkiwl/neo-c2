@@ -40,6 +40,19 @@ static sNode* create_str_to_int_node(sNode* exp, sParserInfo* info)
     return result;
 }
 
+static sNode* create_str_node(sNode* exp, sParserInfo* info)
+{
+    sNode* result = new sNode;
+    
+    result.kind = kStr;
+    
+    result.fname = info->fname;
+    result.sline = info->sline;
+    result.value.opValue.left = exp;
+    
+    return result;
+}
+
 
 static sNode* create_exit_node(sNode* exp, sParserInfo* info)
 {
@@ -149,6 +162,27 @@ sNode*? exp_node(sParserInfo* info) version 4
             
             result = create_str_to_int_node(node, info);
         }
+        else if(emb_funcmp(info->p, "str")) {
+            info->p += strlen("str");
+            skip_spaces_until_eol(info);
+            
+            if(*info->p == '(') {
+                info->p++;
+                skip_spaces_until_eol(info);
+            }
+            
+            sNode* node = null;
+            if(!expression(&node, info)) {
+                return null;
+            }
+            
+            if(*info->p == ')') {
+                info->p++;
+                skip_spaces_until_eol(info);
+            }
+            
+            result = create_str_node(node, info);
+        }
         else if(emb_funcmp(info->p, "exit")) {
             info->p += strlen("exit");
             skip_spaces_until_eol(info);
@@ -226,6 +260,15 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 4
         }
         
         codes.append_int(OP_INT);
+    }
+    else if(node.kind == kStr) {
+        sNode* exp = node.opValue.left;
+        
+        if(!compile(exp, codes, info)) {
+            return false;
+        }
+        
+        codes.append_int(OP_STR);
     }
     else if(node.kind == kExit) {
         sNode* exp = node.opValue.left;

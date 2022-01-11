@@ -122,6 +122,9 @@ xassert("list test", [ListTestClass(1,2),ListTestClass(3,4)] == [ListTestClass(1
 
 xassert("str test 3", int("1") + int("2") == 3);
 
+xassert("str test 4", str(1) + str(2) == "12");
+xassert("str test 5", str([1,2,3]) == "[1,2,3]");
+
 #
 #print "HELLO WORLD"
 
