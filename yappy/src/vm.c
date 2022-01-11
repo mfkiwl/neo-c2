@@ -310,7 +310,7 @@ void print_obj(ZVALUE obj, bool lf)
            
        case kObjValue: {
            sObject* object = obj.value.objValue;
-           printf("%s.%s object at %p\n", object.module.name, object.klass.name, object);
+           printf("%s.%s object at %p", object.module.name, object.klass.name, object);
            if(lf) {
                puts("");
            }
@@ -747,7 +747,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             case OP_STR: 
                 p++;
                 
-                if(stack[stack_num-1].kind == kListValue || stack[stack_num-1].kind == kBoolValue || stack[stack_num-1].kind == kIntValue || stack[stack_num-1].kind == kNullValue || stack[stack_num].kind == kObjValue) 
+                if(stack[stack_num-1].kind == kListValue || stack[stack_num-1].kind == kBoolValue || stack[stack_num-1].kind == kIntValue || stack[stack_num-1].kind == kNullValue || stack[stack_num-1].kind == kObjValue) 
                 {
                     string str = zvalue_to_str(stack[stack_num-1]);
                     

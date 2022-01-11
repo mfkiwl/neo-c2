@@ -237,38 +237,53 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 4
     if(node.kind == kPrint) {
         sNode* exp = node.opValue.left;
         
+        int stack_num = info.stack_num;
+        
         if(!compile(exp, codes, info)) {
             return false;
         }
+        info.stack_num = stack_num;
         
         codes.append_int(OP_PRINT);
     }
     else if(node.kind == kLen) {
         sNode* exp = node.opValue.left;
         
+        int stack_num = info.stack_num;
+        
         if(!compile(exp, codes, info)) {
             return false;
         }
+        info.stack_num = stack_num;
         
         codes.append_int(OP_LEN);
+        info.stack_num++;
     }
     else if(node.kind == kInt) {
         sNode* exp = node.opValue.left;
         
+        int stack_num = info.stack_num;
+        
         if(!compile(exp, codes, info)) {
             return false;
         }
+        info.stack_num = stack_num;
         
         codes.append_int(OP_INT);
+        info.stack_num++;
     }
     else if(node.kind == kStr) {
         sNode* exp = node.opValue.left;
         
+        int stack_num = info.stack_num;
+        
         if(!compile(exp, codes, info)) {
             return false;
         }
+        info.stack_num = stack_num;
         
         codes.append_int(OP_STR);
+        info.stack_num++;
     }
     else if(node.kind == kExit) {
         sNode* exp = node.opValue.left;
