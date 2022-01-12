@@ -213,6 +213,8 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 13
         
         int len = elements.length();
         
+        info.stack_num -= len;
+        
         codes.append_int(len);
         
         info->stack_num++;

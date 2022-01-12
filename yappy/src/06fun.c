@@ -259,7 +259,7 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 6
         
         codes.append_int(num_params);
         
-        stack_num++;
+        info.stack_num++;
     }
     
     return true;

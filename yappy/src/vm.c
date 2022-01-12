@@ -1391,7 +1391,6 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     return false;
                 }
                 
-                
                 break;
                 
             case OP_METHOD_CALL: {
@@ -1860,6 +1859,11 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
             fprintf(stderr, "Inerpreter Bug occurs. invalid stack num %d\n", stack_num);
             exit(1);
         }
+    }
+    
+    if(stack_num != 0) {
+        fprintf(stderr, "Inerpreter Bug occurs. invalid stack num %d\n", stack_num);
+        exit(1);
     }
     
     return true;
