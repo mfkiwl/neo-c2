@@ -433,7 +433,7 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/home/ab25cq/repo/neo-c2'
+ac_pwd='/home/ab25cq/neo-c2'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
 test -n "$AWK" || AWK=awk
@@ -612,10 +612,10 @@ S["OBJS"]="src/parser.o src/parser2.o src/parser3.o src/parser4.o src/parser5.o 
 "oop.o src/node_op.o src/node_value.o src/node_var.o src/vtable.o src/node_type.o src/klass.o src/constant.o src/node_block.o src/typedef.o src/compi"\
 "ler.o src/macro.o"
 S["CLANG"]=""
-S["CXXFLAGS2"]="-I/usr/lib/llvm-11/include -std=c++14   -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/l"\
-"ib/llvm-11/lib  -lLLVM-11   -g -I . -I src -DPREFIX=\"\\\"${DESTDIR}/\\\" -L/usr/local/lib\""
-S["CXXFLAGS"]="-I/usr/lib/llvm-11/include -std=c++14   -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/l"\
-"ib/llvm-11/lib  -lLLVM-11   -g -I . -I src -DPREFIX=\"\\\"${DESTDIR}/\\\" -L/usr/local/lib\""
+S["CXXFLAGS2"]="-I/usr/lib/llvm-7/include  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/lib/llvm-7/lib"\
+"  -lLLVM-7   -g -I . -I src -DPREFIX=\"\\\"${DESTDIR}/\\\" -L/usr/local/lib\""
+S["CXXFLAGS"]="-I/usr/lib/llvm-7/include  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/lib/llvm-7/lib"\
+"  -lLLVM-7   -g -I . -I src -DPREFIX=\"\\\"${DESTDIR}/\\\" -L/usr/local/lib\""
 S["CXX"]="clang++"
 S["DESTDIR"]="/usr/local"
 S["OS"]="LINUX"
@@ -630,9 +630,9 @@ S["EXEEXT"]=""
 S["ac_ct_CC"]="gcc"
 S["CPPFLAGS"]=""
 S["LDFLAGS"]=""
-S["CFLAGS"]="-I/usr/lib/llvm-11/include  -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -Isrc/ -I. -DPREFIX=\"\\\"${DESTDIR}/\\"\
-"\"\" -fPIC -I/usr/local/include -g -DLLVM_VERSION=11 -DCLANG=\"\\\"clang-11\\\"\""
-S["CC"]="clang-11"
+S["CFLAGS"]="-I/usr/lib/llvm-7/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -Isrc/ -I. -DPREFIX=\"\\\"${DESTDIR}/\\\"\""\
+" -fPIC -I/usr/local/include -g -DLLVM_VERSION=7 -DCLANG=\"\\\"clang\\\"\""
+S["CC"]="clang"
 S["target_alias"]=""
 S["host_alias"]=""
 S["build_alias"]=""

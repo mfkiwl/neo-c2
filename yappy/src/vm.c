@@ -379,6 +379,14 @@ void print_op(int op)
         case OP_STRING_VALUE:
             puts("OP_STRING_VALUE");
             break;
+                 
+        case OP_STR:
+            puts("OP_STR");
+            break;
+                 
+        case OP_TYPE:
+            puts("OP_TYPE");
+            break;
                 
         case OP_PRINT: 
             puts("OP_PRINT");
@@ -755,6 +763,82 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     
                     stack[stack_num].kind = kStringValue;
                     stack[stack_num].stringValue = str.to_wstring();
+                    stack_num++;
+                }
+                else {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionTypeError;
+                    return false;
+                }
+                break;
+                
+            case OP_TYPE: 
+                p++;
+                
+                if(stack[stack_num-1].kind == kListValue) {
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kStringValue;
+                    stack[stack_num].stringValue = string("<class 'list'>").to_wstring();
+                    stack_num++;
+                }
+                else if(stack[stack_num-1].kind == kBoolValue) {
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kStringValue;
+                    stack[stack_num].stringValue = string("<class 'bool'>").to_wstring();
+                    stack_num++;
+                }
+                else if(stack[stack_num-1].kind == kIntValue) {
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kStringValue;
+                    stack[stack_num].stringValue = string("<class 'int'>").to_wstring();
+                    stack_num++;
+                }
+                else if(stack[stack_num-1].kind == kNullValue) {
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kStringValue;
+                    stack[stack_num].stringValue = string("<class 'NonType'>").to_wstring();
+                    stack_num++;
+                }
+                else if(stack[stack_num-1].kind == kStringValue) {
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kStringValue;
+                    stack[stack_num].stringValue = string("<class 'str'>").to_wstring();
+                    stack_num++;
+                }
+                else if(stack[stack_num-1].kind == kExceptionValue) {
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kStringValue;
+                    stack[stack_num].stringValue = string("<class 'expcetion'>").to_wstring();
+                    stack_num++;
+                }
+                else if(stack[stack_num-1].kind == kModuleValue) {
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kStringValue;
+                    stack[stack_num].stringValue = string("<class 'module'>").to_wstring();
+                    stack_num++;
+                }
+                else if(stack[stack_num-1].kind == kClassValue) {
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kStringValue;
+                    stack[stack_num].stringValue = string("<class 'class'>").to_wstring();
+                    stack_num++;
+                }
+                else if(stack[stack_num-1].kind == kObjValue) 
+                {
+                    sObject* object = stack[stack_num-1].objValue;
+                
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kStringValue;
+                    stack[stack_num].stringValue = xsprintf("%s.%s", object.klass.name, object.module.name).to_wstring();
                     stack_num++;
                 }
                 else {

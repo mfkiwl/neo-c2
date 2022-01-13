@@ -125,12 +125,7 @@ xassert("str test 3", int("1") + int("2") == 3);
 xassert("str test 4", str(1) + str(2) == "12");
 xassert("str test 5", str([1,2,3]) == "[1,2,3]");
 
-class ClassA:
-    def __init__(self):
-        self.a = 1
-        self.b = "ABC"
-
-print(str([1,2,3]));
+xassert("str test 6", type([1,2,3]) == "<class 'list'>");
 
 
 #print "HELLO WORLD"
@@ -138,8 +133,8 @@ print(str([1,2,3]));
 #def fun():
 #    print "FUN"
 
-fun()
-fun()
+#fun()
+#fun()
 #
 #if True:
 #    print "IF TRUE"
