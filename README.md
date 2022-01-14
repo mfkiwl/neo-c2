@@ -126,9 +126,9 @@ For PC, WSL, Raspberry PI OS and iSH(iPhone)
 
 WSL, linux, raspberry PI OSとiSHでは以下のようにインストールします。
 
-Fast Build. 
+Fast Build. No self host
 
-最速のビルドです。
+最速のビルドです。セルフホストしません。
 
 ```
 git clone https://github.com/ab25cq/neo-c2
@@ -146,7 +146,9 @@ or
 bash fast_build.sh
 ```
 
-With self-host. With optimization.
+With self-host. With optimization.Compiling may fail in some environments.
+
+セルフホストします。あと最適化します。環境によってはコンパイルが失敗するかもしれません。
 
 ```
 git clone https://github.com/ab25cq/neo-c2
