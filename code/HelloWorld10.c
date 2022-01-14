@@ -36,9 +36,9 @@ int main()
 {
     defer puts("main FINISH");
 
-    vector!(v);
+//    vector!(v);
 
-    xassert("macro test", v.item(0, -1) == 1 && v.item(1, -1) == 2 && v.item(2, -1) == 3);
+//    xassert("macro test", v.item(0, -1) == 1 && v.item(1, -1) == 2 && v.item(2, -1) == 3);
 
 puts("before fun");
     fun();

@@ -120,11 +120,33 @@ $
 
 Required libraries are llvm-dev, clang, clang++, gcc, make, autoconf, valgrind, gdb, pcre-dev, gc-dev, pthread-dev
 
-LLVMの開発バージョン、clangとgcc, Make, autoconf, valgrind, gdb, pcreの開発バージョン, gcの開発バージョン, pthreadの開発バージョンが必要です。
+LLVMの開発バージョン、clangとgcc, g++, Make, autoconf, valgrind, gdb, pcreの開発バージョン, gcの開発バージョン, pthreadの開発バージョンが必要です。
 
 For PC, WSL, Raspberry PI OS and iSH(iPhone)
 
 WSL, linux, raspberry PI OSとiSHでは以下のようにインストールします。
+
+Fast Build. 
+
+最速のビルドです。
+
+```
+git clone https://github.com/ab25cq/neo-c2
+
+cd neo-c2
+
+./configure --with-debug
+make no-self-host
+sudo make uninstall
+sudo make install
+make test
+
+or 
+
+bash fast_build.sh
+```
+
+With self-host. With optimization.
 
 ```
 git clone https://github.com/ab25cq/neo-c2
@@ -200,26 +222,6 @@ make test
 or 
 
 bash debug_build.sh
-```
-
-Fast Build. For ISH
-
-最速のビルドです。For ISH
-
-```
-git clone https://github.com/ab25cq/neo-c2
-
-cd neo-c2
-
-./configure --with-debug
-make no-self-host
-sudo make uninstall
-sudo make install
-make test
-
-or 
-
-bash fast_build.sh
 ```
 
 # Language specifications

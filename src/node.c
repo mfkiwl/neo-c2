@@ -1645,7 +1645,7 @@ unsigned int alloc_node()
     if(gSizeNodes == gUsedNodes) {
         int new_size = (gSizeNodes+1) * 2;
         gNodes = (sNodeTree*)realloc(gNodes, sizeof(sNodeTree)*new_size);
-//        memset(gNodes + gSizeNodes, 0, sizeof(sNodeTree)*(new_size - gSizeNodes));
+        memset(gNodes + gSizeNodes, 0, sizeof(sNodeTree)*(new_size - gSizeNodes));
 
         gSizeNodes = new_size;
     }
