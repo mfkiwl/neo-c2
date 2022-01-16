@@ -32,16 +32,24 @@ static sFunction* sFunction_initialize(sFunction* self, char* name, buffer* code
 struct sClass
 {
     string name;
+    string module_name;
     buffer* codes;
     
     map<string, ZVALUE>* class_vars;
     map<string, sFunction*>* funcs;
 };
 
-static sClass* sClass_initialize(sClass* self, char* name, buffer* codes)
+static sClass* sClass_initialize(sClass* self, char* name, buffer* codes, char* module_name)
 {
-    self.name = clone name;
-    self.codes = clone codes;
+    self.name = string(name);
+    self.module_name = string(module_name);
+    
+    if(codes) {
+        self.codes = clone codes;
+    }
+    else {
+        self.codes = null;
+    }
     
     self.class_vars = new map<string, ZVALUE>.initialize();
     self.funcs = new map<string, sFunction*>.initialize();
@@ -57,6 +65,8 @@ struct sModule
     map<string, sClass*>* classes;
 };
 
+static map<string, sModule*>* gModules;
+
 sModule* sModule_initialize(sModule* self, char* module_name)
 {
     self.name = string(module_name);
@@ -68,7 +78,17 @@ sModule* sModule_initialize(sModule* self, char* module_name)
     return self;
 }
 
-static map<string, sModule*>* gModules;
+void add_module(char* module_name)
+{
+    sModule* module = new sModule.initialize(module_name);
+    
+    gModules.insert(string(module_name), module);
+}
+
+static bool sClass_equals(sClass* self, sClass* right)
+{
+    return self == right;
+}
 
 struct sObject
 {
@@ -156,8 +176,13 @@ bool ZVALUE_equals(ZVALUE self, ZVALUE right)
             return false;
             break;
             
-        case kClassValue:
-            return false;
+        case kClassValue: {
+            sClass* klass1 = self.classValue;
+            sClass* klass2 = self.classValue;
+            if(!klass1.equals(klass2)) {
+                return false;
+            }
+            }
             break;
             
         case kListValue:
@@ -180,6 +205,16 @@ bool native_sys_exit(map<string, ZVALUE>* params, sVMInfo* info)
     return true;
 }
 
+void add_class(char* class_name, char* class_module_name, char* module_name)
+{
+    sModule* module = gModules.at(module_name, null);
+    
+    if(module) {
+        sClass* klass = new sClass.initialize(class_name, null, class_module_name);
+        module.classes.insert(string(class_name), klass);
+    }
+}
+
 void initialize_modules() version 1
 {
     setlocale(LC_ALL, "");
@@ -192,6 +227,9 @@ void initialize_modules() version 1
     sModule* sys_module = new sModule.initialize("sys");
     gModules.insert("sys", sys_module);
     
+    sModule* main_module = new sModule.initialize("__main__");
+    gModules.insert("__main__", main_module);
+    
     vector<string>* param_names = new vector<string>.initialize();
     
     param_names.push_back(string("rcode"));
@@ -201,6 +239,17 @@ void initialize_modules() version 1
     sys_exit.native_fun = native_sys_exit;
     
     sys_module.funcs.insert("exit", sys_exit);
+    
+    add_class("int", "", "__main__");
+    add_class("float", "", "__main__");
+    add_class("str", "", "__main__");
+    add_class("bytes", "", "__main__");
+    add_class("bool", "", "__main__");
+    add_class("None", "", "__main__");
+    add_class("list", "", "__main__");
+    add_class("type", "", "__main__");
+    add_class("module", "", "__main__");
+    add_class("exception", "", "__main__");
 }
 
 void finalize_modules() version 1
@@ -241,6 +290,11 @@ string zvalue_to_str(ZVALUE value)
         case kNullValue:
             return string("None");
             
+        case kClassValue: {
+            sClass* klass = value.value.classValue;
+            return xsprintf("<class '%s.%s'>", klass.module_name, klass.name);
+            }
+            
         case kObjValue: {
             sObject* object = value.value.objValue;
             
@@ -257,7 +311,7 @@ string zvalue_to_str(ZVALUE value)
             for(int i= 0; i<li.length(); i++) {
                 buf.append_str(zvalue_to_str(li.item(i, gNullValue)));
                 if(i != li.length()-1) {
-                    buf.append_str(",");
+                    buf.append_str(", ");
                 }
             }
             buf.append_str("]");
@@ -278,6 +332,22 @@ void print_obj(ZVALUE obj, bool lf)
             }
             break;
             
+        case kClassValue: {
+            sClass* klass = obj.value.classValue;
+            
+            if(strcmp(klass.module_name, "") == 0) {
+                printf("<class '%s'>", klass.name);
+            }
+            else {
+                printf("<class '%s.%s'>", klass.module_name, klass.name);
+            }
+            
+            if(lf) {
+                puts("");
+            }
+            }
+            break;
+            
         case kIntValue: 
             printf("%d", obj.value.intValue);
             if(lf) {
@@ -287,13 +357,13 @@ void print_obj(ZVALUE obj, bool lf)
             
         case kBoolValue:
            if(obj.value.boolValue) {
-               printf("true");
+               printf("True");
                if(lf) {
                    puts("");
                }
            }
            else {
-               printf("false");
+               printf("False");
                if(lf) {
                    puts("");
                }
@@ -308,6 +378,8 @@ void print_obj(ZVALUE obj, bool lf)
            }
            break;
            
+           
+           
        case kObjValue: {
            sObject* object = obj.value.objValue;
            printf("%s.%s object at %p", object.module.name, object.klass.name, object);
@@ -316,8 +388,6 @@ void print_obj(ZVALUE obj, bool lf)
            }
            }
            break;
-           
-       
            
        case kListValue: {
            list<ZVALUE>* li = obj.value.listValue;
@@ -531,14 +601,6 @@ bool class_call(sClass* klass, sVMInfo* info)
     
     return true;
 }
-
-void add_module(char* module_name)
-{
-    sModule* module = new sModule.initialize(module_name);
-    
-    gModules.insert(string(module_name), module);
-}
-
 
 bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
 {
@@ -778,57 +840,67 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 if(stack[stack_num-1].kind == kListValue) {
                     stack_num--;
                     
-                    stack[stack_num].kind = kStringValue;
-                    stack[stack_num].stringValue = string("<class 'list'>").to_wstring();
+                    stack[stack_num].kind = kClassValue;
+                    stack[stack_num].classValue = gModules.at("__main__", null).classes.at("list", null);
                     stack_num++;
                 }
                 else if(stack[stack_num-1].kind == kBoolValue) {
                     stack_num--;
                     
-                    stack[stack_num].kind = kStringValue;
-                    stack[stack_num].stringValue = string("<class 'bool'>").to_wstring();
+                    stack[stack_num].kind = kClassValue;
+                    stack[stack_num].classValue = gModules.at("__main__", null).classes.at("bool", null);
                     stack_num++;
                 }
                 else if(stack[stack_num-1].kind == kIntValue) {
                     stack_num--;
                     
-                    stack[stack_num].kind = kStringValue;
-                    stack[stack_num].stringValue = string("<class 'int'>").to_wstring();
+                    stack[stack_num].kind = kClassValue;
+                    stack[stack_num].classValue = gModules.at("__main__", null).classes.at("int", null);
+                    
                     stack_num++;
                 }
+/*
+                else if(stack[stack_num-1].kind == kFloatValue) {
+                    stack_num--;
+                    
+                    stack[stack_num].kind = kClassValue;
+                    stack[stack_num].classValue = gModules.at("__main__", null).classes.at("float", null);
+                    stack_num++;
+                }
+*/
                 else if(stack[stack_num-1].kind == kNullValue) {
                     stack_num--;
                     
-                    stack[stack_num].kind = kStringValue;
-                    stack[stack_num].stringValue = string("<class 'NonType'>").to_wstring();
+                    stack[stack_num].kind = kClassValue;
+                    stack[stack_num].classValue = gModules.at("__main__", null).classes.at("None", null);
                     stack_num++;
                 }
                 else if(stack[stack_num-1].kind == kStringValue) {
                     stack_num--;
                     
-                    stack[stack_num].kind = kStringValue;
-                    stack[stack_num].stringValue = string("<class 'str'>").to_wstring();
+                    stack[stack_num].kind = kClassValue;
+                    stack[stack_num].classValue = gModules.at("__main__", null).classes.at("str", null);
                     stack_num++;
                 }
                 else if(stack[stack_num-1].kind == kExceptionValue) {
                     stack_num--;
                     
-                    stack[stack_num].kind = kStringValue;
-                    stack[stack_num].stringValue = string("<class 'expcetion'>").to_wstring();
+                    stack[stack_num].kind = kClassValue;
+                    stack[stack_num].classValue = gModules.at("__main__", null).classes.at("exception", null);
                     stack_num++;
                 }
                 else if(stack[stack_num-1].kind == kModuleValue) {
                     stack_num--;
                     
-                    stack[stack_num].kind = kStringValue;
-                    stack[stack_num].stringValue = string("<class 'module'>").to_wstring();
+                    stack[stack_num].kind = kClassValue;
+                    stack[stack_num].classValue = gModules.at("__main__", null).classes.at("module", null);
                     stack_num++;
                 }
                 else if(stack[stack_num-1].kind == kClassValue) {
                     stack_num--;
                     
-                    stack[stack_num].kind = kStringValue;
-                    stack[stack_num].stringValue = string("<class 'class'>").to_wstring();
+                    stack[stack_num].kind = kClassValue;
+                    stack[stack_num].classValue = gModules.at("__main__", null).classes.at("type", null);
                     stack_num++;
                 }
                 else if(stack[stack_num-1].kind == kObjValue) 
@@ -837,8 +909,8 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 
                     stack_num--;
                     
-                    stack[stack_num].kind = kStringValue;
-                    stack[stack_num].stringValue = xsprintf("%s.%s", object.klass.name, object.module.name).to_wstring();
+                    stack[stack_num].kind = kClassValue;
+                    stack[stack_num].classValue = object.klass;
                     stack_num++;
                 }
                 else {
@@ -1095,19 +1167,17 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 
                 codes2.append(codes, len_codes);
                 
-                sClass* klass = new sClass.initialize(string(name2), codes2);
+                sModule* module = gModules.at(info.module_name, null);
                 
-                if(info.module_name) {
-                    sModule* module = gModules.at(info.module_name, null);
-                    
-                    if(module == null) {
-                        info->exception.kind = kExceptionValue;
-                        info->exception.value.expValue = kExceptionVarNotFound;
-                        return false;
-                    }
-                    
-                    module.classes.insert(string(name2), klass);
+                if(module == null) {
+                    info->exception.kind = kExceptionValue;
+                    info->exception.value.expValue = kExceptionVarNotFound;
+                    return false;
                 }
+                
+                sClass* klass = new sClass.initialize(string(name2), codes2, module.name);
+                
+                module.classes.insert(string(name2), klass);
                 
                 if(!class_call(klass, info)) {
                     return false;
@@ -1287,6 +1357,17 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                         stack[stack_num].value.boolValue = lvalue.listValue.equals(rvalue.listValue);
                         stack_num++;
                         break;
+                        
+                    case kClassValue: {
+                        sClass* klass1 = lvalue.classValue;
+                        sClass* klass2 = rvalue.classValue;
+                        
+                        stack[stack_num].kind = kBoolValue;
+                        stack[stack_num].value.boolValue = klass1.equals(klass2);
+                        stack_num++;
+                        }
+                        break;
+                        
                         
                     default:
                         info->exception.kind = kExceptionValue;

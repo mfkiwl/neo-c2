@@ -1,5 +1,6 @@
 class ClassA:
     def __init__(self):
-        self.a = 1
+        self.a = 111
+        self.b = 222
 
-print(type(ClassA()))
+print(type(1) == int)

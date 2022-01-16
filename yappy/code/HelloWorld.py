@@ -118,14 +118,21 @@ class ListTestClass:
         self.a = a
         self.b = b
 
-xassert("list test", [ListTestClass(1,2),ListTestClass(3,4)] == [ListTestClass(1,2),ListTestClass(3,4)])
+#xassert("list test", [ListTestClass(1,2),ListTestClass(3,4)] == [ListTestClass(1,2),ListTestClass(3,4)])
 
 xassert("str test 3", int("1") + int("2") == 3);
 
 xassert("str test 4", str(1) + str(2) == "12");
-xassert("str test 5", str([1,2,3]) == "[1,2,3]");
+xassert("str test 5", str([1,2,3]) == "[1, 2, 3]");
 
-xassert("str test 6", type([1,2,3]) == "<class 'list'>");
+xassert("str test 6", type([1,2,3]) == list);
+
+#li11 = [1,2,3]
+#li11.append(4)
+
+#print(li11);
+
+#xassert("list test", li11 == [1,2,3,4]);
 
 
 #print "HELLO WORLD"

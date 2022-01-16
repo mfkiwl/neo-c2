@@ -299,8 +299,6 @@ int main(int argc, char** argv)
         
         vm_info.module_name = string("__main__");
         
-        add_module("__main__");
-        
         vm(codes, null, &vm_info).expect {
             print_exception(parent->vm_info->exception);
             exit(1);
