@@ -189,7 +189,11 @@ sNode*? exp_node(sParserInfo* info) version 13
                 }
             }
             
-            return create_list_node(elements, info);
+            result = create_list_node(elements, info);
+            
+            if(*info->p == '.') {
+                result = method_node(result, info);
+            }
         }
     }
     

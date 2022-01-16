@@ -205,14 +205,32 @@ bool native_sys_exit(map<string, ZVALUE>* params, sVMInfo* info)
     return true;
 }
 
-void add_class(char* class_name, char* class_module_name, char* module_name)
+bool native_list_append(map<string, ZVALUE>* params, sVMInfo* info)
+{
+    ZVALUE self = params.at("self", gNullValue);
+    ZVALUE value = params.at("value", gNullValue);
+    
+    list<ZVALUE>* list_object = self.listValue;
+    
+    list_object.push_back(value);
+    
+    info->return_value = self;
+    
+    return true;
+}
+
+sClass* add_class(char* class_name, char* class_module_name, char* module_name)
 {
     sModule* module = gModules.at(module_name, null);
     
     if(module) {
         sClass* klass = new sClass.initialize(class_name, null, class_module_name);
         module.classes.insert(string(class_name), klass);
+        
+        return klass;
     }
+    
+    return null;
 }
 
 void initialize_modules() version 1
@@ -246,10 +264,21 @@ void initialize_modules() version 1
     add_class("bytes", "", "__main__");
     add_class("bool", "", "__main__");
     add_class("None", "", "__main__");
-    add_class("list", "", "__main__");
+    sClass* list_class = add_class("list", "", "__main__");
     add_class("type", "", "__main__");
     add_class("module", "", "__main__");
     add_class("exception", "", "__main__");
+    
+    vector<string>* param_names2 = new vector<string>.initialize();
+    
+    param_names2.push_back(string("self"));
+    param_names2.push_back(string("value"));
+    
+    sFunction* list_append = new sFunction.initialize("append", null, param_names2);
+    
+    list_class.funcs.insert("append", list_append);
+    
+    list_append.native_fun = native_list_append;
 }
 
 void finalize_modules() version 1
@@ -1626,6 +1655,44 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     }
                     
                     sFunction* fun = object.klass.funcs.at(fun_name2, null);
+                    
+                    if(fun == null) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionMethodNotFound;
+                        return false;
+                    }
+                    
+                    if(!function_call(fun, param_values, info)) {
+                        return false;
+                    }
+                    
+                    stack_num -= param_values.length();
+                    
+                    stack[stack_num] = info->return_value;
+                    stack_num++;
+                }
+                else if(stack[stack_num-num_params-1].kind == kListValue) {
+                    list<ZVALUE>* object = stack[stack_num-num_params-1].listValue;
+                    
+                    vector<ZVALUE>* param_values = new vector<ZVALUE>.initialize();
+                    
+                    ZVALUE object_value;
+                    object_value.kind = kListValue;
+                    object_value.listValue = object;
+                    
+                    param_values.push_back(object_value);
+                    
+                    for(int i=0; i<num_params; i++) {
+                        ZVALUE value = stack[stack_num-num_params+i];
+                        
+                        param_values.push_back(value);
+                    }
+                    
+                    sModule* main_module = gModules.at("__main__", null);
+                    
+                    sClass* list_class = main_module.classes.at("list", null);
+                    
+                    sFunction* fun = list_class.funcs.at(fun_name2, null);
                     
                     if(fun == null) {
                         info->exception.kind = kExceptionValue;

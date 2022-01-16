@@ -127,12 +127,11 @@ xassert("str test 5", str([1,2,3]) == "[1, 2, 3]");
 
 xassert("str test 6", type([1,2,3]) == list);
 
-#li11 = [1,2,3]
-#li11.append(4)
+li11 = [1,2,3];
 
-#print(li11);
+li11.append(4)
 
-#xassert("list test", li11 == [1,2,3,4]);
+xassert("list test", li11 == [1,2,3,4]);
 
 
 #print "HELLO WORLD"
