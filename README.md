@@ -118,7 +118,7 @@ $
 
 # INSTALL
 
-Required libraries are llvm-dev, clang, clang++, gcc, make, autoconf, valgrind, gdb, pcre-dev, gc-dev, pthread-dev
+Required libraries are llvm-dev, clang, clang++, g++, gcc, make, autoconf, valgrind, gdb, pcre++-dev, gc-dev, pthread-dev
 
 LLVMの開発バージョン、clangとgcc, g++, make, autoconf, valgrind, gdb, pcreの開発バージョン, gcの開発バージョン, pthreadの開発バージョンが必要です。
 
