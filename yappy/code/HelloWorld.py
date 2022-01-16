@@ -67,45 +67,45 @@ li = [1,"aaa",3]
 
 print(li)
 
-xassert("list test1", li[0] == 1 && li[1] == "aaa" && li[2] == 3 && len(li) == 3);
+xassert("list test1", li[0] == 1 and li[1] == "aaa" and li[2] == 3 and len(li) == 3)
 
 li2 = li[0:2]
 
-xassert("list test2", li[0] == 1 && li[1] == "aaa" && len(li2) == 2)
+xassert("list test2", li[0] == 1 and li[1] == "aaa" and len(li2) == 2)
 
 li3 = li[:]
 
-xassert("list test3", li3[0] == 1 && li3[1] == "aaa" && li3[2] == 3 && len(li3) == 3);
+xassert("list test3", li3[0] == 1 and li3[1] == "aaa" and li3[2] == 3 and len(li3) == 3);
 
 li4 = li[1:]
 
-xassert("list test4", li4[0] == "aaa" && li4[1] == 3 && len(li4) == 2)
+xassert("list test4", li4[0] == "aaa" and li4[1] == 3 and len(li4) == 2)
 
 li5 = li[:2]
 
-xassert("list test5", li5[0] == 1 && li[1] == "aaa" && len(li5) == 2)
+xassert("list test5", li5[0] == 1 and li[1] == "aaa" and len(li5) == 2)
 
 li6 = [0,1,2,3,4,5,6,7,8,9]
 
 li7 = li6[0:10:2]
 
-xassert("list test6", li7[0] == 0 && li7[1] == 2 && li7[2] == 4 && li7[3] == 6 && li7[4] == 8);
+xassert("list test6", li7[0] == 0 and li7[1] == 2 and li7[2] == 4 and li7[3] == 6 and li7[4] == 8);
 
 li8 = li6[::2]
 
-xassert("list test7", li8[0] == 0 && li8[1] == 2 && li8[2] == 4 && li8[3] == 6 && li8[4] == 8);
+xassert("list test7", li8[0] == 0 and li8[1] == 2 and li8[2] == 4 and li8[3] == 6 and li8[4] == 8);
 
-print li6[1::2]
+print(li6[1::2])
 
 li9 = [1,2] + [3,4]
 
-xassert("list test8", li9[0] == 1 && li9[1] == 2 && li9[2] == 3 && li9[3] == 4 && len(li9) == 4)
+xassert("list test8", li9[0] == 1 and li9[1] == 2 and li9[2] == 3 and li9[3] == 4 and len(li9) == 4)
 
 xassert("str test", "AAA" + "BBB" == "AAABBB")
 
 li10 = [1,2] * 2
 
-xassert("list test9", li10[0] == 1 && li10[1] == 2 && li10[2] == 1 && li10[3] == 2 && len(li10) == 4)
+xassert("list test9", li10[0] == 1 and li10[1] == 2 and li10[2] == 1 and li10[3] == 2 and len(li10) == 4)
 
 xassert("str test2", "ABC" * 2 == "ABCABC")
 

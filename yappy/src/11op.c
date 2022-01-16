@@ -157,9 +157,9 @@ static sNode* op_andand_node(sParserInfo* info)
 {
     sNode* result = op_eq_node(info);
     
-    while((*info->p == '&' && *(info->p+1) == '&') || (*info->p == '|' && *(info->p+1) == '|')) {
-        if(*info->p == '&' && *(info->p+1) == '&') {
-            info->p+=2;
+    while((*info->p == 'a' && *(info->p+1) == 'n' && *(info->p+2) == 'd') || (*info->p == 'o' && *(info->p+1) == 'r')) {
+        if(*info->p == 'a' && *(info->p+1) == 'n' && *(info->p+2) == 'd') {
+            info->p+=3;
             skip_spaces_until_eol(info);
             
             sNode* right = op_andand_node(info);
@@ -170,7 +170,7 @@ static sNode* op_andand_node(sParserInfo* info)
             
             result = create_andand_node(result, right, info);
         }
-        else if(*info->p == '|' && *(info->p+1) == '|') {
+        else if(*info->p == 'o' && *(info->p+1) == 'r') {
             info->p+=2;
             skip_spaces_until_eol(info);
             
