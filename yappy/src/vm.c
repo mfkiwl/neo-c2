@@ -219,6 +219,44 @@ bool native_list_append(map<string, ZVALUE>* params, sVMInfo* info)
     return true;
 }
 
+bool native_str_split(map<string, ZVALUE>* params, sVMInfo* info)
+{
+    ZVALUE self = params.at("self", gNullValue);
+    ZVALUE value = params.at("sep", gNullValue);
+    
+    wchar_t* wstr = self.stringValue;
+    
+    list<ZVALUE>* result_list = new list<ZVALUE>.initialize();
+    
+    switch(value.kind) {
+        case kStringValue: {
+            list<string>* str_list = wstr.to_string().split_str(value.stringValue.to_string());
+            
+            foreach(it, str_list) {
+                ZVALUE obj;
+                obj.kind = kStringValue;
+                obj.stringValue = wstring(it);
+                result_list.push_back(obj);
+            }
+            }
+            break;
+            
+/*
+        case kRegexValue: {
+            }
+            break;
+*/
+    }
+    
+    ZVALUE result_obj;
+    result_obj.kind = kListValue;
+    result_obj.listValue = result_list;
+    
+    info->return_value = result_obj;
+    
+    return true;
+}
+
 sClass* add_class(char* class_name, char* class_module_name, char* module_name)
 {
     sModule* module = gModules.at(module_name, null);
@@ -260,7 +298,7 @@ void initialize_modules() version 1
     
     add_class("int", "", "__main__");
     add_class("float", "", "__main__");
-    add_class("str", "", "__main__");
+    sClass* str_class = add_class("str", "", "__main__");
     add_class("bytes", "", "__main__");
     add_class("bool", "", "__main__");
     add_class("None", "", "__main__");
@@ -279,6 +317,17 @@ void initialize_modules() version 1
     list_class.funcs.insert("append", list_append);
     
     list_append.native_fun = native_list_append;
+    
+    vector<string>* param_names3 = new vector<string>.initialize();
+    
+    param_names3.push_back(string("self"));
+    param_names3.push_back(string("sep"));
+    
+    sFunction* str_split = new sFunction.initialize("split", null, param_names3);
+    
+    str_class.funcs.insert("split", str_split);
+    
+    str_split.native_fun = native_str_split;
 }
 
 void finalize_modules() version 1
@@ -1693,6 +1742,44 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     sClass* list_class = main_module.classes.at("list", null);
                     
                     sFunction* fun = list_class.funcs.at(fun_name2, null);
+                    
+                    if(fun == null) {
+                        info->exception.kind = kExceptionValue;
+                        info->exception.value.expValue = kExceptionMethodNotFound;
+                        return false;
+                    }
+                    
+                    if(!function_call(fun, param_values, info)) {
+                        return false;
+                    }
+                    
+                    stack_num -= param_values.length();
+                    
+                    stack[stack_num] = info->return_value;
+                    stack_num++;
+                }
+                else if(stack[stack_num-num_params-1].kind == kStringValue) {
+                    wstring str = stack[stack_num-num_params-1].value.stringValue;
+                    
+                    vector<ZVALUE>* param_values = new vector<ZVALUE>.initialize();
+                    
+                    ZVALUE object_value;
+                    object_value.kind = kStringValue;
+                    object_value.stringValue = str;
+                    
+                    param_values.push_back(object_value);
+                    
+                    for(int i=0; i<num_params; i++) {
+                        ZVALUE value = stack[stack_num-num_params+i];
+                        
+                        param_values.push_back(value);
+                    }
+                    
+                    sModule* main_module = gModules.at("__main__", null);
+                    
+                    sClass* str_class = main_module.classes.at("str", null);
+                    
+                    sFunction* fun = str_class.funcs.at(fun_name2, null);
                     
                     if(fun == null) {
                         info->exception.kind = kExceptionValue;

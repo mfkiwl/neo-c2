@@ -52,7 +52,11 @@ sNode*? exp_node(sParserInfo* info) version 3
                 }
             }
             
-            return create_string_node(buf.to_string(), info);
+            result = create_string_node(buf.to_string(), info);
+            
+            if(*info->p == '.') {
+                result = method_node(result, info);
+            }
         }
         else if(*info->p == '\'') {
             info->p++;
@@ -87,7 +91,11 @@ sNode*? exp_node(sParserInfo* info) version 3
                 }
             }
             
-            return create_string_node(buf.to_string(), info);
+            result = create_string_node(buf.to_string(), info);
+            
+            if(*info->p == '.') {
+                result = method_node(result, info);
+            }
         }
     }
     

@@ -38,6 +38,7 @@ string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* gr
 list<string>* char::scan(char* self, regex_struct* reg);
 list<string>* char::split(char* self, regex_struct* reg);
 list<string>* char::split_char(string self, char c) ;
+list<string>* char::split_str(string self, char* str) ;
 nregex char::to_regex(char* self) ;
 string char::printable(char* str);
 char* char::delete(char* str, int head, int tail) ;

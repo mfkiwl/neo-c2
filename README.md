@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 2.1.3
+version 2.1.4
 
 ```
 #include <neo-c2.h>
@@ -1349,6 +1349,7 @@ string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* gr
 list<string>* char::scan(char* self, regex_struct* reg);
 list<string>* char::split(char* self, regex_struct* reg);
 list<string>* char::split_char(string self, char c) ;
+list<string>* char::split_str(string self, char* str) ;
 nregex char::to_regex(char* self) ;
 string char::printable(char* str);
 char* char::delete(char* str, int head, int tail) ;
@@ -1397,6 +1398,10 @@ int main()
     auto li3 = "A,B,C".split_char(',');
 
     xassert("char_split_char", strcmp(li3.item(0, null), "A") == 0 && strcmp(li3.item(1, null), "B") == 0 && strcmp(li3.item(2, null), "C") == 0);
+    
+    auto li4 = "A,,B,,C".split_str(",,");
+
+    xassert("char_split_str", strcmp(li4.item(0, null), "A") == 0 && strcmp(li4.item(1, null), "B") == 0 && strcmp(li4.item(2, null), "C") == 0);
 
     xassert("char_delete", string("ABC").delete(0,1).equals("BC"));
 

@@ -533,6 +533,29 @@ list<string>* char::split_char(string self, char c)
     return result;
 }
 
+list<string>* char::split_str(string self, char* str) 
+{
+    auto result = new list<string>.initialize();
+
+    auto buf = new buffer.initialize();
+
+    for(int i=0; i<self.length(); i++) {
+        if(strstr(self + i, str) == self + i) {
+            result.push_back(string(buf.buf));
+            buf = new buffer.initialize();
+            i += strlen(str)-1;
+        }
+        else {
+            buf.append_char(self[i]);
+        }
+    }
+    if(buf.length() != 0) {
+        result.push_back(string(buf.buf));
+    }
+
+    return result;
+}
+
 nregex char::to_regex(char* self) 
 {
     return regex(self, false, false, false, false, false, false, false, false);

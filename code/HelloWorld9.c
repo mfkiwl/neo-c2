@@ -29,6 +29,10 @@ int main()
     auto li3 = "A,B,C".split_char(',');
 
     xassert("char_split_char", strcmp(li3.item(0, null), "A") == 0 && strcmp(li3.item(1, null), "B") == 0 && strcmp(li3.item(2, null), "C") == 0);
+    
+    auto li4 = "A,,B,,C".split_str(",,");
+
+    xassert("char_split_str", strcmp(li4.item(0, null), "A") == 0 && strcmp(li4.item(1, null), "B") == 0 && strcmp(li4.item(2, null), "C") == 0);
 
     xassert("char_delete", string("ABC").delete(0,1).equals("BC"));
 
