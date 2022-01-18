@@ -37,6 +37,10 @@ int main()
     xassert("char_delete", string("ABC").delete(0,1).equals("BC"));
 
     xassert("wchar_substring", wcscmp(wstring("ABC").substring(0,1), wstring("A")) == 0);
+    
+    auto li5 = "A,B,C".split_str(",");
+    
+    xassert("join", li5.join(" ").equals("A B C"));
 
     return 0;
 }

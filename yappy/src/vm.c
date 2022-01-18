@@ -222,15 +222,16 @@ bool native_list_append(map<string, ZVALUE>* params, sVMInfo* info)
 bool native_str_split(map<string, ZVALUE>* params, sVMInfo* info)
 {
     ZVALUE self = params.at("self", gNullValue);
-    ZVALUE value = params.at("sep", gNullValue);
+    ZVALUE sep = params.at("sep", gNullValue);
+    ZVALUE maxsplit = params.at("maxsplit", gNullValue);
     
     wchar_t* wstr = self.stringValue;
     
     list<ZVALUE>* result_list = new list<ZVALUE>.initialize();
     
-    switch(value.kind) {
-        case kStringValue: {
-            list<string>* str_list = wstr.to_string().split_str(value.stringValue.to_string());
+    if(maxsplit.kind == kNullValue) {
+        if(sep.kind == kStringValue) {
+            list<string>* str_list = wstr.to_string().split_str(sep.stringValue.to_string());
             
             foreach(it, str_list) {
                 ZVALUE obj;
@@ -238,14 +239,51 @@ bool native_str_split(map<string, ZVALUE>* params, sVMInfo* info)
                 obj.stringValue = wstring(it);
                 result_list.push_back(obj);
             }
-            }
-            break;
+        }
+        else {
+            info->exception.kind = kExceptionValue;
+            info->exception.value.expValue = kExceptionTypeError;
+            return false;
+        }
+    }
+    else if(maxsplit.kind == kIntValue) {
+        int maxsplit_value = maxsplit.intValue;
+        
+        if(sep.kind == kStringValue) {
+            list<string>* str_list = wstr.to_string().split_str(sep.stringValue.to_string());
             
-/*
-        case kRegexValue: {
+            int n = 0;
+            foreach(it, str_list) {
+                ZVALUE obj;
+                obj.kind = kStringValue;
+                obj.stringValue = wstring(it);
+                result_list.push_back(obj);
+                
+                n++;
+                
+                if(n == maxsplit_value) {
+                    break;
+                }
             }
-            break;
-*/
+            
+            string remain_str = str_list.sublist(n, -1).join(sep.stringValue.to_string());
+            
+            ZVALUE remain;
+            remain.kind = kStringValue;
+            remain.stringValue = wstring(remain_str);
+            
+            result_list.push_back(remain);
+        }
+        else {
+            info->exception.kind = kExceptionValue;
+            info->exception.value.expValue = kExceptionTypeError;
+            return false;
+        }
+    }
+    else {
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionTypeError;
+        return false;
     }
     
     ZVALUE result_obj;
@@ -322,6 +360,7 @@ void initialize_modules() version 1
     
     param_names3.push_back(string("self"));
     param_names3.push_back(string("sep"));
+    param_names3.push_back(string("maxsplit"));
     
     sFunction* str_split = new sFunction.initialize("split", null, param_names3);
     

@@ -141,6 +141,10 @@ li13 = "AAA,,BBB,,CCC".split(",,")
 
 xassert("split test2", li13[0]  == "AAA" and li13[1] == "BBB" and li13[2] == "CCC")
 
+li14 = "AAA,,BBB,,CCC".split(",,", 1);
+
+xassert("split test3", li14[0] == "AAA" and li14[1] == "BBB,,CCC")
+
 
 #print "HELLO WORLD"
 

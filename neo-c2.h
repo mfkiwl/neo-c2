@@ -919,6 +919,23 @@ impl list <T>
         
         return memcmp(&self.it, &null_object, sizeof(T)) == 0;
     }
+    
+    string join(list<string>* self, char* sep) {
+        buffer* buf = new buffer.initialize();
+        
+        int n = 0;
+        foreach(it , self) {
+            buf.append_str(it);
+            
+            if(n < self.length()-1) {
+                buf.append_str(sep);
+            }
+            
+            n++;
+        }
+        
+        return buf.to_string();
+    }
 }
 
 impl vector<T> 

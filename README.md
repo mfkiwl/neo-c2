@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 2.1.4
+version 2.1.5
 
 ```
 #include <neo-c2.h>
@@ -544,6 +544,8 @@ impl list <T>
     T begin(list<T>* self);
     T next(list<T>* self);
     bool end(list<T>* self);
+    
+    string join(list<string>* self, char* sep);
 }
 ```
 
