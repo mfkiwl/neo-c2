@@ -1,1 +1,4 @@
-print("AAA,,BBB,,CCC".split(",,"))
+import re
+
+print(re.split(',', "AAA,BBB,CCC"))
+

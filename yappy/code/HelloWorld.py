@@ -1,4 +1,5 @@
 import sys
+import re
 
 def xassert(msg:str, exp:bool) -> None:
    print(msg)
@@ -145,6 +146,9 @@ li14 = "AAA,,BBB,,CCC".split(",,", 1);
 
 xassert("split test3", li14[0] == "AAA" and li14[1] == "BBB,,CCC")
 
+li15 = re.split(",|\.", "AAA,BBB.CCC", 3, re.GLOBAL)
+
+xassert("split test4", li15[0] == "AAA" and li15[1] == "BBB" and li15[2] == "CCC")
 
 #print "HELLO WORLD"
 

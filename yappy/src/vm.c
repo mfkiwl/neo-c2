@@ -1,6 +1,9 @@
 #include "common.h"
 #include <locale.h>
 
+#define RE_IGNORE_CASE 1
+#define RE_GLOBAL 2
+
 static ZVALUE gNullValue;
 static ZVALUE gNoneValue;
 
@@ -219,6 +222,103 @@ bool native_list_append(map<string, ZVALUE>* params, sVMInfo* info)
     return true;
 }
 
+bool native_re_split(map<string, ZVALUE>* params, sVMInfo* info)
+{
+    ZVALUE pattern = params.at("pattern", gNullValue);
+    ZVALUE str = params.at("string", gNullValue);
+    ZVALUE maxsplit = params.at("maxsplit", gNullValue);
+    ZVALUE flags = params.at("flags", gNullValue);
+    
+    if(pattern.kind != kStringValue) {
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionTypeError;
+        return false;
+    }
+    
+    if(str.kind != kStringValue) {
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionTypeError;
+        return false;
+    }
+    
+    bool ignore_case = false;
+    bool global = false;
+    
+    if(flags.kind == kNullValue) {
+    }
+    else if(flags.kind == kIntValue) {
+        int flags_value = flags.intValue;
+        
+        if(flags_value == RE_IGNORE_CASE) {
+            ignore_case = true;
+        }
+        if(flags_value == RE_GLOBAL) {
+            global = true;
+        }
+    }
+    else {
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionTypeError;
+        return false;
+    }
+    
+    list<ZVALUE>* result_list = new list<ZVALUE>.initialize();
+    
+    if(maxsplit.kind == kNullValue) {
+        string str_value = str.stringValue.to_string();
+        
+        string pattern_value = pattern.stringValue.to_string();
+        
+        nregex reg = pattern_value.to_regex();
+        
+        reg.ignore_case = ignore_case;
+        reg.global = global;
+        
+        list<string>* str_list = str_value.split(reg);
+        
+        foreach(it, str_list) {
+            ZVALUE value;
+            value.kind = kStringValue;
+            value.stringValue = wstring(it);
+            result_list.push_back(value);
+        }
+    }
+    else if(maxsplit.kind == kIntValue) {
+        int maxsplit_value = maxsplit.intValue;
+        
+        string str_value = str.stringValue.to_string();
+        
+        string pattern_value = pattern.stringValue.to_string();
+        
+        nregex reg = pattern_value.to_regex();
+        
+        reg.ignore_case = ignore_case;
+        reg.global = global;
+        
+        list<string>* str_list = str_value.split_maxsplit(reg, maxsplit_value);
+        
+        foreach(it, str_list) {
+            ZVALUE value;
+            value.kind = kStringValue;
+            value.stringValue = wstring(it);
+            result_list.push_back(value);
+        }
+    }
+    else {
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionTypeError;
+        return false;
+    }
+    
+    ZVALUE result_obj;
+    result_obj.kind = kListValue;
+    result_obj.listValue = result_list;
+    
+    info->return_value = result_obj;
+    
+    return true;
+}
+
 bool native_str_split(map<string, ZVALUE>* params, sVMInfo* info)
 {
     ZVALUE self = params.at("self", gNullValue);
@@ -324,6 +424,9 @@ void initialize_modules() version 1
     sModule* main_module = new sModule.initialize("__main__");
     gModules.insert("__main__", main_module);
     
+    sModule* re_module = new sModule.initialize("re");
+    gModules.insert("re", re_module);
+    
     vector<string>* param_names = new vector<string>.initialize();
     
     param_names.push_back(string("rcode"));
@@ -367,6 +470,31 @@ void initialize_modules() version 1
     str_class.funcs.insert("split", str_split);
     
     str_split.native_fun = native_str_split;
+    
+    vector<string>* param_names4 = new vector<string>.initialize();
+    
+    param_names4.push_back(string("pattern"));
+    param_names4.push_back(string("string"));
+    param_names4.push_back(string("maxsplit"));
+    param_names4.push_back(string("flags"));
+    
+    sFunction* re_split = new sFunction.initialize("split", null, param_names4);
+    
+    re_split.native_fun = native_re_split;
+    
+    re_module.funcs.insert("split", re_split);
+    
+    ZVALUE re_ignore_case;
+    re_ignore_case.kind = kIntValue;
+    re_ignore_case.intValue = RE_IGNORE_CASE;
+    
+    re_module.global_vars.insert("IGNORECASE", re_ignore_case);
+    
+    ZVALUE re_global;
+    re_global.kind = kIntValue;
+    re_global.intValue = RE_GLOBAL;
+    
+    re_module.global_vars.insert("GLOBAL", re_global);
 }
 
 void finalize_modules() version 1
@@ -1722,6 +1850,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                     stack_num--;
                     stack_num -= param_values.length();
                     
+                    
                     stack[stack_num] = info->return_value;
                     stack_num++;
                 }
@@ -1859,7 +1988,6 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 field_name2[len] = '\0'
                 
                 p += offset;
-                
                 
                 if(stack[stack_num-1].kind == kModuleValue) {
                     sModule* module = (sModule*)stack[stack_num-1].moduleValue;

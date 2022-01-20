@@ -179,7 +179,7 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 12
     if(node.kind == kImport) {
         string str = string(node.importValue.name);
         
-        if(strcmp(str, "sys") != 0) {
+        if(strcmp(str, "sys") != 0 && strcmp(str, "re") != 0) {
             codes.append_int(OP_IMPORT);
             
             int len = strlen(str);

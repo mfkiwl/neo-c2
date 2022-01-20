@@ -33,14 +33,22 @@ int main()
     auto li4 = "A,,B,,C".split_str(",,");
 
     xassert("char_split_str", strcmp(li4.item(0, null), "A") == 0 && strcmp(li4.item(1, null), "B") == 0 && strcmp(li4.item(2, null), "C") == 0);
+    
+    auto li5 = "A,,B,,C".split_maxsplit(",,".to_regex(), 1);
+
+    xassert("char_split_maxsplit", strcmp(li5.item(0, null), "A") == 0 && strcmp(li5.item(1, null), "B,,C") == 0);
 
     xassert("char_delete", string("ABC").delete(0,1).equals("BC"));
 
     xassert("wchar_substring", wcscmp(wstring("ABC").substring(0,1), wstring("A")) == 0);
     
-    auto li5 = "A,B,C".split_str(",");
+    auto li6 = "A,B,C".split_str(",");
     
-    xassert("join", li5.join(" ").equals("A B C"));
+    xassert("join", li6.join(" ").equals("A B C"));
+    
+    auto li7 = "A,B,C".split(",".to_regex_flags(true`global, false));
+    
+    xassert("split test", li7.item(0, null).equals("A") && li6.item(1,null).equals("B") && li6.item(2, null).equals("C"));
 
     return 0;
 }

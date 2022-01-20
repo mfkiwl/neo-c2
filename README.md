@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 2.1.5
+version 2.1.6
 
 ```
 #include <neo-c2.h>
@@ -1350,9 +1350,11 @@ string char::multiply(char* str, int n);
 string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings);
 list<string>* char::scan(char* self, regex_struct* reg);
 list<string>* char::split(char* self, regex_struct* reg);
+list<string>* char::split_maxsplit(char* self, regex_struct* reg, int maxsplit);
 list<string>* char::split_char(string self, char c) ;
 list<string>* char::split_str(string self, char* str) ;
 nregex char::to_regex(char* self) ;
+nregex char::to_regex_flags(char* self, bool global, bool ignore_case);
 string char::printable(char* str);
 char* char::delete(char* str, int head, int tail) ;
 string int::to_string(wchar_t* wstr);
@@ -1370,6 +1372,7 @@ wstring int::multiply(wchar_t* str, int n);
 sample
 
 ```
+#include <neo-c2.h>
 #include <neo-c2-pcre.h>
 
 int main()
@@ -1404,10 +1407,22 @@ int main()
     auto li4 = "A,,B,,C".split_str(",,");
 
     xassert("char_split_str", strcmp(li4.item(0, null), "A") == 0 && strcmp(li4.item(1, null), "B") == 0 && strcmp(li4.item(2, null), "C") == 0);
+    
+    auto li5 = "A,,B,,C".split_maxsplit(",,".to_regex(), 1);
+
+    xassert("char_split_maxsplit", strcmp(li5.item(0, null), "A") == 0 && strcmp(li5.item(1, null), "B,,C") == 0);
 
     xassert("char_delete", string("ABC").delete(0,1).equals("BC"));
 
     xassert("wchar_substring", wcscmp(wstring("ABC").substring(0,1), wstring("A")) == 0);
+    
+    auto li6 = "A,B,C".split_str(",");
+    
+    xassert("join", li6.join(" ").equals("A B C"));
+    
+    auto li7 = "A,B,C".split(",".to_regex_flags(true`global, false));
+    
+    xassert("split test", li7.item(0, null).equals("A") && li6.item(1,null).equals("B") && li6.item(2, null).equals("C"));
 
     return 0;
 }

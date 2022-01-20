@@ -511,6 +511,91 @@ list<string>* char::split(char* self, regex_struct* reg)
     return result;
 }
 
+list<string>* char::split_maxsplit(char* self, regex_struct* reg, int maxsplit)
+{
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+
+    auto result = new list<string>.initialize();
+
+    int offset = 0;
+
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+    
+    int n = 0;
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result == 1)
+        {
+            string str = self.substring(offset, start[0]);
+            result.push_back(str);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+        }
+        /// group strings ///
+        else if(regex_result > 1) {
+            string str = self.substring(offset, start[0]);
+            result.push_back(str);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+
+            for(int i=1; i<regex_result; i++) {
+                string match_str = self.substring(start[i], end[i]);
+                result.push_back(match_str);
+            }
+        }
+        else
+        /// no match ///
+        {
+            break;
+        }
+        
+        n++;
+        
+        if(maxsplit == n) {
+            break;
+        }
+    }
+
+    if(offset < self.length()) {
+        string str = self.substring(offset, -1);
+        result.push_back(str);
+    }
+
+    return result;
+}
+
 list<string>* char::split_char(string self, char c) 
 {
     auto result = new list<string>.initialize();
@@ -559,6 +644,11 @@ list<string>* char::split_str(string self, char* str)
 nregex char::to_regex(char* self) 
 {
     return regex(self, false, false, false, false, false, false, false, false);
+}
+
+nregex char::to_regex_flags(char* self, bool global, bool ignore_case)
+{
+    return regex(self, ignore_case, false, global, false, false, false, false, false);
 }
 
 string char::printable(char* str)
