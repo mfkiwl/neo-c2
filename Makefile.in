@@ -34,11 +34,14 @@ SELF_HOST_OBJS=@SELF_HOST_OBJS@
 #########################################
 all: neo-c2 self-host
 
-no-self-host: neo-c2
+no-self-host: neo-c2 lib
 
 neo-c2: config.h src/main.o $(OBJS)
 	$(CC) -c src/main.c -o src/main.o $(CFLAGS)
 	$(CXX) -o neo-c2 src/main.o $(OBJS) $(CXXFLAGS)
+
+lib:
+	./neo-c2 -c neo-c2.c
 
 self-host: config.h $(SELF_HOST_OBJS)
 	$(CXX) -o neo-c2 $(SELF_HOST_OBJS) $(CXXFLAGS) -fPIC
@@ -147,9 +150,8 @@ $(OBJS): src/*.h Makefile configure
 install:
 	mkdir -p $(DESTDIR)/include
 	$(INSTALL) -m 644 ./neo-c2.h $(DESTDIR)/include
-	$(INSTALL) -m 644 ./neo-c2-pcre.h $(DESTDIR)/include
-	$(INSTALL) -m 644 ./neo-c2-pcre-main.h $(DESTDIR)/include
-	$(INSTALL) -m 644 ./neo-c2-pcre-declare.h $(DESTDIR)/include
+	mkdir -p $(DESTDIR)/lib
+	$(INSTALL) -m 644 ./neo-c2.o $(DESTDIR)/lib
 
 	mkdir -p "$(DESTDIR)/bin"
 	$(INSTALL) -m 755 ./neo-c2 "$(DESTDIR)/bin"
@@ -171,7 +173,7 @@ permission:
 # clean
 #########################################
 clean:
-	rm -fR neo-c2 src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM neo-c2.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8 code/HelloWorld9 code/HelloWorld10 code/HelloWorld11 *.o
+	rm -fR neo-c2 src/*.o src/*.i src/*.ll code/*.i code/*.ll code/HelloWorld code/HelloWorld2 code/HelloWorld3 code/HelloWorld4 code/HelloWorld5 *.i *.ll a.out src/*.o code/HelloWorld.dSYM code/HelloWorld2.dSYM code/HelloWOrld3.dSYM neo-c2.dSYM code/HelloWorld6 code/HelloWorld7 code/HelloWorld8 code/HelloWorld9 code/HelloWorld10 code/HelloWorld11 *.o libneo-c2.a
 
 distclean: clean
 	rm -fR  config.h Makefile autom4te.cache 
@@ -240,8 +242,6 @@ debug-test:
 uninstall:
 	rm -f "$(DESTDIR)"/bin/neo-c2
 	rm -f "$(DESTDIR)"/include/neo-c2.h
-	rm -f "$(DESTDIR)"/include/neo-c2-pcre.h
-	rm -f "$(DESTDIR)"/include/neo-c2-pcre-main.h
-	rm -f "$(DESTDIR)"/include/neo-c2-pcre-declare.h
+	rm -f "$(DESTDIR)"/lib/libneo-c2.a
 	rm -f "$(DESTDIR)/share/doc/neo-c2/README.md "
 

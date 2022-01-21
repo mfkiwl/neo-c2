@@ -75,7 +75,7 @@ void ViWin::inputRewritetMode(ViWin* self, Vi* nvi)
         bool ungreedy = false;
 
         regex_struct* reg = regex("^$|^[ ]+$", ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
-        if(str.to_string().match(reg, null)) {
+        if(str.to_string().match(reg)) {
             self.insertText2(wstring("    "));
         }
         else {

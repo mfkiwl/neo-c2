@@ -1,30 +1,4 @@
-#include <limits.h>
-#include <wchar.h>
-#include <pcre.h>
-#include <sys/ioctl.h>
-
-typedef wchar_t* wstring;
-
-struct regex_struct 
-{
-    char str[128];
-    pcre* regex;
-
-    bool ignore_case;
-    bool multiline;
-    bool global;
-    bool extended;
-    bool dotall;
-    bool anchored;
-    bool dollar_endonly;
-    bool ungreedy;
-
-    int options;
-
-    pcre* re;
-};
-
-typedef regex_struct* nregex;
+#include <neo-c2.h>
 
 regex_struct* regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy)
 {
@@ -56,8 +30,7 @@ regex_struct* regex(char* str, bool ignore_case, bool multiline, bool global, bo
     return result;
 }
 
-/// string ///
-bool char::match(char* self, regex_struct* reg, list<string>?* group_strings)
+bool char::match(char* self, regex_struct* reg)
 {
     int offset = 0;
 
@@ -88,22 +61,149 @@ bool char::match(char* self, regex_struct* reg, list<string>?* group_strings)
         }
 
         /// match and no group strings ///
-        if(regex_result == 1 || (group_strings == null && regex_result > 0)) 
+        if(regex_result > 0)
         {
             return true;
         }
+        /// no match ///
+        else
+        {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+bool char::match_count(char* self, regex_struct* reg, int count)
+{
+    int offset = 0;
+
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+    
+    int n = 0;
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result > 0)
+        {
+            n++;
+            
+            if(count == n) {
+                return true;
+            }
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+        }
+        /// no match ///
+        else
+        {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+bool char::match_group_strings(char* self, regex_struct* reg, int count, list<string>?* group_strings)
+{
+    int offset = 0;
+
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+    
+    int n = 0;
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result == 1 || (group_strings == null && regex_result > 0)) 
+        {
+            n++;
+            
+            if(n == count) {
+                return true;
+            }
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+        }
         /// group strings ///
         else if(regex_result > 1) {
+            n++;
+            
             group_strings.reset();
             for(int i = 1; i<regex_result; i++) {
                 auto match_string = self.substring(start[i], end[i]);
                 group_strings.push_back(match_string);
             }
+            
+            if(n == count) {
+                return true;
+            }
 
-            return true;
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
         }
-        else
         /// no match ///
+        else
         {
             return false;
         }
@@ -123,6 +223,31 @@ int char::index(char* str, char* search_str, int default_value)
     return head - str;
 }
 
+int char::index_count(char* str, char* search_str, int count, int default_value)
+{
+    int n = 0;
+    int len = strlen(str);
+    for(int i=0; i<len; i++) {
+        int len2 = strlen(search_str);
+        int j;
+        for(j=0; j<len2; j++) {
+            if(str[i+j] != search_str[j]) {
+                break;
+            }
+        }
+        
+        if(j == len2) {
+            n++;
+            
+            if(n == count) {
+                return i;
+            }
+        }
+    }
+    
+    return default_value;
+}
+
 int char::rindex(char* str, char* search_str, int default_value)
 {
     int len = strlen(search_str);
@@ -138,6 +263,28 @@ int char::rindex(char* str, char* search_str, int default_value)
 
     return default_value;
 }
+
+int char::rindex_count(char* str, char* search_str, int count, int default_value)
+{
+    int len = strlen(search_str);
+    char* p = str + strlen(str) - len;
+    
+    int n = 0;
+
+    while(p >= str) {
+        if(strncmp(p, search_str, len) == 0) {
+            n++;
+            if(n == count) {
+                return p - str;
+            }
+        }
+
+        p--;
+    }
+
+    return default_value;
+}
+
 
 int char::index_regex(char* self, regex_struct* reg, int default_value)
 {
@@ -177,7 +324,66 @@ int char::index_regex(char* self, regex_struct* reg, int default_value)
             break;
         }
         /// no match ///
+        else 
         {
+            break;
+        }
+    }
+
+    return result;
+}
+
+int char::index_regex_count(char* self, regex_struct* reg, int count, int default_value)
+{
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    int result = default_value;
+    
+    int offset = 0;
+
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+    
+    int n = 0;
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+        
+        /// match and no group strings ///
+        if(regex_result > 0) {
+            n++;
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+            
+            if(n == count) {
+                result = start[0];
+                break;
+            }
+        }
+        /// no match ///
+        else {
             break;
         }
     }
@@ -221,10 +427,73 @@ int char::rindex_regex(char* self, regex_struct* reg, int default_value)
         /// match and no group strings ///
         if(regex_result == 1 || regex_result > 0) 
         {
-            result = strlen(self) -1 - start[0];
+            result = strlen(self) - end[0];
             break;
         }
         /// no match ///
+        else 
+        {
+            break;
+        }
+    }
+
+    return result;
+}
+
+int char::rindex_regex_count(char* self, regex_struct* reg, int count, int default_value)
+{
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+
+    string self2 = self.reverse();
+    
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    int result = default_value;
+    
+    int offset = 0;
+    
+    int n = 0;
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self2);
+        int regex_result = pcre_exec(re, 0, self2, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+        
+        /// match and no group strings ///
+        if(regex_result > 0)
+        {
+            n++;
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+            
+            if(n == count) {
+                result = strlen(self) - end[0];
+                break;
+            }
+        }
+        /// no match ///
+        else 
         {
             break;
         }
@@ -271,7 +540,7 @@ string char::multiply(char* str, int n)
     return result;
 }
 
-string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings)
+string char::sub(char* self, regex_struct* reg, char* replace)
 {
     int offset = 0;
 
@@ -303,12 +572,151 @@ string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* gr
         }
 
         /// match and no group strings ///
-        if(regex_result == 1 || (group_strings == null && regex_result > 0)) 
+        if(regex_result == 1)
         {
             string str = self.substring(offset, start[0]);
 
             result.append_str(str);
             result.append_str(replace);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+
+            if(!reg.global) {
+                string str = self.substring(offset, -1);
+                result.append_str(str);
+                break;
+            }
+        }
+        /// no match ///
+        else {
+            string str = self.substring(offset, -1);
+            result.append_str(str);
+            break;
+        }
+    }
+
+    return result.to_string();
+}
+
+string char::sub_count(char* self, regex_struct* reg, char* replace, int count)
+{
+    int offset = 0;
+
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+
+    auto result = new buffer.initialize();
+    
+    int n = 0;
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result == 1)
+        {
+            n++;
+            string str = self.substring(offset, start[0]);
+
+            result.append_str(str);
+            result.append_str(replace);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+
+            if(!reg.global) {
+                string str = self.substring(offset, -1);
+                result.append_str(str);
+                break;
+            }
+            if(n == count) {
+                string str = self.substring(offset, -1);
+                result.append_str(str);
+                break;
+            }
+        }
+        /// no match ///
+        else {
+            string str = self.substring(offset, -1);
+            result.append_str(str);
+            break;
+        }
+    }
+
+    return result.to_string();
+}
+
+string char::sub_block(char* self, regex_struct* reg, void* parent, string (*block)(void* parent, list<string>* group_strings))
+{
+    int offset = 0;
+
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+
+    auto result = new buffer.initialize();
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result == 1) {
+            string str = self.substring(offset, start[0]);
+
+            result.append_str(str);
+            
+            list<string>* group_strings = new list<string>.initialize();
+            
+            group_strings.push_back(self.substring(start[0], end[0]));
+            
+            string block_result = block(parent, group_strings);
+            result.append_str(block_result);
 
             if(offset == end[0]) {
                 offset++;
@@ -327,7 +735,86 @@ string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* gr
         else if(regex_result > 1) {
             string str = self.substring(offset, start[0]);
             result.append_str(str);
-            result.append_str(replace);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+            
+            list<string>* group_strings = new list<string>.initialize();
+
+            for(int i = 1; i<regex_result; i++) {
+                auto match_string = self.substring(start[i], end[i]);
+                group_strings.push_back(match_string);
+            }
+            
+            string block_result = block(parent, group_strings);
+            result.append_str(block_result);
+
+            if(!reg.global) {
+                string str = self.substring(offset, -1);
+                result.append_str(str);
+                break;
+            }
+        }
+        /// no match ///
+        else {
+            string str = self.substring(offset, -1);
+            result.append_str(str);
+            break;
+        }
+    }
+    return result.to_string();
+}
+
+string char::sub_block_count(char* self, regex_struct* reg, int count, void* parent, string (*block)(void* parent, list<string>* group_strings))
+{
+    int offset = 0;
+
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+
+    auto result = new buffer.initialize();
+    
+    int n = 0;
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result == 1) {
+            n++;
+            string str = self.substring(offset, start[0]);
+
+            result.append_str(str);
+            
+            list<string>* group_strings = new list<string>.initialize();
+            
+            group_strings.push_back(self.substring(start[0], end[0]));
+            
+            string block_result = block(parent, group_strings);
+            result.append_str(block_result);
 
             if(offset == end[0]) {
                 offset++;
@@ -337,23 +824,55 @@ string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* gr
             }
 
             if(!reg.global) {
-                group_strings.reset();
+                string str = self.substring(offset, -1);
+                result.append_str(str);
+                break;
             }
+            
+            if(n == count) {
+                string str = self.substring(offset, -1);
+                result.append_str(str);
+                break;
+            }
+        }
+        /// group strings ///
+        else if(regex_result > 1) {
+            n ++;
+            
+            string str = self.substring(offset, start[0]);
+            result.append_str(str);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+            
+            list<string>* group_strings = new list<string>.initialize();
 
             for(int i = 1; i<regex_result; i++) {
                 auto match_string = self.substring(start[i], end[i]);
                 group_strings.push_back(match_string);
             }
+            
+            string block_result = block(parent, group_strings);
+            result.append_str(block_result);
 
             if(!reg.global) {
                 string str = self.substring(offset, -1);
                 result.append_str(str);
                 break;
             }
+            
+            if(n == count) {
+                string str = self.substring(offset, -1);
+                result.append_str(str);
+                break;
+            }
         }
-        else
         /// no match ///
-        {
+        else {
             string str = self.substring(offset, -1);
             result.append_str(str);
             break;
@@ -424,8 +943,8 @@ list<string>* char::scan(char* self, regex_struct* reg)
                 result.push_back(match_string);
             }
         }
-        else
         /// no match ///
+        else
         {
             break;
         }
@@ -496,8 +1015,8 @@ list<string>* char::split(char* self, regex_struct* reg)
                 result.push_back(match_str);
             }
         }
-        else
         /// no match ///
+        else
         {
             break;
         }
@@ -575,8 +1094,8 @@ list<string>* char::split_maxsplit(char* self, regex_struct* reg, int maxsplit)
                 result.push_back(match_str);
             }
         }
-        else
         /// no match ///
+        else
         {
             break;
         }
@@ -919,4 +1438,3 @@ wstring int::printable(wchar_t* str)
 
     return result;
 }
-

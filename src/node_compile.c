@@ -9,7 +9,7 @@ BOOL compile(unsigned int node, sCompileInfo* info)
     if(gNCDebug && !info->in_generics_function && !info->in_inline_function && !info->in_lambda_function && !info->empty_function) {
         setCurrentDebugLocation(info->sline, info);
     }
-
+    
     switch(gNodes[node].mNodeType) {
         case kNodeTypeFunction:
             if(!compile_function(node, info)) {

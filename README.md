@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 2.1.6
+version 3.0.0
 
 ```
 #include <neo-c2.h>
@@ -87,10 +87,6 @@ $
 3. It has Generics, Method Generics, inline function, debug info (-g option), and lambda.
 
 3. ジェネリクス、メソッドジェネリクス、インライン関数、デバッグ情報、ラムダをサポートします。
-
-4. The library is written in neo-c2.h and neo-c2-pcre.h. It has a collection library and a string library.The library does not need to be linked.
-
-4. ライブラリはneo-c2.h,neo-c2-pcre.hに書かれてあります。コレクションライブラリと文字列ライブラリを備えます。ライブラリは何もリンクする必要がありません。
 
 5. It has a mixin-layers system. You can implement your application in layers. Each layer is complete and useful for debugging and porting. A vi clone called vin is implemented as an editor implemented in mixin-layers. Please refer to it because it is in a directory called vin. Also I'm creating yet another python(yapy).
 
@@ -1340,21 +1336,30 @@ struct regex_struct
 typedef regex_struct* nregex;
 
 regex_struct* regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy);
-bool char::match(char* self, regex_struct* reg, list<string>?* group_strings);
+bool char::match(char* self, regex_struct* reg);
+bool char::match_count(char* self, regex_struct* reg, int count);
+bool char::match_group_strings(char* self, regex_struct* reg, int count, list<string>?* group_strings);
 int char::index(char* str, char* search_str, int default_value);
+int char::index_count(char* str, char* search_str, int count, int default_value);
 int char::rindex(char* str, char* search_str, int default_value);
+int char::rindex_count(char* str, char* search_str, int count, int default_value);
 int char::index_regex(char* self, regex_struct* reg, int default_value);
+int char::index_regex_count(char* self, regex_struct* reg, int count, int default_value);
 int char::rindex_regex(char* self, regex_struct* reg, int default_value);
+int char::rindex_regex_count(char* self, regex_struct* reg, int count, int default_value);
 void char::replace(char* self, int index, char c);
 string char::multiply(char* str, int n);
-string char::sub(char* self, regex_struct* reg, char* replace, list<string>?* group_strings);
+string char::sub(char* self, regex_struct* reg, char* replace);
+string char::sub_count(char* self, regex_struct* reg, char* replace, int count);
+string char::sub_block(char* self, regex_struct* reg, void* parent, string (*block)(void* parent, list<string>* group_strings));
+string char::sub_block_count(char* self, regex_struct* reg, int count, void* parent, string (*block)(void* parent, list<string>* group_strings));
 list<string>* char::scan(char* self, regex_struct* reg);
 list<string>* char::split(char* self, regex_struct* reg);
 list<string>* char::split_maxsplit(char* self, regex_struct* reg, int maxsplit);
 list<string>* char::split_char(string self, char c) ;
 list<string>* char::split_str(string self, char* str) ;
 nregex char::to_regex(char* self) ;
-nregex char::to_regex_flags(char* self, bool global, bool ignore_case);
+nregex char::to_regex_flags(char* self, bool global, bool ignore_case) ;
 string char::printable(char* str);
 char* char::delete(char* str, int head, int tail) ;
 string int::to_string(wchar_t* wstr);
@@ -1367,17 +1372,17 @@ int int::index(wchar_t* str, wchar_t* search_str, int default_value);
 int int::rindex(wchar_t* str, wchar_t* search_str, int default_value);
 wstring int::reverse(whar_t* str) ;
 wstring int::multiply(wchar_t* str, int n);
+wstring int::printable(wchar_t* str);
 ```
 
 sample
 
 ```
 #include <neo-c2.h>
-#include <neo-c2-pcre.h>
 
 int main()
 {
-    xassert("char_match test", "ABC".match("A".to_regex(), null));
+    xassert("char_match test", "ABC".match("A".to_regex()));
     xassert("char_index test", "ABC".index("B", -1) == 1);
     xassert("char_rindex test", "ABCABC".rindex("B", -1) == 4);
     xassert("char_index_regex", "ABC".index_regex("B".to_regex(), -1) == 1);
@@ -1390,7 +1395,9 @@ int main()
     xassert("char_replace", strcmp(str, "ACC") == 0);
     xassert("char_multiply", strcmp(string("ABC").multiply(2), "ABCABC") == 0);
 
-    xassert("char_sub", strcmp("ABC".sub("B".to_regex(), "C", null), "ACC") == 0);
+    xassert("char_sub", strcmp("ABC".sub("B".to_regex(), "C"), "ACC") == 0);
+    
+    xassert("char_sub_count", strcmp("ABCABCABC".sub_count("B".to_regex_flags(true, false), "C", 2), "ACCACCABC") == 0);
 
     auto li = "ABC".scan(".".to_regex());
 
@@ -1423,14 +1430,21 @@ int main()
     auto li7 = "A,B,C".split(",".to_regex_flags(true`global, false));
     
     xassert("split test", li7.item(0, null).equals("A") && li6.item(1,null).equals("B") && li6.item(2, null).equals("C"));
+    
+    xassert("index_count test", "ABCABC".index_count("ABC", 2, -1) == 3);
+    xassert("index_regex_count test", "ABCABC".index_regex_count("ABC".to_regex_flags(true, false), 2, -1) == 3);
+    xassert("rindex_count test", "ABCABC".rindex_count("ABC", 2, -1) == 0);
+    xassert("rindex_regex_count test", "ABCABC".rindex_regex_count("CBA".to_regex_flags(true, false), 2, -1) == 0);
+    xassert("rindex_regex test", "ABCABC".rindex_regex("CBA".to_regex_flags(true, false), -1) == 3);
+    xassert("match_count test", "ABCABCABC".match_count("ABC".to_regex(), 3));
+    xassert("match_count test", "ABCABCABC".match_count("ABC".to_regex(), 4) == false);
+    xassert("sub_count test", "ABCABCABC".sub_count("ABC".to_regex_flags(true, false), "X", 2).equals("XXABC"));
+    xassert("sub_block test", "ABCABCABC".sub_block("ABC".to_regex_flags(true, false)) { return "X"; }.equals("XXX"));
+    xassert("sub_block_count test", "ABCABCABC".sub_block_count("ABC".to_regex_flags(true, false), 2) { return string("X"); }.equals("XXABC"));
 
     return 0;
 }
 ```
-
-If you use these functions, add #include <neo-c2-pcre.h>. 
-
-もしこれらの関数を使うときは#include <neo-c2-pcre.h>をつけてください。
 
 # Macro
 

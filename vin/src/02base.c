@@ -709,8 +709,6 @@ int Vi::main_loop(Vi* self) version 2
         
         self.activeWin.input(self);
     }
-
-    0
 }
 
 void Vi::openFile(Vi* self, char* file_name, int line_num) version 2

@@ -204,7 +204,7 @@ void ViWin::completion_neo_c2(ViWin* self, Vi* nvi) version 20
                     auto candidate = self.selector2(candidates4);
                     
                     if(candidate) {
-                        if(candidate.to_string().match("^[a-zA-Z0-9_]+ [a-zA-Z0-9_]+$".to_regex(), null)) {
+                        if(candidate.to_string().match("^[a-zA-Z0-9_]+ [a-zA-Z0-9_]+$".to_regex())) {
                             auto li = candidate.to_string().scan("[a-zA-Z0-9_]+".to_regex());
 
                             if(li.length() > 0) {

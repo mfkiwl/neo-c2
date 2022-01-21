@@ -165,7 +165,7 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
             snprintf(cmd, 1024, "%s -o %s %s ", CLANG, exec_fname, clang_optiones);
         }
         else {
-            snprintf(cmd, 1024, "%s -o %s %s -lgc -lpcre -lpthread ", CLANG, exec_fname, clang_optiones);
+            snprintf(cmd, 1024, "%s -o %s %s -lgc -lpcre -lpthread %slib/neo-c2.o ", CLANG, exec_fname, clang_optiones, PREFIX);
         }
         
         int i;
@@ -193,10 +193,10 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
         }
         else {
             if(exec_fname[0] != '\0') {
-                snprintf(cmd, 1024, "%s -o %s %s.ll %s -lgc -lpcre -lpthread ", CLANG, exec_fname, fname, clang_optiones);
+                snprintf(cmd, 1024, "%s -o %s %s.ll %s -lgc -lpcre -lpthread %slib/neo-c2.o ", CLANG, exec_fname, fname, clang_optiones, PREFIX);
             }
             else {
-                snprintf(cmd, 1024, "%s -o %s %s.ll %s -lgc -lpcre -lpthread ", CLANG, bname, fname, clang_optiones);
+                snprintf(cmd, 1024, "%s -o %s %s.ll %s -lgc -lpcre -lpthread %slib/neo-c2.o ", CLANG, bname, fname, clang_optiones, PREFIX);
             }
         }
         
@@ -217,7 +217,7 @@ static BOOL linker(char* fname, BOOL optimize, BOOL no_linker, int num_obj_files
     return TRUE;
 }
 
-char* gVersion = "2.1.6";
+char* gVersion = "3.0.0";
 BOOL gNCDebug = FALSE;
 BOOL gNCGC = TRUE;
 char gFName[PATH_MAX];

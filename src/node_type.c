@@ -458,9 +458,11 @@ sNodeType* create_node_type_with_class_name(char* class_name_)
 
     sNodeType* result = parse_class_name(&p, &p2, buf);
 
+/*
     if(strcmp(class_name_, "lambda") == 0) {
         result->mPointerNum++;
     }
+*/
     
     return result;
 }
@@ -765,6 +767,7 @@ BOOL solve_generics(sNodeType** node_type, sNodeType* generics_type)
                     (*node_type)->mArrayNum[i] = array_num[i];
                 }
             }
+            
             if(pointer_num > 0) {
                 sNodeType* ppp = *node_type;
                 ppp->mPointerNum += pointer_num;

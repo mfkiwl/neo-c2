@@ -1,24 +1,17 @@
-struct sData {
-    float a;
-    double b;
-    double* c;
-    double* d;
-    char e;
-    char f;
-    int* g;
-};
+#include <stdio.h>
+
+typedef int (*fNativeFun)(int a, int b);
+
+int fun(int a, int b)
+{
+    return a + b;
+}
 
 int main()
 {
-    struct sData data;
+    fNativeFun a = fun;
     
-    data.a = 111.1f;
-    data.b = 11.1;
-    data.c = &data.b;
-    data.d = &data.b;
-    data.g = (int*)0;
-    
-    *data.g = 1;
+    printf("%d\n", a(1,2));
     
     return 0;
 }

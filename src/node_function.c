@@ -271,6 +271,8 @@ BOOL compile_function_call(unsigned int node, sCompileInfo* info)
         return TRUE;
     }
     
+    char calling_fun_name_before[VAR_NAME_MAX];
+    xstrncpy(calling_fun_name_before, info->calling_fun_name, VAR_NAME_MAX);
     xstrncpy(info->calling_fun_name, fun_name, VAR_NAME_MAX);
 
     if(method) {
@@ -794,6 +796,7 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
     }
 
     info->method_block_generics_type = method_block_generics_type;
+    xstrncpy(info->calling_fun_name, calling_fun_name_before, VAR_NAME_MAX);
 
     return TRUE;
 }

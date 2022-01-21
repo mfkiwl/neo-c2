@@ -139,6 +139,9 @@ sNodeType* get_typedef(char* name)
         }
         else if(strcmp(p->mName, name) == 0) {
             result = clone_node_type(p->mItem);
+            if(type_identify_with_class_name(result, "lambda")) {
+                result->mPointerNum--;
+            }
             break;
         }
         else {

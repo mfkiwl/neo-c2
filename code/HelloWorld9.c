@@ -1,9 +1,8 @@
 #include <neo-c2.h>
-#include <neo-c2-pcre.h>
 
 int main()
 {
-    xassert("char_match test", "ABC".match("A".to_regex(), null));
+    xassert("char_match test", "ABC".match("A".to_regex()));
     xassert("char_index test", "ABC".index("B", -1) == 1);
     xassert("char_rindex test", "ABCABC".rindex("B", -1) == 4);
     xassert("char_index_regex", "ABC".index_regex("B".to_regex(), -1) == 1);
@@ -16,7 +15,9 @@ int main()
     xassert("char_replace", strcmp(str, "ACC") == 0);
     xassert("char_multiply", strcmp(string("ABC").multiply(2), "ABCABC") == 0);
 
-    xassert("char_sub", strcmp("ABC".sub("B".to_regex(), "C", null), "ACC") == 0);
+    xassert("char_sub", strcmp("ABC".sub("B".to_regex(), "C"), "ACC") == 0);
+    
+    xassert("char_sub_count", strcmp("ABCABCABC".sub_count("B".to_regex_flags(true, false), "C", 2), "ACCACCABC") == 0);
 
     auto li = "ABC".scan(".".to_regex());
 
@@ -49,6 +50,17 @@ int main()
     auto li7 = "A,B,C".split(",".to_regex_flags(true`global, false));
     
     xassert("split test", li7.item(0, null).equals("A") && li6.item(1,null).equals("B") && li6.item(2, null).equals("C"));
+    
+    xassert("index_count test", "ABCABC".index_count("ABC", 2, -1) == 3);
+    xassert("index_regex_count test", "ABCABC".index_regex_count("ABC".to_regex_flags(true, false), 2, -1) == 3);
+    xassert("rindex_count test", "ABCABC".rindex_count("ABC", 2, -1) == 0);
+    xassert("rindex_regex_count test", "ABCABC".rindex_regex_count("CBA".to_regex_flags(true, false), 2, -1) == 0);
+    xassert("rindex_regex test", "ABCABC".rindex_regex("CBA".to_regex_flags(true, false), -1) == 3);
+    xassert("match_count test", "ABCABCABC".match_count("ABC".to_regex(), 3));
+    xassert("match_count test", "ABCABCABC".match_count("ABC".to_regex(), 4) == false);
+    xassert("sub_count test", "ABCABCABC".sub_count("ABC".to_regex_flags(true, false), "X", 2).equals("XXABC"));
+    xassert("sub_block test", "ABCABCABC".sub_block("ABC".to_regex_flags(true, false)) { return "X"; }.equals("XXX"));
+    xassert("sub_block_count test", "ABCABCABC".sub_block_count("ABC".to_regex_flags(true, false), 2) { return string("X"); }.equals("XXABC"));
 
     return 0;
 }

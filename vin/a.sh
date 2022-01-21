@@ -1,0 +1,1 @@
+neo-c2 -o vin src/main.o src/01init.o src/02base.o src/03insert_mode.o src/04word.o src/05undo.o src/06file.o src/07yank.o src/08visual.o src/09search.o src/10edit.o src/11move.o src/12command.o src/13completion.o src/14dot.o src/16mark.o src/17hvisual.o src/18vvisual.o src/19rewrite_mode.o src/20completion-neo-c2.o -L/opt/local/lib /usr/local/lib/libneo-c2.a

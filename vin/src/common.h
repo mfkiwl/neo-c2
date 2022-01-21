@@ -1,6 +1,5 @@
 #include "../config.h"
 #include <neo-c2.h>
-#include <neo-c2-pcre.h>
 
 #include <limits.h>
 #include <stdio.h>
@@ -106,6 +105,8 @@ struct ViWin
     int visualModeVerticalStartX;
     bool visualModeVerticalInserting;
 };
+
+struct Vi;
 
 struct Vi 
 {

@@ -379,7 +379,7 @@ void ViWin::subAllTextsFromCommandMode(ViWin* self, Vi* nvi)
 
             regex_struct* reg = regex(str, ignore_case, multiline, global, extended, dotall, anchored, dollar_endonly, ungreedy);
 
-            auto new_line = it.to_string().sub(reg, replace, null).to_wstring();
+            auto new_line = it.to_string().sub(reg, replace).to_wstring();
             
             self.texts.replace(it2, new_line);
 

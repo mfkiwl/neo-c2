@@ -626,7 +626,9 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
                 sNodeType* node_type = clone_node_type(*result_type);
 
                 *result_type = create_node_type_with_class_name("lambda");
+                node_type->mPointerNum = pointer_num;
                 (*result_type)->mResultType = node_type;
+                pointer_num = 0;
 
                 if(*info->p == '(') {
                     info->p++;
@@ -761,10 +763,11 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
                         sNodeType* node_type = clone_node_type(*result_type);
 
                         *result_type = create_node_type_with_class_name("lambda");
-                        pointer_num++;
 
+                        node_type->mPointerNum = pointer_num;
                         (*result_type)->mResultType = node_type;
-
+                        pointer_num = 0;
+                        
                         if(*info->p == '(') {
                             info->p++;
                             skip_spaces_and_lf(info);
@@ -832,6 +835,8 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
                                             *result_type = create_node_type_with_class_name("lambda");
 
                                             (*result_type)->mResultType = node_type;
+                                            node_type->mPointerNum = pointer_num;
+                                            pointer_num = 0;
 
                                             if(*info->p == ')') {
                                                 info->p++;
@@ -1127,6 +1132,8 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
 
         *result_type = create_node_type_with_class_name("lambda");
         (*result_type)->mResultType = node_type;
+        node_type->mPointerNum = pointer_num;
+        pointer_num = 0;
 
         if(*info->p == '(') {
             info->p++;
@@ -1205,6 +1212,10 @@ BOOL parse_type(sNodeType** result_type, sParserInfo* info, char* func_pointer_n
             info->p = before_fun;
             info->sline = before_fun_sline;
         }
+    }
+    
+    if(type_identify_with_class_name(*result_type, "lambda")) {
+        (*result_type)->mPointerNum++;
     }
 
     return TRUE;

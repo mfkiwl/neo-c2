@@ -240,6 +240,12 @@ int funXY(int a, int b) version 3
     return inherit(a, b) + 1;
 }
 
+int xxx(int a, int b) 
+{
+    return a + b;
+}
+
+
 int main()
 {
     printf("HELLO WORLD\n");
@@ -550,6 +556,10 @@ test_label:
 
     funY(1, 2);
     xassert("mixin-layers test", funXY(1, 2) == 3);
+
+    int (*funXX)(int, int) = xxx;
+    
+    xassert("fun pointer test", funXX(1, 1) == 2);
 
     return 0;
 }

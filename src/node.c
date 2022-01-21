@@ -1580,6 +1580,20 @@ LLVMMetadataRef create_llvm_debug_type(sNodeType* node_type, sCompileInfo* info)
         result = LLVMDIBuilderCreateBasicType(gDIBuilder, "pointer", strlen("pointer"), 64, 0, 0);
 #endif
     }
+    else if(node_type->mClass->mFlags & CLASS_FLAGS_GENERICS) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "generics", strlen("generics"), 64, 0);
+#else
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "generics", strlen("generics"), 64, 0, 0);
+#endif
+    }
+    else if(node_type->mClass->mFlags & CLASS_FLAGS_METHOD_GENERICS) {
+#if LLVM_VERSION <= 7
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "mgenerics", strlen("mgenerics"), 64, 0);
+#else
+        result = LLVMDIBuilderCreateBasicType(gDIBuilder, "mgenerics", strlen("mgenerics"), 64, 0, 0);
+#endif
+    }
     
     if(node_type->mPointerNum > 0) {
         int i;
@@ -1833,11 +1847,8 @@ LLVMTypeRef create_llvm_type_from_node_type(sNodeType* node_type)
         }
 
         BOOL var_args = node_type->mVarArgs;
-    
+        
         result_type = LLVMFunctionType(llvm_result_type, llvm_param_types, num_params, var_args);
-        if(node_type->mPointerNum == 0) {
-            result_type = LLVMPointerType(result_type, 0);
-        }
     }
 
     if(result_type == NULL) {

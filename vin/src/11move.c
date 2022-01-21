@@ -301,7 +301,7 @@ void ViWin::gotoFunctionTop(ViWin* self, Vi* nvi)
 
     int it2 = 0;
     foreach(it, self.texts.sublist(0, self.scroll+self.cursorY).reverse()) {
-        if(it.to_string().match(reg, null))
+        if(it.to_string().match(reg))
         {
             self.saveReturnPoint();
 
@@ -332,7 +332,7 @@ void ViWin::gotoFunctionBottom(ViWin* self, Vi* nvi)
 
     int it2 = 0;
     foreach(it, self.texts.sublist(self.scroll+self.cursorY+1, -1)) {
-        if(it.to_string().match(reg, null)) 
+        if(it.to_string().match(reg)) 
         {
             self.saveReturnPoint();
 

@@ -244,7 +244,6 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
         LLVMSetSubprogram(llvm_fun, info->function_meta_data);
     }
 
-
     for(i=0; i<num_params; i++) {
         LLVMValueRef param = LLVMGetParam(llvm_fun, i);
 
@@ -361,6 +360,7 @@ BOOL compile_function(unsigned int node, sCompileInfo* info)
 
     if(lambda_) {
         sNodeType* lambda_type = create_node_type_with_class_name("lambda");
+        lambda_type->mPointerNum++;
 
         for(i=0; i<num_params; i++) {
             sNodeType* param_type = param_types[i];
@@ -700,13 +700,21 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
     sNodeType* lambda_type = fun->mParamTypes[fun->mNumParams-1];
 
     int num_params = lambda_type->mNumParams;
-    sNodeType* result_type2 = clone_node_type(lambda_type->mResultType);
-
+    
+    sNodeType* result_type2 = NULL;
     if(result_type) {
         result_type2 = clone_node_type(result_type);
     }
+    else {
+        if(lambda_type->mResultType == NULL) {
+            result_type2 = NULL;
+        }
+        else {
+            result_type2 = clone_node_type(lambda_type->mResultType);
+        }
+    }
 
-    if(info->method_block_generics_type) {
+    if(info->method_block_generics_type && result_type2) {
         if(!solve_generics(&result_type2, info->method_block_generics_type)) 
         {
             compile_err_msg(info, "Can't solve generics types(3)");
@@ -715,7 +723,7 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
             return FALSE;
         }
     }
-
+    
     if(num_params == 0) {
         compile_err_msg(info, "require parent stack parametor");
         return FALSE;
@@ -781,6 +789,10 @@ BOOL compile_method_block(unsigned int node, sCompileInfo* info)
     if(!parse_block(node_block, FALSE, single_expression, &pinfo)) {
         sNodeBlock_free(node_block);
         return FALSE;
+    }
+    
+    if(result_type2 == NULL) {
+        result_type2 = clone_node_type(info->return_result_type);
     }
 
     expect_next_character_with_one_forward("}", &pinfo);

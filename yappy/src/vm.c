@@ -13,7 +13,7 @@ struct sFunction
 {
     string name;
     buffer* codes;
-    fNativeFun* native_fun;
+    fNativeFun native_fun;
     vector<string>* param_names;
 };
 
@@ -318,6 +318,95 @@ bool native_re_split(map<string, ZVALUE>* params, sVMInfo* info)
     
     return true;
 }
+
+/*
+bool native_re_sub(map<string, ZVALUE>* params, sVMInfo* info)
+{
+    ZVALUE pattern = params.at("pattern", gNullValue);
+    ZVALUE repl = params.at("repl", gNullValue);
+    ZVALUE str = params.at("string", gNullValue);
+    ZVALUE count = params.at("count", gNullValue);
+    ZVALUE flags = params.at("flags", gNullValue);
+    
+    if(pattern.kind != kStringValue) {
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionTypeError;
+        return false;
+    }
+    string pattern_value = pattern.stringValue.to_string();
+    
+    if(repl.kind != kStringValue) {
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionTypeError;
+        return false;
+    }
+    string repl_value = repl.stringValue.to_string();
+    
+    if(str.kind != kStringValue) {
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionTypeError;
+        return false;
+    }
+    string str_value = str.stringValue.to_string();
+    
+    int count_value = -1;
+    
+    if(count.kind == kNullValue) {
+    }
+    else if(count.kind == kIntValue) {
+        count_value = count.intValue;
+    }
+    else {
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionTypeError;
+        return false;
+    }
+    
+    bool ignore_case = false;
+    bool global = false;
+    
+    if(flags.kind == kNullValue) {
+    }
+    else if(flags.kind == kIntValue) {
+        int flags_value = flags.intValue;
+        
+        if(flags_value == RE_IGNORE_CASE) {
+            ignore_case = true;
+        }
+        if(flags_value == RE_GLOBAL) {
+            global = true;
+        }
+    }
+    else {
+        info->exception.kind = kExceptionValue;
+        info->exception.value.expValue = kExceptionTypeError;
+        return false;
+    }
+    
+    nregex reg = pattern_value.to_regex();
+    
+    reg.ignore_case = ignore_case;
+    reg.global = global;
+    
+    string result_value;
+    if(count_value == -1) {
+        list<string>* group_strings = null;
+        result_value = str_value.sub(reg, replace_value, group_strings);
+    }
+    else {
+        list<string>* group_strings = null;
+        result_value = str_value.sub_count(reg, replace_value, count_value, group_strings);
+    }
+    
+    ZVALUE result_obj;
+    result_obj.kind = kStringValue;
+    result_obj.stringValue = result_value;
+    
+    info->return_value = result_obj;
+    
+    return true;
+}
+*/
 
 bool native_str_split(map<string, ZVALUE>* params, sVMInfo* info)
 {
@@ -784,7 +873,7 @@ void print_op(int op)
 bool function_call(sFunction* fun, vector<ZVALUE>* param_values, map<string, ZVALUE>* named_params, sVMInfo* info)
 {
     if(fun.native_fun) {
-        fNativeFun* fun2 = fun.native_fun;
+        fNativeFun fun2 = fun.native_fun;
         
         vector<string>* param_names = fun->param_names;
         
