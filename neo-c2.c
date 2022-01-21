@@ -674,7 +674,7 @@ string char::sub_count(char* self, regex_struct* reg, char* replace, int count)
     return result.to_string();
 }
 
-string char::sub_block(char* self, regex_struct* reg, void* parent, string (*block)(void* parent, list<string>* group_strings))
+string char::sub_block(char* self, regex_struct* reg, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings))
 {
     int offset = 0;
 
@@ -713,9 +713,11 @@ string char::sub_block(char* self, regex_struct* reg, void* parent, string (*blo
             
             list<string>* group_strings = new list<string>.initialize();
             
+            string match_string = self.substring(start[0], end[0]);
+            
             group_strings.push_back(self.substring(start[0], end[0]));
             
-            string block_result = block(parent, group_strings);
+            string block_result = block(parent, match_string, group_strings);
             result.append_str(block_result);
 
             if(offset == end[0]) {
@@ -750,7 +752,9 @@ string char::sub_block(char* self, regex_struct* reg, void* parent, string (*blo
                 group_strings.push_back(match_string);
             }
             
-            string block_result = block(parent, group_strings);
+            string match_string = self.substring(start[0], end[0]);
+            
+            string block_result = block(parent, match_string, group_strings);
             result.append_str(block_result);
 
             if(!reg.global) {
@@ -769,7 +773,7 @@ string char::sub_block(char* self, regex_struct* reg, void* parent, string (*blo
     return result.to_string();
 }
 
-string char::sub_block_count(char* self, regex_struct* reg, int count, void* parent, string (*block)(void* parent, list<string>* group_strings))
+string char::sub_block_count(char* self, regex_struct* reg, int count, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings))
 {
     int offset = 0;
 
@@ -813,7 +817,9 @@ string char::sub_block_count(char* self, regex_struct* reg, int count, void* par
             
             group_strings.push_back(self.substring(start[0], end[0]));
             
-            string block_result = block(parent, group_strings);
+            string match_string = self.substring(start[0], end[0]);
+            
+            string block_result = block(parent, match_string, group_strings);
             result.append_str(block_result);
 
             if(offset == end[0]) {
@@ -856,7 +862,9 @@ string char::sub_block_count(char* self, regex_struct* reg, int count, void* par
                 group_strings.push_back(match_string);
             }
             
-            string block_result = block(parent, group_strings);
+            string match_string = self.substring(start[0], end[0]);
+            
+            string block_result = block(parent, match_string, group_strings);
             result.append_str(block_result);
 
             if(!reg.global) {

@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 3.0.0
+version 3.0.1
 
 ```
 #include <neo-c2.h>
@@ -1351,8 +1351,8 @@ void char::replace(char* self, int index, char c);
 string char::multiply(char* str, int n);
 string char::sub(char* self, regex_struct* reg, char* replace);
 string char::sub_count(char* self, regex_struct* reg, char* replace, int count);
-string char::sub_block(char* self, regex_struct* reg, void* parent, string (*block)(void* parent, list<string>* group_strings));
-string char::sub_block_count(char* self, regex_struct* reg, int count, void* parent, string (*block)(void* parent, list<string>* group_strings));
+string char::sub_block(char* self, regex_struct* reg, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings));
+string char::sub_block_count(char* self, regex_struct* reg, int count, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings));
 list<string>* char::scan(char* self, regex_struct* reg);
 list<string>* char::split(char* self, regex_struct* reg);
 list<string>* char::split_maxsplit(char* self, regex_struct* reg, int maxsplit);
@@ -1441,6 +1441,7 @@ int main()
     xassert("sub_count test", "ABCABCABC".sub_count("ABC".to_regex_flags(true, false), "X", 2).equals("XXABC"));
     xassert("sub_block test", "ABCABCABC".sub_block("ABC".to_regex_flags(true, false)) { return "X"; }.equals("XXX"));
     xassert("sub_block_count test", "ABCABCABC".sub_block_count("ABC".to_regex_flags(true, false), 2) { return string("X"); }.equals("XXABC"));
+    xassert("sub_block_count test2", "ABCABCABC".sub_block_count("ABC".to_regex_flags(true, false), 2) { return it.substring(0,1); }.equals("AAABC"));
 
     return 0;
 }

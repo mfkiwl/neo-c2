@@ -61,6 +61,7 @@ int main()
     xassert("sub_count test", "ABCABCABC".sub_count("ABC".to_regex_flags(true, false), "X", 2).equals("XXABC"));
     xassert("sub_block test", "ABCABCABC".sub_block("ABC".to_regex_flags(true, false)) { return "X"; }.equals("XXX"));
     xassert("sub_block_count test", "ABCABCABC".sub_block_count("ABC".to_regex_flags(true, false), 2) { return string("X"); }.equals("XXABC"));
+    xassert("sub_block_count test2", "ABCABCABC".sub_block_count("ABC".to_regex_flags(true, false), 2) { return it.substring(0,1); }.equals("AAABC"));
 
     return 0;
 }
