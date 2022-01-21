@@ -781,7 +781,7 @@ void print_op(int op)
     }
 }
 
-bool function_call(sFunction* fun, vector<ZVALUE>* param_values, sVMInfo* info)
+bool function_call(sFunction* fun, vector<ZVALUE>* param_values, map<string, ZVALUE>* named_params, sVMInfo* info)
 {
     if(fun.native_fun) {
         fNativeFun* fun2 = fun.native_fun;
@@ -799,6 +799,14 @@ bool function_call(sFunction* fun, vector<ZVALUE>* param_values, sVMInfo* info)
             params.insert(string(it), value);
             
             i++;
+        }
+        
+        foreach(key, named_params) {
+            ZVALUE null_value;
+            memset(&null_value, 0, sizeof(ZVALUE));
+            
+            ZVALUE value = named_params.at(key, null_value);
+            params.insert(string(key), value);
         }
         
         if(!fun2(params, info)) {
@@ -821,6 +829,14 @@ bool function_call(sFunction* fun, vector<ZVALUE>* param_values, sVMInfo* info)
             params.insert(string(it), value);
             
             i++;
+        }
+        
+        foreach(key, named_params) {
+            ZVALUE null_value;
+            memset(&null_value, 0, sizeof(ZVALUE));
+            
+            ZVALUE value = named_params.at(key, null_value);
+            params.insert(string(key), value);
         }
         
         if(!vm(codes, params, info)) {
@@ -1450,6 +1466,33 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 int num_params = *p;
                 p++;
                 
+                int num_named_params = *p;
+                p++;
+                
+                map<string, ZVALUE>* named_params = new map<string, ZVALUE>.initialize();
+                
+                for(int i=0; i<num_named_params; i++) {
+                    int offset = *p;
+                    p++;
+                    
+                    int len = *p;
+                    p++;
+                    
+                    char* named_param = (char*)p;
+                    
+                    char named_param2[len+1];
+                    memcpy(named_param2, named_param, len);
+                    named_param2[len] = '\0'
+                    
+                    p += offset;
+                    
+                    ZVALUE value = stack[stack_num-num_named_params+i];
+                    
+                    named_params.insert(string(named_param2), value);
+                }
+                
+                stack_num -= num_named_params;
+                
                 sModule* module = gModules.at(info.module_name, null);
                 sClass* klass = module.classes.at(string(fun_name2), null);
                 
@@ -1474,7 +1517,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                             param_values.push_back(value);
                         }
                         
-                        if(!function_call(constructor, param_values, info)) {
+                        if(!function_call(constructor, param_values, named_params, info)) {
                             return false;
                         }
                         
@@ -1513,7 +1556,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                         return false;
                     }
                     
-                    if(!function_call(fun, param_values, info)) {
+                    if(!function_call(fun, param_values, named_params, info)) {
                         return false;
                     }
                     
@@ -1823,9 +1866,35 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                 int num_params = *p;
                 p++;
                 
+                int num_named_params = *p;
+                p++;
+                
+                map<string, ZVALUE>* named_params = new map<string, ZVALUE>.initialize();
+                
+                for(int i=0; i<num_named_params; i++) {
+                    int offset = *p;
+                    p++;
+                    
+                    int len = *p;
+                    p++;
+                    
+                    char* named_param = (char*)p;
+                    
+                    char named_param2[len+1];
+                    memcpy(named_param2, named_param, len);
+                    named_param2[len] = '\0'
+                    
+                    p += offset;
+                    
+                    ZVALUE value = stack[stack_num-num_named_params+i];
+                    
+                    named_params.insert(string(named_param2), value);
+                }
+                
+                stack_num -= num_named_params;
+                
                 if(stack[stack_num-1-num_params].kind == kModuleValue) {
                     sModule* module = (sModule*)stack[stack_num-num_params-1].moduleValue;
-                    
                     
                     vector<ZVALUE>* param_values = new vector<ZVALUE>.initialize();
                     
@@ -1843,7 +1912,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                         return false;
                     }
                     
-                    if(!function_call(fun, param_values, info)) {
+                    if(!function_call(fun, param_values, named_params, info)) {
                         return false;
                     }
                     
@@ -1879,7 +1948,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                         return false;
                     }
                     
-                    if(!function_call(fun, param_values, info)) {
+                    if(!function_call(fun, param_values, named_params, info)) {
                         return false;
                     }
                     
@@ -1917,7 +1986,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                         return false;
                     }
                     
-                    if(!function_call(fun, param_values, info)) {
+                    if(!function_call(fun, param_values, named_params, info)) {
                         return false;
                     }
                     
@@ -1955,7 +2024,7 @@ bool vm(buffer* codes, map<string, ZVALUE>* params, sVMInfo* info)
                         return false;
                     }
                     
-                    if(!function_call(fun, param_values, info)) {
+                    if(!function_call(fun, param_values, named_params, info)) {
                         return false;
                     }
                     

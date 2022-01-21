@@ -14,7 +14,7 @@ static sNode* create_import_node(char* name, sParserInfo* info)
     return result;
 }
 
-static sNode* create_method_call(sNode* left, char* fun_name, vector<sNode*>* params, sParserInfo* info)
+static sNode* create_method_call(sNode* left, char* fun_name, vector<sNode*>* params, map<char*, sNode*>* named_params, sParserInfo* info)
 {
     sNode* result = new sNode;
     
@@ -24,6 +24,7 @@ static sNode* create_method_call(sNode* left, char* fun_name, vector<sNode*>* pa
     result.sline = info->sline;
     result.value.methodCallValue.name = string(fun_name);
     result.value.methodCallValue.params = params;
+    result.value.methodCallValue.named_params = named_params;
     result.value.methodCallValue.left = left;
     
     return result;
@@ -110,6 +111,7 @@ sNode*? method_node(sNode* node, sParserInfo* info)
             skip_spaces_until_eol(info);
             
             vector<sNode*>* params = new vector<sNode*>.initialize();
+            map<char*, sNode*>* named_params = new map<char*, sNode*>.initialize();
             
             while(*info->p) {
                 if(*info->p == ')') {
@@ -118,21 +120,55 @@ sNode*? method_node(sNode* node, sParserInfo* info)
                     break;
                 }
                 
-                sNode* node = null;
-                if(!expression(&node, info)) {
-                    fprintf(stderr, "%s %d: unexpected character (%c)\n", info->fname, info->sline, *info->p);
-                    exit(1);
-                }
+                char* p = info->p;
+                int sline = info->sline;
+                bool named_param_flag = false;
                 
-                if(*info->p == ',') {
-                    info->p++;
+                if(xisalpha(*info->p)) {
+                    buffer* buf = new buffer.initialize();
+                    
+                    while(xisalnum(*info->p)) {
+                        buf.append_char(*info->p);
+                        info->p++;
+                    }
                     skip_spaces_until_eol(info);
+                    
+                    if(*info->p == '=' && *(info->p+1) != '=') {
+                        info->p++;
+                        skip_spaces_until_eol(info);
+                        named_param_flag = true;
+                        
+                        sNode* node = null;
+                        if(!expression(&node, info)) {
+                            fprintf(stderr, "%s %d: unexpected character (%c)\n", info->fname, info->sline, *info->p);
+                            exit(1);
+                        }
+                        
+                        named_params.insert(buf.to_string(), node);
+                    }
+                    else {
+                        info->p = p;
+                        info->sline = sline;
+                    }
                 }
                 
-                params.push_back(node);
+                if(named_param_flag == false) {
+                    sNode* node = null;
+                    if(!expression(&node, info)) {
+                        fprintf(stderr, "%s %d: unexpected character (%c)\n", info->fname, info->sline, *info->p);
+                        exit(1);
+                    }
+                    
+                    if(*info->p == ',') {
+                        info->p++;
+                        skip_spaces_until_eol(info);
+                    }
+                    
+                    params.push_back(node);
+                }
             }
             
-            sNode* result = create_method_call(node, buf.to_string(), params, info);
+            sNode* result = create_method_call(node, buf.to_string(), params, named_params, info);
             
             if(*info->p == '.') {
                 result = method_node(result, info);
@@ -208,6 +244,15 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 12
                 return false;
             }
         }
+        map<char*, sNode*>* named_params = node.value.methodCallValue.named_params;
+        
+        foreach(key, named_params) {
+            sNode* item = named_params.at(key, null);
+            
+            if(!compile(item, codes, info)) {
+                return false;
+            }
+        }
         info.stack_num = stack_num;
         
         codes.append_int(OP_METHOD_CALL);
@@ -226,6 +271,22 @@ bool compile(sNode* node, buffer* codes, sParserInfo* info) version 12
         codes.alignment();
         
         codes.append_int(num_params);
+        
+        int num_named_params = named_params.length();
+        
+        codes.append_int(num_named_params);
+        
+        foreach(key, named_params) {
+            int len = strlen(key);
+            int offset = (len + 3) & ~3;
+            offset /= sizeof(int);
+            
+            codes.append_int(offset);
+            codes.append_int(len);
+            
+            codes.append_str(key);
+            codes.alignment();
+        }
         
         info.stack_num++;
     }

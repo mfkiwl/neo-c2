@@ -76,6 +76,7 @@ struct sNode
         struct {
             string name;
             vector<sNode*>* params;
+            map<char*, sNode*>* named_params;
         } funCallValue;
         
         struct {
@@ -110,6 +111,7 @@ struct sNode
         struct {
             string name;
             vector<sNode*>* params;
+            map<char*, sNode*>* named_params;
             sNode* left;
         } methodCallValue;
         

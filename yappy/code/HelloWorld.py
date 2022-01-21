@@ -150,6 +150,10 @@ li15 = re.split(",|\.", "AAA,BBB.CCC", 3, re.GLOBAL)
 
 xassert("split test4", li15[0] == "AAA" and li15[1] == "BBB" and li15[2] == "CCC")
 
+li16 = re.split(",|\.", "AAA,BBB.CCC", flags=re.GLOBAL)
+
+xassert("split test5", li16[0] == "AAA" and li16[1] == "BBB" and li16[2] == "CCC")
+
 #print "HELLO WORLD"
 
 #def fun():
