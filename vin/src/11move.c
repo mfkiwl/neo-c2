@@ -129,13 +129,13 @@ void ViWin::toggleBraceBack(ViWin* self, wchar_t head, wchar_t tail)
     while(p >= line) {
         if(!dquort && *p == '\'') {
             p--;
-            if(*(p-1) != '\\' && *p == '\'') {
+            if(!(*(p-1) == '\\' && *p == '\'')) {
                 squort = !squort;
             }
         }
         else if(!squort && *p == '"') {
             p--;
-            if(*(p-1) != '\\' && *p == '"') {
+            if(!(*(p-1) == '\\' && *p == '"')) {
                 dquort = !dquort;
             }
         }
@@ -172,13 +172,13 @@ void ViWin::toggleBraceBack(ViWin* self, wchar_t head, wchar_t tail)
         while(p >= it) {
             if(!dquort && *p == '\'') {
                 p--;
-                if(*(p-1) != '\\' && *p == '\'') {
+                if(!(*(p-1) == '\\' && *p == '\'')) {
                     squort = !squort;
                 }
             }
             else if(!squort && *p == '"') {
                 p--;
-                if(*(p-1) != '\\' && *p == '"') {
+                if(!(*(p-1) == '\\' && *p == '"')) {
                     dquort = !dquort;
                 }
             }
