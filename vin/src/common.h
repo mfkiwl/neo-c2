@@ -135,7 +135,7 @@ struct Vi
     bool regexSearch;
 };
 
-extern Vi* gApp;
+extern Vi* gVi;
 
 /// Vi ///
 Vi* Vi::initialize(Vi* self) version 1;

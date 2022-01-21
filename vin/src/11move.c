@@ -17,15 +17,34 @@ void ViWin::toggleBraceForward(ViWin* self, wchar_t head, wchar_t tail)
     auto line = self.texts.item(cursor_y, null);
 
     wchar_t* p = line + self.cursorX+1;
+    
+    bool squort = false;
+    bool dquort = false;
 
-    while(p < line + line.length()) {
-        if(*p == tail) {
+    while(p < line + line.length()) { 
+        if(!dquort && *p == '\'') {
+            p++;
+            squort = !squort;
+        }
+        else if(!squort && *p == '"') {
+            p++;
+            dquort = !dquort;
+        }
+        else if(squort || dquort) {
+            if(*p == '\\') {
+                p+=2;
+            }
+            else {
+                p++;
+            }
+        }
+        else if(*p == tail) {
             if(nest == 0) {
                 self.saveReturnPoint();
 
                 cursor_x = (p - line);
                 self.cursorX = cursor_x;
-                break;
+                return;
             }
 
             p++;
@@ -49,15 +68,32 @@ void ViWin::toggleBraceForward(ViWin* self, wchar_t head, wchar_t tail)
             wchar_t* p = it;
 
             while(p < it + it.length()) {
-                if(*p == tail) {
+                if(!dquort && *p == '\'') {
+                    p++;
+                    squort = !squort;
+                }
+                else if(!squort && *p == '"') {
+                    p++;
+                    dquort = !dquort;
+                }
+                else if(squort || dquort) {
+                    if(*p == '\\') {
+                        p+=2;
+                    }
+                    else {
+                        p++;
+                    }
+                }
+                else if(*p == tail) {
                     if(nest == 0) {
                         self.saveReturnPoint();
 
-                        cursor_x = (p - it);
-                        self.cursorY += it2 + 1;
-                        self.modifyOverCursorYValue();
-                        self.cursorX = cursor_x;
-                        break;
+                        self.scroll = it2 + self.scroll + self.cursorY + 1;
+                        self.cursorY = 0;
+                        self.cursorX = p - it;
+                        self.modifyOverCursorXValue();
+                        self.centeringCursor();
+                        return;
                     }
 
                     p++;
@@ -81,22 +117,38 @@ void ViWin::toggleBraceForward(ViWin* self, wchar_t head, wchar_t tail)
 
 void ViWin::toggleBraceBack(ViWin* self, wchar_t head, wchar_t tail) 
 {
-    int cursor_y = self.scroll + self.cursorY;
-    int cursor_x = -1;
-
     int nest = 0;
 
-    auto line = self.texts.item(cursor_y, null);
+    auto line = self.texts.item(self.scroll + self.cursorY, null);
 
     wchar_t* p = line + self.cursorX-1;
+    
+    bool dquort = false;
+    bool squort = false;
 
     while(p >= line) {
-        if(*p == head) {
+        if(!dquort && *p == '\'') {
+            p--;
+            if(*(p-1) != '\\' && *p == '\'') {
+                squort = !squort;
+            }
+        }
+        else if(!squort && *p == '"') {
+            p--;
+            if(*(p-1) != '\\' && *p == '"') {
+                dquort = !dquort;
+            }
+        }
+        else if(squort || dquort) {
+            p--;
+        }
+        else if(*p == head) {
             if(nest == 0) {
                 self.saveReturnPoint();
-                cursor_x = (p - line);
-                self.cursorX = cursor_x;
-                break;
+                
+                self.cursorX = p -line;
+                self.modifyOverCursorXValue();
+                return;
             }
 
             p--;
@@ -112,40 +164,51 @@ void ViWin::toggleBraceBack(ViWin* self, wchar_t head, wchar_t tail)
         }
     }
 
-    if(cursor_x == -1) {
-        cursor_y--;
+    for(int i=self.scroll+self.cursorY-1; i>=0; i--) {
+        wstring it = self.texts.item(i, null);
         
-        int it2 = 0;
-        foreach(it, self.texts.sublist(0, self.scroll+self.cursorY).reverse()) {
-            wchar_t* p = it + it.length();
-            
-            while(p >= it) {
-                if(*p == head) {
-                    if(nest == 0) {
-                        self.saveReturnPoint();
-
-                        cursor_x = (p - it);
-                        self.cursorY = self.cursorY - it2 -1;
-                        self.modifyUnderCursorYValue();
-                        self.cursorX = cursor_x;
-                        break;
-                    }
-
-                    p--;
-                    nest--;
-                }
-                else if(*p == tail) {
-                    p--;
-
-                    nest++;
-                }
-                else {
-                    p--;
+        wchar_t* p = it + it.length();
+        
+        while(p >= it) {
+            if(!dquort && *p == '\'') {
+                p--;
+                if(*(p-1) != '\\' && *p == '\'') {
+                    squort = !squort;
                 }
             }
+            else if(!squort && *p == '"') {
+                p--;
+                if(*(p-1) != '\\' && *p == '"') {
+                    dquort = !dquort;
+                }
+            }
+            else if(squort || dquort) {
+                p--;
+            }
+            else if(*p == head) {
+                if(nest == 0) {
+                    self.saveReturnPoint();
 
-            cursor_y--;
-            it2++;
+                    self.scroll = i;
+                    self.cursorY = 0;
+                    self.modifyUnderCursorYValue();
+                    self.cursorX = p - it;
+                    self.modifyOverCursorXValue();
+                    self.centeringCursor();
+                    return ;
+                }
+
+                p--;
+                nest--;
+            }
+            else if(*p == tail) {
+                p--;
+
+                nest++;
+            }
+            else {
+                p--;
+            }
         }
     }
 }
@@ -176,7 +239,6 @@ void ViWin::toggleCommentForward(ViWin* self)
                 self.scroll = 0;
                 self.cursorY = it2 + head;
                 self.modifyOverCursorYValue();
-                self.centeringCursor();
                 break;
             }
         }

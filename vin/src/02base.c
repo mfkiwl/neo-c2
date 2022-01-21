@@ -389,7 +389,13 @@ void ViWin::halfScrollDown(ViWin* self)
 
 void ViWin::centeringCursor(ViWin* self) 
 {
-    int maxy = getmaxy(self.win);
+    int maxy;
+    if(gVi.wins.length() == 1) {
+        maxy = xgetmaxy();
+    }
+    else {
+        maxy = getmaxy(self.win);
+    }
     
     int n = self.scroll + self.cursorY;
 

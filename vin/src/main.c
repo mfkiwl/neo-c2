@@ -30,6 +30,8 @@ int xgetmaxy()
     }
 }
 
+Vi* gVi;
+
 int main(int argc, char** argv)
 {
     int line_num = -1;
@@ -61,6 +63,8 @@ int main(int argc, char** argv)
     }
 
     auto vi = new Vi.initialize();
+    
+    gVi = vi;
     
     if(num_file_names > 0) {
         vi.openFile(file_names[0], line_num);
