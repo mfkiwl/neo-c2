@@ -417,6 +417,7 @@ on clover-lang.org
 
 config.status:821: creating Makefile
 config.status:821: creating config.h
+config.status:996: config.h is unchanged
 
 ## ---------------- ##
 ## Cache variables. ##

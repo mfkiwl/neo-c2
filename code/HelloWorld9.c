@@ -62,6 +62,8 @@ int main()
     xassert("sub_block test", "ABCABCABC".sub_block("ABC".to_regex_flags(true, false)) { return "X"; }.equals("XXX"));
     xassert("sub_block_count test", "ABCABCABC".sub_block_count("ABC".to_regex_flags(true, false), 2) { return string("X"); }.equals("XXABC"));
     xassert("sub_block_count test2", "ABCABCABC".sub_block_count("ABC".to_regex_flags(true, false), 2) { return it.substring(0,1); }.equals("AAABC"));
+    xassert("scan_block test", "123 456 789".scan_block("\\d\\d\\d".to_regex_flags(true, false)) { return it.substring(0, 1); }.join("").equals("147"));
+    xassert("scan_block_count test", "123 456 789".scan_block_count("\\d\\d\\d".to_regex_flags(true, false), 2) { return it.substring(0, 1); }.join("").equals("14"));
     
     auto li8 = "ABC".scan(".".to_regex());
     

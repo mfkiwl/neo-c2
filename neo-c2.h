@@ -1778,6 +1778,8 @@ string char::sub_count(char* self, regex_struct* reg, char* replace, int count);
 string char::sub_block(char* self, regex_struct* reg, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings));
 string char::sub_block_count(char* self, regex_struct* reg, int count, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings));
 list<string>* char::scan(char* self, regex_struct* reg);
+list<string>* char::scan_block(char* self, regex_struct* reg, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings));
+list<string>* char::scan_block_count(char* self, regex_struct* reg, int count, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings));
 list<string>* char::split(char* self, regex_struct* reg);
 list<string>* char::split_maxsplit(char* self, regex_struct* reg, int maxsplit);
 list<string>* char::split_char(string self, char c) ;
