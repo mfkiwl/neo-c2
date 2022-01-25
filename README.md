@@ -8,7 +8,7 @@ This language is self-hosted.
 
 完全なセルフホストを行います。
 
-version 3.0.2
+version 3.0.3
 
 ```
 #include <neo-c2.h>
@@ -737,17 +737,18 @@ The definition is as follows.
 
 ```
 buffer* buffer_initialize(buffer* self);
-int buffer_length(buffer* self) 
-void buffer_append(buffer* self, char* mem, size_t size);
-void buffer_append_char(buffer* self, char c);
-void buffer_append_str(buffer* self, char* str);
-void buffer_append_nullterminated_str(buffer* self, char* str);
+int buffer_length(buffer* self);
+buffer* buffer_append(buffer* self, char* mem, size_t size);
+buffer* buffer_append_char(buffer* self, char c);
+buffer* buffer_append_str(buffer* self, char* str);
+buffer* buffer_append_nullterminated_str(buffer* self, char* str);
 string buffer_to_string(buffer* self);
-void buffer_append_int(buffer* self, int value) ;
-void buffer_append_long(buffer* self, long value) ;
-void buffer_append_short(buffer* self, short value);
+buffer* buffer_append_int(buffer* self, int value);
+buffer* buffer_append_long(buffer* self, long value);
+buffer* buffer_append_short(buffer* self, short value);
 void buffer_alignment(buffer* self);
 int buffer_compare(buffer* left, buffer* right);
+buffer* char::to_buffer(char* self);
 ```
 
 使い方は以下です。
@@ -1360,6 +1361,9 @@ list<string>* char::split(char* self, regex_struct* reg);
 list<string>* char::split_maxsplit(char* self, regex_struct* reg, int maxsplit);
 list<string>* char::split_char(string self, char c) ;
 list<string>* char::split_str(string self, char* str) ;
+list<string>* char::split_block(char* self, regex_struct* reg, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings));
+list<string>* char::split_block_count(char* self, regex_struct* reg, int count, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings));
+nregex char::to_regex(char* self) ;
 nregex char::to_regex(char* self) ;
 nregex char::to_regex_flags(char* self, bool global, bool ignore_case) ;
 string char::printable(char* str);
@@ -1450,6 +1454,10 @@ int main()
     auto li8 = "ABC".scan(".".to_regex());
     
     xassert("scan test", li8.item(0, null).equals("A") && li8.item(1, null).equals("B") && li8.item(2, null).eqaus("C"));
+    
+    xassert("to_buffer test", "ABC".to_buffer().append_str("DEF").to_string().equals("ABCDEF"));
+    xassert("split block test", "ABC,DEF,GHI",split_block(",".to_regex()) { return it.substring(0,1); }.join("").equals("ADG"));
+    xassert("split block test", "ABC,DEF,GHI",split_count_block(",".to_regex(), 2) { return it.substring(0,1); }.join("").equals("AD"));
 
     return 0;
 }

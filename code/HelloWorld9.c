@@ -67,7 +67,11 @@ int main()
     
     auto li8 = "ABC".scan(".".to_regex());
     
-    xassert("scan test", li8.item(0, null).equals("A") && li8.item(1, null).equals("B") && li8.item(2, null).eqaus("C"));
+    xassert("scan test", li8.item(0, null).equals("A") && li8.item(1, null).equals("B") && li8.item(2, null).equals("C"));
+    
+    xassert("to_buffer test", "ABC".to_buffer().append_str("DEF").to_string().equals("ABCDEF"));
+    xassert("split block test", "ABC,DEF,GHI".split_block(",".to_regex()) { return it.substring(0,1); }.join("").equals("ADG"));
+    xassert("split block test", "ABC,DEF,GHI".split_block_count(",".to_regex(), 2) { return it.substring(0,1); }.join("").equals("AD"));
 
     return 0;
 }

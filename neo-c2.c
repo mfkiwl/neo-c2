@@ -1,5 +1,145 @@
 #include <neo-c2.h>
 
+void* ncmemdup(void* block)
+{
+    size_t size = GC_size(block);
+
+    if(!block) {
+        return null;
+    }
+
+    void* ret = GC_malloc(size);
+
+    if (ret) {
+        char* p = ret;
+        char* p2 = block;
+        while(p - ret < size) {
+            *p = *p2;
+            p++;
+            p2++;
+        }
+    }
+
+    return ret;
+}
+
+string xsprintf(char* msg, ...)
+{
+    va_list args;
+    va_start(args, msg);
+    char* result;
+    int len = vasprintf(&result, msg, args);
+    va_end(args);
+
+    if(len < 0) {
+        fprintf(stderr, "can't get heap memory.\n");
+
+        exit(2);
+    }
+    
+    string result2 = string(result);
+    
+    free(result);
+    
+    return result2;
+}
+
+string char::reverse(char* str) 
+{
+    int len = strlen(str);
+    char* result = new char[len + 1];
+
+    for(int i=0; i<len; i++) {
+        result[i] = str[len-i-1];
+    }
+
+    result[len] = '\0';
+
+    return result;
+}
+
+string char::substring(char* str, int head, int tail)
+{
+    if(str == null) {
+        return string("");
+    }
+
+    int len = strlen(str);
+
+    if(head < 0) {
+        head += len;
+    }
+    if(tail < 0) {
+        tail += len + 1;
+    }
+
+    if(head > tail) {
+        return str.substring(tail, head).reverse();
+    }
+
+    if(head < 0) {
+        head = 0;
+    }
+
+    if(tail >= len) {
+        tail = len;
+    }
+
+    if(head == tail) {
+        return string("");
+    }
+
+    if(tail-head+1 < 1) {
+        return string("");
+    }
+
+    string result = new char[tail-head+1];
+
+    memcpy(result, str + head, tail-head);
+    result[tail-head] = '\0';
+
+    return result;
+}
+
+int char::length(char* str)
+{
+    return strlen(str);
+}
+
+int int::get_hash_key(int value)
+{
+    return value;
+}
+
+int char::get_hash_key(char* value)
+{
+    int result = 0;
+    char* p = value;
+    while(*p) {
+        result += (*p);
+        p++;
+    }
+    return result;
+}
+
+bool char::equals(string left, string right)
+{
+    return strcmp(left, right) == 0;
+}
+
+int char::compare(int left, int right) 
+{
+    if(left < right) {
+        return -1;
+    }
+    else if(left > right) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
 regex_struct* regex(char* str, bool ignore_case, bool multiline, bool global, bool extended, bool dotall, bool anchored, bool dollar_endonly, bool ungreedy)
 {
     auto result = new regex_struct;
@@ -1340,6 +1480,176 @@ list<string>* char::split_str(string self, char* str)
     return result;
 }
 
+list<string>* char::split_block(char* self, regex_struct* reg, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings))
+{
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+
+    auto result = new list<string>.initialize();
+
+    int offset = 0;
+
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result == 1)
+        {
+            string str = self.substring(offset, start[0]);
+            
+            list<string>* match_strings = new list<string>.initialize();
+            string str2 = block(parent, str, match_strings);
+            result.push_back(str2);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+        }
+        /// group strings ///
+        else if(regex_result > 1) {
+            string str = self.substring(offset, start[0]);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+
+            list<string>* match_strings = new list<string>.initialize();
+            for(int i=1; i<regex_result; i++) {
+                string match_str = self.substring(start[i], end[i]);
+                match_strings.push_back(match_str);
+            }
+            
+            string str2 = block(parent, str, match_strings);
+            result.push_back(str2);
+        }
+        /// no match ///
+        else
+        {
+            break;
+        }
+    }
+
+    if(offset < self.length()) {
+        string str = self.substring(offset, -1);
+        list<string>* match_strings = new list<string>.initialize();
+        string str2 = block(parent, str, match_strings);
+        result.push_back(str2);
+    }
+
+    return result;
+}
+
+list<string>* char::split_block_count(char* self, regex_struct* reg, int count, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings))
+{
+    const char* err;
+    int erro_ofs;
+
+    int options = reg.options;
+    char* str = reg.str;
+
+    pcre* re = reg.re;
+
+    auto result = new list<string>.initialize();
+
+    int offset = 0;
+
+    int ovec_max = 16;
+    int start[ovec_max];
+    int end[ovec_max];
+    int ovec_value[ovec_max * 3];
+    
+    int n = 0;
+
+    while(true) {
+        int options = PCRE_NEWLINE_LF;
+        int len = strlen(self);
+
+        int regex_result = pcre_exec(re, 0, self, len, offset, options, ovec_value, ovec_max*3);
+
+        for(int i=0; i<ovec_max; i++) {
+            start[i] = ovec_value[i*2];
+        }
+        for(int i=0; i<ovec_max; i++) {
+            end[i] = ovec_value[i*2+1];
+        }
+
+        /// match and no group strings ///
+        if(regex_result == 1)
+        {
+            string str = self.substring(offset, start[0]);
+            
+            list<string>* match_strings = new list<string>.initialize();
+            string str2 = block(parent, str, match_strings);
+            result.push_back(str2);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+        }
+        /// group strings ///
+        else if(regex_result > 1) {
+            string str = self.substring(offset, start[0]);
+
+            if(offset == end[0]) {
+                offset++;
+            }
+            else {
+                offset = end[0];
+            }
+
+            list<string>* match_strings = new list<string>.initialize();
+            for(int i=1; i<regex_result; i++) {
+                string match_str = self.substring(start[i], end[i]);
+                match_strings.push_back(match_str);
+            }
+            
+            string str2 = block(parent, str, match_strings);
+            result.push_back(str2);
+        }
+        /// no match ///
+        else
+        {
+            break;
+        }
+        
+        n++;
+        if(n == count) {
+            break;
+        }
+    }
+
+    return result;
+}
+
 nregex char::to_regex(char* self) 
 {
     return regex(self, false, false, false, false, false, false, false, false);
@@ -1617,4 +1927,254 @@ wstring int::printable(wchar_t* str)
     result[n] = '\0'
 
     return result;
+}
+
+buffer* buffer_initialize(buffer* self) 
+{
+    self.size = 128;
+    self.buf = GC_malloc(self.size);
+    self.buf[0] = '\0'
+    self.len = 0;
+
+    return self;
+}
+
+int buffer_length(buffer* self) 
+{
+    return self.len;
+}
+
+buffer* buffer_append(buffer* self, char* mem, size_t size)
+{
+    if(self.len + size + 1 + 1 >= self.size) {
+        int new_size = (self.size + size + 1) * 2;
+        self.buf = GC_realloc(self.buf, new_size);
+        self.size = new_size;
+    }
+
+    memcpy(self.buf + self.len, mem, size);
+    self.len += size;
+
+    self.buf[self.len] = '\0';
+    
+    return self;
+}
+
+buffer* buffer_append_char(buffer* self, char c)
+{
+    if(self.len + 1 + 1 + 1 >= self.size) {
+        int new_size = (self.size + 10 + 1) * 2;
+        self.buf = GC_realloc(self.buf, new_size);
+        self.size = new_size;
+    }
+
+    self.buf[self.len] = c;
+    self.len++;
+
+    self.buf[self.len] = '\0';
+    
+    return self;
+}
+
+buffer* buffer_append_str(buffer* self, char* str)
+{
+    return self.append(str, strlen(str));
+}
+
+buffer* buffer_append_nullterminated_str(buffer* self, char* str)
+{
+    self.append(str, strlen(str));
+    self.append_char('\0');
+    
+    return self;
+}
+
+string buffer_to_string(buffer* self)
+{
+    return (string(self.buf));
+}
+
+buffer* buffer_append_int(buffer* self, int value) 
+{
+    return self.append((char*)&value, sizeof(int));
+}
+
+buffer* buffer_append_long(buffer* self, long value) 
+{
+    return self.append((char*)&value, sizeof(long));
+}
+
+buffer* buffer_append_short(buffer* self, short value) 
+{
+    return self.append((char*)&value, sizeof(short));
+}
+
+void buffer_alignment(buffer* self) 
+{
+    int len = self.len;
+    len = (len + 3) & ~3;
+    
+    if(len >= self.size) {
+        int new_size = (self.size + 1 + 1) * 2;
+        self.buf = GC_realloc(self.buf, new_size);
+        self.size = new_size;
+    }
+
+    for(int i=self.len; i<len; i++) {
+        self.buf[i] = '\0';
+    }
+    
+    self.len = len;
+}
+
+int buffer_compare(buffer* left, buffer* right) 
+{
+    return strcmp(left.buf, right.buf);
+}
+
+buffer* char::to_buffer(char* self) 
+{
+    auto result = new buffer.initialize();
+
+    result.append_str(self);
+
+    return result;
+}
+
+int int::expect(int self, void* parent, void (*block)(void* parent))
+{
+    if(self < 0) {
+        block(parent);
+    }
+
+    return self;
+}
+
+bool bool::expect(bool self, void* parent, void (*block)(void* parent))
+{
+    if(!self) {
+        block(parent);
+    }
+
+    return self;
+}
+
+void int::times(int self, void* parent, void (*block)(void* parent))
+{
+    int i;
+    for(i=0; i<self; i++) {
+        block(parent);
+    }
+}
+
+bool xiswalpha(wchar_t c)
+{
+    bool result = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    return result;
+}
+
+bool xiswblank(wchar_t c)
+{
+    return c == ' ' || c == '\t';
+}
+
+bool xiswdigit(wchar_t c)
+{
+    return (c >= '0' && c <= '9');
+}
+
+bool xiswalnum(wchar_t c)
+{
+    return xiswalpha(c) || xiswdigit(c);
+}
+
+bool xisalpha(char c)
+{
+    bool result = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    return result;
+}
+
+bool xisblank(char c)
+{
+    return c == ' ' || c == '\t';
+}
+
+bool xisdigit(char c)
+{
+    return (c >= '0' && c <= '9');
+}
+
+bool xisalnum(char c)
+{
+    return xisalpha(c) || xisdigit(c);
+}
+
+string xbasename(char* path)
+{
+    char* p = path + strlen(path);
+    
+    while(p >= path) {
+        if(*p == '/') {
+            break;
+        }
+        else {
+            p--;
+        }
+    }
+    
+    if(p < path) {
+        return string(path);
+    }
+    else {
+        return string(p+1);  
+    }
+}
+
+string xextname(char* path)
+{
+    char* p = path + strlen(path);
+    
+    while(p >= path) {
+        if(*p == '.') {
+            break;
+        }
+        else {
+            p--;
+        }
+    }
+    
+    if(p < path) {
+        return string(path);
+    }
+    else {
+        return string(p+1);  
+    }
+}
+
+string xrealpath(char* path)
+{
+    char* result = realpath(path, null);
+
+    string result2 = string(result);
+
+    free(result);
+
+    return result2;
+}
+
+
+
+void come_fd_zero(fd_set* fds)
+{
+    FD_ZERO(fds);
+}
+
+void come_fd_set(int fd, fd_set* fds)
+{
+    FD_SET(fd, fds);
+}
+
+int come_fd_isset(int fd, fd_set* fds)
+{
+    return FD_ISSET(fd, fds);
 }

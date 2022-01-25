@@ -21,28 +21,7 @@
 
 typedef char* string;
 
-static void* ncmemdup(void* block)
-{
-    size_t size = GC_size(block);
-
-    if(!block) {
-        return null;
-    }
-
-    void* ret = GC_malloc(size);
-
-    if (ret) {
-        char* p = ret;
-        char* p2 = block;
-        while(p - ret < size) {
-            *p = *p2;
-            p++;
-            p2++;
-        }
-    }
-
-    return ret;
-}
+void* ncmemdup(void* block);
 
 inline void xassert(const char* msg, bool exp)
 {
@@ -68,124 +47,18 @@ inline string string(char* str)
     return result;
 }
 
-static string xsprintf(char* msg, ...)
-{
-    va_list args;
-    va_start(args, msg);
-    char* result;
-    int len = vasprintf(&result, msg, args);
-    va_end(args);
-
-    if(len < 0) {
-        fprintf(stderr, "can't get heap memory.\n");
-
-        exit(2);
-    }
-    
-    string result2 = string(result);
-    
-    free(result);
-    
-    return result2;
-}
-
-static string char::reverse(char* str) 
-{
-    int len = strlen(str);
-    char* result = new char[len + 1];
-
-    for(int i=0; i<len; i++) {
-        result[i] = str[len-i-1];
-    }
-
-    result[len] = '\0';
-
-    return result;
-}
-
-static string char::substring(char* str, int head, int tail)
-{
-    if(str == null) {
-        return string("");
-    }
-
-    int len = strlen(str);
-
-    if(head < 0) {
-        head += len;
-    }
-    if(tail < 0) {
-        tail += len + 1;
-    }
-
-    if(head > tail) {
-        return str.substring(tail, head).reverse();
-    }
-
-    if(head < 0) {
-        head = 0;
-    }
-
-    if(tail >= len) {
-        tail = len;
-    }
-
-    if(head == tail) {
-        return string("");
-    }
-
-    if(tail-head+1 < 1) {
-        return string("");
-    }
-
-    string result = new char[tail-head+1];
-
-    memcpy(result, str + head, tail-head);
-    result[tail-head] = '\0';
-
-    return result;
-}
-
-static int char::length(char* str)
-{
-    return strlen(str);
-}
+string xsprintf(char* msg, ...);
+string char::reverse(char* str);
+string char::substring(char* str, int head, int tail);
+int char::length(char* str);
 
 /// int methods ///
-static int int::get_hash_key(int value)
-{
-    return value;
-}
+int int::get_hash_key(int value);
 
 /// char methods ///
-static int char::get_hash_key(char* value)
-{
-    int result = 0;
-    char* p = value;
-    while(*p) {
-        result += (*p);
-        p++;
-    }
-    return result;
-}
-
-static bool char::equals(string left, string right)
-{
-    return strcmp(left, right) == 0;
-}
-
-static int char::compare(int left, int right) 
-{
-    if(left < right) {
-        return -1;
-    }
-    else if(left > right) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
+int char::get_hash_key(char* value);
+bool char::equals(string left, string right);
+int char::compare(int left, int right);
 
 /// vector ///
 struct vector<T> 
@@ -1433,138 +1306,24 @@ struct buffer {
     int size;
 };
 
-static buffer* buffer_initialize(buffer* self) 
-{
-    self.size = 128;
-    self.buf = GC_malloc(self.size);
-    self.buf[0] = '\0'
-    self.len = 0;
-
-    return self;
-}
-
-static int buffer_length(buffer* self) 
-{
-    return self.len;
-}
-
-static void buffer_append(buffer* self, char* mem, size_t size)
-{
-    if(self.len + size + 1 + 1 >= self.size) {
-        int new_size = (self.size + size + 1) * 2;
-        self.buf = GC_realloc(self.buf, new_size);
-        self.size = new_size;
-    }
-
-    memcpy(self.buf + self.len, mem, size);
-    self.len += size;
-
-    self.buf[self.len] = '\0';
-}
-
-static void buffer_append_char(buffer* self, char c)
-{
-    if(self.len + 1 + 1 + 1 >= self.size) {
-        int new_size = (self.size + 10 + 1) * 2;
-        self.buf = GC_realloc(self.buf, new_size);
-        self.size = new_size;
-    }
-
-    self.buf[self.len] = c;
-    self.len++;
-
-    self.buf[self.len] = '\0';
-}
-
-static void buffer_append_str(buffer* self, char* str)
-{
-    self.append(str, strlen(str));
-}
-
-static void buffer_append_nullterminated_str(buffer* self, char* str)
-{
-    self.append(str, strlen(str));
-    self.append_char('\0');
-}
-
-static string buffer_to_string(buffer* self)
-{
-    return (string(self.buf));
-}
-
-static void buffer_append_int(buffer* self, int value) 
-{
-    self.append((char*)&value, sizeof(int));
-}
-
-static void buffer_append_long(buffer* self, long value) 
-{
-    self.append((char*)&value, sizeof(long));
-}
-
-static void buffer_append_short(buffer* self, short value) 
-{
-    self.append((char*)&value, sizeof(short));
-}
-
-static void buffer_alignment(buffer* self) 
-{
-    int len = self.len;
-    len = (len + 3) & ~3;
-    
-    if(len >= self.size) {
-        int new_size = (self.size + 1 + 1) * 2;
-        self.buf = GC_realloc(self.buf, new_size);
-        self.size = new_size;
-    }
-
-    for(int i=self.len; i<len; i++) {
-        self.buf[i] = '\0';
-    }
-    
-    self.len = len;
-}
-
-static int buffer_compare(buffer* left, buffer* right) 
-{
-    return strcmp(left.buf, right.buf);
-}
-
-static buffer* char::to_buffer(char* self) 
-{
-    auto result = new buffer.initialize();
-
-    result.append_str(self);
-
-    return result;
-}
+buffer* buffer_initialize(buffer* self);
+int buffer_length(buffer* self);
+buffer* buffer_append(buffer* self, char* mem, size_t size);
+buffer* buffer_append_char(buffer* self, char c);
+buffer* buffer_append_str(buffer* self, char* str);
+buffer* buffer_append_nullterminated_str(buffer* self, char* str);
+string buffer_to_string(buffer* self);
+buffer* buffer_append_int(buffer* self, int value);
+buffer* buffer_append_long(buffer* self, long value);
+buffer* buffer_append_short(buffer* self, short value);
+void buffer_alignment(buffer* self);
+int buffer_compare(buffer* left, buffer* right);
+buffer* char::to_buffer(char* self);
 
 /// additional libraries ///
-static int int::expect(int self, void* parent, void (*block)(void* parent))
-{
-    if(self < 0) {
-        block(parent);
-    }
-
-    return self;
-}
-
-static bool bool::expect(bool self, void* parent, void (*block)(void* parent))
-{
-    if(!self) {
-        block(parent);
-    }
-
-    return self;
-}
-
-static void int::times(int self, void* parent, void (*block)(void* parent))
-{
-    int i;
-    for(i=0; i<self; i++) {
-        block(parent);
-    }
-}
+int int::expect(int self, void* parent, void (*block)(void* parent));
+bool bool::expect(bool self, void* parent, void (*block)(void* parent));
+void int::times(int self, void* parent, void (*block)(void* parent));
 
 impl list<T>
 {
@@ -1619,117 +1378,20 @@ impl list<T>
     }
 }
 
-static bool xiswalpha(wchar_t c)
-{
-    bool result = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-    return result;
-}
-
-static bool xiswblank(wchar_t c)
-{
-    return c == ' ' || c == '\t';
-}
-
-static bool xiswdigit(wchar_t c)
-{
-    return (c >= '0' && c <= '9');
-}
-
-static bool xiswalnum(wchar_t c)
-{
-    return xiswalpha(c) || xiswdigit(c);
-}
-
-static bool xisalpha(char c)
-{
-    bool result = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-    return result;
-}
-
-static bool xisblank(char c)
-{
-    return c == ' ' || c == '\t';
-}
-
-static bool xisdigit(char c)
-{
-    return (c >= '0' && c <= '9');
-}
-
-static bool xisalnum(char c)
-{
-    return xisalpha(c) || xisdigit(c);
-}
-
-static string xbasename(char* path)
-{
-    char* p = path + strlen(path);
-    
-    while(p >= path) {
-        if(*p == '/') {
-            break;
-        }
-        else {
-            p--;
-        }
-    }
-    
-    if(p < path) {
-        return string(path);
-    }
-    else {
-        return string(p+1);  
-    }
-}
-
-static string xextname(char* path)
-{
-    char* p = path + strlen(path);
-    
-    while(p >= path) {
-        if(*p == '.') {
-            break;
-        }
-        else {
-            p--;
-        }
-    }
-    
-    if(p < path) {
-        return string(path);
-    }
-    else {
-        return string(p+1);  
-    }
-}
-
-static string xrealpath(char* path)
-{
-    char* result = realpath(path, null);
-
-    string result2 = string(result);
-
-    free(result);
-
-    return result2;
-}
-
-
-
-static void come_fd_zero(fd_set* fds)
-{
-    FD_ZERO(fds);
-}
-
-static void come_fd_set(int fd, fd_set* fds)
-{
-    FD_SET(fd, fds);
-}
-
-static int come_fd_isset(int fd, fd_set* fds)
-{
-    return FD_ISSET(fd, fds);
-}
+bool xiswalpha(wchar_t c);
+bool xiswblank(wchar_t c);
+bool xiswdigit(wchar_t c);
+bool xiswalnum(wchar_t c);
+bool xisalpha(char c);
+bool xisblank(char c);
+bool xisdigit(char c);
+bool xisalnum(char c);
+string xbasename(char* path);
+string xextname(char* path);
+string xrealpath(char* path);
+void come_fd_zero(fd_set* fds);
+void come_fd_set(int fd, fd_set* fds);
+int come_fd_isset(int fd, fd_set* fds);
 
 #include <limits.h>
 #include <wchar.h>
@@ -1784,6 +1446,8 @@ list<string>* char::split(char* self, regex_struct* reg);
 list<string>* char::split_maxsplit(char* self, regex_struct* reg, int maxsplit);
 list<string>* char::split_char(string self, char c) ;
 list<string>* char::split_str(string self, char* str) ;
+list<string>* char::split_block(char* self, regex_struct* reg, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings));
+list<string>* char::split_block_count(char* self, regex_struct* reg, int count, void* parent, string (*block)(void* parent, string match_string, list<string>* group_strings));
 nregex char::to_regex(char* self) ;
 nregex char::to_regex_flags(char* self, bool global, bool ignore_case) ;
 string char::printable(char* str);
