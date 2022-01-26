@@ -1297,6 +1297,10 @@ void free_nodes(char* sname)
                 case kNodeTypeCString:
                     free(gNodes[i].uValue.sString.mString);
                     break;
+                    
+                case kNodeTypeRegex:
+                    free(gNodes[i].uValue.sRegex.mString);
+                    break;
 
                 case kNodeTypeFunction:
                     sNodeBlock_free(gNodes[i].uValue.sFunction.mNodeBlock);

@@ -414,3 +414,71 @@ BOOL compile_double_value(unsigned int node, sCompileInfo* info)
 
     return TRUE;
 }
+
+unsigned int sNodeTree_create_regex_value(MANAGED char* value, BOOL global, BOOL ignore_case, int sline, sParserInfo* info)
+{
+    unsigned int node = alloc_node();
+
+    gNodes[node].mNodeType = kNodeTypeRegex;
+
+    xstrncpy(gNodes[node].mSName, info->sname, PATH_MAX);
+    gNodes[node].mLine = sline;
+
+    gNodes[node].mLeft = 0;
+    gNodes[node].mRight = 0;
+    gNodes[node].mMiddle = 0;
+
+    gNodes[node].uValue.sRegex.mString = MANAGED value;
+    gNodes[node].uValue.sRegex.mGlobal = global;
+    gNodes[node].uValue.sRegex.mIgnoreCase = ignore_case;
+
+    return node;
+}
+
+BOOL compile_regex_value(unsigned int node, sCompileInfo* info)
+{
+    char* buf = gNodes[node].uValue.sRegex.mString;
+    BOOL global = gNodes[node].uValue.sRegex.mGlobal;
+    BOOL ignore_case = gNodes[node].uValue.sRegex.mIgnoreCase;
+    
+    int num_params = 3;
+    
+    LLVMValueRef llvm_params[PARAMS_MAX];
+    memset(llvm_params, 0, sizeof(LLVMValueRef)*PARAMS_MAX);
+    LLVMTypeRef llvm_type = create_llvm_type_with_class_name("bool");
+    
+    LLVMTypeRef llvm_type2 = create_llvm_type_with_class_name("char*");
+
+    LLVMValueRef value = LLVMBuildPointerCast(gBuilder, LLVMBuildGlobalString(gBuilder, buf, buf), llvm_type2, "str");
+    
+    llvm_params[0] = value;
+    llvm_params[1] = LLVMConstInt(llvm_type, global, FALSE);
+    llvm_params[2] = LLVMConstInt(llvm_type, ignore_case, FALSE);
+
+    char* fun_name = "char_to_regex_flags";
+    LLVMValueRef llvm_fun = LLVMGetNamedFunction(gModule, fun_name);
+    
+    if(llvm_fun == NULL) {
+        compile_err_msg(info, "require char_to_regex_flags\n");
+        return FALSE;
+    }
+
+    LLVMValueRef result = LLVMBuildCall(gBuilder, llvm_fun, llvm_params, num_params, "fun_result");
+
+    /// result ///
+    LVALUE llvm_value;
+    llvm_value.value = result;
+    llvm_value.type = create_node_type_with_class_name("regex_struct");
+    llvm_value.type->mPointerNum = 1;
+    llvm_value.address = NULL;
+    llvm_value.var = NULL;
+    llvm_value.binded_value = FALSE;
+    llvm_value.load_field = FALSE;
+
+    push_value_to_stack_ptr(&llvm_value, info);
+
+    info->type = create_node_type_with_class_name("regex_struct");
+    info->type->mPointerNum = 1;
+
+    return TRUE;
+}

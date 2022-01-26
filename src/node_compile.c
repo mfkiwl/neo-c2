@@ -101,6 +101,14 @@ BOOL compile(unsigned int node, sCompileInfo* info)
                 return FALSE;
             }
             break;
+            
+        case kNodeTypeRegex:
+            if(!compile_regex_value(node, info)) 
+            {
+                return FALSE;
+            }
+            break;
+
 
         case kNodeTypeStoreVariable:
             if(!compile_store_variable(node, info)) {

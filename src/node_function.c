@@ -461,7 +461,10 @@ if(type_identify_with_class_name(fun_param_type, "__va_list") && type_identify_w
 
                 if(!substitution_posibility(fun_param_type, param_type, info)) {
                     compile_err_msg(info, "function(%s) param type error %d", fun_name, i);
+                    puts("fun param type");
                     show_node_type(fun_param_type);
+                    
+                    puts("param type");
                     show_node_type(param_type);
                     info->err_num++;
                     return TRUE;

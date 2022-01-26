@@ -400,6 +400,58 @@ BOOL get_number(BOOL minus, unsigned int* node, sParserInfo* info)
     return TRUE;
 }
 
+BOOL get_regex(unsigned int* node, sParserInfo* info)
+{
+    int sline = info->sline;
+    
+    sBuf buf;
+    sBuf_init(&buf);
+    while(TRUE) {
+        if(*info->p == '\\' && *(info->p+1) == '/') {
+            info->p++;
+            sBuf_append_char(&buf, *info->p);
+            info->p++;
+        }
+        else if(*info->p == '/') {
+            info->p++;
+            break;
+        }
+        else if(*info->p == '\0') {
+            int sline2 = info->sline;
+            info->sline = sline;
+            parser_err_msg(info, "require closing / for regex");
+            info->sline = sline2;
+            return FALSE;
+        }
+        else {
+            sBuf_append_char(&buf, *info->p);
+            info->p++;
+        }
+    }
+    
+    BOOL global = FALSE;
+    BOOL ignore_case = FALSE;
+    while(*info->p == 'g' || *info->p == 'i') {
+        if(*info->p == 'g') {
+            info->p++;
+            global = TRUE;
+        }
+        else if(*info->p == 'i') {
+            info->p++;
+            ignore_case = TRUE;
+        }
+        else {
+            break;
+        }
+    }
+    
+    skip_spaces_and_lf(info);
+    
+    *node = sNodeTree_create_regex_value(buf.mBuf, global, ignore_case, sline, info);
+    
+    return TRUE;
+}
+
 void create_anonymous_name(char* name, int name_size)
 {
     static int n = 0;

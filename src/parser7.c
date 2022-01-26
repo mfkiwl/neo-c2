@@ -368,6 +368,14 @@ BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* in
             return FALSE;
         }
     }
+    /// regex ///
+    else if(*info->p == '/') {
+        info->p++;
+        
+        if(!get_regex(node, info)) {
+            return FALSE;
+        }
+    }
     /// c string ///
     else if(*info->p == '"') 
     {
@@ -424,7 +432,10 @@ BOOL expression_node(unsigned int* node, BOOL enable_assginment, sParserInfo* in
                 }
             }
             else if(*info->p == '\0') {
+                int sline2 = info->sline;
+                info->sline = sline;
                 parser_err_msg(info, "close \" to make c string value");
+                info->sline = sline2;
                 return FALSE;
             }
             else {
